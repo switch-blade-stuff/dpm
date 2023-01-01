@@ -1,0 +1,7 @@
+
+list(APPEND SVM_INTERFACE_SOURCES
+        ${CMAKE_CURRENT_LIST_DIR}/cpuid.hpp)
+
+list(APPEND SVM_PRIVATE_SOURCES
+        ${CMAKE_CURRENT_LIST_DIR}/cpuid.cpp)
+
