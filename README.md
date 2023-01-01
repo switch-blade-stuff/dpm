@@ -70,7 +70,7 @@ cd build
 cmake ..
 ```
 
-Build artifacts will be found in `build/bin` and `build/lib`. Minimum required CMake version is 3.19
+Build artifacts will be found in `build/bin` and `build/lib`. Minimum required CMake version is 3.20
 
 In order to use the library as a CMake link dependency, you must link to one of the following targets:
 

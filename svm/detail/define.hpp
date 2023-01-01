@@ -60,6 +60,7 @@ import std;
 #if defined(_MSC_VER) || defined(__CYGWIN__)
 
 #define SVM_PURE
+#define SVM_TARGET(t)
 #define SVM_FORCEINLINE __forceinline
 #define SVM_NEVER_INLINE __declspec(noinline)
 #define SVM_VECTORCALL __vectorcall
@@ -67,6 +68,7 @@ import std;
 #elif defined(__clang__) || defined(__GNUC__)
 
 #define SVM_PURE __attribute__((pure))
+#define SVM_TARGET(t) __attribute__((target(t)))
 #define SVM_FORCEINLINE __attribute__((always_inline))
 #define SVM_NEVER_INLINE __attribute__((noinline))
 #define SVM_VECTORCALL
@@ -74,6 +76,7 @@ import std;
 #else
 
 #define SVM_PURE
+#define SVM_TARGET(t)
 #define SVM_FORCEINLINE
 #define SVM_NEVER_INLINE
 #define SVM_VECTORCALL

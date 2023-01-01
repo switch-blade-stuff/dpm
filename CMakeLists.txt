@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.19)
+cmake_minimum_required(VERSION 3.20)
 project(svm)
 
 # Library options
@@ -48,8 +48,7 @@ set_target_properties(${SVM_PROJECT} PROPERTIES DEFINE_SYMBOL "SVM_EXPORT")
 
 # On MSVC, use c++latest instead of c++20 for experimental module support on MSVC
 if (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC" AND SVM_USE_MODULES)
-    set_property(TARGET ${SVM_PROJECT} PROPERTY CXX_STANDARD 23)
-    target_compile_options(${SVM_PROJECT} PUBLIC /experimental:module)
+    target_compile_features(${SVM_PROJECT} PUBLIC cxx_std_23)
 else ()
     target_compile_features(${SVM_PROJECT} PUBLIC cxx_std_20)
 endif ()

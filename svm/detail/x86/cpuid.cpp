@@ -15,8 +15,6 @@
 
 #include <intrin.h>
 
-#elif !(defined(__GNUC__) || defined(__clang__))
-#error "Unsuported compiler"
 #endif
 
 namespace svm::detail::x86
@@ -26,13 +24,15 @@ namespace svm::detail::x86
 	static SVM_FORCEINLINE void platform_cpuid(std::uint32_t leaf, cpuid_regs &regs)
 	{
 #if defined(_MSC_VER) || defined(__CYGWIN__)
-		__cpuid(reinterpret_cast<int *>(regs.data()), static_cast<int>(leaf));
+		__cpuid(reinterpret_cast<int *>(regs), static_cast<int>(leaf));
 #elif defined(__GNUC__) || defined(__clang__)
 		__asm("xchgq  %%rbx,%q1\n"
 		      "\tcpuid\n"
 		      "\txchgq  %%rbx,%q1"
 				: "=a"(regs[0]), "=r" (regs[1]), "=c"(regs[2]), "=d"(regs[3])
 				: "0"(leaf));
+#else
+#error "Unsupported compiler"
 #endif
 	}
 

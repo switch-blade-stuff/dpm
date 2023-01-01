@@ -15,7 +15,7 @@
 
 namespace svm::detail
 {
-	template<typename DispFunc>
+	template<typename DispFunc> requires std::is_function_v<std::remove_pointer_t<std::invoke_result_t<DispFunc>>>
 	class dispatcher : DispFunc
 	{
 		using func_t = std::remove_pointer_t<std::invoke_result_t<DispFunc>>;
@@ -26,7 +26,7 @@ namespace svm::detail
 		constexpr dispatcher(DispFunc &&disp) : DispFunc(std::forward<DispFunc>(disp)) {}
 
 		template<typename... Args>
-		std::invoke_result_t<func_t, Args...> operator()(Args ...args) requires std::invocable<func_t, Args...>
+		constexpr std::invoke_result_t<func_t, Args &&...> operator()(Args &&...args) requires std::is_invocable_v<func_t, Args &&...>
 		{
 			auto func = m_func.load();
 			if (func == nullptr) [[unlikely]]
