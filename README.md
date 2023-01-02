@@ -41,8 +41,8 @@ On architectures without SIMD intrinsic support, SIMD operations are emulated vi
     <td>Toggles runtime detection & dispatch of SIMD operations</td>
   </tr>
   <tr>
-    <td>SVM_USE_AVX512</td>
-    <td>-DSVM_USE_AVX512</td>
+    <td>SVM_NATIVE_AVX512</td>
+    <td>-DSVM_NATIVE_AVX512</td>
     <td>OFF</td>
     <td>Toggles global support for AVX512 instructions on x86 targets (see notes)</td>
   </tr>
@@ -95,5 +95,5 @@ inefficiency of AVX512 operations on certain CPUs. See the following articles fo
 - [https://news.ycombinator.com/item?id=21031905](https://news.ycombinator.com/item?id=21031905)
 - [https://www.phoronix.com/news/Linus-Torvalds-On-AVX-512](https://www.phoronix.com/news/Linus-Torvalds-On-AVX-512)
 
-In order to take advantage of AVX512 SIMD operations, use the `wide<T>` extension ABI tag.
-To enable AVX512 operations globally, use the `SVM_USE_AVX512` option.
+In order to take advantage of AVX512 SIMD operations, use the `avx512<T>` extension ABI tag.
+To enable AVX512 operations globally, use the `SVM_NATIVE_AVX512` option.

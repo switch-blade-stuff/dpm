@@ -17,7 +17,7 @@
 
 #endif
 
-namespace svm::detail::x86
+namespace svm::detail
 {
 	using cpuid_regs = std::uint32_t[4];
 

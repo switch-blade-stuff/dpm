@@ -10,7 +10,7 @@
 
 #include "../utility.hpp"
 
-namespace svm::detail::x86
+namespace svm::detail
 {
 	class cpuid
 	{

@@ -12,9 +12,9 @@ if (${SVM_DYNAMIC_DISPATCH})
     add_compile_definitions(SVM_DYNAMIC_DISPATCH)
 endif ()
 
-option(SVM_USE_AVX512 "Toggles global support for AVX512 instructions on x86 targets" ON)
-if (${SVM_USE_AVX512})
-    add_compile_definitions(SVM_USE_AVX512)
+option(SVM_NATIVE_AVX512 "Toggles global support for AVX512 instructions on x86 targets" OFF)
+if (${SVM_NATIVE_AVX512})
+    add_compile_definitions(SVM_NATIVE_AVX512)
 endif ()
 
 option(SVM_USE_IPO "Toggles support for inter-procedural optimization" ON)

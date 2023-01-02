@@ -28,6 +28,9 @@ namespace svm::detail
 		template<typename... Args>
 		constexpr std::invoke_result_t<func_t, Args &&...> operator()(Args &&...args) requires std::is_invocable_v<func_t, Args &&...>
 		{
+			/* NOTE: It is fine to avoid thread synchronization here (or use thread locals).
+			 * Synchronization will introduce unwanted overhead (bad for efficiency-oriented SIMD functions),
+			 * and at worst we will see multiple threads dispatching the same function several times. */
 			auto func = m_func.load();
 			if (func == nullptr) [[unlikely]]
 			{

@@ -33,17 +33,39 @@
 #ifdef __AVX__
 #define SVM_HAS_AVX
 
-#ifdef __AVX2__
-#define SVM_HAS_AVX2
+/* MSVC does not define SSE3+ macros, so we need to emulate them. AVX CPUs should support all other SSE levels. */
+#if defined(_MSC_VER)
+#define SVM_HAS_SSE3
+#define SVM_HAS_SSSE3
+#define SVM_HAS_SSE4_1
+#define SVM_HAS_SSE4_2
 #endif
 #endif
 
-/* TODO: Support AVX512 */
+#ifdef __FMA__
+#define SVM_HAS_FMA
+#endif
+
+#ifdef __AVX2__
+#define SVM_HAS_AVX2
+
+/* If __FMA__ is not defined by the compiler but AVX2 is supported, enable FMA as well. */
+#ifndef SVM_HAS_FMA
+#define SVM_HAS_FMA
+#endif
+#endif
+
+#ifdef __AVX512F__
+#define SVM_HAS_AVX512
+#define SVM_HAS_AVX512F
+
+/* TODO: Support other AVX512 tiers */
+#endif
 
 #elif defined(__arm__) || defined(__arm) || defined(__aarch64__) || defined(_M_ARM)
 #define SVM_ARCH_ARM
 
-#if defined(SVM_ARCH_ARM) && (defined(__ARM_NEON__) || defined(__ARM_NEON))
+#if defined(__ARM_NEON__) || defined(__ARM_NEON)
 #define SVM_HAS_NEON
 #endif
 
