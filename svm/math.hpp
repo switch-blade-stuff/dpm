@@ -3,7 +3,3 @@
  */
 
 #pragma once
-
-#include "abi.hpp"
-#include "type.hpp"
-#include "math.hpp"

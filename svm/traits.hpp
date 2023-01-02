@@ -6,13 +6,6 @@
 
 #include "detail/define.hpp"
 
-#ifndef SVM_USE_IMPORT
-
-#include <concepts>
-#include <utility>
-
-#endif
-
 namespace svm
 {
 	namespace simd_abi::detail

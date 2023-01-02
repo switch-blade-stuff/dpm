@@ -31,6 +31,7 @@ import std;
 #else
 
 #include <type_traits>
+#include <concepts>
 #include <version>
 #include <cstdint>
 #include <cstddef>

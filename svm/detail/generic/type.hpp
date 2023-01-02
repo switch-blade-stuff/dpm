@@ -4,8 +4,9 @@
 
 #pragma once
 
-#include "../../traits.hpp"
+#include "../../flags.hpp"
 #include "../reference.hpp"
+
 #include "abi.hpp"
 
 namespace svm

@@ -59,11 +59,26 @@
 #define SVM_HAS_AVX512
 #define SVM_HAS_AVX512F
 
-/* TODO: Support other AVX512 tiers */
+#ifdef __AVX512CD__
+#define SVM_HAS_AVX512CD
+#endif
+#ifdef __AVX512BW__
+#define SVM_HAS_AVX512BW
+#endif
+#ifdef __AVX512DQ__
+#define SVM_HAS_AVX512DQ
+#endif
+#ifdef __AVX512VL__
+#define SVM_HAS_AVX512VL /* AVX operations on non-AVX registers. */
+#endif
 #endif
 
-#elif defined(__arm__) || defined(__arm) || defined(__aarch64__) || defined(_M_ARM)
+#elif defined(__arm__) || defined(__arm) || defined(__aarch64__) || defined(_M_ARM) || defined(_M_ARM64)
 #define SVM_ARCH_ARM
+
+#if defined(__aarch64__) || defined(_M_ARM64)
+#define SVM_ARCH_ARM64
+#endif
 
 #if defined(__ARM_NEON__) || defined(__ARM_NEON)
 #define SVM_HAS_NEON

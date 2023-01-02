@@ -4,45 +4,72 @@
 
 #pragma once
 
-#include <arm_neon.h>
-#ifdef SVM_ARCH_ARM
+#include "../generic/abi.hpp"
 
+#if defined(SVM_ARCH_ARM) && (defined(SVM_HAS_NEON) || defined(SVM_DYNAMIC_DISPATCH))
+
+/* On GCC & CLang `arm_neon.h` will error-out if __ARM_NEON was not defined. We still need `arm_neon.h` for dynamic dispatch. */
+#if !defined(SVM_HAS_NEON) && (defined(__GNUC__) || defined(__clang__))
+#define __ARM_NEON
+#define __ARM_NEON__
+#endif
+
+#include <arm_neon.h>
 
 namespace svm::detail::abi
 {
+	namespace detail
+	{
+		/* `long double` is not supported by x86 SIMD. */
+		template<typename T, typename U = std::decay_t<T>>
+		concept has_neon_vector = std::integral<U> || std::same_as<U, float> || std::same_as<U, double>;
+
+		/* Select an `aligned_vector` ABI tag that fits the specified NEON vector. */
+		template<has_neon_vector T>
+		struct select_neon;
+
+		template<typename I> requires(std::signed_integral<I> && sizeof(T) == 1)
+		struct select_neon { using type = aligned_vector<16, alignof(int8x16_t)>; };
+		template<typename I> requires(std::signed_integral<I> && sizeof(T) == 2)
+		struct select_neon { using type = aligned_vector<8, alignof(int16x8_t)>; };
+		template<typename I> requires(std::signed_integral<I> && sizeof(T) == 4)
+		struct select_neon { using type = aligned_vector<4, alignof(int32x4_t)>; };
+
+		template<typename I> requires(std::unsigned_integral<I> && sizeof(T) == 1)
+		struct select_neon { using type = aligned_vector<16, alignof(uint8x16_t)>; };
+		template<typename I> requires(std::unsigned_integral<I> && sizeof(T) == 2)
+		struct select_neon { using type = aligned_vector<8, alignof(uint16x8_t)>; };
+		template<typename I> requires(std::unsigned_integral<I> && sizeof(T) == 4)
+		struct select_neon { using type = aligned_vector<4, alignof(uint32x4_t)>; };
+
+		template<>
+		struct select_neon<float> { using type = aligned_vector<4, alignof(float32x4_t)>; };
+
+#ifdef SVM_ARCH_ARM64
+		template<typename I> requires(std::signed_integral<I> && sizeof(T) == 8)
+		struct select_neon { using type = aligned_vector<2, alignof(int64x2_t)>; };
+		template<typename I> requires(std::unsigned_integral<I> && sizeof(T) == 8)
+		struct select_neon { using type = aligned_vector<2, alignof(uint64x2_t)>; };
+
+		template<>
+		struct select_neon<double> { using type = aligned_vector<2, alignof(float64x2_t)>; };
+#endif
+
+		template<has_neon_vector T>
+		struct select_compatible<T> : select_neon<T> {};
+		template<has_neon_vector T>
+		struct select_native<T> : select_neon<T> {};
+	}
+
+	/** @brief Extension ABI tag used to select ARM NEON vectors as the underlying SIMD type. */
 	template<typename T>
-	struct neon;
-
-	template<typename T>
-	using compatible = typename detail::valid_or<neon<T>, scalar>::type;
-	template<typename T>
-	using native = compatible<T>;
-
-	template<typename T> requires(std::signed_integral<T> && sizeof(T) == 1)
-	struct neon<T> { using type = int8x16_t; };
-	template<typename T> requires(std::signed_integral<T> && sizeof(T) == 2)
-	struct neon<T> { using type = int16x8_t; };
-	template<typename T> requires(std::signed_integral<T> && sizeof(T) == 4)
-	struct neon<T> { using type = int32x4_t; };
-	template<typename T> requires(std::signed_integral<T> && sizeof(T) == 8)
-	struct neon<T> { using type = int64x2_t; };
-
-	template<typename T> requires(std::unsigned_integral<T> && sizeof(T) == 1)
-	struct neon<T> { using type = uint8x16_t; };
-	template<typename T> requires(std::unsigned_integral<T> && sizeof(T) == 2)
-	struct neon<T> { using type = uint16x8_t; };
-	template<typename T> requires(std::unsigned_integral<T> && sizeof(T) == 4)
-	struct neon<T> { using type = uint32x4_t; };
-	template<typename T> requires(std::unsigned_integral<T> && sizeof(T) == 8)
-	struct neon<T> { using type = uint64x2_t; };
-
-	template<>
-	struct neon<float> { using type = float32x4_t; };
-	template<>
-	struct neon<double> { using type = float64x2_t; };
-
-	template<typename T>
-	inline constexpr int max_fixed_size = 32;
+	using neon = typename detail::select_neon<T>::type;
 }
+
+/* Undefine the NEON macros if we forced NEON support. */
+#if !defined(SVM_HAS_NEON) && (defined(__GNUC__) || defined(__clang__))
+#undef __ARM_NEON
+#undef __ARM_NEON__
+#endif
 
 #endif

@@ -6,15 +6,7 @@
 
 #include "../generic/abi.hpp"
 
-#ifdef SVM_ARCH_X86
-
-#include "../utility.hpp"
-
-#ifndef SVM_USE_IMPORT
-
-#include <concepts>
-
-#endif
+#if defined(SVM_ARCH_X86) && (defined(SVM_HAS_SSE) || defined(SVM_DYNAMIC_DISPATCH))
 
 #include <immintrin.h>
 
@@ -36,11 +28,11 @@ namespace svm::simd_abi
 		template<typename T>
 		using select_avx512 = select_x86_vector<T, __m512>;
 
-		/* SSE is the least common denominator for most intel CPUs since 1999. */
+		/* SSE is the least common denominator for most intel CPUs since 1999 (and is a requirement for all 64-bit CPUs). */
 		template<has_x86_vector T>
 		struct select_compatible<T> : select_sse<T> {};
 
-#if defined(SVM_NATIVE_AVX512) && defined(SVM_HAS_AVX512)
+#if defined(SVM_HAS_AVX512) && defined(SVM_NATIVE_AVX512)
 		template<has_x86_vector T>
 		struct select_native<T> : select_avx512<T> {};
 #elif defined(SVM_HAS_AVX)
@@ -55,14 +47,21 @@ namespace svm::simd_abi
 	/** @brief Extension ABI tag used to select SSE vectors as the underlying SIMD type. */
 	template<typename T>
 	using sse = typename detail::select_sse<T>::type;
+
+	/* Only enable non-SSE tags when support for them is available, or when dynamic dispatch is enabled. */
+#if defined(SVM_HAS_AVX) || defined(SVM_DYNAMIC_DISPATCH)
 	/** @brief Extension ABI tag used to select AVX vectors as the underlying SIMD type. */
 	template<typename T>
 	using avx = typename detail::select_avx<T>::type;
+#endif
+#if defined(SVM_HAS_AVX512) || defined(SVM_DYNAMIC_DISPATCH)
 	/** @brief Extension ABI tag used to select AVX512 vectors as the underlying SIMD type. */
 	template<typename T>
 	using avx512 = typename detail::select_avx512<T>::type;
+#endif
 
-#if defined(SVM_NATIVE_AVX512) && defined(SVM_HAS_AVX512) /* If AVX512 is required, use 64 bytes for max_fixed_size. Otherwise, fall back to the default 32. */
+	/* If AVX512 is required, use 64 bytes for max_fixed_size. Otherwise, fall back to the default 32. */
+#if (defined(SVM_HAS_AVX512) || defined(SVM_DYNAMIC_DISPATCH)) && defined(SVM_NATIVE_AVX512)
 	template<typename I> requires(std::integral<I> && sizeof(I) == 1)
 	inline constexpr int max_fixed_size<I> = 64;
 #endif

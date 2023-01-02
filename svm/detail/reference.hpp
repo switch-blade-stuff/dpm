@@ -4,7 +4,13 @@
 
 #pragma once
 
-#include "svm/traits.hpp"
+#include "define.hpp"
+
+#ifndef SVM_USE_IMPORT
+
+#include <utility>
+
+#endif
 
 namespace svm::detail
 {

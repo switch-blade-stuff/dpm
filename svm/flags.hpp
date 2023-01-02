@@ -4,13 +4,10 @@
 
 #pragma once
 
-#include "detail/define.hpp"
+#include "traits.hpp"
 
 namespace svm
 {
-	template<typename T>
-	struct is_simd_flag_type;
-
 	struct vector_aligned_tag {};
 	struct element_aligned_tag {};
 
