@@ -295,10 +295,8 @@ namespace svm
 		}
 		[[nodiscard]] std::size_t _impl_find_last_set() const noexcept
 		{
-			for (std::size_t i = data_size; i != 0;)
-			{
-				std::uint32_t bits = 0, k = (i - 1) % 8;
-				switch (k)
+			for (std::size_t i = data_size, k; i != 0; i -= k + 1)
+				switch (std::uint32_t bits = 0; k = ((i - 1) % 8))
 				{
 					case 7: bits = _mm_movemask_ps(m_data[i - 8]);
 					case 6: bits |= _mm_movemask_ps(m_data[i - 7]) << 4;
@@ -308,12 +306,10 @@ namespace svm
 					case 2: bits |= _mm_movemask_ps(m_data[i - 3]) << 20;
 					case 1: bits |= _mm_movemask_ps(m_data[i - 2]) << 24;
 					case 0: bits |= _mm_movemask_ps(m_data[i - 1]) << 28;
+						if (bits) return (i * 4 - 1) - std::countl_zero(bits);
 						break;
 					default: SVM_UNREACHABLE();
 				}
-				if (bits) return (i * 4 - 1) - std::countl_zero(bits);
-				i -= k + 1;
-			}
 			return 0;
 		}
 
