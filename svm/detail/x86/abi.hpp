@@ -28,6 +28,30 @@ namespace svm::simd_abi
 		template<typename T>
 		using select_avx512 = select_x86_vector<T, __m512>;
 
+		template<typename, std::size_t>
+		struct default_x86_align;
+
+		/* Select a native x86 vector type for the specified vector size. Prefer the largest available type to enable efficient operations. */
+#if (defined(SVM_HAS_AVX512) || defined(SVM_DYNAMIC_DISPATCH)) && defined(SVM_NATIVE_AVX512)
+		template<has_x86_vector T, std::size_t N> requires (N <= sizeof(__m256) / sizeof(T) && N > sizeof(__m128) / sizeof(T))
+		struct default_x86_align<T, N> : std::integral_constant<std::size_t, alignof(__m256)> {};
+		template<has_x86_vector T, std::size_t N> requires (N <= sizeof(__m128) / sizeof(T))
+		struct default_x86_align<T, N> : std::integral_constant<std::size_t, alignof(__m128)> {};
+		template<has_x86_vector T, std::size_t N>
+		struct default_x86_align<T, N> : std::integral_constant<std::size_t, alignof(__m512)> {};
+#elif defined(SVM_HAS_AVX) || defined(SVM_DYNAMIC_DISPATCH)
+		template<has_x86_vector T, std::size_t N> requires (N <= sizeof(__m128) / sizeof(T))
+		struct default_x86_align<T, N> : std::integral_constant<std::size_t, alignof(__m128)> {};
+		template<has_x86_vector T, std::size_t N>
+		struct default_x86_align<T, N> : std::integral_constant<std::size_t, alignof(__m256)> {};
+#else
+		template<has_x86_vector T, std::size_t N>
+		struct default_x86_align<T, N> { using type = __m128; };
+#endif
+
+		template<typename T, std::size_t N>
+		concept has_x86_default = has_x86_vector<T> && requires { typename default_x86_align<T, N>; };
+
 		/* SSE is the least common denominator for most intel CPUs since 1999 (and is a requirement for all 64-bit CPUs). */
 		template<has_x86_vector T>
 		struct select_compatible<T> : select_sse<T> {};

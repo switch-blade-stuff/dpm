@@ -200,28 +200,28 @@ namespace svm
 	}
 
 	template<typename T, typename Abi>
-	detail::where_expression<simd_mask<T, Abi>, simd<T, Abi>> where(const typename simd<T, Abi>::mask_type &m, simd<T, Abi> &v) noexcept
+	inline detail::where_expression<simd_mask<T, Abi>, simd<T, Abi>> where(const typename simd<T, Abi>::mask_type &m, simd<T, Abi> &v) noexcept
 	{
 		return {m, v};
 	}
 	template<typename T, typename Abi>
-	detail::const_where_expression<simd_mask<T, Abi>, simd<T, Abi>> where(const typename simd<T, Abi>::mask_type &m, const simd<T, Abi> &v) noexcept
+	inline detail::const_where_expression<simd_mask<T, Abi>, simd<T, Abi>> where(const typename simd<T, Abi>::mask_type &m, const simd<T, Abi> &v) noexcept
 	{
 		return {m, v};
 	}
 	template<typename T, typename Abi>
-	detail::where_expression<simd_mask<T, Abi>, simd_mask<T, Abi>> where(const simd_mask<T, Abi> &m, simd_mask<T, Abi> &v) noexcept
+	inline detail::where_expression<simd_mask<T, Abi>, simd_mask<T, Abi>> where(const simd_mask<T, Abi> &m, simd_mask<T, Abi> &v) noexcept
 	{
 		return {m, v};
 	}
 	template<typename T, typename Abi>
-	detail::const_where_expression<simd_mask<T, Abi>, simd_mask<T, Abi>> where(const simd_mask<T, Abi> &m, const simd_mask<T, Abi> &v) noexcept
+	inline detail::const_where_expression<simd_mask<T, Abi>, simd_mask<T, Abi>> where(const simd_mask<T, Abi> &m, const simd_mask<T, Abi> &v) noexcept
 	{
 		return {m, v};
 	}
 
 	template<typename T>
-	detail::where_expression<bool, T> where(bool m, T &v) noexcept requires !(is_simd_v<T> || is_simd_mask_v<T>) { return {m, v}; }
+	inline detail::where_expression<bool, T> where(bool m, T &v) noexcept requires (!(is_simd_v<T> || is_simd_mask_v<T>)) { return {m, v}; }
 	template<typename T>
-	detail::const_where_expression<bool, T> where(bool m, const T &v) noexcept requires !(is_simd_v<T> || is_simd_mask_v<T>) { return {m, v}; }
+	inline detail::const_where_expression<bool, T> where(bool m, const T &v) noexcept requires (!(is_simd_v<T> || is_simd_mask_v<T>)) { return {m, v}; }
 }

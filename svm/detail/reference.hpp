@@ -114,4 +114,61 @@ namespace svm::detail
 	private:
 		value_type &m_ref;
 	};
+
+	template<typename T, T true_value>
+	class mask_reference
+	{
+	public:
+		using value_type = bool;
+
+	public:
+		mask_reference() = delete;
+		mask_reference(const mask_reference &) = delete;
+
+		/** @warning Internal use only! */
+		constexpr explicit mask_reference(T &ref) noexcept : m_ref(ref) {}
+
+		constexpr operator value_type() const noexcept { return static_cast<value_type>(m_ref); }
+
+		template<std::convertible_to<bool> U>
+		constexpr mask_reference operator=(U &&value) && noexcept
+		{
+			return mask_reference{m_ref = static_cast<bool>(value) ? true_value : T{}};
+		}
+
+		template<std::convertible_to<bool> U>
+		constexpr mask_reference operator|=(U &&value) && noexcept
+		{
+			return mask_reference{m_ref |= static_cast<bool>(value) ? true_value : T{}};
+		}
+		template<std::convertible_to<bool> U>
+		constexpr mask_reference operator&=(U &&value) && noexcept
+		{
+			return mask_reference{m_ref &= static_cast<bool>(value) ? true_value : T{}};
+		}
+		template<std::convertible_to<bool> U>
+		constexpr mask_reference operator^=(U &&value) && noexcept
+		{
+			return mask_reference{m_ref ^= static_cast<bool>(value) ? true_value : T{}};
+		}
+
+		friend constexpr void swap(mask_reference &&a, mask_reference &&b) noexcept
+		{
+			using std::swap;
+			swap(a.m_ref, b.m_ref);
+		}
+		friend constexpr void swap(value_type &a, mask_reference &&b) noexcept
+		{
+			const auto value = a ? true_value : T{};
+			a = static_cast<value_type>(std::exchange(b.m_ref, value));
+		}
+		friend constexpr void swap(mask_reference &&a, value_type &b) noexcept
+		{
+			const auto value = b ? true_value : T{};
+			b = static_cast<value_type>(std::exchange(a.m_ref, value));
+		}
+
+	private:
+		T &m_ref;
+	};
 }

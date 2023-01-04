@@ -17,7 +17,22 @@ namespace svm
 	template<typename T, typename Abi>
 	class simd;
 
-	/** @brief Type representing a data-parallel mask type. */
+	namespace detail
+	{
+		template<std::size_t N, std::size_t I = 0, typename G>
+		inline void generate(auto &data, G &&gen) noexcept
+		{
+			if constexpr (I != N)
+			{
+				data[I] = gen(std::integral_constant<std::size_t, I>());
+				generate<N, I + 1>(data, std::forward<G>(gen));
+			}
+		}
+	}
+
+	/** @brief Type representing a data-parallel mask vector type.
+	 * @tparam T Value type stored by the SIMD mask.
+	 * @tparam Abi ABI used to select implementation of the SIMD mask. */
 	template<typename T, typename Abi>
 	class simd_mask
 	{
@@ -39,7 +54,7 @@ namespace svm
 
 	/** Preforms a logical AND on the elements of the masks \a a and \a b, and returns the resulting mask. */
 	template<typename T, typename Abi>
-	[[nodiscard]] simd_mask<T, Abi> operator&&(const simd_mask<T, Abi> &a, const simd_mask<T, Abi> &b) noexcept
+	[[nodiscard]] inline simd_mask<T, Abi> operator&&(const simd_mask<T, Abi> &a, const simd_mask<T, Abi> &b) noexcept
 	{
 		simd_mask<T, Abi> result;
 		for (std::size_t i = 0; i < simd_mask<T, Abi>::size(); ++i)
@@ -48,7 +63,7 @@ namespace svm
 	}
 	/** Preforms a logical OR on the elements of the masks \a a and \a b, and returns the resulting mask. */
 	template<typename T, typename Abi>
-	[[nodiscard]] simd_mask<T, Abi> operator||(const simd_mask<T, Abi> &a, const simd_mask<T, Abi> &b) noexcept
+	[[nodiscard]] inline simd_mask<T, Abi> operator||(const simd_mask<T, Abi> &a, const simd_mask<T, Abi> &b) noexcept
 	{
 		simd_mask<T, Abi> result;
 		for (std::size_t i = 0; i < simd_mask<T, Abi>::size(); ++i)
@@ -58,7 +73,7 @@ namespace svm
 
 	/** Compares elements of masks \a a and \a b for equality, and returns the resulting mask. */
 	template<typename T, typename Abi>
-	[[nodiscard]] simd_mask<T, Abi> operator==(const simd_mask<T, Abi> &a, const simd_mask<T, Abi> &b) noexcept
+	[[nodiscard]] inline simd_mask<T, Abi> operator==(const simd_mask<T, Abi> &a, const simd_mask<T, Abi> &b) noexcept
 	{
 		simd_mask<T, Abi> result;
 		for (std::size_t i = 0; i < simd_mask<T, Abi>::size(); ++i)
@@ -67,7 +82,7 @@ namespace svm
 	}
 	/** Compares elements of masks \a a and \a b for inequality, and returns the resulting mask. */
 	template<typename T, typename Abi>
-	[[nodiscard]] simd_mask<T, Abi> operator!=(const simd_mask<T, Abi> &a, const simd_mask<T, Abi> &b) noexcept
+	[[nodiscard]] inline simd_mask<T, Abi> operator!=(const simd_mask<T, Abi> &a, const simd_mask<T, Abi> &b) noexcept
 	{
 		simd_mask<T, Abi> result;
 		for (std::size_t i = 0; i < simd_mask<T, Abi>::size(); ++i)
@@ -77,7 +92,7 @@ namespace svm
 
 	/** Preforms a bitwise AND on the elements of the masks \a a and \a b, and returns the resulting mask. */
 	template<typename T, typename Abi>
-	[[nodiscard]] simd_mask<T, Abi> operator&(const simd_mask<T, Abi> &a, const simd_mask<T, Abi> &b) noexcept
+	[[nodiscard]] inline simd_mask<T, Abi> operator&(const simd_mask<T, Abi> &a, const simd_mask<T, Abi> &b) noexcept
 	{
 		simd_mask<T, Abi> result;
 		for (std::size_t i = 0; i < simd_mask<T, Abi>::size(); ++i)
@@ -86,7 +101,7 @@ namespace svm
 	}
 	/** Preforms a bitwise OR on the elements of the masks \a a and \a b, and returns the resulting mask. */
 	template<typename T, typename Abi>
-	[[nodiscard]] simd_mask<T, Abi> operator|(const simd_mask<T, Abi> &a, const simd_mask<T, Abi> &b) noexcept
+	[[nodiscard]] inline simd_mask<T, Abi> operator|(const simd_mask<T, Abi> &a, const simd_mask<T, Abi> &b) noexcept
 	{
 		simd_mask<T, Abi> result;
 		for (std::size_t i = 0; i < simd_mask<T, Abi>::size(); ++i)
@@ -95,7 +110,7 @@ namespace svm
 	}
 	/** Preforms a bitwise XOR on the elements of the masks \a a and \a b, and returns the resulting mask. */
 	template<typename T, typename Abi>
-	[[nodiscard]] simd_mask<T, Abi> operator^(const simd_mask<T, Abi> &a, const simd_mask<T, Abi> &b) noexcept
+	[[nodiscard]] inline simd_mask<T, Abi> operator^(const simd_mask<T, Abi> &a, const simd_mask<T, Abi> &b) noexcept
 	{
 		simd_mask<T, Abi> result;
 		for (std::size_t i = 0; i < simd_mask<T, Abi>::size(); ++i)
@@ -105,17 +120,17 @@ namespace svm
 
 	/** Preforms a bitwise AND on the elements of the masks \a a and \a b, and assigns the result to mask \a a. */
 	template<typename T, typename Abi>
-	simd_mask<T, Abi> &operator&=(simd_mask<T, Abi> &a, const simd_mask<T, Abi> &b) noexcept { return a = a & b; }
+	inline simd_mask<T, Abi> &operator&=(simd_mask<T, Abi> &a, const simd_mask<T, Abi> &b) noexcept { return a = a & b; }
 	/** Preforms a bitwise OR on the elements of the masks \a a and \a b, and assigns the result to mask \a a. */
 	template<typename T, typename Abi>
-	simd_mask<T, Abi> &operator|=(simd_mask<T, Abi> &a, const simd_mask<T, Abi> &b) noexcept { return a = a | b; }
+	inline simd_mask<T, Abi> &operator|=(simd_mask<T, Abi> &a, const simd_mask<T, Abi> &b) noexcept { return a = a | b; }
 	/** Preforms a bitwise XOR on the elements of the masks \a a and \a b, and assigns the result to mask \a a. */
 	template<typename T, typename Abi>
-	simd_mask<T, Abi> &operator^=(simd_mask<T, Abi> &a, const simd_mask<T, Abi> &b) noexcept { return a = a ^ b; }
+	inline simd_mask<T, Abi> &operator^=(simd_mask<T, Abi> &a, const simd_mask<T, Abi> &b) noexcept { return a = a ^ b; }
 
 	/** Returns `true` if all of the elements of the \a mask are `true`. Otherwise returns `false`. */
 	template<typename T, typename Abi>
-	[[nodiscard]] bool all_of(const simd_mask<T, Abi> &mask) noexcept
+	[[nodiscard]] inline bool all_of(const simd_mask<T, Abi> &mask) noexcept
 	{
 		bool result = true;
 		for (std::size_t i = 0; i < simd_mask<T, Abi>::size(); ++i)
@@ -124,7 +139,7 @@ namespace svm
 	}
 	/** Returns `true` if at least one of the elements of the \a mask are `true`. Otherwise returns `false`. */
 	template<typename T, typename Abi>
-	[[nodiscard]] bool any_of(const simd_mask<T, Abi> &mask) noexcept
+	[[nodiscard]] inline bool any_of(const simd_mask<T, Abi> &mask) noexcept
 	{
 		bool result = false;
 		for (std::size_t i = 0; i < simd_mask<T, Abi>::size(); ++i)
@@ -133,10 +148,10 @@ namespace svm
 	}
 	/** Returns `true` if at none of the elements of the \a mask is `true`. Otherwise returns `false`. */
 	template<typename T, typename Abi>
-	[[nodiscard]] bool none_of(const simd_mask<T, Abi> &mask) noexcept { return !any_of(mask); }
+	[[nodiscard]] inline bool none_of(const simd_mask<T, Abi> &mask) noexcept { return !any_of(mask); }
 	/** Returns `true` if at least one of the elements of the \a mask is `true` and at least one is `false`. Otherwise returns `false`. */
 	template<typename T, typename Abi>
-	[[nodiscard]] bool some_of(const simd_mask<T, Abi> &mask) noexcept
+	[[nodiscard]] inline bool some_of(const simd_mask<T, Abi> &mask) noexcept
 	{
 		bool any_true = false, all_true = true;
 		for (std::size_t i = 0; i < simd_mask<T, Abi>::size(); ++i)
@@ -150,22 +165,23 @@ namespace svm
 
 	/** Returns the number of `true` elements of \a mask. */
 	template<typename T, typename Abi>
-	[[nodiscard]] std::size_t popcount(const simd_mask<T, Abi> &mask) noexcept
+	[[nodiscard]] inline std::size_t popcount(const simd_mask<T, Abi> &mask) noexcept
 	{
 		std::size_t result = 0;
-		for (std::size_t i = 0; i < simd_mask<T, Abi>::size(); ++i) result += mask[i];
+		for (std::size_t i = 0; i < simd_mask<T, Abi>::size(); ++i)
+			result += mask[i];
 		return result;
 	}
 	/** Returns the index of the first `true` element of \a mask. */
 	template<typename T, typename Abi>
-	[[nodiscard]] std::size_t find_first_set(const simd_mask<T, Abi> &mask) noexcept
+	[[nodiscard]] inline std::size_t find_first_set(const simd_mask<T, Abi> &mask) noexcept
 	{
 		for (std::size_t i = 0; i < simd_mask<T, Abi>::size(); ++i) if (mask[i]) return i;
 		return simd_mask<T, Abi>::size();
 	}
 	/** Returns the index of the last `true` element of \a mask. */
 	template<typename T, typename Abi>
-	[[nodiscard]] std::size_t find_last_set(const simd_mask<T, Abi> &mask) noexcept
+	[[nodiscard]] inline std::size_t find_last_set(const simd_mask<T, Abi> &mask) noexcept
 	{
 		for (std::size_t i = simd_mask<T, Abi>::size(); i-- > 0;) if (mask[i]) return i;
 		return simd_mask<T, Abi>::size();
@@ -200,10 +216,19 @@ namespace svm
 	/** @copydoc find_last_set */
 	[[nodiscard]] constexpr std::size_t find_last_set([[maybe_unused]] detail::bool_wrapper value) noexcept { return 0; }
 
-	/** @brief Type representing a data-parallel arithmetic type. */
+	/** @brief Type representing a data-parallel arithmetic vector.
+	 * @tparam T Value type stored by the SIMD vector.
+	 * @tparam Abi ABI used to select implementation of the SIMD vector. */
 	template<typename T, typename Abi>
 	class simd
 	{
+	public:
+		using value_type = T;
+		using reference = detail::simd_reference<value_type>;
+
+		using abi_type = Abi;
+		using mask_type = simd_mask<T, abi_type>;
+
 	public:
 		/* The standard mandates the default specialization to have all constructors & assignment operators be deleted.
 		 * See N4808 - 9.6.1 [parallel.simd.overview] for details. */
@@ -213,33 +238,32 @@ namespace svm
 		~simd() = delete;
 	};
 
-	/** @brief Scalar overload of the data-parallel SIMD mask type. */
-	template<typename T> requires std::is_arithmetic_v<T>
+	template<detail::vectorizable T>
 	class simd_mask<T, simd_abi::scalar>
 	{
 		template<typename U, typename A>
-		friend simd_mask<U, A> operator&&(const simd_mask<U, A> &a, const simd_mask<U, A> &b) noexcept;
+		friend inline simd_mask<U, A> operator&&(const simd_mask<U, A> &a, const simd_mask<U, A> &b) noexcept;
 		template<typename U, typename A>
-		friend simd_mask<U, A> operator||(const simd_mask<U, A> &a, const simd_mask<U, A> &b) noexcept;
+		friend inline simd_mask<U, A> operator||(const simd_mask<U, A> &a, const simd_mask<U, A> &b) noexcept;
 
 		template<typename U, typename A>
-		friend simd_mask<U, A> operator==(const simd_mask<U, A> &a, const simd_mask<U, A> &b) noexcept;
+		friend inline simd_mask<U, A> operator==(const simd_mask<U, A> &a, const simd_mask<U, A> &b) noexcept;
 		template<typename U, typename A>
-		friend simd_mask<U, A> operator!=(const simd_mask<U, A> &a, const simd_mask<U, A> &b) noexcept;
+		friend inline simd_mask<U, A> operator!=(const simd_mask<U, A> &a, const simd_mask<U, A> &b) noexcept;
 
 		template<typename U, typename A>
-		friend simd_mask<U, A> operator&(const simd_mask<U, A> &a, const simd_mask<U, A> &b) noexcept;
+		friend inline simd_mask<U, A> operator&(const simd_mask<U, A> &a, const simd_mask<U, A> &b) noexcept;
 		template<typename U, typename A>
-		friend simd_mask<U, A> operator|(const simd_mask<U, A> &a, const simd_mask<U, A> &b) noexcept;
+		friend inline simd_mask<U, A> operator|(const simd_mask<U, A> &a, const simd_mask<U, A> &b) noexcept;
 		template<typename U, typename A>
-		friend simd_mask<U, A> operator^(const simd_mask<U, A> &a, const simd_mask<U, A> &b) noexcept;
+		friend inline simd_mask<U, A> operator^(const simd_mask<U, A> &a, const simd_mask<U, A> &b) noexcept;
 
 		template<typename U, typename A>
-		friend simd_mask<U, A> &operator&=(simd_mask<U, A> &a, const simd_mask<U, A> &b) noexcept;
+		friend inline simd_mask<U, A> &operator&=(simd_mask<U, A> &a, const simd_mask<U, A> &b) noexcept;
 		template<typename U, typename A>
-		friend simd_mask<U, A> &operator|=(simd_mask<U, A> &a, const simd_mask<U, A> &b) noexcept;
+		friend inline simd_mask<U, A> &operator|=(simd_mask<U, A> &a, const simd_mask<U, A> &b) noexcept;
 		template<typename U, typename A>
-		friend simd_mask<U, A> &operator^=(simd_mask<U, A> &a, const simd_mask<U, A> &b) noexcept;
+		friend inline simd_mask<U, A> &operator^=(simd_mask<U, A> &a, const simd_mask<U, A> &b) noexcept;
 
 	public:
 		using value_type = bool;
@@ -294,33 +318,32 @@ namespace svm
 		value_type m_data;
 	};
 
-	/** @brief Aligned vector overload of the data-parallel SIMD mask type. */
-	template<typename T, std::size_t N, std::size_t Align> requires std::is_arithmetic_v<T>
+	template<detail::vectorizable T, std::size_t N, std::size_t Align>
 	class simd_mask<T, simd_abi::aligned_vector<N, Align>>
 	{
 		template<typename U, typename A>
-		friend simd_mask<U, A> operator&&(const simd_mask<U, A> &a, const simd_mask<U, A> &b) noexcept;
+		friend inline simd_mask<U, A> operator&&(const simd_mask<U, A> &a, const simd_mask<U, A> &b) noexcept;
 		template<typename U, typename A>
-		friend simd_mask<U, A> operator||(const simd_mask<U, A> &a, const simd_mask<U, A> &b) noexcept;
+		friend inline simd_mask<U, A> operator||(const simd_mask<U, A> &a, const simd_mask<U, A> &b) noexcept;
 
 		template<typename U, typename A>
-		friend simd_mask<U, A> operator==(const simd_mask<U, A> &a, const simd_mask<U, A> &b) noexcept;
+		friend inline simd_mask<U, A> operator==(const simd_mask<U, A> &a, const simd_mask<U, A> &b) noexcept;
 		template<typename U, typename A>
-		friend simd_mask<U, A> operator!=(const simd_mask<U, A> &a, const simd_mask<U, A> &b) noexcept;
+		friend inline simd_mask<U, A> operator!=(const simd_mask<U, A> &a, const simd_mask<U, A> &b) noexcept;
 
 		template<typename U, typename A>
-		friend simd_mask<U, A> operator&(const simd_mask<U, A> &a, const simd_mask<U, A> &b) noexcept;
+		friend inline simd_mask<U, A> operator&(const simd_mask<U, A> &a, const simd_mask<U, A> &b) noexcept;
 		template<typename U, typename A>
-		friend simd_mask<U, A> operator|(const simd_mask<U, A> &a, const simd_mask<U, A> &b) noexcept;
+		friend inline simd_mask<U, A> operator|(const simd_mask<U, A> &a, const simd_mask<U, A> &b) noexcept;
 		template<typename U, typename A>
-		friend simd_mask<U, A> operator^(const simd_mask<U, A> &a, const simd_mask<U, A> &b) noexcept;
+		friend inline simd_mask<U, A> operator^(const simd_mask<U, A> &a, const simd_mask<U, A> &b) noexcept;
 
 		template<typename U, typename A>
-		friend simd_mask<U, A> &operator&=(simd_mask<U, A> &a, const simd_mask<U, A> &b) noexcept;
+		friend inline simd_mask<U, A> &operator&=(simd_mask<U, A> &a, const simd_mask<U, A> &b) noexcept;
 		template<typename U, typename A>
-		friend simd_mask<U, A> &operator|=(simd_mask<U, A> &a, const simd_mask<U, A> &b) noexcept;
+		friend inline simd_mask<U, A> &operator|=(simd_mask<U, A> &a, const simd_mask<U, A> &b) noexcept;
 		template<typename U, typename A>
-		friend simd_mask<U, A> &operator^=(simd_mask<U, A> &a, const simd_mask<U, A> &b) noexcept;
+		friend inline simd_mask<U, A> &operator^=(simd_mask<U, A> &a, const simd_mask<U, A> &b) noexcept;
 
 	public:
 		using value_type = bool;
@@ -392,10 +415,14 @@ namespace svm
 		alignas(alignment) value_type m_data[size()];
 	};
 
-	/** @brief Scalar overload of the data-parallel SIMD type. */
-	template<typename T> requires std::is_arithmetic_v<T>
+	template<detail::vectorizable T>
 	class simd<T, simd_abi::scalar>
 	{
+		template<typename U, typename A>
+		friend inline simd_mask<U, A> operator==(const simd<U, A> &a, const simd<U, A> &b) noexcept;
+		template<typename U, typename A>
+		friend inline simd_mask<U, A> operator!=(const simd<U, A> &a, const simd<U, A> &b) noexcept;
+
 	public:
 		using value_type = T;
 		using reference = detail::simd_reference<value_type>;
@@ -447,9 +474,8 @@ namespace svm
 			return m_value;
 		}
 
-		simd operator++(int) const noexcept requires (std::declval<value_type>()++) { return {m_value++}; }
-		simd operator--(int) const noexcept requires (std::declval<value_type>()--) { return {m_value--}; }
-
+		simd operator++(int) noexcept requires (std::declval<value_type>()++) { return {m_value++}; }
+		simd operator--(int) noexcept requires (std::declval<value_type>()--) { return {m_value--}; }
 		simd &operator++() noexcept requires (++std::declval<value_type>())
 		{
 			++m_value;
@@ -462,6 +488,9 @@ namespace svm
 		}
 
 		[[nodiscard]] mask_type operator!() const noexcept requires (!std::declval<value_type>()) { return {!m_value}; }
+		[[nodiscard]] mask_type operator~() const noexcept requires (~std::declval<value_type>()) { return {~m_value}; }
+		[[nodiscard]] simd operator+() const noexcept requires (+std::declval<value_type>()) { return {+m_value}; }
+		[[nodiscard]] simd operator-() const noexcept requires (-std::declval<value_type>()) { return {-m_value}; }
 
 	private:
 		value_type m_value;

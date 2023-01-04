@@ -23,6 +23,9 @@ namespace svm
 	}
 	namespace detail
 	{
+		template<typename T>
+		concept vectorizable = std::is_arithmetic_v<T>;
+
 		template<typename U, typename T, typename From = std::remove_cvref_t<U>>
 		concept compatible_element = (std::unsigned_integral<T> && std::same_as<From, unsigned int>) || std::same_as<From, int> || std::convertible_to<From, T>;
 

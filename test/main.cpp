@@ -61,12 +61,27 @@ static inline void test_mask() noexcept
 		TEST_ASSERT(svm::some_of(a));
 		TEST_ASSERT(!svm::some_of(b));
 		TEST_ASSERT(!svm::some_of(c));
+
+		TEST_ASSERT(svm::popcount(a) == mask_t::size() - 1);
+		TEST_ASSERT(svm::find_first_set(a) == 1);
+		TEST_ASSERT(svm::find_last_set(a) == mask_t::size() - 1);
 	}
 }
 
 int main()
 {
-	test_mask<int, svm::simd_abi::scalar>();
-	test_mask<int, svm::simd_abi::fixed_size<4>>();
-	test_mask<int, svm::simd_abi::aligned_vector<4, 16>>();
+	test_mask<float, svm::simd_abi::scalar>();
+	test_mask<float, svm::simd_abi::fixed_size<4>>();
+	test_mask<float, svm::simd_abi::aligned_vector<4, 16>>();
+
+	svm::simd<float, svm::simd_abi::sse<float>> a = {1.0f}, b = {-1.0f};
+	const auto c = -a;
+
+	TEST_ASSERT(svm::all_of(a != b));
+	TEST_ASSERT(svm::none_of(a == b));
+	TEST_ASSERT(svm::all_of(!(a == b)));
+
+	TEST_ASSERT(svm::all_of(c == b));
+	TEST_ASSERT(svm::none_of(c != b));
+	TEST_ASSERT(svm::none_of(!(c == b)));
 }
