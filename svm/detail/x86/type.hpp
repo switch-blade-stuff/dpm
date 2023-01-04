@@ -297,20 +297,22 @@ namespace svm
 		{
 			for (std::size_t i = data_size; i != 0;)
 			{
-				std::uint32_t bits = 0, k = i % 8;
+				std::uint32_t bits = 0, k = (i - 1) % 8;
 				switch (k)
 				{
-					case 0: bits = _mm_movemask_ps(m_data[i - 8]);
-					case 7: bits |= _mm_movemask_ps(m_data[i - 7]) << 4;
-					case 6: bits |= _mm_movemask_ps(m_data[i - 6]) << 8;
-					case 5: bits |= _mm_movemask_ps(m_data[i - 5]) << 12;
-					case 4: bits |= _mm_movemask_ps(m_data[i - 4]) << 16;
-					case 3: bits |= _mm_movemask_ps(m_data[i - 3]) << 20;
-					case 2: bits |= _mm_movemask_ps(m_data[i - 2]) << 24;
-					case 1: bits |= _mm_movemask_ps(m_data[i - 1]) << 28;
+					case 7: bits = _mm_movemask_ps(m_data[i - 8]);
+					case 6: bits |= _mm_movemask_ps(m_data[i - 7]) << 4;
+					case 5: bits |= _mm_movemask_ps(m_data[i - 6]) << 8;
+					case 4: bits |= _mm_movemask_ps(m_data[i - 5]) << 12;
+					case 3: bits |= _mm_movemask_ps(m_data[i - 4]) << 16;
+					case 2: bits |= _mm_movemask_ps(m_data[i - 3]) << 20;
+					case 1: bits |= _mm_movemask_ps(m_data[i - 2]) << 24;
+					case 0: bits |= _mm_movemask_ps(m_data[i - 1]) << 28;
+						break;
+					default: SVM_UNREACHABLE();
 				}
 				if (bits) return (i * 4 - 1) - std::countl_zero(bits);
-				i -= k ? k : 8;
+				i -= k + 1;
 			}
 			return 0;
 		}
