@@ -14,3 +14,10 @@ if (MSVC)
 else ()
     target_compile_options(${PROJECT_NAME} PRIVATE -Wall -Wextra -Wpedantic -Werror)
 endif ()
+
+# On MSVC, use c++latest instead of c++20 for experimental module support on MSVC
+if (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC" AND SVM_USE_MODULES)
+    target_compile_features(${SVM_PROJECT} PUBLIC cxx_std_23)
+else ()
+    target_compile_features(${SVM_PROJECT} PUBLIC cxx_std_20)
+endif ()

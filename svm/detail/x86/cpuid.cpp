@@ -165,7 +165,6 @@ namespace svm::detail
 					const std::string_view sv = std::string_view{read_buff.data(), static_cast<std::size_t>(n)};
 					if (auto pos = sv.find("flags"sv); pos != std::string_view::npos)
 					{
-						/* Skip whitespace & `:` */
 						pos = sv.find_first_not_of("\t :"sv, pos + 5);
 						if (pos == std::string_view::npos) continue;
 

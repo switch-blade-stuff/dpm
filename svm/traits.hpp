@@ -8,6 +8,11 @@
 
 namespace svm
 {
+	template<typename, typename>
+	class simd_mask;
+	template<typename, typename>
+	class simd;
+
 	namespace simd_abi::detail
 	{
 		/* Customization point for architecture-specific backends. */
@@ -40,11 +45,17 @@ namespace svm
 
 	template<typename T>
 	struct is_simd : std::false_type {};
+	template<typename T, typename Abi>
+	struct is_simd<simd<T, Abi>> : std::true_type {};
+
 	template<typename T>
 	inline constexpr bool is_simd_v = is_simd<T>::value;
 
 	template<typename T>
 	struct is_simd_mask : std::false_type {};
+	template<typename T, typename Abi>
+	struct is_simd_mask<simd_mask<T, Abi>> : std::true_type {};
+
 	template<typename T>
 	inline constexpr bool is_simd_mask_v = is_simd_mask<T>::value;
 
@@ -53,15 +64,25 @@ namespace svm
 	template<typename T>
 	inline constexpr bool is_simd_flag_type_v = is_simd_flag_type<T>::value;
 
-	template<typename T, typename Abi = simd_abi::detail::select_compatible<T>::type>
-	struct simd_size : std::false_type {};
-	template<typename T, typename Abi = simd_abi::detail::select_compatible<T>::type>
-	inline constexpr size_t simd_size_v = simd_size<T, Abi>::value;
+	template<typename T, typename Abi = typename simd_abi::detail::select_compatible<T>::type>
+	struct simd_size;
+	template<typename T, typename Abi> requires is_abi_tag_v<Abi>
+	struct simd_size<T, Abi> : std::integral_constant<std::size_t, Abi::size> {};
+	template<typename T, typename Abi> requires is_abi_tag_v<Abi> && requires { typename simd<T, Abi>; }
+	struct simd_size<T, Abi> : std::integral_constant<std::size_t, simd<T, Abi>::size()> {};
+
+	template<typename T, typename Abi = typename simd_abi::detail::select_compatible<T>::type>
+	inline constexpr std::size_t simd_size_v = simd_size<T, Abi>::value;
 
 	template<typename T, typename U = typename T::value_type>
-	struct memory_alignment : std::false_type {};
+	struct memory_alignment;
+	template<typename T> requires is_simd_mask_v<T>
+	struct memory_alignment<T, bool> : std::integral_constant<std::size_t, alignof(T)> {};
+	template<typename T, typename U> requires is_simd_v<T> && detail::compatible_element<U, typename T::value_type>
+	struct memory_alignment<T, U> : std::integral_constant<std::size_t, std::max(alignof(T), alignof(U))> {};
+
 	template<typename T, typename U = typename T::value_type>
-	inline constexpr size_t memory_alignment_v = memory_alignment<T, U>::value;
+	inline constexpr std::size_t memory_alignment_v = memory_alignment<T, U>::value;
 
 	template<typename T, typename V>
 	struct rebind_simd;

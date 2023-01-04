@@ -8,50 +8,65 @@
 #include <emmintrin.h>
 #include <immintrin.h>
 
-#include <svm/detail/x86/cpuid.hpp>
-#include <svm/detail/dispatch.hpp>
+#define SVM_DEBUG
 
-union alignas(__m256) data_t
-{
-	std::array<float, 4> elems;
-	__m256 simd;
-};
+#include <svm/type.hpp>
 
-static data_t SVM_TARGET("avx") add_generic(data_t a, data_t b) noexcept
-{
-	data_t out;
-	out.elems[0] = a.elems[0] + b.elems[0];
-	out.elems[1] = a.elems[1] + b.elems[1];
-	out.elems[2] = a.elems[2] + b.elems[2];
-	out.elems[3] = a.elems[3] + b.elems[3];
-	return out;
-}
+#define TEST_ASSERT(x) SVM_ASSERT((x), nullptr)
 
-static data_t SVM_TARGET("avx") add_sse(data_t a, data_t b) noexcept
+template<typename T, typename Abi, typename mask_t = svm::simd_mask<T, Abi>>
+static inline void test_mask() noexcept
 {
-	data_t out;
-	out.simd = _mm256_castps128_ps256(_mm_add_ps(_mm256_castps256_ps128(a.simd), _mm256_castps256_ps128(b.simd)));
-	return out;
-}
-static data_t SVM_TARGET("avx") add(data_t a, data_t b) noexcept
-{
-	static constinit svm::detail::dispatcher dispatch_add = []()
+	mask_t a = {true}, b = {true}, c = {false}, d = {false};
+
+	TEST_ASSERT(svm::all_of(a));
+	TEST_ASSERT(!svm::all_of(c));
+
+	TEST_ASSERT(svm::any_of(a));
+	TEST_ASSERT(!svm::any_of(c));
+
+	TEST_ASSERT(svm::none_of(c));
+	TEST_ASSERT(!svm::none_of(a));
+
+	TEST_ASSERT(svm::all_of(a == b));
+	TEST_ASSERT(svm::all_of(c == d));
+
+	TEST_ASSERT(svm::all_of(!c == a));
+	TEST_ASSERT(svm::all_of(!a == c));
+
+	TEST_ASSERT(svm::none_of(a != b));
+	TEST_ASSERT(svm::none_of(c != d));
+
+	TEST_ASSERT(svm::none_of(a == c));
+	TEST_ASSERT(svm::none_of(a == d));
+
+	TEST_ASSERT(svm::all_of(b || c));
+	TEST_ASSERT(svm::none_of(b && c));
+
+	TEST_ASSERT(svm::all_of(b | c));
+	TEST_ASSERT(svm::none_of(c | d));
+
+	TEST_ASSERT(svm::all_of(a & b));
+	TEST_ASSERT(svm::none_of(b & c));
+	TEST_ASSERT(svm::none_of(c & d));
+
+	TEST_ASSERT(svm::all_of(b ^ c));
+	TEST_ASSERT(svm::all_of(c ^ b));
+	TEST_ASSERT(svm::none_of(a ^ b));
+	TEST_ASSERT(svm::none_of(c ^ d));
+
+	if constexpr (mask_t::size() > 1)
 	{
-		if (svm::detail::cpuid::has_sse())
-			return add_sse;
-		else
-			return add_generic;
-	};
-	return dispatch_add(a, b);
+		a[0] = false;
+		TEST_ASSERT(svm::some_of(a));
+		TEST_ASSERT(!svm::some_of(b));
+		TEST_ASSERT(!svm::some_of(c));
+	}
 }
 
 int main()
 {
-	data_t a, b, c;
-	std::ranges::fill(a.elems, 1.0f);
-	std::ranges::fill(b.elems, 2.0f);
-	std::ranges::fill(c.elems, 3.0f);
-
-	const auto d = add(a, b);
-	printf("a + b == c: %i\n", c.elems == d.elems);
+	test_mask<int, svm::simd_abi::scalar>();
+	test_mask<int, svm::simd_abi::fixed_size<4>>();
+	test_mask<int, svm::simd_abi::aligned_vector<4, 16>>();
 }
