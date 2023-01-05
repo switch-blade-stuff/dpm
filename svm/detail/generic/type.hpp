@@ -188,14 +188,15 @@ namespace svm
 		return simd_mask<T, Abi>::size();
 	}
 
-	SVM_EXT_NAMESPACE_OPEN
-	/** Replaces elements of masks \a and \a b using mask \a m. Elements of \a b are selected if the corresponding element of \a m evaluates to `true`. */
-	template<typename T, typename Abi, typename M>
-	[[nodiscard]] inline simd_mask<T, Abi> blend(const simd_mask<T, Abi> &a, const simd_mask<T, Abi> &b, const simd_mask<T, Abi> &m)
+	SVM_DECLARE_EXT_NAMESPACE
 	{
-		return blend(a, where(m, b));
+		/** Replaces elements of masks \a and \a b using mask \a m. Elements of \a b are selected if the corresponding element of \a m evaluates to `true`. */
+		template<typename T, typename Abi, typename M>
+		[[nodiscard]] inline simd_mask<T, Abi> blend(const simd_mask<T, Abi> &a, const simd_mask<T, Abi> &b, const simd_mask<T, Abi> &m)
+		{
+			return blend(a, where(m, b));
+		}
 	}
-	SVM_EXT_NAMESPACE_CLOSE
 
 	namespace detail
 	{
@@ -226,11 +227,12 @@ namespace svm
 	/** @copydoc find_last_set */
 	[[nodiscard]] constexpr std::size_t find_last_set([[maybe_unused]] detail::bool_wrapper value) noexcept { return 0; }
 
-	SVM_EXT_NAMESPACE_OPEN
-	/** Equivalent to `m ? b : a`. */
-	template<typename T>
-	[[nodiscard]] inline T blend(const T &a, const T &b, detail::bool_wrapper m) { return m ? b : a; }
-	SVM_EXT_NAMESPACE_CLOSE
+	SVM_DECLARE_EXT_NAMESPACE
+	{
+		/** Equivalent to `m ? b : a`. */
+		template<typename T>
+		[[nodiscard]] inline T blend(const T &a, const T &b, detail::bool_wrapper m) { return m ? b : a; }
+	}
 
 	template<detail::vectorizable T>
 	class simd_mask<T, simd_abi::scalar>
@@ -289,13 +291,13 @@ namespace svm
 	};
 
 	template<detail::vectorizable T, std::size_t N, std::size_t Align>
-	class simd_mask<T, simd_abi::aligned_vector<N, Align>>
+	class simd_mask<T, simd_abi::ext::aligned_vector<N, Align>>
 	{
 	public:
 		using value_type = bool;
 		using reference = detail::simd_reference<value_type>;
 
-		using abi_type = simd_abi::aligned_vector<N, Align>;
+		using abi_type = simd_abi::ext::aligned_vector<N, Align>;
 		using simd_type = simd<T, abi_type>;
 
 		/** Returns width of the SIMD mask. */
@@ -320,7 +322,7 @@ namespace svm
 		constexpr simd_mask(value_type value) noexcept { std::fill_n(m_data, size(), value); }
 		/** Copies elements from \a other. */
 		template<typename U, std::size_t OtherAlign>
-		simd_mask(const simd_mask<U, simd_abi::aligned_vector<size(), OtherAlign>> &other) noexcept
+		simd_mask(const simd_mask<U, simd_abi::ext::aligned_vector<size(), OtherAlign>> &other) noexcept
 		{
 			if constexpr (alignment != alignof(value_type))
 				other.copy_to(m_data, overaligned<alignment>);
@@ -670,14 +672,15 @@ namespace svm
 	template<typename T, typename Abi, typename Op = std::plus<>>
 	[[nodiscard]] inline T reduce(const simd<T, Abi> &value, Op binary_op = {}) { return detail::reduce_impl<simd_size_v<T, Abi>>(value, binary_op); }
 
-	SVM_EXT_NAMESPACE_OPEN
-	/** Replaces elements of vectors \a and \a b using mask \a m. Elements of \a b are selected if the corresponding element of \a m evaluates to `true`. */
-	template<typename T, typename Abi>
-	[[nodiscard]] inline simd<T, Abi> blend(const simd<T, Abi> &a, const simd<T, Abi> &b, const simd_mask<T, Abi> &m)
+	SVM_DECLARE_EXT_NAMESPACE
 	{
-		return blend(a, where(m, b));
+		/** Replaces elements of vectors \a and \a b using mask \a m. Elements of \a b are selected if the corresponding element of \a m evaluates to `true`. */
+		template<typename T, typename Abi>
+		[[nodiscard]] inline simd<T, Abi> blend(const simd<T, Abi> &a, const simd<T, Abi> &b, const simd_mask<T, Abi> &m)
+		{
+			return blend(a, where(m, b));
+		}
 	}
-	SVM_EXT_NAMESPACE_CLOSE
 
 	template<detail::vectorizable T>
 	class simd<T, simd_abi::scalar>

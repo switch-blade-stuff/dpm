@@ -26,7 +26,7 @@ namespace svm
 		using simd_abi::detail::x86_avx512_overload;
 
 		template<std::size_t N, std::size_t A>
-		using avec = simd_abi::aligned_vector<N, A>;
+		using avec = simd_abi::ext::aligned_vector<N, A>;
 
 		template<typename T, std::size_t N, std::size_t A>
 		using where_expr = const_where_expression<simd_mask<T, detail::avec<N, A>>, simd<T, detail::avec<N, A>>>;
@@ -383,21 +383,41 @@ namespace svm
 				return result;
 			}
 #endif
+
+			[[nodiscard]] static auto *to_native_vector(mask_t &value) noexcept { return value.m_data; }
+			[[nodiscard]] static auto *to_native_vector(const mask_t &value) noexcept { return value.m_data; }
 		};
 	}
 
-	SVM_EXT_NAMESPACE_OPEN
-#ifdef SVM_HAS_SSE4_1
-	/** Replaces elements of mask \a a with selected elements of where expression \a b. */
-	template<std::size_t N, std::size_t A>
-	[[nodiscard]] inline simd_mask<float, detail::avec<N, A>> blend(
-			const simd_mask<float, detail::avec<N, A>> &a,
-			const detail::mask_where_expr<float, N, A> &b)
+	SVM_DECLARE_EXT_NAMESPACE
 	{
-		return detail::simd_access<simd_mask<float, detail::avec<N, A>>>::blend(a, b);
-	}
+#ifdef SVM_HAS_SSE4_1
+		/** Replaces elements of mask \a a with selected elements of where expression \a b. */
+		template<std::size_t N, std::size_t A>
+		[[nodiscard]] inline simd_mask<float, detail::avec<N, A>> blend(
+				const simd_mask<float, detail::avec<N, A>> &a,
+				const detail::mask_where_expr<float, N, A> &b)
+		noexcept requires detail::x86_sse_overload<float, N, A>
+		{
+			return detail::simd_access<simd_mask<float, detail::avec<N, A>>>::blend(a, b);
+		}
 #endif
-	SVM_EXT_NAMESPACE_CLOSE
+
+		/** Returns a pointer to the underlying native SSE vector (or array of SSE vectors) for \a value. */
+		template<std::size_t N, std::size_t A>
+		[[nodiscard]] inline __m128 *to_native_vector(simd_mask<float, detail::avec<N, A>> &value)
+		noexcept requires detail::x86_sse_overload<float, N, A>
+		{
+			return detail::simd_access<simd_mask<float, detail::avec<N, A>>>::to_native_vector(value);
+		}
+		/** Returns a const pointer to the underlying native SSE vector (or array of SSE vectors) for \a value. */
+		template<std::size_t N, std::size_t A>
+		[[nodiscard]] inline const __m128 *to_native_vector(const simd_mask<float, detail::avec<N, A>> &value)
+		noexcept requires detail::x86_sse_overload<float, N, A>
+		{
+			return detail::simd_access<simd_mask<float, detail::avec<N, A>>>::to_native_vector(value);
+		}
+	}
 
 	template<std::size_t N, std::size_t A>
 	[[nodiscard]] inline bool all_of(const simd_mask<float, detail::avec<N, A>> &mask) noexcept requires detail::x86_sse_overload<float, N, A>
@@ -673,21 +693,41 @@ namespace svm
 				return result;
 			}
 #endif
+
+			[[nodiscard]] static auto *to_native_vector(simd_t &value) noexcept { return value.m_data; }
+			[[nodiscard]] static auto *to_native_vector(const simd_t &value) noexcept { return value.m_data; }
 		};
 	}
 
-	SVM_EXT_NAMESPACE_OPEN
-#ifdef SVM_HAS_SSE4_1
-	/** Replaces elements of vector \a a with selected elements of where expression \a b. */
-	template<std::size_t N, std::size_t A>
-	[[nodiscard]] inline simd<float, detail::avec<N, A>> blend(
-			const simd<float, detail::avec<N, A>> &a,
-			const detail::where_expr<float, N, A> &b)
+	SVM_DECLARE_EXT_NAMESPACE
 	{
-		return detail::simd_access<simd<float, detail::avec<N, A>>>::blend(a, b);
-	}
+#ifdef SVM_HAS_SSE4_1
+		/** Replaces elements of vector \a a with selected elements of where expression \a b. */
+		template<std::size_t N, std::size_t A>
+		[[nodiscard]] inline simd<float, detail::avec<N, A>> blend(
+				const simd<float, detail::avec<N, A>> &a,
+				const detail::where_expr<float, N, A> &b)
+		noexcept requires detail::x86_sse_overload<float, N, A>
+		{
+			return detail::simd_access<simd<float, detail::avec<N, A>>>::blend(a, b);
+		}
 #endif
-	SVM_EXT_NAMESPACE_CLOSE
+
+		/** Returns a pointer to the underlying native SSE vector (or array of SSE vectors) for \a value. */
+		template<std::size_t N, std::size_t A>
+		[[nodiscard]] inline __m128 *to_native_vector(simd<float, detail::avec<N, A>> &value)
+		noexcept requires detail::x86_sse_overload<float, N, A>
+		{
+			return detail::simd_access<simd<float, detail::avec<N, A>>>::to_native_vector(value);
+		}
+		/** Returns a const pointer to the underlying native SSE vector (or array of SSE vectors) for \a value. */
+		template<std::size_t N, std::size_t A>
+		[[nodiscard]] inline const __m128 *to_native_vector(const simd<float, detail::avec<N, A>> &value)
+		noexcept requires detail::x86_sse_overload<float, N, A>
+		{
+			return detail::simd_access<simd<float, detail::avec<N, A>>>::to_native_vector(value);
+		}
+	}
 }
 
 #endif

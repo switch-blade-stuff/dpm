@@ -35,10 +35,10 @@ On architectures without SIMD intrinsic support, SIMD operations are emulated vi
     <td>Toggles support for C++20 modules</td>
   </tr>
   <tr>
-    <td>SVM_NO_EXTENSIONS</td>
-    <td>-DSVM_NO_EXTENSIONS</td>
-    <td>OFF</td>
-    <td>Toggles availability of library extensions within the top-level namespace (see notes)</td>
+    <td>SVM_INLINE_EXTENSIONS</td>
+    <td>-DSVM_INLINE_EXTENSIONS</td>
+    <td>ON</td>
+    <td>Toggles inlining of the library extension namespace (see notes)</td>
   </tr>
   <tr>
     <td>SVM_DYNAMIC_DISPATCH</td>
@@ -89,6 +89,13 @@ In order to use the library as a CMake link dependency, you must link to one of 
 
 The library provides the following extensions to the standard API:
 
+* ABI tags
+    * x86
+        * `sse`
+        * `avx`
+        * `avx512`
+    * ARM
+        * `neon`
 * Blend functions
     * `simd blend(const simd &, const simd &, const simd_mask &)`
     * `simd blend(const simd &, const const_where_expression &)`
@@ -97,7 +104,8 @@ The library provides the following extensions to the standard API:
     * `T blend(const T &, const T &, /* bool-wrapper */)`
     * `T blend(const T &, const const_where_expression &)`
 
-Unless otherwise specified via `SVM_NO_EXTENSIONS` option, all extensions are available within the top-level namespace.
+All extensions are available from the `svm::ext` and `svm::simd_abi::ext` namespaces. If `SVM_INLINE_EXTENSIONS` is
+defined, the `ext` namespaces are declared as inline.
 
 ### Dynamic dispatch
 

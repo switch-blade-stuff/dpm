@@ -117,14 +117,8 @@ import std;
 #define SVM_PRIVATE SVM_API_HIDDEN
 #endif
 
-#ifdef SVM_NO_EXTENSIONS
-#define SVM_EXT_NAMESPACE_NAME ext
-#define SVM_EXT_NAMESPACE_IDENT(ident) SVM_EXT_NAMESPACE_NAME::ident
-#define SVM_EXT_NAMESPACE_OPEN namespace SVM_EXT_NAMESPACE_NAME {
-#define SVM_EXT_NAMESPACE_CLOSE }
+#ifdef SVM_INLINE_EXTENSIONS
+#define SVM_DECLARE_EXT_NAMESPACE inline namespace ext
 #else
-#define SVM_EXT_NAMESPACE_NAME
-#define SVM_EXT_NAMESPACE_IDENT(ident) ident
-#define SVM_EXT_NAMESPACE_OPEN
-#define SVM_EXT_NAMESPACE_CLOSE
+#define SVM_DECLARE_EXT_NAMESPACE namespace ext
 #endif

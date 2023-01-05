@@ -37,15 +37,16 @@ namespace svm
 	template<typename T, typename M>
 	class where_expression;
 
-	SVM_EXT_NAMESPACE_OPEN
-	template<typename T, typename Abi, typename M>
-	inline simd<T, Abi> blend(const simd<T, Abi> &a, const const_where_expression<M, simd<T, Abi>> &b);
-	template<typename T, typename Abi, typename M>
-	inline simd_mask<T, Abi> blend(const simd_mask<T, Abi> &a, const const_where_expression<M, simd_mask<T, Abi>> &b);
+	SVM_DECLARE_EXT_NAMESPACE
+	{
+		template<typename T, typename Abi, typename M>
+		inline simd<T, Abi> blend(const simd<T, Abi> &a, const const_where_expression<M, simd<T, Abi>> &b);
+		template<typename T, typename Abi, typename M>
+		inline simd_mask<T, Abi> blend(const simd_mask<T, Abi> &a, const const_where_expression<M, simd_mask<T, Abi>> &b);
 
-	template<typename T>
-	inline T blend(const T &a, const const_where_expression<bool, T> &b);
-	SVM_EXT_NAMESPACE_CLOSE
+		template<typename T>
+		inline T blend(const T &a, const const_where_expression<bool, T> &b);
+	}
 
 	/** @brief Type used to select element(s) of `T` using mask `M`.
 	 * @tparam T SIMD vector, vector mask or scalar type, who's element(s) to select.
@@ -58,12 +59,12 @@ namespace svm
 		friend struct detail::simd_access<M>;
 
 		template<typename U, typename Abi, typename K>
-		friend inline simd<U, Abi> SVM_EXT_NAMESPACE_IDENT(blend)(const simd<U, Abi> &, const const_where_expression<K, simd<U, Abi>> &);
+		friend inline simd<U, Abi> ext::blend(const simd<U, Abi> &, const const_where_expression<K, simd<U, Abi>> &);
 		template<typename U, typename Abi, typename K>
-		friend inline simd_mask<U, Abi> SVM_EXT_NAMESPACE_IDENT(blend)(const simd_mask<U, Abi> &, const const_where_expression<K, simd_mask<U, Abi>> &);
+		friend inline simd_mask<U, Abi> ext::blend(const simd_mask<U, Abi> &, const const_where_expression<K, simd_mask<U, Abi>> &);
 
 		template<typename U>
-		friend inline U SVM_EXT_NAMESPACE_IDENT(blend)(const U &, const const_where_expression<bool, U> &);
+		friend inline U ext::blend(const U &, const const_where_expression<bool, U> &);
 
 	protected:
 		using value_type = std::conditional_t<std::same_as<M, bool>, T, typename T::value_type>;
@@ -264,7 +265,7 @@ namespace svm
 	inline typename V::value_type reduce(const const_where_expression<M, V> &value, typename V::value_type identity, Op binary_op = {})
 	{
 		if (any_of(value.m_mask))
-			return reduce(SVM_EXT_NAMESPACE_IDENT(blend)({identity}, value), binary_op);
+			return reduce(ext::blend({identity}, value), binary_op);
 		else
 			return identity;
 	}
@@ -272,26 +273,27 @@ namespace svm
 	template<typename V, typename Op>
 	inline V reduce(const const_where_expression<bool, V> &value, V identity, Op binary_op = {}) { return std::invoke(binary_op, identity, +value); }
 
-	SVM_EXT_NAMESPACE_OPEN
-	/** Replaces elements of vector \a a with selected elements of where expression \a b. */
-	template<typename T, typename Abi, typename M>
-	[[nodiscard]] inline simd<T, Abi> blend(const simd<T, Abi> &a, const const_where_expression<M, simd<T, Abi>> &b)
+	SVM_DECLARE_EXT_NAMESPACE
 	{
-		simd<T, Abi> result = a;
-		b.apply([&]<typename U>(std::size_t i, U &&val) { result[i] = std::forward<U>(val); });
-		return result;
-	}
-	/** Replaces elements of mask \a a with selected elements of where expression \a b. */
-	template<typename T, typename Abi, typename M>
-	[[nodiscard]] inline simd_mask<T, Abi> blend(const simd_mask<T, Abi> &a, const const_where_expression<M, simd_mask<T, Abi>> &b)
-	{
-		simd_mask<T, Abi> result = a;
-		b.apply([&](std::size_t i, auto &&val) { result[i] = val; });
-		return result;
-	}
+		/** Replaces elements of vector \a a with selected elements of where expression \a b. */
+		template<typename T, typename Abi, typename M>
+		[[nodiscard]] inline simd<T, Abi> blend(const simd<T, Abi> &a, const const_where_expression<M, simd<T, Abi>> &b)
+		{
+			simd<T, Abi> result = a;
+			b.apply([&]<typename U>(std::size_t i, U &&val) { result[i] = std::forward<U>(val); });
+			return result;
+		}
+		/** Replaces elements of mask \a a with selected elements of where expression \a b. */
+		template<typename T, typename Abi, typename M>
+		[[nodiscard]] inline simd_mask<T, Abi> blend(const simd_mask<T, Abi> &a, const const_where_expression<M, simd_mask<T, Abi>> &b)
+		{
+			simd_mask<T, Abi> result = a;
+			b.apply([&](std::size_t i, auto &&val) { result[i] = val; });
+			return result;
+		}
 
-	/** Returns either \a a or the selected element of where expression \a b. */
-	template<typename T>
-	[[nodiscard]] inline T blend(const T &a, const const_where_expression<bool, T> &b) { return b.m_mask ? b.m_value : a; }
-	SVM_EXT_NAMESPACE_CLOSE
+		/** Returns either \a a or the selected element of where expression \a b. */
+		template<typename T>
+		[[nodiscard]] inline T blend(const T &a, const const_where_expression<bool, T> &b) { return b.m_mask ? b.m_value : a; }
+	}
 }

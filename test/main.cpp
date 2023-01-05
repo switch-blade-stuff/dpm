@@ -101,12 +101,12 @@ int main()
 	test_mask<float, svm::simd_abi::fixed_size<8>>();
 	test_mask<float, svm::simd_abi::fixed_size<16>>();
 	test_mask<float, svm::simd_abi::fixed_size<32>>();
-	test_mask<float, svm::simd_abi::aligned_vector<4, 16>>();
-	test_mask<float, svm::simd_abi::aligned_vector<8, 16>>();
-	test_mask<float, svm::simd_abi::aligned_vector<16, 16>>();
-	test_mask<float, svm::simd_abi::aligned_vector<32, 16>>();
+	test_mask<float, svm::simd_abi::ext::aligned_vector<4, 16>>();
+	test_mask<float, svm::simd_abi::ext::aligned_vector<8, 16>>();
+	test_mask<float, svm::simd_abi::ext::aligned_vector<16, 16>>();
+	test_mask<float, svm::simd_abi::ext::aligned_vector<32, 16>>();
 
-	svm::simd<float, svm::simd_abi::sse<float>> a = {1.0f}, b = {-1.0f}, d = {0.0f};
+	svm::simd<float, svm::simd_abi::fixed_size<4>> a = {1.0f}, b = {-1.0f}, d = {0.0f};
 	const auto c = -a;
 
 	TEST_ASSERT(svm::all_of(a != b));
@@ -126,14 +126,14 @@ int main()
 	TEST_ASSERT(svm::reduce(a) == 1.0f * a.size());
 	TEST_ASSERT(svm::reduce(b) == -1.0f * a.size());
 
-	alignas(decltype(d)) std::array<float, decltype(a)::size()> d_vals;
+	alignas(decltype(d)) std::array<float, 4> d_vals;
 	for (std::size_t i = 0; i < d_vals.size(); ++i) d_vals[i] = i % 2 ? b[i] : a[i];
-	alignas(decltype(d)::mask_type) std::array<bool, decltype(a)::size()> mask_vals;
+	alignas(decltype(d)::mask_type) std::array<bool, 4> mask_vals;
 	for (std::size_t i = 0; i < mask_vals.size(); ++i) mask_vals[i] = i % 2;
 
 	typename decltype(d)::mask_type mask;
 	d.copy_from(d_vals.data(), svm::vector_aligned);
 	mask.copy_from(mask_vals.data(), svm::vector_aligned);
 
-	TEST_ASSERT(svm::all_of(blend(a, b, mask) == d));
+	TEST_ASSERT(svm::all_of(svm::ext::blend(a, b, mask) == d));
 }

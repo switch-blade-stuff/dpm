@@ -101,4 +101,24 @@ namespace svm
 	struct resize_simd;
 	template<std::size_t N, typename V>
 	using resize_simd_t = typename resize_simd<N, V>::type;
+
+	SVM_DECLARE_EXT_NAMESPACE
+	{
+		/** @brief Type trait used to check if a given configuration of value type `T` and abi `Abi` has a corresponding native vector type.
+		 * @example On x86 platforms with SSE support, `has_native_vector<float, simd_abi::sse<float>>::value` evaluates to `true`. */
+		template<typename T, typename Abi>
+		struct has_native_vector : std::false_type {};
+		/** @brief Alias for `typename has_native_vector<T, Abi>::value`. */
+		template<typename T, typename Abi>
+		inline constexpr auto has_native_vector_v = has_native_vector<T, Abi>::value;
+
+		/** @brief Type trait used to obtain the native vector type given value type `T` and abi `Abi`.
+		 * @example On x86 platforms with SSE support, `native_vector_type<float, simd_abi::sse<float>>::type` is `__m128`.
+		 * @note This type trait is defined only if `has_native_vector<T, Abi>::value` evaluates to `true` */
+		template<typename T, typename Abi>
+		struct native_vector_type;
+		/** @brief Alias for `typename native_vector_type<T, Abi>::type`. */
+		template<typename T, typename Abi>
+		using native_vector_type_t = typename native_vector_type<T, Abi>::type;
+	}
 }
