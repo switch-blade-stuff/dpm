@@ -6,6 +6,12 @@
 
 #include "detail/define.hpp"
 
+#ifndef SVM_USE_IMPORT
+
+#include <functional>
+
+#endif
+
 namespace svm
 {
 	template<typename, typename>
@@ -33,7 +39,8 @@ namespace svm
 		static constexpr bool valid_generator() noexcept
 		{
 			if constexpr (I != N)
-				return requires(G &&gen) {{ gen(std::integral_constant<std::size_t, I>()) } -> compatible_element<T>; } && valid_generator<G, T, N, I + 1>();
+				return requires(G &&gen) {{ std::invoke(gen, std::integral_constant<std::size_t, I>()) } -> compatible_element<T>; } &&
+				       valid_generator<G, T, N, I + 1>();
 			else
 				return true;
 		}
@@ -70,9 +77,7 @@ namespace svm
 	template<typename T, typename Abi = typename simd_abi::detail::select_compatible<T>::type>
 	struct simd_size;
 	template<typename T, typename Abi> requires is_abi_tag_v<Abi>
-	struct simd_size<T, Abi> : std::integral_constant<std::size_t, Abi::size> {};
-	template<typename T, typename Abi> requires is_abi_tag_v<Abi> && requires { typename simd<T, Abi>; }
-	struct simd_size<T, Abi> : std::integral_constant<std::size_t, simd<T, Abi>::size()> {};
+	struct simd_size<T, Abi> : std::integral_constant<std::size_t, requires { typename simd<T, Abi>; } ? simd<T, Abi>::size() : Abi::size> {};
 
 	template<typename T, typename Abi = typename simd_abi::detail::select_compatible<T>::type>
 	inline constexpr std::size_t simd_size_v = simd_size<T, Abi>::value;

@@ -35,6 +35,12 @@ On architectures without SIMD intrinsic support, SIMD operations are emulated vi
     <td>Toggles support for C++20 modules</td>
   </tr>
   <tr>
+    <td>SVM_NO_EXTENSIONS</td>
+    <td>-DSVM_NO_EXTENSIONS</td>
+    <td>OFF</td>
+    <td>Toggles availability of library extensions within the top-level namespace (see notes)</td>
+  </tr>
+  <tr>
     <td>SVM_DYNAMIC_DISPATCH</td>
     <td>-DSVM_DYNAMIC_DISPATCH</td>
     <td>ON</td>
@@ -78,6 +84,20 @@ In order to use the library as a CMake link dependency, you must link to one of 
 * `svm` - static or shared library target, depending on the value of `BUILD_SHARED_LIBS`.
 
 ## Notes
+
+### Extensions
+
+The library provides the following extensions to the standard API:
+
+* Blend functions
+    * `simd blend(const simd &, const simd &, const simd_mask &)`
+    * `simd blend(const simd &, const const_where_expression &)`
+    * `simd_mask blend(const simd_mask &, const simd_mask &, const simd_mask &)`
+    * `simd_mask blend(const simd_mask &, const const_where_expression &)`
+    * `T blend(const T &, const T &, /* bool-wrapper */)`
+    * `T blend(const T &, const const_where_expression &)`
+
+Unless otherwise specified via `SVM_NO_EXTENSIONS` option, all extensions are available within the top-level namespace.
 
 ### Dynamic dispatch
 

@@ -121,4 +121,19 @@ int main()
 	TEST_ASSERT(svm::all_of(d - a == b));
 	TEST_ASSERT(svm::all_of(d - b == a));
 	TEST_ASSERT(svm::all_of(b + b == b * decltype(b){2.0f}));
+
+	TEST_ASSERT(svm::reduce(d) == 0.0f);
+	TEST_ASSERT(svm::reduce(a) == 1.0f * a.size());
+	TEST_ASSERT(svm::reduce(b) == -1.0f * a.size());
+
+	alignas(decltype(d)) std::array<float, decltype(a)::size()> d_vals;
+	for (std::size_t i = 0; i < d_vals.size(); ++i) d_vals[i] = i % 2 ? b[i] : a[i];
+	alignas(decltype(d)::mask_type) std::array<bool, decltype(a)::size()> mask_vals;
+	for (std::size_t i = 0; i < mask_vals.size(); ++i) mask_vals[i] = i % 2;
+
+	typename decltype(d)::mask_type mask;
+	d.copy_from(d_vals.data(), svm::vector_aligned);
+	mask.copy_from(mask_vals.data(), svm::vector_aligned);
+
+	TEST_ASSERT(svm::all_of(blend(a, b, mask) == d));
 }

@@ -50,6 +50,30 @@ namespace svm
 		/** Implementation-defined maximum width of an SIMD vector type. Guaranteed to be at least 32. */
 		template<typename T>
 		inline constexpr int max_fixed_size = 32;
+
+		/** @brief Deduces an ABI tag for given value type and size with optional hints.
+		 * @tparam T Value type to deduce the ABI for.
+		 * @tparam N Number of elements stored by the SIMD vector created with the deduced ABI tag.
+		 * @tparam Abis Optional ABI tag hints to use for deduction. */
+		template<typename T, std::size_t N, typename... Abis>
+		struct deduce;
+		template<typename T>
+		struct deduce<T, 1> { using type = scalar; };
+		template<typename T, std::size_t N>
+		struct deduce<T, N> { using type = fixed_size<N>; };
+
+		namespace detail
+		{
+			template<typename T, std::size_t N, typename Abi>
+			concept accept_abi = simd_size_v<T, Abi> == N && std::is_default_constructible_v<simd<T, Abi>>;
+		}
+
+		template<typename T, std::size_t N, typename Abi, typename... Abis>
+		struct deduce<T, N, Abi, Abis...> { using type = std::conditional_t<detail::accept_abi<T, N, Abi>, Abi, typename deduce<T, N, Abis...>::type>; };
+
+		/** @brief Alias for `typename deduce<T, N, Abis...>::type`. */
+		template<typename T, std::size_t N, typename... Abis>
+		using deduce_t = typename deduce<T, N, Abis...>::type;
 	}
 
 	template<>

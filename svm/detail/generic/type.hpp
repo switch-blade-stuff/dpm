@@ -5,6 +5,7 @@
 #pragma once
 
 #include "../../flags.hpp"
+#include "../where_expr.hpp"
 #include "../reference.hpp"
 #include "../assert.hpp"
 
@@ -24,7 +25,7 @@ namespace svm
 		{
 			if constexpr (I != N)
 			{
-				data[I] = gen(std::integral_constant<std::size_t, I>());
+				data[I] = std::invoke(gen, std::integral_constant<std::size_t, I>());
 				generate<N, I + 1>(data, std::forward<G>(gen));
 			}
 		}
@@ -187,6 +188,15 @@ namespace svm
 		return simd_mask<T, Abi>::size();
 	}
 
+	SVM_EXT_NAMESPACE_OPEN
+	/** Replaces elements of masks \a and \a b using mask \a m. Elements of \a b are selected if the corresponding element of \a m evaluates to `true`. */
+	template<typename T, typename Abi, typename M>
+	[[nodiscard]] inline simd_mask<T, Abi> blend(const simd_mask<T, Abi> &a, const simd_mask<T, Abi> &b, const simd_mask<T, Abi> &m)
+	{
+		return blend(a, where(m, b));
+	}
+	SVM_EXT_NAMESPACE_CLOSE
+
 	namespace detail
 	{
 		struct bool_wrapper
@@ -215,6 +225,12 @@ namespace svm
 	[[nodiscard]] constexpr std::size_t find_first_set([[maybe_unused]] detail::bool_wrapper value) noexcept { return 0; }
 	/** @copydoc find_last_set */
 	[[nodiscard]] constexpr std::size_t find_last_set([[maybe_unused]] detail::bool_wrapper value) noexcept { return 0; }
+
+	SVM_EXT_NAMESPACE_OPEN
+	/** Equivalent to `m ? b : a`. */
+	template<typename T>
+	[[nodiscard]] inline T blend(const T &a, const T &b, detail::bool_wrapper m) { return m ? b : a; }
+	SVM_EXT_NAMESPACE_CLOSE
 
 	template<detail::vectorizable T>
 	class simd_mask<T, simd_abi::scalar>
@@ -624,6 +640,45 @@ namespace svm
 		return result;
 	}
 
+	namespace detail
+	{
+		template<std::size_t N, typename T, typename Abi, typename Op = std::plus<>>
+		[[nodiscard]] inline T reduce_impl(const simd<T, Abi> &value, Op binary_op = {})
+		{
+			if constexpr (N == 1)
+				return value[0];
+			else
+			{
+				simd<T, simd_abi::deduce_t<T, N / 2, Abi>> a, b;
+
+				/* Separate `value` into halves and reduce them separately. */
+				for (std::size_t i = 0; i < N / 2; ++i)
+					a[i] = value[0];
+				for (std::size_t i = 0, j = N / 2; i < N / 2; ++i, ++j)
+				{
+					if (j < simd<T, Abi>::size())
+						b[i] = value[j];
+					else
+						b[i] = T{};
+				}
+				return std::invoke(binary_op, reduce_impl<N / 2>(a, binary_op), reduce_impl<N / 2>(b, binary_op));
+			}
+		}
+	}
+
+	/** Calculates a reduction of all elements from \a value using \a binary_op. */
+	template<typename T, typename Abi, typename Op = std::plus<>>
+	[[nodiscard]] inline T reduce(const simd<T, Abi> &value, Op binary_op = {}) { return detail::reduce_impl<simd_size_v<T, Abi>>(value, binary_op); }
+
+	SVM_EXT_NAMESPACE_OPEN
+	/** Replaces elements of vectors \a and \a b using mask \a m. Elements of \a b are selected if the corresponding element of \a m evaluates to `true`. */
+	template<typename T, typename Abi>
+	[[nodiscard]] inline simd<T, Abi> blend(const simd<T, Abi> &a, const simd<T, Abi> &b, const simd_mask<T, Abi> &m)
+	{
+		return blend(a, where(m, b));
+	}
+	SVM_EXT_NAMESPACE_CLOSE
+
 	template<detail::vectorizable T>
 	class simd<T, simd_abi::scalar>
 	{
@@ -655,7 +710,7 @@ namespace svm
 		constexpr simd(U &&value) noexcept : m_value(static_cast<value_type>(value)) {}
 		/** Initializes the underlying scalar with a value provided by the generator \a gen. */
 		template<detail::element_generator<value_type, size()> G>
-		simd(G &&gen) noexcept : simd(gen(std::integral_constant<std::size_t, 0>())) {}
+		simd(G &&gen) noexcept : simd(std::invoke(gen, std::integral_constant<std::size_t, 0>())) {}
 		/** Initializes the underlying scalar from the value pointed to by \a mem. */
 		template<typename U, typename Flags>
 		simd(const U *mem, Flags) noexcept requires is_simd_flag_type_v<Flags> { copy_from(mem, Flags{}); }
@@ -678,23 +733,23 @@ namespace svm
 			return m_value;
 		}
 
-		simd operator++(int) noexcept requires (std::declval<value_type>()++) { return {m_value++}; }
-		simd operator--(int) noexcept requires (std::declval<value_type>()--) { return {m_value--}; }
-		simd &operator++() noexcept requires (++std::declval<value_type>())
+		simd operator++(int) noexcept requires (requires { std::declval<value_type &>()++; }) { return {m_value++}; }
+		simd operator--(int) noexcept requires (requires { std::declval<value_type &>()--; }) { return {m_value--}; }
+		simd &operator++() noexcept requires (requires { ++std::declval<value_type &>(); })
 		{
 			++m_value;
 			return *this;
 		}
-		simd &operator--() noexcept requires (--std::declval<value_type>())
+		simd &operator--() noexcept requires (requires { --std::declval<value_type &>(); })
 		{
 			--m_value;
 			return *this;
 		}
 
-		[[nodiscard]] mask_type operator!() const noexcept requires (!std::declval<value_type>()) { return {!m_value}; }
-		[[nodiscard]] mask_type operator~() const noexcept requires (~std::declval<value_type>()) { return {~m_value}; }
-		[[nodiscard]] simd operator+() const noexcept requires (+std::declval<value_type>()) { return {+m_value}; }
-		[[nodiscard]] simd operator-() const noexcept requires (-std::declval<value_type>()) { return {-m_value}; }
+		[[nodiscard]] mask_type operator!() const noexcept requires (requires { !std::declval<value_type &>(); }) { return {!m_value}; }
+		[[nodiscard]] mask_type operator~() const noexcept requires (requires { ~std::declval<value_type &>(); }) { return {~m_value}; }
+		[[nodiscard]] simd operator+() const noexcept requires (requires { +std::declval<value_type &>(); }) { return {+m_value}; }
+		[[nodiscard]] simd operator-() const noexcept requires (requires { -std::declval<value_type &>(); }) { return {-m_value}; }
 
 	private:
 		value_type m_value;
