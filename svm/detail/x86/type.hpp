@@ -25,28 +25,35 @@ namespace svm
 		using simd_abi::detail::default_x86_align;
 
 		template<typename T, std::size_t N, std::size_t A, typename V>
-		concept x86_simd_overload = vectorizable<T> && (A == alignof(V) || (A == 0 && has_x86_default<T, N> && default_x86_align<T, N>::value == alignof(V)));
+		concept x86_simd_overload = vectorizable<T> && (A >= alignof(V) || A == 0) && has_x86_default<T, N> && default_x86_align<T, N>::value == alignof(V);
 		template<typename T, std::size_t N, std::size_t A>
 		concept x86_sse_overload = x86_simd_overload<T, N, A, __m128>;
 		template<typename T, std::size_t N, std::size_t A>
 		concept x86_avx_overload = x86_simd_overload<T, N, A, __m256>;
 		template<typename T, std::size_t N, std::size_t A>
 		concept x86_avx512_overload = x86_simd_overload<T, N, A, __m512>;
+
+		template<std::size_t N, std::size_t A>
+		using avec = simd_abi::aligned_vector<N, A>;
 	}
 
 	template<std::size_t N, std::size_t Align> requires detail::x86_sse_overload<float, N, Align>
-	class simd_mask<float, simd_abi::aligned_vector<N, Align>>
+	class simd_mask<float, detail::avec<N, Align>>
 	{
+		template<typename, typename>
+		friend
+		class simd_mask;
+
 		using vector_type = __m128;
 
-		constexpr static auto data_size = detail::vector_array_size<float, N, vector_type>();
+		constexpr static auto data_size = detail::align_vector_array<float, N, vector_type>();
 		using data_type = vector_type[data_size];
 
 	public:
 		using value_type = bool;
-		using reference = detail::mask_reference<std::uint32_t, 0xffff'ffff>;
+		using reference = detail::mask_reference<std::uint32_t>;
 
-		using abi_type = simd_abi::aligned_vector<N, Align>;
+		using abi_type = detail::avec<N, Align>;
 		using simd_type = simd<float, abi_type>;
 
 		/** Returns width of the SIMD mask. */
@@ -57,6 +64,8 @@ namespace svm
 		{
 			SVM_ASSERT(i < size(), "simd_mask<T, simd_abi::sse<T>> subscript out of range");
 		}
+
+		constexpr static std::size_t alignment = std::max(Align, alignof(data_type));
 
 	public:
 		constexpr simd_mask() noexcept = default;
@@ -76,6 +85,50 @@ namespace svm
 		{
 			const auto v = value ? _mm_set1_ps(std::bit_cast<float>(0xffff'ffff)) : _mm_setzero_ps();
 			std::fill_n(m_data, data_size, v);
+		}
+		/** Copies elements from \a other. */
+		template<typename U, std::size_t OtherAlign>
+		simd_mask(const simd_mask<U, detail::avec<size(), OtherAlign>> &other) noexcept
+		{
+			constexpr auto other_alignment = simd_mask<U, detail::avec<size(), OtherAlign>>::alignment;
+			if constexpr (other_alignment == 0 || other_alignment >= alignment)
+				std::copy_n(other.m_data, data_size, m_data);
+			else
+				copy_from(other.m_data, element_aligned);
+		}
+		/** Initializes the underlying elements from \a mem. */
+		template<typename Flags>
+		simd_mask(const value_type *mem, Flags) noexcept requires is_simd_flag_type_v<Flags> { copy_from(mem, Flags{}); }
+
+		/** Copies the underlying elements from \a mem. */
+		template<typename Flags>
+		void copy_from(const value_type *mem, Flags) noexcept requires is_simd_flag_type_v<Flags>
+		{
+			for (std::size_t i = 0; i < size(); i += 4)
+			{
+				float f0 = 0.0f, f1 = 0.0f, f2 = 0.0f, f3 = 0.0f;
+				switch (size() - i)
+				{
+					default: f3 = std::bit_cast<float>(detail::extend_bool<std::uint32_t>(mem[i + 3]));
+					case 3: f2 = std::bit_cast<float>(detail::extend_bool<std::uint32_t>(mem[i + 2]));
+					case 2: f1 = std::bit_cast<float>(detail::extend_bool<std::uint32_t>(mem[i + 1]));
+					case 1: f0 = std::bit_cast<float>(detail::extend_bool<std::uint32_t>(mem[i]));
+				}
+				m_data[i / 4] = _mm_set_ps(f3, f2, f1, f0);
+			}
+		}
+		/** Copies the underlying elements to \a mem. */
+		template<typename Flags>
+		void copy_to(value_type *mem, Flags) noexcept requires is_simd_flag_type_v<Flags>
+		{
+			for (std::size_t i = 0; i < size(); i += 4)
+				switch (const auto bits = _mm_movemask_ps(m_data[i / 4]); size() - i)
+				{
+					default: mem[i + 3] = bits & 0b1000;
+					case 3: mem[i + 2] = bits & 0b0100;
+					case 2: mem[i + 1] = bits & 0b0010;
+					case 1: mem[i] = bits & 0b0001;
+				}
 		}
 
 		[[nodiscard]] reference operator[](std::size_t i) noexcept
@@ -248,6 +301,7 @@ namespace svm
 #endif
 		}
 
+		/** @warning Internal use only! */
 		[[nodiscard]] std::size_t _impl_popcount() const noexcept
 		{
 			std::size_t result = 0, i = 0;
@@ -276,6 +330,7 @@ namespace svm
 			}
 			return result;
 		}
+		/** @warning Internal use only! */
 		[[nodiscard]] std::size_t _impl_find_first_set() const noexcept
 		{
 			for (std::size_t i = 0; i < data_size; i += 8)
@@ -293,6 +348,7 @@ namespace svm
 				}
 			return 0;
 		}
+		/** @warning Internal use only! */
 		[[nodiscard]] std::size_t _impl_find_last_set() const noexcept
 		{
 			for (std::size_t i = data_size, k; i != 0; i -= k + 1)
@@ -314,62 +370,59 @@ namespace svm
 		}
 
 	private:
-		data_type m_data;
+		alignas(alignment) data_type m_data;
 	};
 
 	template<std::size_t N, std::size_t A>
-	[[nodiscard]] inline bool all_of(const simd_mask<float, simd_abi::aligned_vector<N, A>> &mask) noexcept requires detail::x86_sse_overload<float, N, A>
+	[[nodiscard]] inline bool all_of(const simd_mask<float, detail::avec<N, A>> &mask) noexcept requires detail::x86_sse_overload<float, N, A>
 	{
 		return mask._impl_all_of();
 	}
 	template<std::size_t N, std::size_t A>
-	[[nodiscard]] inline bool any_of(const simd_mask<float, simd_abi::aligned_vector<N, A>> &mask) noexcept requires detail::x86_sse_overload<float, N, A>
+	[[nodiscard]] inline bool any_of(const simd_mask<float, detail::avec<N, A>> &mask) noexcept requires detail::x86_sse_overload<float, N, A>
 	{
 		return mask._impl_any_of();
 	}
 	template<std::size_t N, std::size_t A>
-	[[nodiscard]] inline bool none_of(const simd_mask<float, simd_abi::aligned_vector<N, A>> &mask) noexcept requires detail::x86_sse_overload<float, N, A>
+	[[nodiscard]] inline bool none_of(const simd_mask<float, detail::avec<N, A>> &mask) noexcept requires detail::x86_sse_overload<float, N, A>
 	{
 		return mask._impl_none_of();
 	}
 	template<std::size_t N, std::size_t A>
-	[[nodiscard]] inline bool some_of(const simd_mask<float, simd_abi::aligned_vector<N, A>> &mask) noexcept requires detail::x86_sse_overload<float, N, A>
+	[[nodiscard]] inline bool some_of(const simd_mask<float, detail::avec<N, A>> &mask) noexcept requires detail::x86_sse_overload<float, N, A>
 	{
 		return mask._impl_some_of();
 	}
 
 	template<std::size_t N, std::size_t A>
-	[[nodiscard]] inline std::size_t popcount(const simd_mask<float, simd_abi::aligned_vector<N, A>> &mask)
-	noexcept requires detail::x86_sse_overload<float, N, A>
+	[[nodiscard]] inline std::size_t popcount(const simd_mask<float, detail::avec<N, A>> &mask) noexcept requires detail::x86_sse_overload<float, N, A>
 	{
 		return mask._impl_popcount();
 	}
 	template<std::size_t N, std::size_t A>
-	[[nodiscard]] inline std::size_t find_first_set(const simd_mask<float, simd_abi::aligned_vector<N, A>> &mask)
-	noexcept requires detail::x86_sse_overload<float, N, A>
+	[[nodiscard]] inline std::size_t find_first_set(const simd_mask<float, detail::avec<N, A>> &mask) noexcept requires detail::x86_sse_overload<float, N, A>
 	{
 		return mask._impl_find_first_set();
 	}
 	template<std::size_t N, std::size_t A>
-	[[nodiscard]] inline std::size_t find_last_set(const simd_mask<float, simd_abi::aligned_vector<N, A>> &mask)
-	noexcept requires detail::x86_sse_overload<float, N, A>
+	[[nodiscard]] inline std::size_t find_last_set(const simd_mask<float, detail::avec<N, A>> &mask) noexcept requires detail::x86_sse_overload<float, N, A>
 	{
 		return mask._impl_find_last_set();
 	}
 
-	template<std::size_t N, std::size_t Align> requires detail::x86_simd_overload<float, N, Align, __m128>
-	class simd<float, simd_abi::aligned_vector<N, Align>>
+	template<std::size_t N, std::size_t Align> requires detail::x86_sse_overload<float, N, Align>
+	class simd<float, detail::avec<N, Align>>
 	{
 		using vector_type = __m128;
 
-		constexpr static auto data_size = detail::vector_array_size<float, N, vector_type>();
+		constexpr static auto data_size = detail::align_vector_array<float, N, vector_type>();
 		using data_type = vector_type[data_size];
 
 	public:
 		using value_type = float;
 		using reference = detail::simd_reference<value_type>;
 
-		using abi_type = simd_abi::aligned_vector<N, Align>;
+		using abi_type = detail::avec<N, Align>;
 		using mask_type = simd_mask<float, abi_type>;
 
 		/** Returns width of the SIMD type. */
@@ -407,12 +460,15 @@ namespace svm
 		{
 			detail::generate<data_size>(m_data, [&gen]<std::size_t I>(std::integral_constant<std::size_t, I>)
 			{
-				constexpr auto value_idx = I * sizeof(__m128);
-				const auto f0 = gen(std::integral_constant<std::size_t, value_idx>());
-				const auto f1 = value_idx + 1 < size() ? gen(std::integral_constant<std::size_t, value_idx + 1>()) : 0;
-				const auto f2 = value_idx + 2 < size() ? gen(std::integral_constant<std::size_t, value_idx + 2>()) : 0;
-				const auto f3 = value_idx + 3 < size() ? gen(std::integral_constant<std::size_t, value_idx + 3>()) : 0;
-				return _mm_set_ps(f0, f1, f2, f3);
+				float f0 = 0.0f, f1 = 0.0f, f2 = 0.0f, f3 = 0.0f;
+				switch (constexpr auto value_idx = I * 4; size() - value_idx)
+				{
+					default: f3 = gen(std::integral_constant<std::size_t, value_idx + 3>());
+					case 3: f2 = gen(std::integral_constant<std::size_t, value_idx + 2>());
+					case 2: f1 = gen(std::integral_constant<std::size_t, value_idx + 1>());
+					case 1: f0 = gen(std::integral_constant<std::size_t, value_idx>());
+				}
+				return _mm_set_ps(f3, f2, f1, f0);
 			});
 		}
 
@@ -443,21 +499,104 @@ namespace svm
 		[[nodiscard]] simd operator-() const noexcept
 		{
 			simd result;
-			const auto mask = _mm_set1_ps(std::bit_cast<float>(0x8000'0000));
-			for (std::size_t i = 0; i < data_size; ++i) result.m_data[i] = _mm_xor_ps(m_data[i], mask);
+			const auto sign_mask = _mm_set1_ps(std::bit_cast<float>(0x8000'0000));
+			for (std::size_t i = 0; i < data_size; ++i) result.m_data[i] = _mm_xor_ps(m_data[i], sign_mask);
 			return result;
 		}
 
-		friend mask_type operator==(const simd &a, const simd &b) noexcept
+		[[nodiscard]] friend simd operator+(const simd &a, const simd &b) noexcept
+		{
+			simd result;
+			for (std::size_t i = 0; i < data_size; ++i) result.m_data[i] = _mm_add_ps(a.m_data[i], b.m_data[i]);
+			return result;
+		}
+		[[nodiscard]] friend simd operator-(const simd &a, const simd &b) noexcept
+		{
+			simd result;
+			for (std::size_t i = 0; i < data_size; ++i) result.m_data[i] = _mm_sub_ps(a.m_data[i], b.m_data[i]);
+			return result;
+		}
+
+		friend simd &operator+=(simd &a, const simd &b) noexcept
+		{
+			for (std::size_t i = 0; i < data_size; ++i) a.m_data[i] = _mm_add_ps(a.m_data[i], b.m_data[i]);
+			return a;
+		}
+		friend simd &operator-=(simd &a, const simd &b) noexcept
+		{
+			for (std::size_t i = 0; i < data_size; ++i) a.m_data[i] = _mm_sub_ps(a.m_data[i], b.m_data[i]);
+			return a;
+		}
+
+		[[nodiscard]] friend simd operator*(const simd &a, const simd &b) noexcept
+		{
+			simd result;
+			for (std::size_t i = 0; i < data_size; ++i) result.m_data[i] = _mm_mul_ps(a.m_data[i], b.m_data[i]);
+			return result;
+		}
+		[[nodiscard]] friend simd operator/(const simd &a, const simd &b) noexcept
+		{
+			simd result;
+			for (std::size_t i = 0; i < data_size; ++i) result.m_data[i] = _mm_div_ps(a.m_data[i], b.m_data[i]);
+			return result;
+		}
+
+		friend simd &operator*=(simd &a, const simd &b) noexcept
+		{
+			for (std::size_t i = 0; i < data_size; ++i) a.m_data[i] = _mm_mul_ps(a.m_data[i], b.m_data[i]);
+			return a;
+		}
+		friend simd &operator/=(simd &a, const simd &b) noexcept
+		{
+			for (std::size_t i = 0; i < data_size; ++i) a.m_data[i] = _mm_div_ps(a.m_data[i], b.m_data[i]);
+			return a;
+		}
+
+		[[nodiscard]] reference operator[](std::size_t i) noexcept
+		{
+			assert_subscript(i);
+			return reference{reinterpret_cast<float *>(m_data)[i]};
+		}
+		[[nodiscard]] value_type operator[](std::size_t i) const noexcept
+		{
+			assert_subscript(i);
+			return reinterpret_cast<const float *>(m_data)[i];
+		}
+
+		[[nodiscard]] friend mask_type operator==(const simd &a, const simd &b) noexcept
 		{
 			data_type mask_data;
 			for (std::size_t i = 0; i < data_size; ++i) mask_data[i] = _mm_cmpeq_ps(a.m_data[i], b.m_data[i]);
 			return {mask_data};
 		}
-		friend mask_type operator!=(const simd &a, const simd &b) noexcept
+		[[nodiscard]] friend mask_type operator!=(const simd &a, const simd &b) noexcept
 		{
 			data_type mask_data;
 			for (std::size_t i = 0; i < data_size; ++i) mask_data[i] = _mm_cmpneq_ps(a.m_data[i], b.m_data[i]);
+			return {mask_data};
+		}
+		[[nodiscard]] friend mask_type operator<=(const simd &a, const simd &b) noexcept
+		{
+			data_type mask_data;
+			for (std::size_t i = 0; i < data_size; ++i) mask_data[i] = _mm_cmple_ps(a.m_data[i], b.m_data[i]);
+			return {mask_data};
+		}
+		[[nodiscard]] friend mask_type operator>=(const simd &a, const simd &b) noexcept
+		{
+			data_type mask_data;
+			for (std::size_t i = 0; i < data_size; ++i) mask_data[i] = _mm_cmpge_ps(a.m_data[i], b.m_data[i]);
+			return {mask_data};
+		}
+		[[nodiscard]] friend mask_type operator<(const simd &a, const simd &b) noexcept
+		{
+			data_type mask_data;
+			for (std::size_t i = 0; i < data_size; ++i) mask_data[i] = _mm_cmplt_ps(a.m_data[i], b.m_data[i]);
+			return {mask_data};
+		}
+		[[nodiscard]] friend mask_type operator>(const simd &a, const simd &b) noexcept
+		{
+			data_type mask_data;
+			for (std::size_t i = 0; i < data_size; ++i) mask_data[i] = _mm_cmpgt_ps(a.m_data[i], b.m_data[i]);
 			return {mask_data};
 		}
 

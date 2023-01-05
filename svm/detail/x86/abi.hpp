@@ -46,7 +46,7 @@ namespace svm::simd_abi
 		struct default_x86_align<T, N> : std::integral_constant<std::size_t, alignof(__m256)> {};
 #else
 		template<has_x86_vector T, std::size_t N>
-		struct default_x86_align<T, N> { using type = __m128; };
+		struct default_x86_align<T, N> : std::integral_constant<std::size_t, alignof(__m128)> {};
 #endif
 
 		template<typename T, std::size_t N>

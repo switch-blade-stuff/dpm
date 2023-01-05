@@ -11,8 +11,11 @@ namespace svm::detail
 	template<typename T>
 	constexpr void mask_bit(T &value, int pos, bool bit = true) noexcept { value &= ~static_cast<T>(!bit << pos); }
 
+	template<typename T>
+	[[nodiscard]] constexpr T extend_bool(bool b) noexcept { return -static_cast<T>(b); }
+
 	template<typename T, std::size_t N, typename V>
-	[[nodiscard]] constexpr std::size_t vector_array_size() noexcept
+	[[nodiscard]] constexpr std::size_t align_vector_array() noexcept
 	{
 		const auto size_mult = sizeof(V) / sizeof(T);
 		return N / size_mult + !!(N % size_mult);
