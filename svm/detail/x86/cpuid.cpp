@@ -45,7 +45,7 @@ namespace svm::detail
 	}
 	static SVM_FORCEINLINE std::uint32_t platrofm_xcr0() noexcept
 	{
-		return static_cast<std::::uint32_t>(_xgetbv(0));
+		return static_cast<std::uint32_t>(_xgetbv(0));
 	}
 #elif defined(__GNUC__) || defined(__clang__)
 	static SVM_FORCEINLINE void platform_cpuid(std::uint32_t leaf, cpuid_regs &regs) noexcept

@@ -44,7 +44,7 @@ namespace svm
 
 	public:
 		using value_type = bool;
-		using reference = detail::mask_reference<std::uint32_t>;
+		using reference = detail::mask_reference<std::int32_t>;
 
 		using abi_type = detail::avec<N, Align>;
 		using simd_type = simd<float, abi_type>;
@@ -105,10 +105,10 @@ namespace svm
 				float f0 = 0.0f, f1 = 0.0f, f2 = 0.0f, f3 = 0.0f;
 				switch (size() - i)
 				{
-					default: f3 = std::bit_cast<float>(detail::extend_bool<std::uint32_t>(mem[i + 3]));
-					case 3: f2 = std::bit_cast<float>(detail::extend_bool<std::uint32_t>(mem[i + 2]));
-					case 2: f1 = std::bit_cast<float>(detail::extend_bool<std::uint32_t>(mem[i + 1]));
-					case 1: f0 = std::bit_cast<float>(detail::extend_bool<std::uint32_t>(mem[i]));
+					default: f3 = std::bit_cast<float>(detail::extend_bool<std::int32_t>(mem[i + 3]));
+					case 3: f2 = std::bit_cast<float>(detail::extend_bool<std::int32_t>(mem[i + 2]));
+					case 2: f1 = std::bit_cast<float>(detail::extend_bool<std::int32_t>(mem[i + 1]));
+					case 1: f0 = std::bit_cast<float>(detail::extend_bool<std::int32_t>(mem[i]));
 				}
 				m_data[i / 4] = _mm_set_ps(f3, f2, f1, f0);
 			}
