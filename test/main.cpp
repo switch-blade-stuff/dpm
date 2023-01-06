@@ -31,8 +31,8 @@ static inline void test_mask() noexcept
 	TEST_ASSERT(svm::all_of(a == b));
 	TEST_ASSERT(svm::all_of(c == d));
 
-	TEST_ASSERT(svm::all_of(!c == a));
-	TEST_ASSERT(svm::all_of(!a == c));
+	TEST_ASSERT(svm::all_of((!c) == a));
+	TEST_ASSERT(svm::all_of((!a) == c));
 
 	TEST_ASSERT(svm::none_of(a != b));
 	TEST_ASSERT(svm::none_of(c != d));
@@ -136,4 +136,10 @@ int main()
 	mask.copy_from(mask_vals.data(), svm::vector_aligned);
 
 	TEST_ASSERT(svm::all_of(svm::ext::blend(a, where(mask, b)) == d));
+
+	alignas(decltype(d)) std::array<float, 4> v_tmp;
+	where(mask, b).copy_to(v_tmp.data(), svm::vector_aligned);
+	where(!mask, a).copy_to(v_tmp.data(), svm::vector_aligned);
+
+	TEST_ASSERT(v_tmp == d_vals);
 }

@@ -29,6 +29,8 @@ namespace svm
 		using avec = simd_abi::ext::aligned_vector<N, A>;
 	}
 
+	/* Where expressions need to be specialized for SIMD operations. Underlying implementation is handled via
+	 * detail::simd_access, as such where expressions are specialized for all 3 SIMD levels using the same type. */
 	template<typename T, std::size_t N, std::size_t A> requires (detail::x86_sse_overload<T, N, A> || detail::x86_avx_overload<T, N, A> || detail::x86_avx512_overload<T, N, A>)
 	class const_where_expression<simd_mask<T, detail::avec<N, A>>, simd<T, detail::avec<N, A>>>
 	{

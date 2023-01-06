@@ -48,7 +48,7 @@ namespace svm::detail
 		return static_cast<std::uint32_t>(_xgetbv(0));
 	}
 #elif defined(__GNUC__) || defined(__clang__)
-	static SVM_FORCEINLINE void platform_cpuid(std::uint32_t leaf, cpuid_regs &regs) noexcept
+	inline static SVM_FORCEINLINE void platform_cpuid(std::uint32_t leaf, cpuid_regs &regs) noexcept
 	{
 		__asm("xchgq  %%rbx,%q1\n"
 		      "\tcpuid\n"
@@ -56,7 +56,7 @@ namespace svm::detail
 				: "=a"(regs[0]), "=r" (regs[1]), "=c"(regs[2]), "=d"(regs[3])
 				: "0"(leaf));
 	}
-	static SVM_FORCEINLINE std::uint32_t platrofm_xcr0() noexcept
+	inline static SVM_FORCEINLINE std::uint32_t platrofm_xcr0() noexcept
 	{
 		uint32_t eax, edx;
 		__asm(".byte 0x0F, 0x01, 0xd0" : "=a"(eax), "=d"(edx) : "c"(0));

@@ -30,12 +30,10 @@ namespace svm
 
 	namespace detail
 	{
-		template<std::size_t N>
-		constexpr std::integral_constant<std::size_t, N> get_overaligned_tag_value(const overaligned_tag<N> &);
-		constexpr std::integral_constant<std::size_t, 0> get_overaligned_tag_value(auto &&...);
-
 		template<typename T>
-		struct overaligned_tag_value : decltype(get_overaligned_tag_value(std::declval<T>())) {};
+		struct overaligned_tag_value : std::integral_constant<std::size_t, 0> {};
+		template<std::size_t N>
+		struct overaligned_tag_value<overaligned_tag<N>> : std::integral_constant<std::size_t, N> {};
 		template<typename T>
 		inline constexpr auto overaligned_tag_value_v = overaligned_tag_value<T>::value;
 	}

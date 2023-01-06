@@ -23,14 +23,14 @@ namespace svm
 			concept has_x86_vector = std::integral<U> || std::same_as<U, float> || std::same_as<U, double>;
 
 			/* Select an `aligned_vector` ABI tag that fits the specified x86 vector. */
-			template<has_x86_vector T, typename V>
-			struct select_x86_vector { using type = ext::aligned_vector<sizeof(V) / sizeof(T), alignof(V)>; };
+			template<has_x86_vector T, std::size_t Size, std::size_t Align>
+			struct select_x86_vector { using type = ext::aligned_vector<Size / sizeof(T), Align>; };
 			template<typename T>
-			using select_sse = select_x86_vector<T, __m128>;
+			using select_sse = select_x86_vector<T, sizeof(__m128), alignof(__m128)>;
 			template<typename T>
-			using select_avx = select_x86_vector<T, __m256>;
+			using select_avx = select_x86_vector<T, sizeof(__m256), alignof(__m256)>;
 			template<typename T>
-			using select_avx512 = select_x86_vector<T, __m512>;
+			using select_avx512 = select_x86_vector<T, sizeof(__m512), alignof(__m512)>;
 
 			template<typename, std::size_t>
 			struct default_x86_align;
@@ -56,14 +56,14 @@ namespace svm
 			template<typename T, std::size_t N>
 			concept has_x86_default = has_x86_vector<T> && N > 1 && requires { typename default_x86_align<T, N>; };
 
-			template<typename T, std::size_t N, std::size_t A, typename V>
-			concept x86_simd_overload = vectorizable<T> && (A == 0 || A >= alignof(V)) && has_x86_default<T, N> && default_x86_align<T, N>::value == alignof(V);
+			template<typename T, std::size_t N, std::size_t A, std::size_t VAlign>
+			concept x86_simd_overload = vectorizable<T> && (A == 0 || A >= VAlign) && has_x86_default<T, N> && default_x86_align<T, N>::value == VAlign;
 			template<typename T, std::size_t N, std::size_t A = 0>
-			concept x86_sse_overload = x86_simd_overload<T, N, A, __m128>;
+			concept x86_sse_overload = x86_simd_overload<T, N, A, alignof(__m128)>;
 			template<typename T, std::size_t N, std::size_t A = 0>
-			concept x86_avx_overload = x86_simd_overload<T, N, A, __m256>;
+			concept x86_avx_overload = x86_simd_overload<T, N, A, alignof(__m256)>;
 			template<typename T, std::size_t N, std::size_t A = 0>
-			concept x86_avx512_overload = x86_simd_overload<T, N, A, __m512>;
+			concept x86_avx512_overload = x86_simd_overload<T, N, A, alignof(__m512)>;
 
 			/* SSE is the least common denominator for most intel CPUs since 1999 (and is a requirement for all 64-bit CPUs). */
 			template<has_x86_vector T>
