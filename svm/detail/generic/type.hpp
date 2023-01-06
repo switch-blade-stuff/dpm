@@ -188,13 +188,28 @@ namespace svm
 		return simd_mask<T, Abi>::size();
 	}
 
+	/** Creates a where expression used to select elements of mask \a v using mask \a m. */
+	template<typename T, typename Abi>
+	inline where_expression<simd_mask<T, Abi>, simd_mask<T, Abi>> where(const simd_mask<T, Abi> &m, simd_mask<T, Abi> &v) noexcept
+	{
+		return {m, v};
+	}
+	/** Creates a where expression used to select elements of mask \a v using mask \a m. */
+	template<typename T, typename Abi>
+	inline const_where_expression<simd_mask<T, Abi>, simd_mask<T, Abi>> where(const simd_mask<T, Abi> &m, const simd_mask<T, Abi> &v) noexcept
+	{
+		return {m, v};
+	}
+
 	SVM_DECLARE_EXT_NAMESPACE
 	{
 		/** Replaces elements of masks \a and \a b using mask \a m. Elements of \a b are selected if the corresponding element of \a m evaluates to `true`. */
 		template<typename T, typename Abi, typename M>
 		[[nodiscard]] inline simd_mask<T, Abi> blend(const simd_mask<T, Abi> &a, const simd_mask<T, Abi> &b, const simd_mask<T, Abi> &m)
 		{
-			return blend(a, where(m, b));
+			simd_mask<T, Abi> result = a;
+			for (std::size_t i = 0; i < m.size(); ++i) result[i] = m[i] ? b[i] : a[i];
+			return result;
 		}
 	}
 
@@ -668,6 +683,19 @@ namespace svm
 		}
 	}
 
+	/** Creates a where expression used to select elements of vector \a v using mask \a m. */
+	template<typename T, typename Abi>
+	inline where_expression<simd_mask<T, Abi>, simd<T, Abi>> where(const typename simd<T, Abi>::mask_type &m, simd<T, Abi> &v) noexcept
+	{
+		return {m, v};
+	}
+	/** Creates a where expression used to select elements of vector \a v using mask \a m. */
+	template<typename T, typename Abi>
+	inline const_where_expression<simd_mask<T, Abi>, simd<T, Abi>> where(const typename simd<T, Abi>::mask_type &m, const simd<T, Abi> &v) noexcept
+	{
+		return {m, v};
+	}
+
 	/** Calculates a reduction of all elements from \a value using \a binary_op. */
 	template<typename T, typename Abi, typename Op = std::plus<>>
 	[[nodiscard]] inline T reduce(const simd<T, Abi> &value, Op binary_op = {}) { return detail::reduce_impl<simd_size_v<T, Abi>>(value, binary_op); }
@@ -678,7 +706,9 @@ namespace svm
 		template<typename T, typename Abi>
 		[[nodiscard]] inline simd<T, Abi> blend(const simd<T, Abi> &a, const simd<T, Abi> &b, const simd_mask<T, Abi> &m)
 		{
-			return blend(a, where(m, b));
+			simd<T, Abi> result = a;
+			for (std::size_t i = 0; i < m.size(); ++i) result[i] = m[i] ? b[i] : a[i];
+			return result;
 		}
 	}
 
@@ -692,7 +722,7 @@ namespace svm
 		using abi_type = simd_abi::scalar;
 		using mask_type = simd_mask<T, abi_type>;
 
-		/** Returns width of the SIMD type (always 1 for `simd_abi::scalar`). */
+		/** Returns width of the SIMD vector (always 1 for `simd_abi::scalar`). */
 		static constexpr std::size_t size() noexcept { return abi_type::size; }
 
 	private:
@@ -750,11 +780,121 @@ namespace svm
 		}
 
 		[[nodiscard]] mask_type operator!() const noexcept requires (requires { !std::declval<value_type &>(); }) { return {!m_value}; }
-		[[nodiscard]] mask_type operator~() const noexcept requires (requires { ~std::declval<value_type &>(); }) { return {~m_value}; }
+		[[nodiscard]] simd operator~() const noexcept requires (requires { ~std::declval<value_type &>(); }) { return {~m_value}; }
 		[[nodiscard]] simd operator+() const noexcept requires (requires { +std::declval<value_type &>(); }) { return {+m_value}; }
 		[[nodiscard]] simd operator-() const noexcept requires (requires { -std::declval<value_type &>(); }) { return {-m_value}; }
 
 	private:
 		value_type m_value;
+	};
+
+	template<detail::vectorizable T, std::size_t N, std::size_t Align>
+	class simd<T, simd_abi::ext::aligned_vector<N, Align>>
+	{
+	public:
+		using value_type = T;
+		using reference = detail::simd_reference<value_type>;
+
+		using abi_type = simd_abi::ext::aligned_vector<N, Align>;
+		using mask_type = simd_mask<T, abi_type>;
+
+		/** Returns width of the SIMD vector. */
+		static constexpr std::size_t size() noexcept { return abi_type::size; }
+
+	private:
+		static void assert_subscript([[maybe_unused]] std::size_t i) noexcept
+		{
+			SVM_ASSERT(i < size(), "simd<T, simd_abi::scalar> subscript out of range");
+		}
+
+		constexpr static std::size_t alignment = std::max(Align, alignof(value_type[N]));
+
+	public:
+		constexpr simd() noexcept = default;
+		constexpr simd(const simd &) noexcept = default;
+		constexpr simd &operator=(const simd &) noexcept = default;
+		constexpr simd(simd &&) noexcept = default;
+		constexpr simd &operator=(simd &&) noexcept = default;
+
+		/** Initializes the underlying elements with \a value. */
+		template<detail::compatible_element<value_type> U>
+		simd(U &&value) noexcept { std::fill_n(m_data, size(), static_cast<value_type>(std::forward<U>(value))); }
+		/** Initializes the underlying elements with values provided by the generator \a gen. */
+		template<detail::element_generator<value_type, size()> G>
+		simd(G &&gen) noexcept { detail::generate<size()>(m_data, std::forward<G>(gen)); }
+
+		/** Copies elements from \a other. */
+		template<typename U, std::size_t OtherAlign>
+		simd(const simd<U, simd_abi::ext::aligned_vector<size(), OtherAlign>> &other) noexcept
+		{
+			for (std::size_t i = 0; i < size(); ++i) operator[](i) = other[i];
+		}
+		/** Initializes the underlying elements from \a mem. */
+		template<typename U, typename Flags>
+		simd(const U *mem, Flags) noexcept requires is_simd_flag_type_v<Flags> { copy_from(mem, Flags{}); }
+
+		/** Copies the underlying elements from \a mem. */
+		template<typename U, typename Flags>
+		void copy_from(const U *mem, Flags) noexcept requires is_simd_flag_type_v<Flags> { std::copy_n(mem, size(), m_data); }
+		/** Copies the underlying elements to \a mem. */
+		template<typename U, typename Flags>
+		void copy_to(U *mem, Flags) noexcept requires is_simd_flag_type_v<Flags> { std::copy_n(m_data, size(), mem); }
+
+		[[nodiscard]] reference operator[](std::size_t i) noexcept
+		{
+			assert_subscript(i);
+			return reference{m_data[i]};
+		}
+		[[nodiscard]] value_type operator[](std::size_t i) const noexcept
+		{
+			assert_subscript(i);
+			return m_data[i];
+		}
+
+		simd operator++(int) noexcept requires (requires { std::declval<value_type &>()++; })
+		{
+			simd result;
+			for (std::size_t i = 0; i < size(); ++i) result[i] = m_data[i]++;
+			return result;
+		}
+		simd operator--(int) noexcept requires (requires { std::declval<value_type &>()--; })
+		{
+			simd result;
+			for (std::size_t i = 0; i < size(); ++i) result[i] = m_data[i]--;
+			return result;
+		}
+		simd &operator++() noexcept requires (requires { ++std::declval<value_type &>(); })
+		{
+			for (std::size_t i = 0; i < size(); ++i) ++m_data[i];
+			return *this;
+		}
+		simd &operator--() noexcept requires (requires { --std::declval<value_type &>(); })
+		{
+			for (std::size_t i = 0; i < size(); ++i) --m_data[i];
+			return *this;
+		}
+
+		[[nodiscard]] mask_type operator!() const noexcept requires (requires { !std::declval<value_type &>(); })
+		{
+			mask_type result;
+			for (std::size_t i = 0; i < size(); ++i) result[i] = !m_data[i];
+			return result;
+		}
+		[[nodiscard]] simd operator~() const noexcept requires (requires { ~std::declval<value_type &>(); })
+		{
+			simd result;
+			for (std::size_t i = 0; i < size(); ++i) result[i] = ~m_data[i];
+			return result;
+		}
+		[[nodiscard]] simd operator+() const noexcept requires (requires { +std::declval<value_type &>(); }) { return *this; }
+		[[nodiscard]] simd operator-() const noexcept requires (requires { -std::declval<value_type &>(); })
+		{
+			simd result;
+			for (std::size_t i = 0; i < size(); ++i) result[i] = -m_data[i];
+			return result;
+		}
+
+	private:
+		alignas(alignment) value_type m_data[size()];
 	};
 }

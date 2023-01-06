@@ -135,5 +135,5 @@ int main()
 	d.copy_from(d_vals.data(), svm::vector_aligned);
 	mask.copy_from(mask_vals.data(), svm::vector_aligned);
 
-	TEST_ASSERT(svm::all_of(svm::ext::blend(a, b, mask) == d));
+	TEST_ASSERT(svm::all_of(svm::ext::blend(a, where(mask, b)) == d));
 }
