@@ -144,12 +144,12 @@ namespace svm
 		[[nodiscard]] reference operator[](std::size_t i) noexcept
 		{
 			assert_subscript(i);
-			return reference{reinterpret_cast<std::uint32_t *>(m_data)[i]};
+			return reference{reinterpret_cast<std::int32_t *>(m_data)[i]};
 		}
 		[[nodiscard]] value_type operator[](std::size_t i) const noexcept
 		{
 			assert_subscript(i);
-			return reinterpret_cast<const std::uint32_t *>(m_data)[i];
+			return reinterpret_cast<const std::int32_t *>(m_data)[i];
 		}
 
 		[[nodiscard]] simd_mask operator!() const noexcept
