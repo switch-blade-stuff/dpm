@@ -25,7 +25,6 @@ namespace svm::detail
 		simd_reference() = delete;
 		simd_reference(const simd_reference &) = delete;
 
-		/** @warning Internal use only! */
 		constexpr explicit simd_reference(value_type &ref) noexcept : m_ref(ref) {}
 
 		constexpr operator value_type() const & noexcept { return static_cast<value_type>(m_ref); }
@@ -127,7 +126,6 @@ namespace svm::detail
 		mask_reference() = delete;
 		mask_reference(const mask_reference &) = delete;
 
-		/** @warning Internal use only! */
 		constexpr explicit mask_reference(T &ref) noexcept : m_ref(ref) {}
 
 		constexpr operator value_type() const noexcept { return static_cast<value_type>(m_ref); }

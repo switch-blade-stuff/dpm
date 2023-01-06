@@ -12,7 +12,7 @@
 
 #include <svm/type.hpp>
 
-#define TEST_ASSERT(x) SVM_ASSERT((x), nullptr)
+#define TEST_ASSERT(x) SVM_ASSERT(x, nullptr)
 
 template<typename T, typename Abi, typename mask_t = svm::simd_mask<T, Abi>>
 static inline void test_mask() noexcept

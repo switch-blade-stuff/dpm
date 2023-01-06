@@ -52,9 +52,11 @@ namespace svm
 	 * @tparam T SIMD vector, vector mask or scalar type, who's element(s) to select.
 	 * @tparam M SIMD vector mask or `bool` used to select element(s) of `T`.
 	 * @note If `M` is same as `bool`, `T` must be a scalar. */
-	template<typename M, typename T> requires detail::valid_mask<M>::value && detail::valid_where_expression<M, T>
-	class const_where_expression<M, T>
+	template<typename M, typename T>
+	class const_where_expression
 	{
+		static_assert(detail::valid_mask<M>::value && detail::valid_where_expression<M, T>);
+
 		template<typename U, typename Abi, typename K>
 		friend inline simd<U, Abi> ext::blend(const simd<U, Abi> &, const const_where_expression<K, simd<U, Abi>> &);
 		template<typename U, typename Abi, typename K>
@@ -81,20 +83,13 @@ namespace svm
 				return mask;
 		}
 
-		template<typename U, typename Flags>
-		constexpr static bool allow_copy_from = std::is_arithmetic_v<U> && is_simd_flag_type_v<Flags> && std::convertible_to<U, value_type>;
-		template<typename U, typename Flags>
-		constexpr static bool allow_copy_to = std::is_arithmetic_v<U> && is_simd_flag_type_v<Flags> && std::convertible_to<value_type, U>;
-
 		constexpr static std::size_t data_size = std::same_as<M, bool> ? 1 : T::size();
 
 	public:
 		const_where_expression(const const_where_expression &) = delete;
 		const_where_expression &operator=(const const_where_expression &) = delete;
 
-		/** @warning Internal use only! */
 		const_where_expression(M mask, T &data) noexcept : m_mask(mask), m_data(data) {}
-		/** @warning Internal use only! */
 		const_where_expression(M mask, const T &data) noexcept : m_mask(mask), m_data(const_cast<T &>(data)) {}
 
 		[[nodiscard]] T operator-() const && noexcept requires (requires { -std::declval<T>(); })
@@ -112,7 +107,7 @@ namespace svm
 
 		/** Copies selected elements to \a mem. */
 		template<typename U, typename Flags>
-		void copy_to(U *mem, Flags) const && noexcept requires allow_copy_to<U, Flags>
+		inline void copy_to(U *mem, Flags) const && noexcept requires is_simd_flag_type_v<Flags>
 		{
 			for (std::size_t i = 0; i < data_size; ++i) if (mask_at(m_mask, i)) mem[i] = static_cast<U>(data_at(m_data, i));
 		}
@@ -123,15 +118,10 @@ namespace svm
 	};
 
 	/** @brief Type used to select elements of `T` using mask `M`. */
-	template<typename M, typename T> requires detail::valid_mask<M>::value && detail::valid_where_expression<M, T>
-	class where_expression<M, T> : public const_where_expression<M, T>
+	template<typename M, typename T>
+	class where_expression : public const_where_expression<M, T>
 	{
 		using value_type = typename const_where_expression<M, T>::value_type;
-
-		template<typename U, typename Flags>
-		constexpr static bool allow_copy_from = const_where_expression<M, T>::template allow_copy_from<U, Flags>;
-		template<typename U, typename Flags>
-		constexpr static bool allow_copy_to = const_where_expression<M, T>::template allow_copy_to<U, Flags>;
 
 		using const_where_expression<M, T>::mask_at;
 		using const_where_expression<M, T>::data_at;
@@ -229,7 +219,7 @@ namespace svm
 
 		/** Copies selected elements from \a mem. */
 		template<typename U, typename Flags>
-		void copy_from(U *mem, Flags) const && noexcept requires allow_copy_from<U, Flags>
+		void copy_from(U *mem, Flags) const && noexcept requires is_simd_flag_type_v<Flags>
 		{
 			for (std::size_t i = 0; i < data_size; ++i) if (mask_at(m_mask, i)) data_at(m_data, i) = static_cast<value_type>(mem[i]);
 		}

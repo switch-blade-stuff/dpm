@@ -286,7 +286,7 @@ namespace svm
 		void copy_from(const value_type *mem, Flags) noexcept requires is_simd_flag_type_v<Flags> { m_data = mem[0]; }
 		/** Copies the underlying boolean to the value pointed to by \a mem. */
 		template<typename Flags>
-		void copy_to(value_type *mem, Flags) noexcept requires is_simd_flag_type_v<Flags> { mem[0] = m_data; }
+		void copy_to(value_type *mem, Flags) const noexcept requires is_simd_flag_type_v<Flags> { mem[0] = m_data; }
 
 		[[nodiscard]] reference operator[](std::size_t i) noexcept
 		{
@@ -353,7 +353,7 @@ namespace svm
 		void copy_from(const value_type *mem, Flags) noexcept requires is_simd_flag_type_v<Flags> { std::copy_n(mem, size(), m_data); }
 		/** Copies the underlying elements to \a mem. */
 		template<typename Flags>
-		void copy_to(value_type *mem, Flags) noexcept requires is_simd_flag_type_v<Flags> { std::copy_n(m_data, size(), mem); }
+		void copy_to(value_type *mem, Flags) const noexcept requires is_simd_flag_type_v<Flags> { std::copy_n(m_data, size(), mem); }
 
 		[[nodiscard]] reference operator[](std::size_t i) noexcept
 		{
@@ -659,27 +659,41 @@ namespace svm
 
 	namespace detail
 	{
-		template<std::size_t N, typename T, typename Abi, typename Op = std::plus<>>
-		[[nodiscard]] inline T reduce_impl(const simd<T, Abi> &value, Op binary_op = {})
+		template<typename T, typename Op>
+		[[nodiscard]] inline T reduce_pair(T a, T b, Op binary_op)
+		{
+			if constexpr (!std::is_invocable_r_v<T, Op, T, T>)
+				return std::invoke(binary_op, simd<T, simd_abi::scalar>{a}, simd<T, simd_abi::scalar>{b})[0];
+			else
+				return std::invoke(binary_op, a, b);
+		}
+		template<typename T, std::size_t N, typename Op>
+		[[nodiscard]] inline T reduce_array(const std::array<T, N> &data, Op binary_op)
 		{
 			if constexpr (N == 1)
-				return value[0];
+				return data[0];
+			else if constexpr (N == 2)
+				return reduce_pair(data[0], data[1], binary_op);
 			else
 			{
-				simd<T, simd_abi::deduce_t<T, N / 2, Abi>> a, b;
+				std::array<T, N - N / 2> b;
+				std::array<T, N / 2> a;
 
 				/* Separate `value` into halves and reduce them separately. */
-				for (std::size_t i = 0; i < N / 2; ++i)
-					a[i] = value[0];
-				for (std::size_t i = 0, j = N / 2; i < N / 2; ++i, ++j)
-				{
-					if (j < simd<T, Abi>::size())
-						b[i] = value[j];
-					else
-						b[i] = T{};
-				}
-				return std::invoke(binary_op, reduce_impl<N / 2>(a, binary_op), reduce_impl<N / 2>(b, binary_op));
+				for (std::size_t i = 0; i < a.size(); ++i)
+					a[i] = data[0];
+				for (std::size_t i = 0, j = a.size(); i < b.size(); ++i, ++j)
+					b[i] = data[j];
+
+				return reduce_pair(reduce_array(a, binary_op), reduce_array(b, binary_op), binary_op);
 			}
+		}
+		template<std::size_t N, typename T, typename Abi, typename Op>
+		[[nodiscard]] inline T reduce_impl(const simd<T, Abi> &value, Op binary_op)
+		{
+			alignas(simd<T, Abi>) std::array<T, simd<T, Abi>::size()> buff;
+			value.copy_to(buff.data(), vector_aligned);
+			return reduce_array(buff, binary_op);
 		}
 	}
 
@@ -753,7 +767,7 @@ namespace svm
 		void copy_from(const U *mem, Flags) noexcept requires is_simd_flag_type_v<Flags> { m_value = static_cast<value_type>(mem[0]); }
 		/** Copies the underlying scalar to the value pointed to by \a mem. */
 		template<typename U, typename Flags>
-		void copy_to(U *mem, Flags) noexcept requires is_simd_flag_type_v<Flags> { mem[0] = static_cast<U>(m_value); }
+		void copy_to(U *mem, Flags) const noexcept requires is_simd_flag_type_v<Flags> { mem[0] = static_cast<U>(m_value); }
 
 		[[nodiscard]] reference operator[](std::size_t i) noexcept
 		{
@@ -838,7 +852,7 @@ namespace svm
 		void copy_from(const U *mem, Flags) noexcept requires is_simd_flag_type_v<Flags> { std::copy_n(mem, size(), m_data); }
 		/** Copies the underlying elements to \a mem. */
 		template<typename U, typename Flags>
-		void copy_to(U *mem, Flags) noexcept requires is_simd_flag_type_v<Flags> { std::copy_n(m_data, size(), mem); }
+		void copy_to(U *mem, Flags) const noexcept requires is_simd_flag_type_v<Flags> { std::copy_n(m_data, size(), mem); }
 
 		[[nodiscard]] reference operator[](std::size_t i) noexcept
 		{
