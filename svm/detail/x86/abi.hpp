@@ -54,10 +54,10 @@ namespace svm
 #endif
 
 			template<typename T, std::size_t N>
-			concept has_x86_default = has_x86_vector<T> && requires { typename default_x86_align<T, N>; };
+			concept has_x86_default = has_x86_vector<T> && N > 1 && requires { typename default_x86_align<T, N>; };
 
 			template<typename T, std::size_t N, std::size_t A, typename V>
-			concept x86_simd_overload = vectorizable<T> && (A >= alignof(V) || A == 0) && has_x86_default<T, N> && default_x86_align<T, N>::value == alignof(V);
+			concept x86_simd_overload = vectorizable<T> && (A == 0 || A >= alignof(V)) && has_x86_default<T, N> && default_x86_align<T, N>::value == alignof(V);
 			template<typename T, std::size_t N, std::size_t A = 0>
 			concept x86_sse_overload = x86_simd_overload<T, N, A, __m128>;
 			template<typename T, std::size_t N, std::size_t A = 0>

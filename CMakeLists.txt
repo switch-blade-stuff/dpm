@@ -7,14 +7,19 @@ if (${SVM_USE_MODULES})
     add_compile_definitions(SVM_USE_MODULES)
 endif ()
 
+option(SVM_INLINE_EXTENSIONS "Toggles inlining of the library extension namespace" ON)
+if (${SVM_INLINE_EXTENSIONS})
+    add_compile_definitions(SVM_INLINE_EXTENSIONS)
+endif ()
+
 option(SVM_DYNAMIC_DISPATCH "Toggles runtime detection & dispatch of SIMD operations" ON)
 if (${SVM_DYNAMIC_DISPATCH})
     add_compile_definitions(SVM_DYNAMIC_DISPATCH)
 endif ()
 
-option(SVM_INLINE_EXTENSIONS "Toggles inlining of the library extension namespace" ON)
-if (${SVM_INLINE_EXTENSIONS})
-    add_compile_definitions(SVM_INLINE_EXTENSIONS)
+option(SVM_NATIVE_AVX512 "Toggles global support for AVX512 instructions on x86 targets" ON)
+if (${SVM_NATIVE_AVX512})
+    add_compile_definitions(SVM_NATIVE_AVX512)
 endif ()
 
 option(SVM_USE_IPO "Toggles support for inter-procedural optimization" ON)
