@@ -17,8 +17,8 @@
 
 #ifdef SVM_USE_IMPORT
 
-/* If we are not on MSVC or C++ version at least C++23 use `import std`. Otherwise, use `import std.core`. */
-#if defined(_MSC_VER) && (__cplusplus == 202002L || (defined(_MSVC_LANG) && _MSVC_LANG == 202002L))
+/* If we are not on MSVC use `import std`. Otherwise, use `import std.core`. */
+#ifdef _MSC_VER
 
 import std.core;
 
@@ -109,7 +109,7 @@ import std;
 
 #endif
 
-#ifndef SVM_EXPORT
+#ifdef SVM_EXPORT
 #define SVM_PUBLIC SVM_API_IMPORT
 #define SVM_PRIVATE SVM_API_HIDDEN
 #else

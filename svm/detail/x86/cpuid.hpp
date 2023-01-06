@@ -12,7 +12,7 @@
 
 namespace svm::detail
 {
-	class cpuid
+	class SVM_PUBLIC cpuid
 	{
 		constexpr static int msr_bit = 5;
 		constexpr static int cx8_bit = 8;
@@ -73,9 +73,9 @@ namespace svm::detail
 		[[nodiscard]] static bool has_avx512vl() noexcept { return test_bit(cpu_info.m_flags_l7_ebx, avx512vl_bit); }
 
 	private:
-		SVM_PUBLIC static const cpuid cpu_info;
+		static const cpuid cpu_info;
 
-		SVM_PUBLIC cpuid() noexcept;
+		SVM_PRIVATE cpuid() noexcept;
 
 		std::uint32_t m_flags_l1_ecx = 0;
 		std::uint32_t m_flags_l1_edx = 0;
