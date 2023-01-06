@@ -105,7 +105,7 @@ namespace svm
 	SVM_DECLARE_EXT_NAMESPACE
 	{
 		/** @brief Type trait used to check if a given configuration of value type `T` and abi `Abi` has a corresponding native vector type.
-		 * @example On x86 platforms with SSE support, `has_native_vector<float, simd_abi::sse<float>>::value` evaluates to `true`. */
+		 * @example On x86 platforms with SSE support, `has_native_vector<float, simd_abi::ext::sse<float>>::value` evaluates to `true`. */
 		template<typename T, typename Abi>
 		struct has_native_vector : std::false_type {};
 		/** @brief Alias for `typename has_native_vector<T, Abi>::value`. */
@@ -113,7 +113,7 @@ namespace svm
 		inline constexpr auto has_native_vector_v = has_native_vector<T, Abi>::value;
 
 		/** @brief Type trait used to obtain the native vector type given value type `T` and abi `Abi`.
-		 * @example On x86 platforms with SSE support, `native_vector_type<float, simd_abi::sse<float>>::type` is `__m128`.
+		 * @example On x86 platforms with SSE support, `native_vector_type<float, simd_abi::ext::sse<float>>::type` is `__m128`.
 		 * @note This type trait is defined only if `has_native_vector<T, Abi>::value` evaluates to `true` */
 		template<typename T, typename Abi>
 		struct native_vector_type;

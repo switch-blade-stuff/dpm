@@ -384,8 +384,8 @@ namespace svm
 			}
 #endif
 
-			[[nodiscard]] static auto *to_native_vector(mask_t &value) noexcept { return value.m_data; }
-			[[nodiscard]] static auto *to_native_vector(const mask_t &value) noexcept { return value.m_data; }
+			[[nodiscard]] static auto *to_native_data(mask_t &value) noexcept { return value.m_data; }
+			[[nodiscard]] static auto *to_native_data(const mask_t &value) noexcept { return value.m_data; }
 		};
 	}
 
@@ -405,17 +405,17 @@ namespace svm
 
 		/** Returns a pointer to the underlying native SSE vector (or array of SSE vectors) for \a value. */
 		template<std::size_t N, std::size_t A>
-		[[nodiscard]] inline __m128 *to_native_vector(simd_mask<float, detail::avec<N, A>> &value)
+		[[nodiscard]] inline __m128 *to_native_data(simd_mask<float, detail::avec<N, A>> &value)
 		noexcept requires detail::x86_sse_overload<float, N, A>
 		{
-			return detail::simd_access<simd_mask<float, detail::avec<N, A>>>::to_native_vector(value);
+			return detail::simd_access<simd_mask<float, detail::avec<N, A>>>::to_native_data(value);
 		}
 		/** Returns a const pointer to the underlying native SSE vector (or array of SSE vectors) for \a value. */
 		template<std::size_t N, std::size_t A>
-		[[nodiscard]] inline const __m128 *to_native_vector(const simd_mask<float, detail::avec<N, A>> &value)
+		[[nodiscard]] inline const __m128 *to_native_data(const simd_mask<float, detail::avec<N, A>> &value)
 		noexcept requires detail::x86_sse_overload<float, N, A>
 		{
-			return detail::simd_access<simd_mask<float, detail::avec<N, A>>>::to_native_vector(value);
+			return detail::simd_access<simd_mask<float, detail::avec<N, A>>>::to_native_data(value);
 		}
 	}
 
@@ -694,8 +694,8 @@ namespace svm
 			}
 #endif
 
-			[[nodiscard]] static auto *to_native_vector(simd_t &value) noexcept { return value.m_data; }
-			[[nodiscard]] static auto *to_native_vector(const simd_t &value) noexcept { return value.m_data; }
+			[[nodiscard]] static auto *to_native_data(simd_t &value) noexcept { return value.m_data; }
+			[[nodiscard]] static auto *to_native_data(const simd_t &value) noexcept { return value.m_data; }
 		};
 	}
 
@@ -715,17 +715,17 @@ namespace svm
 
 		/** Returns a pointer to the underlying native SSE vector (or array of SSE vectors) for \a value. */
 		template<std::size_t N, std::size_t A>
-		[[nodiscard]] inline __m128 *to_native_vector(simd<float, detail::avec<N, A>> &value)
+		[[nodiscard]] inline __m128 *to_native_data(simd<float, detail::avec<N, A>> &value)
 		noexcept requires detail::x86_sse_overload<float, N, A>
 		{
-			return detail::simd_access<simd<float, detail::avec<N, A>>>::to_native_vector(value);
+			return detail::simd_access<simd<float, detail::avec<N, A>>>::to_native_data(value);
 		}
 		/** Returns a const pointer to the underlying native SSE vector (or array of SSE vectors) for \a value. */
 		template<std::size_t N, std::size_t A>
-		[[nodiscard]] inline const __m128 *to_native_vector(const simd<float, detail::avec<N, A>> &value)
+		[[nodiscard]] inline const __m128 *to_native_data(const simd<float, detail::avec<N, A>> &value)
 		noexcept requires detail::x86_sse_overload<float, N, A>
 		{
-			return detail::simd_access<simd<float, detail::avec<N, A>>>::to_native_vector(value);
+			return detail::simd_access<simd<float, detail::avec<N, A>>>::to_native_data(value);
 		}
 	}
 }
