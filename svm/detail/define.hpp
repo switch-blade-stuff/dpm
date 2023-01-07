@@ -42,7 +42,7 @@ import std;
 #define SVM_ASSUME(x)
 #elif defined(_MSC_VER)
 #define SVM_ASSUME(x) __assume(x)
-#elif defined(__clang__)
+#elif 0 && defined(__clang__) /* See https://github.com/llvm/llvm-project/issues/55636 and https://github.com/llvm/llvm-project/issues/45902 */
 #define SVM_ASSUME(x) __builtin_assume(x)
 #elif defined(__GNUC__)
 #define SVM_ASSUME(x) if (!(x)) __builtin_unreachable()
@@ -58,12 +58,16 @@ import std;
 #define SVM_UNREACHABLE() SVM_ASSUME(false)
 #endif
 
-#if defined(_MSC_VER) || defined(__CYGWIN__)
+#if defined(_MSC_VER)
 
 #define SVM_PURE
 #define SVM_TARGET(t)
 #define SVM_FORCEINLINE __forceinline
 #define SVM_NEVER_INLINE __declspec(noinline)
+
+/* MSVC inserts security cookies into fixed-size arrays even if the index is known at compile-time. Stop it. */
+#define SVM_SAFE_ARRAY __declspec(safebuffers)
+/* Windows calling convention will never use vector registers for function arguments. Force it. */
 #define SVM_VECTORCALL __vectorcall
 
 #elif defined(__clang__) || defined(__GNUC__)
@@ -72,6 +76,7 @@ import std;
 #define SVM_TARGET(t) __attribute__((target(t)))
 #define SVM_FORCEINLINE __attribute__((always_inline))
 #define SVM_NEVER_INLINE __attribute__((noinline))
+#define SVM_SAFE_ARRAY
 #define SVM_VECTORCALL
 
 #else
@@ -80,6 +85,7 @@ import std;
 #define SVM_TARGET(t)
 #define SVM_FORCEINLINE
 #define SVM_NEVER_INLINE
+#define SVM_SAFE_ARRAY
 #define SVM_VECTORCALL
 
 #endif

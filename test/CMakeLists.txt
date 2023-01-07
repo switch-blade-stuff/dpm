@@ -7,7 +7,7 @@ project(svm-tests)
 
 add_executable(${PROJECT_NAME}
         ${CMAKE_CURRENT_LIST_DIR}/main.cpp
-        ${CMAKE_CURRENT_LIST_DIR}/reduce.cpp)
+        ${CMAKE_CURRENT_LIST_DIR}/test.cpp)
 target_link_libraries(${PROJECT_NAME} PRIVATE svm)
 
 # Enable max error reporting

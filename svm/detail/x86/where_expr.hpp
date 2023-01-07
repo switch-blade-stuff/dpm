@@ -25,9 +25,6 @@ namespace svm
 		using simd_abi::detail::x86_overload_sse;
 		using simd_abi::detail::x86_overload_avx;
 		using simd_abi::detail::x86_overload_avx512;
-
-		template<std::size_t N, std::size_t A>
-		using avec = simd_abi::ext::aligned_vector<N, A>;
 	}
 
 	template<typename T, std::size_t N, std::size_t A> requires detail::x86_overload_all<T, N, A>

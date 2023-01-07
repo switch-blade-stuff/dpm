@@ -14,10 +14,10 @@ namespace svm::detail
 	template<typename T>
 	[[nodiscard]] constexpr T extend_bool(bool b) noexcept { return -static_cast<T>(b); }
 
-	template<typename T, std::size_t N, typename V>
-	[[nodiscard]] constexpr std::size_t align_vector_array() noexcept
+	template<typename T, std::size_t N, std::size_t VSize>
+	[[nodiscard]] constexpr std::size_t align_data() noexcept
 	{
-		const auto size_mult = sizeof(V) / sizeof(T);
+		const auto size_mult = VSize / sizeof(T);
 		return N / size_mult + !!(N % size_mult);
 	}
 }

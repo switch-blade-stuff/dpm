@@ -68,14 +68,14 @@ namespace svm
 	protected:
 		using value_type = std::conditional_t<std::same_as<M, bool>, T, typename T::value_type>;
 
-		[[nodiscard]] static decltype(auto) data_at(auto &data, std::size_t i) noexcept
+		[[nodiscard]] static SVM_SAFE_ARRAY decltype(auto) data_at(auto &data, std::size_t i) noexcept
 		{
 			if constexpr (!std::same_as<M, bool>)
 				return data[i];
 			else
 				return data;
 		}
-		[[nodiscard]] static bool mask_at(auto &mask, std::size_t i) noexcept
+		[[nodiscard]] static SVM_SAFE_ARRAY bool mask_at(auto &mask, std::size_t i) noexcept
 		{
 			if constexpr (!std::same_as<M, bool>)
 				return mask[i];
@@ -107,7 +107,7 @@ namespace svm
 
 		/** Copies selected elements to \a mem. */
 		template<typename U, typename Flags>
-		inline void copy_to(U *mem, Flags) const && noexcept requires is_simd_flag_type_v<Flags>
+		inline SVM_SAFE_ARRAY void copy_to(U *mem, Flags) const && noexcept requires is_simd_flag_type_v<Flags>
 		{
 			for (std::size_t i = 0; i < data_size; ++i) if (mask_at(m_mask, i)) mem[i] = static_cast<U>(data_at(m_data, i));
 		}
@@ -219,7 +219,7 @@ namespace svm
 
 		/** Copies selected elements from \a mem. */
 		template<typename U, typename Flags>
-		void copy_from(U *mem, Flags) const && noexcept requires is_simd_flag_type_v<Flags>
+		SVM_SAFE_ARRAY void copy_from(U *mem, Flags) const && noexcept requires is_simd_flag_type_v<Flags>
 		{
 			for (std::size_t i = 0; i < data_size; ++i) if (mask_at(m_mask, i)) data_at(m_data, i) = static_cast<value_type>(mem[i]);
 		}

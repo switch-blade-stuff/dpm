@@ -20,12 +20,7 @@
 #define NDEBUG
 #endif
 
-#if defined(_MSC_VER) || defined(__CYGWIN__)
-#define SVM_ASSERT(cnd, msg) _assert("Assertion " #cnd " failed: " msg, __FILE__, __LINE__)
+#define SVM_ASSERT(cnd) assert(cnd); SVM_ASSUME(cnd)
 #else
-#define SVM_ASSERT(cnd, msg) assert((cnd) && msg)
-#endif
-
-#else
-#define SVM_ASSERT(cnd, msg)
+#define SVM_ASSERT(cnd) SVM_ASSUME(cnd)
 #endif

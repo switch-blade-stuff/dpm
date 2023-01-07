@@ -106,21 +106,33 @@ namespace svm
 
 	SVM_DECLARE_EXT_NAMESPACE
 	{
-		/** @brief Type trait used to check if a given configuration of value type `T` and abi `Abi` has a corresponding native vector type.
-		 * @example On x86 platforms with SSE support, `has_native_vector<float, simd_abi::ext::sse<float>>::value` evaluates to `true`. */
-		template<typename T, typename Abi>
-		struct has_native_vector : std::false_type {};
-		/** @brief Alias for `typename has_native_vector<T, Abi>::value`. */
-		template<typename T, typename Abi>
-		inline constexpr auto has_native_vector_v = has_native_vector<T, Abi>::value;
+		/** @brief Type trait used to obtain the underlying native storage type of an SIMD vector or mask given value type `T` and abi `Abi`.
+		 *
+		 * The underlying native storage data type may be a scalar (in case the platform-independent implementation is used),
+		 * or a native platform-specific vector type. Additionally, the internal storage may be an array, in which case the
+		 * size of said array can be obtained via the `native_data_size` trait.
+		 *
+		 * @tparam T Type of SIMD vector or mask to obtain the native data type for.
+		 *
+		 * @example On x86 platforms with SSE support, `native_data_type<simd<float, simd_abi::ext::sse<float>>>::type` is `__m128`.
+		 * @note This trait is well-defined only when `is_simd_v<T>` or `is_simd_mask_v<T>` evaluate to `true`. */
+		template<typename T>
+		struct native_data_type;
+		/** @brief Alias for `typename native_data_type<T>::type`. */
+		template<typename T>
+		using native_data_type_t = typename native_data_type<T>::type;
 
-		/** @brief Type trait used to obtain the native vector type given value type `T` and abi `Abi`.
-		 * @example On x86 platforms with SSE support, `native_vector_type<float, simd_abi::ext::sse<float>>::type` is `__m128`.
-		 * @note This type trait is defined only if `has_native_vector<T, Abi>::value` evaluates to `true` */
-		template<typename T, typename Abi>
-		struct native_vector_type;
-		/** @brief Alias for `typename native_vector_type<T, Abi>::type`. */
-		template<typename T, typename Abi>
-		using native_vector_type_t = typename native_vector_type<T, Abi>::type;
+		/** @brief Type trait used to obtain the size of the underlying native storage array of an SIMD vector or mask given value type `T` and abi `Abi`.
+		 *
+		 * For non-scalar SIMD vectors and masks, the underlying native storage will most likely be an array of values.
+		 * This traits is used to obtain the size of said array. In case the underlying storage is a scalar or contains
+		 * only 1 element, `native_data_size` evaluates to `1`.
+		 *
+		 * @note This trait is well-defined only when `is_simd_v<T>` or `is_simd_mask_v<T>` evaluate to `true`. */
+		template<typename T>
+		struct native_data_size;
+		/** @brief Alias for `native_data_size<T>::value`. */
+		template<typename T>
+		inline constexpr auto native_data_size_v = native_data_size<T>::value;
 	}
 }
