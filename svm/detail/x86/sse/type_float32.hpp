@@ -473,16 +473,6 @@ namespace svm
 
 	SVM_DECLARE_EXT_NAMESPACE
 	{
-		template<std::integral T, std::size_t N, std::size_t Align> requires simd_abi::detail::x86_overload_sse<T, N, Align>
-		struct native_data_type<simd<T, detail::avec<N, Align>>> { using type = __m128i; };
-		template<std::integral T, std::size_t N, std::size_t Align> requires simd_abi::detail::x86_overload_sse<T, N, Align>
-		struct native_data_size<simd<T, detail::avec<N, Align>>> : std::integral_constant<std::size_t, detail::align_data<T, N, 16>()> {};
-
-		template<std::integral T, std::size_t N, std::size_t A>
-		[[nodiscard]] inline std::span<__m128i, detail::align_data<T, N, 16>()> to_native_data(simd<T, detail::avec<N, A>> &value) noexcept requires detail::x86_overload_sse<T, N, A>;
-		template<std::integral T, std::size_t N, std::size_t A>
-		[[nodiscard]] inline std::span<const __m128i, detail::align_data<T, N, 16>()> to_native_data(const simd<T, detail::avec<N, A>> &value) noexcept requires detail::x86_overload_sse<T, N, A>;
-
 		template<std::size_t N, std::size_t Align> requires simd_abi::detail::x86_overload_sse<float, N, Align>
 		struct native_data_type<simd<float, detail::avec<N, Align>>> { using type = __m128; };
 		template<std::size_t N, std::size_t Align> requires simd_abi::detail::x86_overload_sse<float, N, Align>
@@ -492,16 +482,6 @@ namespace svm
 		[[nodiscard]] inline std::span<__m128, detail::align_data<float, N, 16>()> to_native_data(simd<float, detail::avec<N, A>> &value) noexcept requires detail::x86_overload_sse<float, N, A>;
 		template<std::size_t N, std::size_t A>
 		[[nodiscard]] inline std::span<const __m128, detail::align_data<float, N, 16>()> to_native_data(const simd<float, detail::avec<N, A>> &value) noexcept requires detail::x86_overload_sse<float, N, A>;
-
-		template<std::size_t N, std::size_t Align> requires simd_abi::detail::x86_overload_sse<double, N, Align>
-		struct native_data_type<simd<double, detail::avec<N, Align>>> { using type = __m128d; };
-		template<std::size_t N, std::size_t Align> requires simd_abi::detail::x86_overload_sse<double, N, Align>
-		struct native_data_size<simd<double, detail::avec<N, Align>>> : std::integral_constant<std::size_t, detail::align_data<double, N, 16>()> {};
-
-		template<std::size_t N, std::size_t A>
-		[[nodiscard]] inline std::span<__m128d, detail::align_data<double, N, 16>()> to_native_data(simd<double, detail::avec<N, A>> &value) noexcept requires detail::x86_overload_sse<double, N, A>;
-		template<std::size_t N, std::size_t A>
-		[[nodiscard]] inline std::span<const __m128d, detail::align_data<double, N, 16>()> to_native_data(const simd<double, detail::avec<N, A>> &value) noexcept requires detail::x86_overload_sse<double, N, A>;
 	}
 
 	template<std::size_t N, std::size_t Align> requires detail::x86_overload_sse<float, N, Align>
@@ -863,7 +843,7 @@ namespace svm
 	{
 		/** Returns a span of the underlying SSE vectors for \a value. */
 		template<std::size_t N, std::size_t A>
-		[[nodiscard]] inline std::span<__m128, detail::align_data<float, N, 16>()> to_native_data(const simd<float, detail::avec<N, A>> &value) noexcept requires detail::x86_overload_sse<float, N, A>
+		[[nodiscard]] inline std::span<__m128, detail::align_data<float, N, 16>()> to_native_data(simd<float, detail::avec<N, A>> &value) noexcept requires detail::x86_overload_sse<float, N, A>
 		{
 			return detail::simd_access<simd<float, detail::avec<N, A>>>::to_native_data(value);
 		}

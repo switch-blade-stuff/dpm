@@ -3,6 +3,7 @@
  */
 
 #define SVM_DEBUG
+
 #include <svm/type.hpp>
 
 #define TEST_ASSERT(x) assert(x)
