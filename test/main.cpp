@@ -2,17 +2,10 @@
  * Created by switchblade on 2023-01-01.
  */
 
-#include <algorithm>
-#include <array>
-
-#include <emmintrin.h>
-#include <immintrin.h>
-
 #define SVM_DEBUG
-
 #include <svm/type.hpp>
 
-#define TEST_ASSERT(x) SVM_ASSERT(x, nullptr)
+#define TEST_ASSERT(x) assert(x)
 
 template<typename T, typename Abi, typename mask_t = svm::simd_mask<T, Abi>>
 static inline void test_mask() noexcept
