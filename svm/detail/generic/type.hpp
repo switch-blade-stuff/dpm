@@ -31,6 +31,16 @@ namespace svm
 		template<std::size_t N, std::size_t A>
 		using avec = simd_abi::ext::aligned_vector<N, A>;
 
+		struct bool_wrapper
+		{
+			bool_wrapper() = delete;
+
+			constexpr bool_wrapper(bool value) noexcept : value(value) {}
+			constexpr operator bool() const noexcept { return value; }
+
+			bool value;
+		};
+
 		template<std::size_t N, std::size_t I = 0, typename G>
 		inline void generate(auto &data, G &&gen) noexcept
 		{
@@ -41,6 +51,22 @@ namespace svm
 			}
 		}
 	}
+
+	/** Returns \a value. */
+	[[nodiscard]] constexpr bool all_of(detail::bool_wrapper value) noexcept { return value; }
+	/** @copydoc any_of */
+	[[nodiscard]] constexpr bool any_of(detail::bool_wrapper value) noexcept { return value; }
+	/** Returns the negation of \a value. */
+	[[nodiscard]] constexpr bool none_of(detail::bool_wrapper value) noexcept { return !value; }
+	/** Returns `false`. */
+	[[nodiscard]] constexpr bool some_of([[maybe_unused]] detail::bool_wrapper value) noexcept { return false; }
+	/** Returns the integral representation of \a value. */
+	[[nodiscard]] constexpr std::size_t popcount(detail::bool_wrapper value) noexcept { return static_cast<std::size_t>(value); }
+
+	/** Returns `0`. */
+	[[nodiscard]] constexpr std::size_t find_first_set([[maybe_unused]] detail::bool_wrapper value) noexcept { return 0; }
+	/** @copydoc find_last_set */
+	[[nodiscard]] constexpr std::size_t find_last_set([[maybe_unused]] detail::bool_wrapper value) noexcept { return 0; }
 
 	/** @brief Type representing a data-parallel mask vector type.
 	 * @tparam T Value type stored by the SIMD mask.
@@ -244,35 +270,6 @@ namespace svm
 		[[nodiscard]] inline detail::native_span<const simd_mask<T, detail::avec<N, Align>>> to_native_data(const simd_mask<T, detail::avec<N, Align>> &value) noexcept;
 	}
 
-	namespace detail
-	{
-		struct bool_wrapper
-		{
-			bool_wrapper() = delete;
-
-			constexpr bool_wrapper(bool value) noexcept : value(value) {}
-			constexpr operator bool() const noexcept { return value; }
-
-			bool value;
-		};
-	}
-
-	/** Returns \a value. */
-	[[nodiscard]] constexpr bool all_of(detail::bool_wrapper value) noexcept { return value; }
-	/** @copydoc any_of */
-	[[nodiscard]] constexpr bool any_of(detail::bool_wrapper value) noexcept { return value; }
-	/** Returns the negation of \a value. */
-	[[nodiscard]] constexpr bool none_of(detail::bool_wrapper value) noexcept { return !value; }
-	/** Returns `false`. */
-	[[nodiscard]] constexpr bool some_of([[maybe_unused]] detail::bool_wrapper value) noexcept { return false; }
-	/** Returns the integral representation of \a value. */
-	[[nodiscard]] constexpr std::size_t popcount(detail::bool_wrapper value) noexcept { return static_cast<std::size_t>(value); }
-
-	/** Returns `0`. */
-	[[nodiscard]] constexpr std::size_t find_first_set([[maybe_unused]] detail::bool_wrapper value) noexcept { return 0; }
-	/** @copydoc find_last_set */
-	[[nodiscard]] constexpr std::size_t find_last_set([[maybe_unused]] detail::bool_wrapper value) noexcept { return 0; }
-
 	SVM_DECLARE_EXT_NAMESPACE
 	{
 		/** Equivalent to `m ? b : a`. */
@@ -438,16 +435,16 @@ namespace svm
 		}
 
 		/** Returns a span of the underlying booleans of \a value. */
-		template<detail::vectorizable T, std::size_t N, std::size_t Align>
-		[[nodiscard]] inline detail::native_span<simd_mask<T, detail::avec<N, Align>>> to_native_data(simd_mask<T, detail::avec<N, Align>> &value) noexcept
+		template<detail::vectorizable T, std::size_t N, std::size_t A>
+		[[nodiscard]] inline detail::native_span<simd_mask<T, detail::avec<N, A>>> to_native_data(simd_mask<T, detail::avec<N, A>> &value) noexcept
 		{
-			return detail::simd_access<simd_mask<T, detail::avec<N, Align>>>::to_native_data(value);
+			return detail::simd_access<simd_mask<T, detail::avec<N, A>>>::to_native_data(value);
 		}
 		/** Returns a constant span of the underlying booleans of \a value. */
-		template<detail::vectorizable T, std::size_t N, std::size_t Align>
-		[[nodiscard]] inline detail::native_span<const simd_mask<T, detail::avec<N, Align>>> to_native_data(const simd_mask<T, detail::avec<N, Align>> &value) noexcept
+		template<detail::vectorizable T, std::size_t N, std::size_t A>
+		[[nodiscard]] inline detail::native_span<const simd_mask<T, detail::avec<N, A>>> to_native_data(const simd_mask<T, detail::avec<N, A>> &value) noexcept
 		{
-			return detail::simd_access<simd_mask<T, detail::avec<N, Align>>>::to_native_data(value);
+			return detail::simd_access<simd_mask<T, detail::avec<N, A>>>::to_native_data(value);
 		}
 	}
 
@@ -1034,16 +1031,16 @@ namespace svm
 		}
 
 		/** Returns a span of the underlying elements of \a value. */
-		template<detail::vectorizable T, std::size_t N, std::size_t Align>
-		[[nodiscard]] inline detail::native_span<simd<T, detail::avec<N, Align>>> to_native_data(simd<T, detail::avec<N, Align>> &value) noexcept
+		template<detail::vectorizable T, std::size_t N, std::size_t A>
+		[[nodiscard]] inline detail::native_span<simd<T, detail::avec<N, A>>> to_native_data(simd<T, detail::avec<N, A>> &value) noexcept
 		{
-			return detail::simd_access<simd<T, detail::avec<N, Align>>>::to_native_data(value);
+			return detail::simd_access<simd<T, detail::avec<N, A>>>::to_native_data(value);
 		}
 		/** Returns a constant span of the underlying elements of \a value. */
-		template<detail::vectorizable T, std::size_t N, std::size_t Align>
-		[[nodiscard]] inline detail::native_span<const simd<T, detail::avec<N, Align>>> to_native_data(const simd<T, detail::avec<N, Align>> &value) noexcept
+		template<detail::vectorizable T, std::size_t N, std::size_t A>
+		[[nodiscard]] inline detail::native_span<const simd<T, detail::avec<N, A>>> to_native_data(const simd<T, detail::avec<N, A>> &value) noexcept
 		{
-			return detail::simd_access<simd<T, detail::avec<N, Align>>>::to_native_data(value);
+			return detail::simd_access<simd<T, detail::avec<N, A>>>::to_native_data(value);
 		}
 	}
 }
