@@ -74,6 +74,7 @@ In order to build the library using CMake, run the following commands:
 mkdir build
 cd build
 cmake ..
+cmake --build .
 ```
 
 Build artifacts will be found in `build/bin` and `build/lib`. Minimum required CMake version is 3.20
