@@ -96,6 +96,13 @@ The library provides the following extensions to the standard API:
         * `avx512`
     * ARM
         * `neon`
+* Storage traits & accessors
+  * `native_data_type`
+  * `native_data_size`
+  * `std::span to_native_data(simd &)`
+  * `std::span to_native_data(const simd &)`
+  * `std::span to_native_data(simd_mask &)`
+  * `std::span to_native_data(const simd_mask &)`
 * Blend functions
     * `simd blend(const simd &, const simd &, const simd_mask &)`
     * `simd blend(const simd &, const const_where_expression &)`
