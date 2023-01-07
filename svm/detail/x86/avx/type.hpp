@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "type_common.hpp"
+#include "../where_expr.hpp"
 
 #if defined(SVM_ARCH_X86) && (defined(SVM_HAS_AVX) || defined(SVM_DYNAMIC_DISPATCH))
 

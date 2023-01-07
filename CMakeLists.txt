@@ -51,7 +51,7 @@ set_target_properties(${SVM_PROJECT} PROPERTIES CXX_VISIBILITY_PRESET hidden)
 set_target_properties(${SVM_PROJECT} PROPERTIES VISIBILITY_INLINES_HIDDEN ON)
 set_target_properties(${SVM_PROJECT} PROPERTIES DEFINE_SYMBOL "SVM_EXPORT")
 
-# On MSVC, use c++latest instead of c++20 for experimental module support on MSVC
+# On MSVC, use c++latest instead of c++20 for experimental module support
 if (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC" AND SVM_USE_MODULES)
     target_compile_features(${SVM_PROJECT} PUBLIC cxx_std_23)
 else ()

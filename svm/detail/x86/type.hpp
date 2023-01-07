@@ -4,6 +4,6 @@
 
 #pragma once
 
-#include "type_sse.hpp"
-#include "type_avx.hpp"
-#include "type_avx512.hpp"
+#include "sse/type.hpp"
+#include "avx/type.hpp"
+#include "avx512/type.hpp"

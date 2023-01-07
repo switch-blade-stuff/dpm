@@ -21,17 +21,16 @@ namespace svm
 {
 	namespace detail
 	{
-		using simd_abi::detail::x86_sse_overload;
-		using simd_abi::detail::x86_avx_overload;
-		using simd_abi::detail::x86_avx512_overload;
+		using simd_abi::detail::x86_overload_all;
+		using simd_abi::detail::x86_overload_sse;
+		using simd_abi::detail::x86_overload_avx;
+		using simd_abi::detail::x86_overload_avx512;
 
 		template<std::size_t N, std::size_t A>
 		using avec = simd_abi::ext::aligned_vector<N, A>;
 	}
 
-	/* Where expressions need to be specialized for SIMD operations. Underlying implementation is handled via
-	 * detail::simd_access, as such where expressions are specialized for all 3 SIMD levels using the same type. */
-	template<typename T, std::size_t N, std::size_t A> requires (detail::x86_sse_overload<T, N, A> || detail::x86_avx_overload<T, N, A> || detail::x86_avx512_overload<T, N, A>)
+	template<typename T, std::size_t N, std::size_t A> requires detail::x86_overload_all<T, N, A>
 	class const_where_expression<simd_mask<T, detail::avec<N, A>>, simd<T, detail::avec<N, A>>>
 	{
 		template<typename U, typename Abi, typename K>
@@ -71,8 +70,11 @@ namespace svm
 		mask_t m_mask;
 		simd_t &m_data;
 	};
-	template<typename T, std::size_t N, std::size_t A> requires (detail::x86_sse_overload<T, N, A> || detail::x86_avx_overload<T, N, A> || detail::x86_avx512_overload<T, N, A>)
-	class where_expression<simd_mask<T, detail::avec<N, A>>, simd<T, detail::avec<N, A>>> : public const_where_expression<simd_mask<T, detail::avec<N, A>>, simd<T, detail::avec<N, A>>>
+	template<typename T, std::size_t N, std::size_t A> requires detail::x86_overload_all<T, N, A>
+	class where_expression<simd_mask<T, detail::avec<N, A>>, simd<T, detail::avec<N, A>>>
+			: public const_where_expression<
+					simd_mask<T, detail::avec<N, A>>,
+					simd<T, detail::avec<N, A>>>
 	{
 		using base_expr = const_where_expression<simd_mask<T, detail::avec<N, A>>, simd<T, detail::avec<N, A>>>;
 		using value_type = typename base_expr::value_type;
@@ -148,7 +150,7 @@ namespace svm
 		}
 	};
 
-	template<typename T, std::size_t N, std::size_t A> requires (detail::x86_sse_overload<T, N, A> || detail::x86_avx_overload<T, N, A> || detail::x86_avx512_overload<T, N, A>)
+	template<typename T, std::size_t N, std::size_t A> requires detail::x86_overload_all<T, N, A>
 	class const_where_expression<simd_mask<T, detail::avec<N, A>>, simd_mask<T, detail::avec<N, A>>>
 	{
 		template<typename U, typename Abi, typename K>
@@ -184,8 +186,11 @@ namespace svm
 		mask_t m_mask;
 		mask_t &m_data;
 	};
-	template<typename T, std::size_t N, std::size_t A> requires (detail::x86_sse_overload<T, N, A> || detail::x86_avx_overload<T, N, A> || detail::x86_avx512_overload<T, N, A>)
-	class where_expression<simd_mask<T, detail::avec<N, A>>, simd_mask<T, detail::avec<N, A>>> : public const_where_expression<simd_mask<T, detail::avec<N, A>>, simd_mask<T, detail::avec<N, A>>>
+	template<typename T, std::size_t N, std::size_t A> requires detail::x86_overload_all<T, N, A>
+	class where_expression<simd_mask<T, detail::avec<N, A>>, simd_mask<T, detail::avec<N, A>>>
+			: public const_where_expression<
+					simd_mask<T, detail::avec<N, A>>,
+					simd_mask<T, detail::avec<N, A>>>
 	{
 		using base_expr = const_where_expression<simd_mask<T, detail::avec<N, A>>, simd_mask<T, detail::avec<N, A>>>;
 		using value_type = typename base_expr::value_type;

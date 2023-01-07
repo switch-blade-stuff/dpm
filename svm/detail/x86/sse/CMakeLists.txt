@@ -1,0 +1,3 @@
+
+list(APPEND SVM_INTERFACE_SOURCES
+        ${CMAKE_CURRENT_LIST_DIR}/type.hpp)

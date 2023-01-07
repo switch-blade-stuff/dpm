@@ -57,13 +57,15 @@ namespace svm
 			concept has_x86_default = has_x86_vector<T> && N > 1 && requires { typename default_x86_align<T, N>; };
 
 			template<typename T, std::size_t N, std::size_t A, std::size_t VAlign>
-			concept x86_simd_overload = vectorizable<T> && (A == 0 || A >= VAlign) && has_x86_default<T, N> && default_x86_align<T, N>::value == VAlign;
+			concept x86_overload_simd = vectorizable<T> && (A == 0 || A >= VAlign) && has_x86_default<T, N> && default_x86_align<T, N>::value == VAlign;
 			template<typename T, std::size_t N, std::size_t A = 0>
-			concept x86_sse_overload = x86_simd_overload<T, N, A, alignof(__m128)>;
+			concept x86_overload_sse = x86_overload_simd<T, N, A, alignof(__m128)>;
 			template<typename T, std::size_t N, std::size_t A = 0>
-			concept x86_avx_overload = x86_simd_overload<T, N, A, alignof(__m256)>;
+			concept x86_overload_avx = x86_overload_simd<T, N, A, alignof(__m256)>;
 			template<typename T, std::size_t N, std::size_t A = 0>
-			concept x86_avx512_overload = x86_simd_overload<T, N, A, alignof(__m512)>;
+			concept x86_overload_avx512 = x86_overload_simd<T, N, A, alignof(__m512)>;
+			template<typename T, std::size_t N, std::size_t A = 0>
+			concept x86_overload_all = x86_overload_sse<T, N, A> || x86_overload_avx<T, N, A> || x86_overload_avx512<T, N, A>;
 
 			/* SSE is the least common denominator for most intel CPUs since 1999 (and is a requirement for all 64-bit CPUs). */
 			template<has_x86_vector T>
@@ -100,14 +102,14 @@ namespace svm
 #endif
 		}
 
-		template<typename T, std::size_t N> requires detail::x86_sse_overload<T, N>
+		template<typename T, std::size_t N> requires detail::x86_overload_sse<T, N>
 		struct deduce<T, N> { using type = ext::sse<T>; };
 #if defined(SVM_HAS_AVX) || defined(SVM_DYNAMIC_DISPATCH)
-		template<typename T, std::size_t N> requires detail::x86_avx_overload<T, N>
+		template<typename T, std::size_t N> requires detail::x86_overload_avx<T, N>
 		struct deduce<T, N> { using type = ext::avx<T>; };
 #endif
 #if defined(SVM_HAS_AVX512) || defined(SVM_DYNAMIC_DISPATCH)
-		template<typename T, std::size_t N> requires detail::x86_avx512_overload<T, N>
+		template<typename T, std::size_t N> requires detail::x86_overload_avx512<T, N>
 		struct deduce<T, N> { using type = ext::avx512<T>; };
 #endif
 
@@ -120,32 +122,32 @@ namespace svm
 
 	SVM_DECLARE_EXT_NAMESPACE
 	{
-		template<typename T, std::size_t N, std::size_t Align> requires simd_abi::detail::x86_sse_overload<T, N, Align>
+		template<typename T, std::size_t N, std::size_t Align> requires simd_abi::detail::x86_overload_sse<T, N, Align>
 		struct has_native_vector<T, simd_abi::ext::aligned_vector<N, Align>> : std::true_type {};
-		template<typename T, std::size_t N, std::size_t Align> requires simd_abi::detail::x86_avx_overload<T, N, Align>
+		template<typename T, std::size_t N, std::size_t Align> requires simd_abi::detail::x86_overload_avx<T, N, Align>
 		struct has_native_vector<T, simd_abi::ext::aligned_vector<N, Align>> : std::true_type {};
-		template<typename T, std::size_t N, std::size_t Align> requires simd_abi::detail::x86_avx512_overload<T, N, Align>
+		template<typename T, std::size_t N, std::size_t Align> requires simd_abi::detail::x86_overload_avx512<T, N, Align>
 		struct has_native_vector<T, simd_abi::ext::aligned_vector<N, Align>> : std::true_type {};
 
-		template<std::integral T, std::size_t N, std::size_t Align> requires simd_abi::detail::x86_sse_overload<T, N, Align>
+		template<std::integral T, std::size_t N, std::size_t Align> requires simd_abi::detail::x86_overload_sse<T, N, Align>
 		struct native_vector_type<T, simd_abi::ext::aligned_vector<N, Align>> { using type = __m128i; };
-		template<std::integral T, std::size_t N, std::size_t Align> requires simd_abi::detail::x86_avx_overload<T, N, Align>
+		template<std::integral T, std::size_t N, std::size_t Align> requires simd_abi::detail::x86_overload_avx<T, N, Align>
 		struct native_vector_type<T, simd_abi::ext::aligned_vector<N, Align>> { using type = __m256i; };
-		template<std::integral T, std::size_t N, std::size_t Align> requires simd_abi::detail::x86_avx512_overload<T, N, Align>
+		template<std::integral T, std::size_t N, std::size_t Align> requires simd_abi::detail::x86_overload_avx512<T, N, Align>
 		struct native_vector_type<T, simd_abi::ext::aligned_vector<N, Align>> { using type = __m512i; };
 
-		template<std::size_t N, std::size_t Align> requires simd_abi::detail::x86_sse_overload<float, N, Align>
+		template<std::size_t N, std::size_t Align> requires simd_abi::detail::x86_overload_sse<float, N, Align>
 		struct native_vector_type<float, simd_abi::ext::aligned_vector<N, Align>> { using type = __m128; };
-		template<std::size_t N, std::size_t Align> requires simd_abi::detail::x86_avx_overload<float, N, Align>
+		template<std::size_t N, std::size_t Align> requires simd_abi::detail::x86_overload_avx<float, N, Align>
 		struct native_vector_type<float, simd_abi::ext::aligned_vector<N, Align>> { using type = __m256; };
-		template<std::size_t N, std::size_t Align> requires simd_abi::detail::x86_avx512_overload<float, N, Align>
+		template<std::size_t N, std::size_t Align> requires simd_abi::detail::x86_overload_avx512<float, N, Align>
 		struct native_vector_type<float, simd_abi::ext::aligned_vector<N, Align>> { using type = __m512; };
 
-		template<std::size_t N, std::size_t Align> requires simd_abi::detail::x86_sse_overload<double, N, Align>
+		template<std::size_t N, std::size_t Align> requires simd_abi::detail::x86_overload_sse<double, N, Align>
 		struct native_vector_type<double, simd_abi::ext::aligned_vector<N, Align>> { using type = __m128d; };
-		template<std::size_t N, std::size_t Align> requires simd_abi::detail::x86_avx_overload<double, N, Align>
+		template<std::size_t N, std::size_t Align> requires simd_abi::detail::x86_overload_avx<double, N, Align>
 		struct native_vector_type<double, simd_abi::ext::aligned_vector<N, Align>> { using type = __m256d; };
-		template<std::size_t N, std::size_t Align> requires simd_abi::detail::x86_avx512_overload<double, N, Align>
+		template<std::size_t N, std::size_t Align> requires simd_abi::detail::x86_overload_avx512<double, N, Align>
 		struct native_vector_type<double, simd_abi::ext::aligned_vector<N, Align>> { using type = __m512d; };
 	}
 }

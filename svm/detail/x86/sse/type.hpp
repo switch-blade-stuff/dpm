@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "type_common.hpp"
+#include "../where_expr.hpp"
 
 #if defined(SVM_ARCH_X86) && (defined(SVM_HAS_SSE) || defined(SVM_DYNAMIC_DISPATCH))
 
@@ -18,18 +18,18 @@ namespace svm
 				const simd_mask<float, detail::avec<N, A>> &a,
 				const simd_mask<float, detail::avec<N, A>> &b,
 				const simd_mask<float, detail::avec<N, A>> &m)
-		noexcept requires detail::x86_sse_overload<float, N, A>;
+		noexcept requires detail::x86_overload_sse<float, N, A>;
 #endif
 
 		template<std::size_t N, std::size_t A>
 		[[nodiscard]] inline __m128 *to_native_data(simd_mask<float, detail::avec<N, A>> &value)
-		noexcept requires detail::x86_sse_overload<float, N, A>;
+		noexcept requires detail::x86_overload_sse<float, N, A>;
 		template<std::size_t N, std::size_t A>
 		[[nodiscard]] inline const __m128 *to_native_data(const simd_mask<float, detail::avec<N, A>> &value)
-		noexcept requires detail::x86_sse_overload<float, N, A>;
+		noexcept requires detail::x86_overload_sse<float, N, A>;
 	}
 
-	template<std::size_t N, std::size_t Align> requires detail::x86_sse_overload<float, N, Align>
+	template<std::size_t N, std::size_t Align> requires detail::x86_overload_sse<float, N, Align>
 	class simd_mask<float, detail::avec<N, Align>>
 	{
 		using vector_type = __m128;
@@ -239,7 +239,7 @@ namespace svm
 
 	namespace detail
 	{
-		template<std::size_t N, std::size_t A> requires detail::x86_sse_overload<float, N, A>
+		template<std::size_t N, std::size_t A> requires detail::x86_overload_sse<float, N, A>
 		struct simd_access<simd_mask<float, avec<N, A>>>
 		{
 			using mask_t = simd_mask<float, avec<N, A>>;
@@ -425,7 +425,7 @@ namespace svm
 				const simd_mask<float, detail::avec<N, A>> &a,
 				const simd_mask<float, detail::avec<N, A>> &b,
 				const simd_mask<float, detail::avec<N, A>> &m)
-		noexcept requires detail::x86_sse_overload<float, N, A>
+		noexcept requires detail::x86_overload_sse<float, N, A>
 		{
 			return detail::simd_access<simd_mask<float, detail::avec<N, A>>>::blend(a, b, m);
 		}
@@ -434,57 +434,57 @@ namespace svm
 		/** Returns a pointer to the underlying native SSE vector (or array of SSE vectors) for \a value. */
 		template<std::size_t N, std::size_t A>
 		[[nodiscard]] inline __m128 *to_native_data(simd_mask<float, detail::avec<N, A>> &value)
-		noexcept requires detail::x86_sse_overload<float, N, A>
+		noexcept requires detail::x86_overload_sse<float, N, A>
 		{
 			return detail::simd_access<simd_mask<float, detail::avec<N, A>>>::to_native_data(value);
 		}
 		/** Returns a const pointer to the underlying native SSE vector (or array of SSE vectors) for \a value. */
 		template<std::size_t N, std::size_t A>
 		[[nodiscard]] inline const __m128 *to_native_data(const simd_mask<float, detail::avec<N, A>> &value)
-		noexcept requires detail::x86_sse_overload<float, N, A>
+		noexcept requires detail::x86_overload_sse<float, N, A>
 		{
 			return detail::simd_access<simd_mask<float, detail::avec<N, A>>>::to_native_data(value);
 		}
 	}
 
 	template<std::size_t N, std::size_t A>
-	[[nodiscard]] inline bool all_of(const simd_mask<float, detail::avec<N, A>> &mask) noexcept requires detail::x86_sse_overload<float, N, A>
+	[[nodiscard]] inline bool all_of(const simd_mask<float, detail::avec<N, A>> &mask) noexcept requires detail::x86_overload_sse<float, N, A>
 	{
 		return detail::simd_access<simd_mask<float, detail::avec<N, A>>>::all_of(mask);
 	}
 	template<std::size_t N, std::size_t A>
-	[[nodiscard]] inline bool any_of(const simd_mask<float, detail::avec<N, A>> &mask) noexcept requires detail::x86_sse_overload<float, N, A>
+	[[nodiscard]] inline bool any_of(const simd_mask<float, detail::avec<N, A>> &mask) noexcept requires detail::x86_overload_sse<float, N, A>
 	{
 		return detail::simd_access<simd_mask<float, detail::avec<N, A>>>::any_of(mask);
 	}
 	template<std::size_t N, std::size_t A>
-	[[nodiscard]] inline bool none_of(const simd_mask<float, detail::avec<N, A>> &mask) noexcept requires detail::x86_sse_overload<float, N, A>
+	[[nodiscard]] inline bool none_of(const simd_mask<float, detail::avec<N, A>> &mask) noexcept requires detail::x86_overload_sse<float, N, A>
 	{
 		return detail::simd_access<simd_mask<float, detail::avec<N, A>>>::none_of(mask);
 	}
 	template<std::size_t N, std::size_t A>
-	[[nodiscard]] inline bool some_of(const simd_mask<float, detail::avec<N, A>> &mask) noexcept requires detail::x86_sse_overload<float, N, A>
+	[[nodiscard]] inline bool some_of(const simd_mask<float, detail::avec<N, A>> &mask) noexcept requires detail::x86_overload_sse<float, N, A>
 	{
 		return detail::simd_access<simd_mask<float, detail::avec<N, A>>>::some_of(mask);
 	}
 
 	template<std::size_t N, std::size_t A>
-	[[nodiscard]] inline std::size_t popcount(const simd_mask<float, detail::avec<N, A>> &mask) noexcept requires detail::x86_sse_overload<float, N, A>
+	[[nodiscard]] inline std::size_t popcount(const simd_mask<float, detail::avec<N, A>> &mask) noexcept requires detail::x86_overload_sse<float, N, A>
 	{
 		return detail::simd_access<simd_mask<float, detail::avec<N, A>>>::popcount(mask);
 	}
 	template<std::size_t N, std::size_t A>
-	[[nodiscard]] inline std::size_t find_first_set(const simd_mask<float, detail::avec<N, A>> &mask) noexcept requires detail::x86_sse_overload<float, N, A>
+	[[nodiscard]] inline std::size_t find_first_set(const simd_mask<float, detail::avec<N, A>> &mask) noexcept requires detail::x86_overload_sse<float, N, A>
 	{
 		return detail::simd_access<simd_mask<float, detail::avec<N, A>>>::find_first_set(mask);
 	}
 	template<std::size_t N, std::size_t A>
-	[[nodiscard]] inline std::size_t find_last_set(const simd_mask<float, detail::avec<N, A>> &mask) noexcept requires detail::x86_sse_overload<float, N, A>
+	[[nodiscard]] inline std::size_t find_last_set(const simd_mask<float, detail::avec<N, A>> &mask) noexcept requires detail::x86_overload_sse<float, N, A>
 	{
 		return detail::simd_access<simd_mask<float, detail::avec<N, A>>>::find_last_set(mask);
 	}
 
-	template<std::size_t N, std::size_t Align> requires detail::x86_sse_overload<float, N, Align>
+	template<std::size_t N, std::size_t Align> requires detail::x86_overload_sse<float, N, Align>
 	class simd<float, detail::avec<N, Align>>
 	{
 		using vector_type = __m128;
@@ -742,7 +742,7 @@ namespace svm
 
 	namespace detail
 	{
-		template<std::size_t N, std::size_t A> requires detail::x86_sse_overload<float, N, A>
+		template<std::size_t N, std::size_t A> requires detail::x86_overload_sse<float, N, A>
 		struct simd_access<simd<float, avec<N, A>>>
 		{
 			using simd_t = simd<float, avec<N, A>>;
@@ -853,7 +853,7 @@ namespace svm
 				const simd<float, detail::avec<N, A>> &a,
 				const simd<float, detail::avec<N, A>> &b,
 				const simd_mask<float, detail::avec<N, A>> &m)
-		noexcept requires detail::x86_sse_overload<float, N, A>
+		noexcept requires detail::x86_overload_sse<float, N, A>
 		{
 			return detail::simd_access<simd<float, detail::avec<N, A>>>::blend(a, b, m);
 		}
@@ -862,14 +862,14 @@ namespace svm
 		/** Returns a pointer to the underlying native SSE vector (or array of SSE vectors) for \a value. */
 		template<std::size_t N, std::size_t A>
 		[[nodiscard]] inline __m128 *to_native_data(simd<float, detail::avec<N, A>> &value)
-		noexcept requires detail::x86_sse_overload<float, N, A>
+		noexcept requires detail::x86_overload_sse<float, N, A>
 		{
 			return detail::simd_access<simd<float, detail::avec<N, A>>>::to_native_data(value);
 		}
 		/** Returns a const pointer to the underlying native SSE vector (or array of SSE vectors) for \a value. */
 		template<std::size_t N, std::size_t A>
 		[[nodiscard]] inline const __m128 *to_native_data(const simd<float, detail::avec<N, A>> &value)
-		noexcept requires detail::x86_sse_overload<float, N, A>
+		noexcept requires detail::x86_overload_sse<float, N, A>
 		{
 			return detail::simd_access<simd<float, detail::avec<N, A>>>::to_native_data(value);
 		}
