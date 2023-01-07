@@ -1,11 +1,12 @@
 /*
- * Created by switchblade on 2023-01-06.
+ * Created by switchblade on 2023-01-07.
  */
 
 #pragma once
 
-#include "../where_expr.hpp"
-
-#if defined(SVM_ARCH_X86) && (defined(SVM_HAS_AVX512) || defined(SVM_DYNAMIC_DISPATCH))
-
-#endif
+#include "type_float32.hpp"
+#include "type_float64.hpp"
+#include "type_int8.hpp"
+#include "type_int16.hpp"
+#include "type_int32.hpp"
+#include "type_int64.hpp"

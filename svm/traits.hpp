@@ -94,11 +94,13 @@ namespace svm
 	template<typename T, typename U = typename T::value_type>
 	inline constexpr std::size_t memory_alignment_v = memory_alignment<T, U>::value;
 
+	/* TODO: Implement */
 	template<typename T, typename V>
 	struct rebind_simd;
 	template<typename T, typename V>
 	using rebind_simd_t = typename rebind_simd<T, V>::type;
 
+	/* TODO: Implement */
 	template<std::size_t N, typename V>
 	struct resize_simd;
 	template<std::size_t N, typename V>
