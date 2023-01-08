@@ -48,7 +48,7 @@ namespace svm
 	namespace detail
 	{
 		template<typename V, typename Abi>
-		concept can_split_simd =is_simd_v<V> && !(simd_size_v<typename V::value_type, Abi> % V::size());
+		concept can_split_simd = is_simd_v<V> && !(simd_size_v<typename V::value_type, Abi> % V::size());
 		template<typename V, typename Abi>
 		concept can_split_mask = is_simd_mask_v<V> && !(simd_size_v<typename V::simd_type::value_type, Abi> % V::size());
 
@@ -165,6 +165,7 @@ namespace svm
 		~simd_mask() = delete;
 	};
 
+#pragma region "simd_mask operators"
 	/** Preforms a bitwise AND on the elements of the masks \a a and \a b, and returns the resulting mask. */
 	template<typename T, typename Abi>
 	[[nodiscard]] inline SVM_SAFE_ARRAY simd_mask<T, Abi> operator&(const simd_mask<T, Abi> &a, const simd_mask<T, Abi> &b) noexcept
@@ -240,7 +241,9 @@ namespace svm
 			result[i] = a[i] != b[i];
 		return result;
 	}
+#pragma endregion
 
+#pragma region "simd_mask reductions"
 	/** Returns `true` if all of the elements of the \a mask are `true`. Otherwise returns `false`. */
 	template<typename T, typename Abi>
 	[[nodiscard]] inline SVM_SAFE_ARRAY bool all_of(const simd_mask<T, Abi> &mask) noexcept
@@ -299,7 +302,9 @@ namespace svm
 		for (std::size_t i = simd_mask<T, Abi>::size(); i-- > 0;) if (mask[i]) return i;
 		return simd_mask<T, Abi>::size();
 	}
+#pragma endregion
 
+#pragma region "simd_mask where expressions"
 	/** Creates a where expression used to select elements of mask \a v using mask \a m. */
 	template<typename T, typename Abi>
 	inline where_expression<simd_mask<T, Abi>, simd_mask<T, Abi>> where(const simd_mask<T, Abi> &m, simd_mask<T, Abi> &v) noexcept
@@ -312,7 +317,9 @@ namespace svm
 	{
 		return {m, v};
 	}
+#pragma endregion
 
+#pragma region "simd_mask casts"
 	/** Converts SIMD mask \a value to it's fixed-size equivalent for value type `T`. */
 	template<typename T, typename Abi>
 	[[nodiscard]] inline SVM_SAFE_ARRAY fixed_size_simd_mask<T, simd_size_v<T, Abi>> to_fixed_size(const simd_mask<T, Abi> &value) noexcept
@@ -391,6 +398,7 @@ namespace svm
 		result.copy_from(tmp_buff.data(), vector_aligned);
 		return result;
 	}
+#pragma endregion
 
 	SVM_DECLARE_EXT_NAMESPACE
 	{
@@ -617,6 +625,7 @@ namespace svm
 		~simd() = delete;
 	};
 
+#pragma region "simd operators"
 	/** Adds elements of vector \a b to elements of vector \a a, and returns the resulting vector. */
 	template<typename T, typename Abi>
 	[[nodiscard]] inline SVM_SAFE_ARRAY simd<T, Abi> operator+(const simd<T, Abi> &a, const simd<T, Abi> &b) noexcept requires (requires(T l, T r){ l + r; })
@@ -828,15 +837,6 @@ namespace svm
 			result[i] = a[i] == b[i];
 		return result;
 	}
-	/** Compares elements of vectors \a a and \a b for equality, and returns the resulting mask. */
-	template<typename T, typename Abi>
-	[[nodiscard]] inline SVM_SAFE_ARRAY simd_mask<T, Abi> operator!=(const simd<T, Abi> &a, const simd<T, Abi> &b) noexcept
-	{
-		simd_mask<T, Abi> result;
-		for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i)
-			result[i] = a[i] != b[i];
-		return result;
-	}
 	/** Compares elements of vectors \a a and \a b for less-than or equal, and returns the resulting mask. */
 	template<typename T, typename Abi>
 	[[nodiscard]] inline SVM_SAFE_ARRAY simd_mask<T, Abi> operator<=(const simd<T, Abi> &a, const simd<T, Abi> &b) noexcept
@@ -873,6 +873,16 @@ namespace svm
 			result[i] = a[i] > b[i];
 		return result;
 	}
+	/** Compares elements of vectors \a a and \a b for equality, and returns the resulting mask. */
+	template<typename T, typename Abi>
+	[[nodiscard]] inline SVM_SAFE_ARRAY simd_mask<T, Abi> operator!=(const simd<T, Abi> &a, const simd<T, Abi> &b) noexcept
+	{
+		simd_mask<T, Abi> result;
+		for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i)
+			result[i] = a[i] != b[i];
+		return result;
+	}
+#pragma endregion
 
 	namespace detail
 	{
@@ -914,6 +924,7 @@ namespace svm
 		}
 	}
 
+#pragma region "simd where expressions"
 	/** Creates a where expression used to select elements of vector \a v using mask \a m. */
 	template<typename T, typename Abi>
 	inline where_expression<simd_mask<T, Abi>, simd<T, Abi>> where(const typename simd<T, Abi>::mask_type &m, simd<T, Abi> &v) noexcept
@@ -926,7 +937,9 @@ namespace svm
 	{
 		return {m, v};
 	}
+#pragma endregion
 
+#pragma region "simd reductions"
 	/** Calculates a reduction of all elements from \a value using \a binary_op. */
 	template<typename T, typename Abi, typename Op = std::plus<>>
 	inline T reduce(const simd<T, Abi> &value, Op binary_op = {}) { return detail::reduce_impl<simd_size_v<T, Abi>>(value, binary_op); }
@@ -937,6 +950,7 @@ namespace svm
 	/** Finds the maximum of all elements (horizontal maximum) in \a value. */
 	template<typename T, typename Abi>
 	[[nodiscard]] inline T hmax(const simd<T, Abi> &value) noexcept { return reduce(value, [](T a, T b) { return std::max(a, b); }); }
+#pragma endregion
 
 	namespace detail
 	{
@@ -963,6 +977,7 @@ namespace svm
 		struct equal_cast_size<T, U, Abi> : std::true_type {};
 	}
 
+#pragma region "simd reductions"
 	/** Implicitly converts elements of SIMD vector \a value to the `To` type, where `To` is either `typename T::value_type` or `T` if `T` is a scalar. */
 	template<typename T, typename U, typename Abi, typename To = typename detail::deduce_cast<T>::type>
 	[[nodiscard]] inline SVM_SAFE_ARRAY auto simd_cast(const simd<U, Abi> &value) noexcept requires (std::is_convertible_v<U, To> && detail::equal_cast_size<T, U, Abi>::value)
@@ -1060,7 +1075,9 @@ namespace svm
 		result.copy_from(tmp_buff.data(), vector_aligned);
 		return result;
 	}
+#pragma endregion
 
+#pragma region "simd algorithms"
 	/** Returns an SIMD vector of minimum elements of \a a and \a b. */
 	template<typename T, typename Abi>
 	[[nodiscard]] inline SVM_SAFE_ARRAY simd<T, Abi> min(const simd<T, Abi> &a, const simd<T, Abi> &b) noexcept
@@ -1101,6 +1118,7 @@ namespace svm
 			result[i] = std::clamp(value[i], min[i], max[i]);
 		return result;
 	}
+#pragma endregion
 
 	SVM_DECLARE_EXT_NAMESPACE
 	{

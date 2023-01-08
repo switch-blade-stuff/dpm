@@ -739,6 +739,7 @@ namespace svm
 #endif
 	}
 
+#pragma region "simd_mask reductions"
 	/** Returns `true` if all of the elements of the \a mask are `true`. Otherwise returns `false`. */
 	template<std::size_t N, std::size_t A>
 	[[nodiscard]] inline bool all_of(const simd_mask<float, detail::avec<N, A>> &mask) noexcept requires detail::x86_overload_sse<float, N, A>
@@ -789,6 +790,7 @@ namespace svm
 		constexpr auto data_size = ext::native_data_size_v<simd_mask<float, detail::avec<N, A>>>;
 		return detail::x86_impl<bool, __m128, N>::template find_last_set<data_size>(ext::to_native_data(mask).data());
 	}
+#pragma endregion
 
 	SVM_DECLARE_EXT_NAMESPACE
 	{
@@ -1070,6 +1072,7 @@ namespace svm
 #endif
 	}
 
+#pragma region "simd algorithms"
 	/** Returns an SIMD vector of minimum elements of \a a and \a b. */
 	template<std::size_t N, std::size_t A>
 	[[nodiscard]] inline simd<float, detail::avec<N, A>> min(
@@ -1143,6 +1146,7 @@ namespace svm
 		);
 		return result;
 	}
+#pragma endregion
 }
 
 #endif
