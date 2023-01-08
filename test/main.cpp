@@ -143,6 +143,34 @@ int main()
 	TEST_ASSERT(svm::all_of(id - ib == ia));
 	TEST_ASSERT(svm::all_of(ib + ib == ib * decltype(ib){2}));
 
+	const auto b2 = svm::split_by<2>(b);
+	const auto c2 = svm::split_by<2>(c);
+
+	TEST_ASSERT(svm::all_of(b2[0] == b2[0]));
+	TEST_ASSERT(svm::all_of(b2[1] == b2[1]));
+	TEST_ASSERT(svm::all_of(b2[0] == c2[0]));
+	TEST_ASSERT(svm::all_of(b2[1] == c2[1]));
+
+	TEST_ASSERT(svm::all_of(decltype(b){svm::concat(b2)} == b));
+	TEST_ASSERT(svm::all_of(decltype(b){svm::concat(b2)} == c));
+	TEST_ASSERT(svm::all_of(decltype(b){svm::concat(c2)} == c));
+
+	const auto b4 = svm::split_by<1>(b);
+	const auto c4 = svm::split_by<1>(c);
+
+	TEST_ASSERT(svm::all_of(b4[0] == b4[0]));
+	TEST_ASSERT(svm::all_of(b4[1] == b4[1]));
+	TEST_ASSERT(svm::all_of(b4[2] == b4[2]));
+	TEST_ASSERT(svm::all_of(b4[3] == b4[3]));
+	TEST_ASSERT(svm::all_of(b4[0] == c4[0]));
+	TEST_ASSERT(svm::all_of(b4[1] == c4[1]));
+	TEST_ASSERT(svm::all_of(b4[2] == c4[2]));
+	TEST_ASSERT(svm::all_of(b4[3] == c4[3]));
+
+	TEST_ASSERT(svm::all_of(decltype(b){svm::concat(b4)} == b));
+	TEST_ASSERT(svm::all_of(decltype(b){svm::concat(b4)} == c));
+	TEST_ASSERT(svm::all_of(decltype(b){svm::concat(c4)} == c));
+
 	alignas(decltype(d)) std::array<float, 4> d_vals;
 	for (std::size_t i = 0; i < d_vals.size(); ++i) d_vals[i] = i % 2 ? b[i] : a[i];
 	alignas(decltype(d)::mask_type) std::array<bool, 4> mask_vals;

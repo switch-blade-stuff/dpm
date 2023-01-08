@@ -10,6 +10,52 @@
 
 namespace svm
 {
+	namespace detail
+	{
+		template<std::size_t N>
+		static __m128 x86_maskzero_vector_f32(__m128 m, std::size_t i) noexcept
+		{
+#ifdef SVM_HAS_SSE4_1
+			switch (N - i)
+			{
+				case 3: return _mm_blend_ps(m, _mm_setzero_ps(), 0b1000);
+				case 2: return _mm_blend_ps(m, _mm_setzero_ps(), 0b1100);
+				case 1: return _mm_blend_ps(m, _mm_setzero_ps(), 0b1110);
+				default: return m;
+			}
+#else
+			switch (const auto fm = std::bit_cast<float>(0xffff'ffff); N - i)
+				{
+					case 3: return _mm_and_ps(m, _mm_set_ps(0.0f, fm, fm, fm));
+					case 2: return _mm_and_ps(m, _mm_set_ps(0.0f, 0.0f, fm, fm));
+					case 1: return _mm_and_ps(m, _mm_set_ps(0.0f, 0.0f, 0.0f, fm));
+					default: return m;
+				}
+#endif
+		}
+		template<std::size_t N>
+		static __m128 x86_maskone_vector_f32(__m128 m, std::size_t i) noexcept
+		{
+#ifdef SVM_HAS_SSE4_1
+			switch (N - i)
+			{
+				case 3: return _mm_blend_ps(m, _mm_set1_ps(std::bit_cast<float>(0xffff'ffff)), 0b1000);
+				case 2: return _mm_blend_ps(m, _mm_set1_ps(std::bit_cast<float>(0xffff'ffff)), 0b1100);
+				case 1: return _mm_blend_ps(m, _mm_set1_ps(std::bit_cast<float>(0xffff'ffff)), 0b1110);
+				default: return m;
+			}
+#else
+			switch (const auto fm = std::bit_cast<float>(0xffff'ffff); N - i)
+				{
+					case 3: return _mm_or_ps(m, _mm_set_ps(fm, 0.0f, 0.0f, 0.0f));
+					case 2: return _mm_or_ps(m, _mm_set_ps(fm, fm, 0.0f, 0.0f));
+					case 1: return _mm_or_ps(m, _mm_set_ps(fm, fm, fm, 0.0f));
+					default: return m;
+				}
+#endif
+		}
+	}
+
 	SVM_DECLARE_EXT_NAMESPACE
 	{
 		template<std::size_t N, std::size_t Align> requires simd_abi::detail::x86_overload_sse<float, N, Align>
@@ -72,7 +118,7 @@ namespace svm
 		SVM_SAFE_ARRAY simd_mask(const simd_mask<U, detail::avec<size(), OtherAlign>> &other) noexcept
 		{
 			if constexpr (std::same_as<U, value_type> && (OtherAlign == 0 || OtherAlign >= alignment))
-				std::copy_n(reinterpret_cast<const vector_type *>(ext::to_native_data(other)), data_size, m_data);
+				std::copy_n(reinterpret_cast<const vector_type *>(ext::to_native_data(other).data()), data_size, m_data);
 			else
 				for (std::size_t i = 0; i < size(); ++i) operator[](i) = other[i];
 		}
@@ -238,20 +284,26 @@ namespace svm
 #ifdef SVM_HAS_SSE4_1
 				if constexpr (mask_t::data_size == 1)
 				{
-					const auto vi = _mm_castps_si128(mask.m_data[0]);
-					return _mm_test_all_ones(vi);
+					const auto vm = x86_maskone_vector_f32<mask_t::size()>(mask.m_data[0], 0);
+					return _mm_test_all_ones(_mm_castps_si128(vm));
 				}
 #endif
 				auto result = _mm_set1_ps(std::bit_cast<float>(0xffff'ffff));
 				for (std::size_t i = 0; i < mask_t::data_size; ++i)
-					result = _mm_and_ps(result, mask.m_data[i]);
+				{
+					const auto vm = x86_maskone_vector_f32<mask_t::size()>(mask.m_data[i], i * 4);
+					result = _mm_and_ps(result, vm);
+				}
 				return _mm_movemask_ps(result) == 0b1111;
 			}
 			[[nodiscard]] static SVM_SAFE_ARRAY bool any_of(const mask_t &mask) noexcept
 			{
 				auto result = _mm_setzero_ps();
 				for (std::size_t i = 0; i < mask_t::data_size; ++i)
-					result = _mm_or_ps(result, mask.m_data[i]);
+				{
+					const auto vm = x86_maskzero_vector_f32<mask_t::size()>(mask.m_data[i], i * 4);
+					result = _mm_or_ps(result, vm);
+				}
 #ifdef SVM_HAS_SSE4_1
 				const auto vi = _mm_castps_si128(result);
 				return !_mm_testz_si128(vi, vi);
@@ -263,7 +315,10 @@ namespace svm
 			{
 				auto result = _mm_setzero_ps();
 				for (std::size_t i = 0; i < mask_t::data_size; ++i)
-					result = _mm_or_ps(result, mask.m_data[i]);
+				{
+					const auto vm = x86_maskzero_vector_f32<mask_t::size()>(mask.m_data[i], i * 4);
+					result = _mm_or_ps(result, vm);
+				}
 #ifdef SVM_HAS_SSE4_1
 				const auto vi = _mm_castps_si128(result);
 				return _mm_testz_si128(vi, vi);
@@ -276,8 +331,12 @@ namespace svm
 				auto any_mask = _mm_setzero_ps(), all_mask = _mm_set1_ps(std::bit_cast<float>(0xffff'ffff));
 				for (std::size_t i = 0; i < mask_t::data_size; ++i)
 				{
-					all_mask = _mm_and_ps(all_mask, mask.m_data[i]);
-					any_mask = _mm_or_ps(any_mask, mask.m_data[i]);
+					const auto vm = mask.m_data[i];
+					const auto vmz = x86_maskzero_vector_f32<mask_t::size()>(vm, i * 4);
+					const auto vmo = x86_maskone_vector_f32<mask_t::size()>(vm, i * 4);
+
+					all_mask = _mm_and_ps(all_mask, vmo);
+					any_mask = _mm_or_ps(any_mask, vmz);
 				}
 #ifdef SVM_HAS_SSE4_1
 				const auto any_vi = _mm_castps_si128(any_mask);
@@ -290,67 +349,38 @@ namespace svm
 
 			[[nodiscard]] static SVM_SAFE_ARRAY std::size_t popcount(const mask_t &mask) noexcept
 			{
-				std::size_t result = 0, i = 0;
-				while (i + 8 <= mask_t::data_size)
+				std::size_t result = 0;
+				for (std::size_t i = 0; i < mask_t::data_size; ++i)
 				{
-					std::uint32_t bits = 0;
-					bits |= _mm_movemask_ps(mask.m_data[(i++)]) << 28;
-					bits |= _mm_movemask_ps(mask.m_data[(i++)]) << 24;
-					bits |= _mm_movemask_ps(mask.m_data[(i++)]) << 20;
-					bits |= _mm_movemask_ps(mask.m_data[(i++)]) << 16;
-					bits |= _mm_movemask_ps(mask.m_data[(i++)]) << 12;
-					bits |= _mm_movemask_ps(mask.m_data[(i++)]) << 8;
-					bits |= _mm_movemask_ps(mask.m_data[(i++)]) << 4;
-					bits |= _mm_movemask_ps(mask.m_data[(i++)]);
-					result += std::popcount(bits);
-				}
-				switch (std::uint32_t bits = 0; mask_t::data_size - i)
-				{
-					case 7: bits |= _mm_movemask_ps(mask.m_data[i++]) << 24; [[fallthrough]];
-					case 6: bits |= _mm_movemask_ps(mask.m_data[i++]) << 20; [[fallthrough]];
-					case 5: bits |= _mm_movemask_ps(mask.m_data[i++]) << 16; [[fallthrough]];
-					case 4: bits |= _mm_movemask_ps(mask.m_data[i++]) << 12; [[fallthrough]];
-					case 3: bits |= _mm_movemask_ps(mask.m_data[i++]) << 8; [[fallthrough]];
-					case 2: bits |= _mm_movemask_ps(mask.m_data[i++]) << 4; [[fallthrough]];
-					case 1: result += std::popcount(bits | _mm_movemask_ps(mask.m_data[i++]));
+					const auto vm = x86_maskzero_vector_f32<mask_t::size()>(mask.m_data[i], i * 4);
+					result += std::popcount(static_cast<std::uint32_t>(_mm_movemask_ps(vm)));
 				}
 				return result;
 			}
 			[[nodiscard]] static SVM_SAFE_ARRAY std::size_t find_first_set(const mask_t &mask) noexcept
 			{
-				for (std::size_t i = 0; i < mask_t::data_size; i += 8)
-					switch (std::uint32_t bits = 0; mask_t::data_size - i)
-					{
-						default: bits = _mm_movemask_ps(mask.m_data[i + 7]) << 28; [[fallthrough]];
-						case 7: bits |= _mm_movemask_ps(mask.m_data[i + 6]) << 24; [[fallthrough]];
-						case 6: bits |= _mm_movemask_ps(mask.m_data[i + 5]) << 20; [[fallthrough]];
-						case 5: bits |= _mm_movemask_ps(mask.m_data[i + 4]) << 16; [[fallthrough]];
-						case 4: bits |= _mm_movemask_ps(mask.m_data[i + 3]) << 12; [[fallthrough]];
-						case 3: bits |= _mm_movemask_ps(mask.m_data[i + 2]) << 8; [[fallthrough]];
-						case 2: bits |= _mm_movemask_ps(mask.m_data[i + 1]) << 4; [[fallthrough]];
-						case 1: bits |= _mm_movemask_ps(mask.m_data[i]); [[fallthrough]];
-						case 0: if (bits) return std::countr_zero(bits) + i * 4;
-					}
-				return 0;
+				for (std::size_t i = 0; i < mask_t::data_size; ++i)
+				{
+					const auto bits = static_cast<std::uint8_t>(_mm_movemask_ps(mask.m_data[i]));
+					if (bits) return std::countr_zero(bits) + i * 4;
+				}
+				SVM_UNREACHABLE();
 			}
 			[[nodiscard]] static SVM_SAFE_ARRAY std::size_t find_last_set(const mask_t &mask) noexcept
 			{
-				for (std::size_t i = mask_t::data_size, k; i != 0; i -= k + 1)
-					switch (std::uint32_t bits = 0; k = ((i - 1) % 8))
+				for (std::size_t i = mask_t::data_size, k; (k = i--) != 0;)
+				{
+					auto bits = static_cast<std::uint8_t>(_mm_movemask_ps(mask.m_data[i]));
+					switch (mask_t::size() - i * 4)
 					{
-						case 7: bits = _mm_movemask_ps(mask.m_data[i - 8]); [[fallthrough]];
-						case 6: bits |= _mm_movemask_ps(mask.m_data[i - 7]) << 4; [[fallthrough]];
-						case 5: bits |= _mm_movemask_ps(mask.m_data[i - 6]) << 8; [[fallthrough]];
-						case 4: bits |= _mm_movemask_ps(mask.m_data[i - 5]) << 12; [[fallthrough]];
-						case 3: bits |= _mm_movemask_ps(mask.m_data[i - 4]) << 16; [[fallthrough]];
-						case 2: bits |= _mm_movemask_ps(mask.m_data[i - 3]) << 20; [[fallthrough]];
-						case 1: bits |= _mm_movemask_ps(mask.m_data[i - 2]) << 24; [[fallthrough]];
-						case 0: bits |= _mm_movemask_ps(mask.m_data[i - 1]) << 28;
-							if (bits) return (i * 4 - 1) - std::countl_zero(bits);
-							break;
-						default: SVM_UNREACHABLE();
+						case 1: bits <<= 1; [[fallthrough]];
+						case 2: bits <<= 1; [[fallthrough]];
+						case 3: bits <<= 1; [[fallthrough]];
+						default: bits <<= 4;
 					}
-				return 0;
+					if (bits) return (k * 4 - 1) - std::countl_zero(bits);
+				}
+				SVM_UNREACHABLE();
 			}
 
 			template<typename F>
@@ -554,11 +584,11 @@ namespace svm
 			if constexpr (!std::same_as<U, value_type>)
 				for (std::size_t i = 0; i < size(); ++i) operator[](i) = other[i];
 			else if constexpr (OtherAlign == 0 || OtherAlign >= alignment)
-				copy_from(reinterpret_cast<const U *>(ext::to_native_data(other)), vector_aligned);
+				copy_from(reinterpret_cast<const U *>(ext::to_native_data(other).data()), vector_aligned);
 			else if constexpr (OtherAlign != alignof(value_type))
-				copy_from(reinterpret_cast<const U *>(ext::to_native_data(other)), overaligned<OtherAlign>);
+				copy_from(reinterpret_cast<const U *>(ext::to_native_data(other).data()), overaligned<OtherAlign>);
 			else
-				copy_from(reinterpret_cast<const U *>(ext::to_native_data(other)), element_aligned);
+				copy_from(reinterpret_cast<const U *>(ext::to_native_data(other).data()), element_aligned);
 		}
 		/** Initializes the underlying elements from \a mem. */
 		template<typename U, typename Flags>
@@ -771,27 +801,6 @@ namespace svm
 			using simd_t = simd<float, avec<N, A>>;
 			using mask_t = simd_mask<float, avec<N, A>>;
 
-			static __m128 buffer_index_mask(__m128 m, std::size_t i) noexcept
-			{
-#ifdef SVM_HAS_SSE4_1
-				switch (simd_t::size() - i)
-				{
-					case 3: return _mm_blend_ps(m, _mm_setzero_ps(), 0b1000);
-					case 2: return _mm_blend_ps(m, _mm_setzero_ps(), 0b1100);
-					case 1: return _mm_blend_ps(m, _mm_setzero_ps(), 0b1110);
-					default: return m;
-				}
-#else
-				switch (const auto fm = std::bit_cast<float>(0xffff'ffff); simd_t::size() - i)
-				{
-					case 3: return _mm_and_ps(m, _mm_set_ps(0.0f, fm, fm, fm));
-					case 2: return _mm_and_ps(m, _mm_set_ps(0.0f, 0.0f, fm, fm));
-					case 1: return _mm_and_ps(m, _mm_set_ps(0.0f, 0.0f, 0.0f, fm));
-					default: return m;
-				}
-#endif
-			}
-
 			template<typename T, typename F>
 			static void copy_from_masked(simd_t &v, const mask_t &m, const T *mem, F) noexcept
 			{
@@ -801,13 +810,13 @@ namespace svm
 				if constexpr (std::same_as<T, float> && (std::derived_from<F, vector_aligned_tag> || detail::overaligned_tag_value_v<F> >= simd_t::alignment))
 					for (std::size_t i = 0; i < simd_t::size(); i += 4)
 					{
-						const auto mi = _mm_castps_si128(buffer_index_mask(m.m_data[i / 4], i));
+						const auto mi = _mm_castps_si128(x86_maskzero_vector_f32<mask_t::size()>(m.m_data[i / 4], i));
 						v.m_data[i] = _mm_maskload_ps(mem + i, mi);
 					}
 				else if constexpr (std::same_as<T, std::int32_t> && (std::derived_from<F, vector_aligned_tag> || detail::overaligned_tag_value_v<F> >= simd_t::alignment))
 					for (std::size_t i = 0; i < simd_t::size(); i += 4)
 					{
-						const auto mi = _mm_castps_si128(buffer_index_mask(m.m_data[i / 4], i));
+						const auto mi = _mm_castps_si128(x86_maskzero_vector_f32<mask_t::size()>(m.m_data[i / 4], i));
 						v.m_data[i] = _mm_cvtepi32_ps(_mm_maskload_epi32(mem + i, mi));
 					}
 #endif
@@ -823,7 +832,7 @@ namespace svm
 					if constexpr (std::same_as<T, float>)
 						for (std::size_t i = 0; i < simd_t::size(); i += 4)
 						{
-							const auto mi = _mm_castps_si128(buffer_index_mask(m.m_data[i / 4], i));
+							const auto mi = _mm_castps_si128(x86_maskzero_vector_f32<mask_t::size()>(m.m_data[i / 4], i));
 							const auto vi = _mm_castps_si128(v.m_data[i / 4]);
 							_mm_maskmoveu_si128(vi, mi, reinterpret_cast<char *>(mem + i));
 						}
@@ -835,13 +844,13 @@ namespace svm
 				if constexpr (std::same_as<T, float> && (std::derived_from<F, vector_aligned_tag> || detail::overaligned_tag_value_v<F> >= simd_t::alignment))
 					for (std::size_t i = 0; i < simd_t::size(); i += 4)
 					{
-						const auto mi = _mm_castps_si128(buffer_index_mask(m.m_data[i / 4], i));
+						const auto mi = _mm_castps_si128(x86_maskzero_vector_f32<mask_t::size()>(m.m_data[i / 4], i));
 						_mm_maskstore_ps(mem + i, mi, v.m_data[i / 4]);
 					}
 				else if constexpr (std::same_as<T, std::int32_t> && (std::derived_from<F, vector_aligned_tag> || detail::overaligned_tag_value_v<F> >= simd_t::alignment))
 					for (std::size_t i = 0; i < simd_t::size(); i += 4)
 					{
-						const auto mi = _mm_castps_si128(buffer_index_mask(m.m_data[i / 4], i));
+						const auto mi = _mm_castps_si128(x86_maskzero_vector_f32<mask_t::size()>(m.m_data[i / 4], i));
 						_mm_maskstore_epi32(mem + i, mi, _mm_cvtps_epi32(v.m_data[i / 4]));
 					}
 				else

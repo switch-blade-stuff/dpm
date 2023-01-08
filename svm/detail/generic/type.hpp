@@ -354,7 +354,7 @@ namespace svm
 	[[nodiscard]] inline SVM_SAFE_ARRAY auto split_by(const simd_mask<T, Abi> &value) noexcept requires (simd_size_v<T, Abi> % N == 0)
 	{
 		constexpr auto split_size = simd_size_v<T, Abi> / N;
-		std::array<resize_simd<split_size, simd_mask<T, Abi>>, N> result;
+		std::array<resize_simd_t<split_size, simd_mask<T, Abi>>, N> result;
 		for (std::size_t i = 0; i < simd_mask<T, Abi>::size(); ++i)
 			result[i / N][i % split_size] = value[i];
 		return result;
@@ -376,7 +376,7 @@ namespace svm
 	template<typename T, typename Abi, std::size_t N>
 	[[nodiscard]] inline SVM_SAFE_ARRAY auto concat(const std::array<simd_mask<T, Abi>, N> &values) noexcept
 	{
-		using result_t = resize_simd<simd_size_v<T, Abi> * N, simd_mask<T, Abi>>;
+		using result_t = resize_simd_t<simd_size_v<T, Abi> * N, simd_mask<T, Abi>>;
 		alignas(std::max(alignof(result_t), alignof(simd_mask<T, Abi>))) std::array<bool, result_t::size()> tmp_buff;
 		result_t result;
 
@@ -1015,7 +1015,7 @@ namespace svm
 	[[nodiscard]] inline SVM_SAFE_ARRAY auto split_by(const simd<T, Abi> &value) noexcept requires (simd_size_v<T, Abi> % N == 0)
 	{
 		constexpr auto split_size = simd_size_v<T, Abi> / N;
-		std::array<resize_simd<split_size, simd<T, Abi>>, N> result;
+		std::array<resize_simd_t<split_size, simd<T, Abi>>, N> result;
 		for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i)
 			result[i / N][i % split_size] = value[i];
 		return result;
@@ -1037,7 +1037,7 @@ namespace svm
 	template<typename T, typename Abi, std::size_t N>
 	[[nodiscard]] inline SVM_SAFE_ARRAY auto concat(const std::array<simd<T, Abi>, N> &values) noexcept
 	{
-		using result_t = resize_simd<simd_size_v<T, Abi> * N, simd<T, Abi>>;
+		using result_t = resize_simd_t<simd_size_v<T, Abi> * N, simd<T, Abi>>;
 		alignas(std::max(alignof(result_t), alignof(simd<T, Abi>))) std::array<T, result_t::size()> tmp_buff;
 		result_t result;
 

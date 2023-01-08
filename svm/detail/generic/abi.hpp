@@ -72,7 +72,9 @@ namespace svm
 		}
 
 		template<typename T, std::size_t N, typename Abi, typename... Abis>
-		struct deduce<T, N, Abi, Abis...> { using type = std::conditional_t<detail::accept_abi<T, N, Abi>, Abi, typename deduce<T, N, Abis...>::type>; };
+		struct deduce<T, N, Abi, Abis...> : deduce<T, N, Abis...> {};
+		template<typename T, std::size_t N, typename Abi, typename... Abis> requires detail::accept_abi<T, N, Abi>
+		struct deduce<T, N, Abi, Abis...> { using type = Abi; };
 
 		/** @brief Alias for `typename deduce<T, N, Abis...>::type`. */
 		template<typename T, std::size_t N, typename... Abis>

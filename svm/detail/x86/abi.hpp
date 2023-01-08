@@ -104,14 +104,14 @@ namespace svm
 		}
 
 		template<typename T, std::size_t N> requires detail::x86_overload_sse<T, N>
-		struct deduce<T, N> { using type = ext::sse<T>; };
+		struct deduce<T, N> { using type = ext::aligned_vector<N, alignof(__m128)>; };
 #if defined(SVM_HAS_AVX) || defined(SVM_DYNAMIC_DISPATCH)
 		template<typename T, std::size_t N> requires detail::x86_overload_avx<T, N>
-		struct deduce<T, N> { using type = ext::avx<T>; };
+		struct deduce<T, N> { using type = ext::aligned_vector<N, alignof(__m256)>; };
 #endif
 #if defined(SVM_HAS_AVX512) || defined(SVM_DYNAMIC_DISPATCH)
 		template<typename T, std::size_t N> requires detail::x86_overload_avx512<T, N>
-		struct deduce<T, N> { using type = ext::avx512<T>; };
+		struct deduce<T, N> { using type = ext::aligned_vector<N, alignof(__m512)>; };
 #endif
 
 		/* If AVX512 is required, use 64 bytes for max_fixed_size. Otherwise, fall back to the default 32. */
