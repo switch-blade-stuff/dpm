@@ -20,7 +20,7 @@ namespace svm
 	{
 		/* Clang-tidy was having issues with friended concept-constrained functions and types, so this is a workaround. */
 		template<typename>
-		struct simd_access;
+		struct storage_access;
 
 		template<typename>
 		struct valid_mask : std::false_type {};
