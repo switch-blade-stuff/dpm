@@ -22,7 +22,7 @@ The library currently supports the following architectures for SIMD operations:
     - AVX512 (see notes)
 - ARM Neon
 
-On architectures without SIMD intrinsic support, SIMD operations are emulated via single-data operations.
+On architectures without SIMD intrinsic support, vectorization is emulated via scalar operations.
 
 ## Library options
 

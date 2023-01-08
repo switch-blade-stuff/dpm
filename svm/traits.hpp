@@ -100,7 +100,6 @@ namespace svm
 	template<typename T, typename V>
 	using rebind_simd_t = typename rebind_simd<T, V>::type;
 
-	/* TODO: Implement */
 	template<std::size_t N, typename V>
 	struct resize_simd;
 	template<std::size_t N, typename V>

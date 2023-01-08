@@ -120,6 +120,29 @@ int main()
 	TEST_ASSERT(svm::reduce(a) == 1.0f * a.size());
 	TEST_ASSERT(svm::reduce(b) == -1.0f * a.size());
 
+	const auto ia = svm::static_simd_cast<std::int32_t>(a);
+	const auto ib = svm::static_simd_cast<std::int32_t>(b);
+	const auto ic = svm::static_simd_cast<std::int32_t>(c);
+	const auto id = svm::static_simd_cast<std::int32_t>(d);
+
+	TEST_ASSERT(svm::all_of(svm::static_simd_cast<float>(ia) == a));
+	TEST_ASSERT(svm::all_of(svm::static_simd_cast<float>(ib) == b));
+	TEST_ASSERT(svm::all_of(svm::static_simd_cast<float>(ic) == c));
+	TEST_ASSERT(svm::all_of(svm::static_simd_cast<float>(id) == d));
+
+	TEST_ASSERT(svm::all_of(ia != ib));
+	TEST_ASSERT(svm::none_of(ia == ib));
+	TEST_ASSERT(svm::all_of(!(ia == ib)));
+
+	TEST_ASSERT(svm::all_of(ic == ib));
+	TEST_ASSERT(svm::none_of(ic != ib));
+	TEST_ASSERT(svm::none_of(!(ic == ib)));
+
+	TEST_ASSERT(svm::all_of(ia + ib == id));
+	TEST_ASSERT(svm::all_of(id - ia == ib));
+	TEST_ASSERT(svm::all_of(id - ib == ia));
+	TEST_ASSERT(svm::all_of(ib + ib == ib * decltype(ib){2}));
+
 	alignas(decltype(d)) std::array<float, 4> d_vals;
 	for (std::size_t i = 0; i < d_vals.size(); ++i) d_vals[i] = i % 2 ? b[i] : a[i];
 	alignas(decltype(d)::mask_type) std::array<bool, 4> mask_vals;

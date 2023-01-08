@@ -11,12 +11,6 @@
 
 #if defined(SVM_ARCH_X86) && (defined(SVM_HAS_SSE) || defined(SVM_DYNAMIC_DISPATCH))
 
-#ifndef SVM_USE_IMPORT
-
-#include <bit>
-
-#endif
-
 namespace svm
 {
 	namespace detail
@@ -140,10 +134,7 @@ namespace svm
 		template<typename U, typename Flags>
 		void copy_from(U *mem, Flags) const && noexcept requires is_simd_flag_type_v<Flags>
 		{
-			if constexpr (std::same_as<U, value_type>)
-				detail::simd_access<simd_t>::copy_from_masked(m_data, m_mask, mem, Flags{});
-			else
-				for (std::size_t i = 0; i < simd_t::size(); ++i) if (m_mask[i]) m_data[i] = static_cast<value_type>(mem[i]);
+			detail::simd_access<simd_t>::copy_from_masked(m_data, m_mask, mem, Flags{});
 		}
 	};
 
@@ -225,10 +216,7 @@ namespace svm
 		template<typename U, typename Flags>
 		void copy_from(U *mem, Flags) const && noexcept requires is_simd_flag_type_v<Flags>
 		{
-			if constexpr (std::same_as<U, value_type>)
-				detail::simd_access<mask_t>::copy_from_masked(m_data, m_mask, mem, Flags{});
-			else
-				for (std::size_t i = 0; i < mask_t::size(); ++i) if (m_mask[i]) m_data[i] = static_cast<value_type>(mem[i]);
+			detail::simd_access<mask_t>::copy_from_masked(m_data, m_mask, mem, Flags{});
 		}
 	};
 }

@@ -19,13 +19,39 @@
 
 namespace svm
 {
-	template<typename T, typename Abi>
+	template<typename T, typename Abi = simd_abi::compatible<T>>
 	class simd_mask;
-	template<typename T, typename Abi>
+
+	template<typename T>
+	using native_simd_mask = simd_mask<T, simd_abi::native<T>>;
+	template<typename T, std::size_t N>
+	using fixed_size_simd_mask = simd_mask<T, simd_abi::fixed_size<N>>;
+
+	template<typename T, typename U, typename Abi>
+	struct rebind_simd<T, simd_mask<U, Abi>> { using type = simd_mask<T, simd_abi::deduce_t<T, simd_size_v<U, Abi>, Abi>>; };
+	template<std::size_t N, typename T, typename Abi>
+	struct resize_simd<N, simd_mask<T, Abi>> { using type = simd_mask<T, simd_abi::deduce_t<T, N, Abi>>; };
+
+	template<typename T, typename Abi = simd_abi::compatible<T>>
 	class simd;
+
+	template<typename T>
+	using native_simd = simd_mask<T, simd_abi::native<T>>;
+	template<typename T, std::size_t N>
+	using fixed_size_simd = simd_mask<T, simd_abi::fixed_size<N>>;
+
+	template<typename T, typename U, typename Abi>
+	struct rebind_simd<T, simd<U, Abi>> { using type = simd<T, simd_abi::deduce_t<T, simd_size_v<U, Abi>, Abi>>; };
+	template<std::size_t N, typename T, typename Abi>
+	struct resize_simd<N, simd<T, Abi>> { using type = simd<T, simd_abi::deduce_t<T, N, Abi>>; };
 
 	namespace detail
 	{
+		template<typename V, typename Abi>
+		concept can_split_simd =is_simd_v<V> && !(simd_size_v<typename V::value_type, Abi> % V::size());
+		template<typename V, typename Abi>
+		concept can_split_mask = is_simd_mask_v<V> && !(simd_size_v<typename V::simd_type::value_type, Abi> % V::size());
+
 		template<std::size_t N, std::size_t A>
 		using avec = simd_abi::ext::aligned_vector<N, A>;
 
@@ -40,13 +66,57 @@ namespace svm
 		};
 
 		template<std::size_t N, std::size_t I = 0, typename G>
-		inline void generate(auto &data, G &&gen) noexcept
+		inline SVM_SAFE_ARRAY void generate(auto &data, G &&gen) noexcept
 		{
 			if constexpr (I != N)
 			{
 				data[I] = std::invoke(gen, std::integral_constant<std::size_t, I>());
 				generate<N, I + 1>(data, std::forward<G>(gen));
 			}
+		}
+
+		template<typename From, typename To, typename FromAbi, typename ToAbi>
+		inline SVM_SAFE_ARRAY void copy_cast(const simd_mask<From, FromAbi> &from, simd_mask<To, ToAbi> &to) noexcept
+		{
+			if constexpr (!std::same_as<simd_mask<From, FromAbi>, simd_mask<To, ToAbi>>)
+			{
+				constexpr auto result_align = std::max(alignof(simd_mask<From, FromAbi>), alignof(simd_mask<To, ToAbi>));
+				constexpr auto result_size = std::max(simd_mask<From, FromAbi>::size(), simd_mask<To, ToAbi>::size());
+
+				alignas(result_align) std::array<bool, result_size> tmp_buff;
+				from.copy_to(tmp_buff.data(), vector_aligned);
+				to.copy_from(tmp_buff.data(), vector_aligned);
+			}
+			else
+				to = from;
+		}
+		template<typename From, typename To, typename FromAbi, typename ToAbi>
+		inline SVM_SAFE_ARRAY void copy_cast(const simd<From, FromAbi> &from, simd<To, ToAbi> &to) noexcept
+		{
+			if constexpr (!std::same_as<simd<From, FromAbi>, simd<To, ToAbi>>)
+			{
+				constexpr auto result_align = std::max(alignof(simd<From, FromAbi>), alignof(simd<To, ToAbi>));
+				constexpr auto result_size = std::max(simd<From, FromAbi>::size(), simd<To, ToAbi>::size());
+
+				alignas(result_align) std::array<To, result_size> tmp_buff;
+				from.copy_to(tmp_buff.data(), vector_aligned);
+				to.copy_from(tmp_buff.data(), vector_aligned);
+			}
+			else
+				to = from;
+		}
+
+		template<std::size_t I = 0, std::size_t N, typename T, typename Abi, typename... Abis>
+		inline SVM_SAFE_ARRAY void concat_impl(std::array<bool, N> &buff, const simd_mask<T, Abi> &src, const simd_mask<T, Abis> &...other) noexcept
+		{
+			src.copy_to(buff.data() + I, vector_aligned);
+			if constexpr (sizeof...(other) != 0) concat_impl<simd_mask<T, Abi>::size()>(buff, other...);
+		}
+		template<std::size_t I = 0, std::size_t N, typename T, typename Abi, typename... Abis>
+		inline SVM_SAFE_ARRAY void concat_impl(std::array<T, N> &buff, const simd<T, Abi> &src, const simd<T, Abis> &...other) noexcept
+		{
+			src.copy_to(buff.data() + I, vector_aligned);
+			if constexpr (sizeof...(other) != 0) concat_impl<simd_mask<T, Abi>::size()>(buff, other...);
 		}
 	}
 
@@ -241,6 +311,79 @@ namespace svm
 	inline const_where_expression<simd_mask<T, Abi>, simd_mask<T, Abi>> where(const simd_mask<T, Abi> &m, const simd_mask<T, Abi> &v) noexcept
 	{
 		return {m, v};
+	}
+
+	/** Converts SIMD mask \a value to it's fixed-size equivalent for value type `T`. */
+	template<typename T, typename Abi>
+	[[nodiscard]] inline SVM_SAFE_ARRAY fixed_size_simd_mask<T, simd_size_v<T, Abi>> to_fixed_size(const simd_mask<T, Abi> &value) noexcept
+	{
+		fixed_size_simd_mask<T, simd_size_v<T, Abi>> result;
+		detail::copy_cast(value, result);
+		return result;
+	}
+	/** Converts SIMD mask \a value to it's native ABI equivalent for value type `T`. */
+	template<typename T, typename Abi>
+	[[nodiscard]] inline SVM_SAFE_ARRAY native_simd_mask<T> to_native(const simd_mask<T, Abi> &value) noexcept
+	{
+		native_simd_mask<T> result;
+		detail::copy_cast(value, result);
+		return result;
+	}
+	/** Converts SIMD mask \a value to it's compatible ABI equivalent for value type `T`. */
+	template<typename T, typename Abi>
+	[[nodiscard]] inline SVM_SAFE_ARRAY simd_mask<T> to_compatible(const simd_mask<T, Abi> &value) noexcept
+	{
+		simd_mask<T> result;
+		detail::copy_cast(value, result);
+		return result;
+	}
+
+	/** Returns an array of SIMD masks where every `i`th element of the `j`th mask a copy of the `i + j * V::size()`th element from \a value.
+	 * @note Size of \a value must be a multiple of `V::size()`. */
+	template<typename V, typename Abi, typename U = typename V::simd_type::value_type>
+	[[nodiscard]] inline SVM_SAFE_ARRAY auto split(const simd_mask<typename V::simd_type::value_type, Abi> &value) noexcept requires detail::can_split_mask<V, Abi>
+	{
+		std::array<V, simd_size_v<U, Abi> / V::size()> result;
+		for (std::size_t i = 0; i < simd_mask<U, Abi>::size(); ++i)
+			result[i / V::size()][i % V::size()] = value[i];
+		return result;
+	}
+	/** Returns an array of SIMD masks where every `i`th element of the `j`th mask is a copy of the `i + j * (simd_size_v<T, Abi> / N)`th element from \a value.
+	 * @note `N` must be a multiple of `simd_size_v<T, Abi>::size()`. */
+	template<std::size_t N, typename T, typename Abi>
+	[[nodiscard]] inline SVM_SAFE_ARRAY auto split_by(const simd_mask<T, Abi> &value) noexcept requires (simd_size_v<T, Abi> % N == 0)
+	{
+		constexpr auto split_size = simd_size_v<T, Abi> / N;
+		std::array<resize_simd<split_size, simd_mask<T, Abi>>, N> result;
+		for (std::size_t i = 0; i < simd_mask<T, Abi>::size(); ++i)
+			result[i / N][i % split_size] = value[i];
+		return result;
+	}
+
+	/** Concatenates elements of \a values into a single SIMD mask. */
+	template<typename T, typename... Abis>
+	[[nodiscard]] inline SVM_SAFE_ARRAY auto concat(const simd_mask<T, Abis> &...values) noexcept
+	{
+		using result_t = simd_mask<T, simd_abi::deduce_t<T, (simd_size_v<T, Abis> + ...)>>;
+		alignas(std::max({alignof(result_t), alignof(simd_mask<T, Abis>)...})) std::array<bool, result_t::size()> tmp_buff;
+		result_t result;
+
+		detail::concat_impl(tmp_buff, result, values...);
+		result.copy_from(tmp_buff.data(), vector_aligned);
+		return result;
+	}
+	/** Concatenates elements of \a values into a single SIMD mask. */
+	template<typename T, typename Abi, std::size_t N>
+	[[nodiscard]] inline SVM_SAFE_ARRAY auto concat(const std::array<simd_mask<T, Abi>, N> &values) noexcept
+	{
+		using result_t = resize_simd<simd_size_v<T, Abi> * N, simd_mask<T, Abi>>;
+		alignas(std::max(alignof(result_t), alignof(simd_mask<T, Abi>))) std::array<bool, result_t::size()> tmp_buff;
+		result_t result;
+
+		for (std::size_t i = 0, j = 0; i < tmp_buff.size(); i += simd_size_v<T, Abi>, ++j)
+			values[j].copy_to(tmp_buff.data() + i, vector_aligned);
+		result.copy_from(tmp_buff.data(), vector_aligned);
+		return result;
 	}
 
 	SVM_DECLARE_EXT_NAMESPACE
@@ -780,7 +923,129 @@ namespace svm
 
 	/** Calculates a reduction of all elements from \a value using \a binary_op. */
 	template<typename T, typename Abi, typename Op = std::plus<>>
-	[[nodiscard]] inline T reduce(const simd<T, Abi> &value, Op binary_op = {}) { return detail::reduce_impl<simd_size_v<T, Abi>>(value, binary_op); }
+	inline T reduce(const simd<T, Abi> &value, Op binary_op = {}) { return detail::reduce_impl<simd_size_v<T, Abi>>(value, binary_op); }
+
+	/** Finds the minimum of all elements (horizontal minimum) in \a value. */
+	template<typename T, typename Abi>
+	[[nodiscard]] inline T hmin(const simd<T, Abi> &value) noexcept { return reduce(value, [](T a, T b) { return std::min(a, b); }); }
+	/** Finds the maximum of all elements (horizontal maximum) in \a value. */
+	template<typename T, typename Abi>
+	[[nodiscard]] inline T hmax(const simd<T, Abi> &value) noexcept { return reduce(value, [](T a, T b) { return std::max(a, b); }); }
+
+	namespace detail
+	{
+		template<typename T>
+		struct deduce_cast { using type = T; };
+		template<typename T> requires is_simd_v<T>
+		struct deduce_cast<T> { using type = typename T::value_type; };
+
+		template<typename T, typename U, typename Abi, std::size_t N>
+		struct cast_return { using type = std::conditional_t<std::same_as<T, U>, simd<T, Abi>, simd<T, simd_abi::deduce_t<T, N, Abi, simd_abi::fixed_size<N>>>>; };
+		template<typename T, typename U, typename Abi, std::size_t N> requires is_simd_v<T>
+		struct cast_return<T, U, Abi, N> { using type = T; };
+
+		template<typename T, typename U, typename Abi, std::size_t N>
+		struct static_cast_return { using type = std::conditional_t<std::same_as<T, U>, simd<T, Abi>, simd<T, simd_abi::deduce_t<T, N, Abi, simd_abi::fixed_size<N>>>>; };
+		template<std::integral T, std::integral U, typename Abi, std::size_t N>
+		struct static_cast_return<T, U, Abi, N> { using type = std::conditional_t<std::same_as<T, U> || std::same_as<std::make_signed_t<T>, std::make_signed_t<U>>, simd<T, Abi>, simd<T, simd_abi::deduce_t<T, N, Abi, simd_abi::fixed_size<N>>>>; };
+		template<typename T, typename U, typename Abi, std::size_t N> requires is_simd_v<T>
+		struct static_cast_return<T, U, Abi, N> { using type = T; };
+
+		template<typename T, typename U, typename Abi>
+		struct equal_cast_size : std::bool_constant<simd<U, Abi>::size() == T::size()> {};
+		template<typename T, typename U, typename Abi> requires (!is_simd_v<T>)
+		struct equal_cast_size<T, U, Abi> : std::true_type {};
+	}
+
+	/** Implicitly converts elements of SIMD vector \a value to the `To` type, where `To` is either `typename T::value_type` or `T` if `T` is a scalar. */
+	template<typename T, typename U, typename Abi, typename To = typename detail::deduce_cast<T>::type>
+	[[nodiscard]] inline SVM_SAFE_ARRAY auto simd_cast(const simd<U, Abi> &value) noexcept requires (std::is_convertible_v<U, To> && detail::equal_cast_size<T, U, Abi>::value)
+	{
+		typename detail::cast_return<T, U, Abi, simd<U, Abi>::size()>::type result;
+		detail::copy_cast(value, result);
+		return result;
+	}
+	/** Explicitly converts elements of SIMD vector \a value to the `To` type, where `To` is either `typename T::value_type` or `T` if `T` is a scalar. */
+	template<typename T, typename U, typename Abi, typename To = typename detail::deduce_cast<T>::type>
+	[[nodiscard]] inline SVM_SAFE_ARRAY auto static_simd_cast(const simd<U, Abi> &value) noexcept requires (std::convertible_to<U, To> && detail::equal_cast_size<T, U, Abi>::value)
+	{
+		typename detail::static_cast_return<T, U, Abi, simd<U, Abi>::size()>::type result;
+		detail::copy_cast(value, result);
+		return result;
+	}
+
+	/** Converts SIMD vector \a value to it's fixed-size ABI equivalent for value type `T`. */
+	template<typename T, typename Abi>
+	[[nodiscard]] inline SVM_SAFE_ARRAY fixed_size_simd<T, simd_size_v<T, Abi>> to_fixed_size(const simd<T, Abi> &value) noexcept
+	{
+		fixed_size_simd<T, simd_size_v<T, Abi>> result;
+		detail::copy_cast(value, result);
+		return result;
+	}
+	/** Converts SIMD vector \a value to it's native ABI equivalent for value type `T`. */
+	template<typename T, typename Abi>
+	[[nodiscard]] inline SVM_SAFE_ARRAY native_simd<T> to_native(const simd<T, Abi> &value) noexcept
+	{
+		native_simd<T> result;
+		detail::copy_cast(value, result);
+		return result;
+	}
+	/** Converts SIMD vector \a value to it's compatible ABI equivalent for value type `T`. */
+	template<typename T, typename Abi>
+	[[nodiscard]] inline SVM_SAFE_ARRAY simd<T> to_compatible(const simd<T, Abi> &value) noexcept
+	{
+		simd<T> result;
+		detail::copy_cast(value, result);
+		return result;
+	}
+
+	/** Returns an array of SIMD vectors where every `i`th element of the `j`th vector is a copy of the `i + j * V::size()`th element from \a value.
+	 * @note Size of \a value must be a multiple of `V::size()`. */
+	template<typename V, typename Abi, typename U = typename V::value_type>
+	[[nodiscard]] inline SVM_SAFE_ARRAY auto split(const simd<U, Abi> &value) noexcept requires detail::can_split_simd<V, Abi>
+	{
+		std::array<V, simd_size_v<U, Abi> / V::size()> result;
+		for (std::size_t i = 0; i < simd<U, Abi>::size(); ++i)
+			result[i / V::size()][i % V::size()] = value[i];
+		return result;
+	}
+	/** Returns an array of SIMD vectors where every `i`th element of the `j`th vector is a copy of the `i + j * (simd_size_v<T, Abi> / N)`th element from \a value.
+	 * @note `N` must be a multiple of `simd_size_v<T, Abi>::size()`. */
+	template<std::size_t N, typename T, typename Abi>
+	[[nodiscard]] inline SVM_SAFE_ARRAY auto split_by(const simd<T, Abi> &value) noexcept requires (simd_size_v<T, Abi> % N == 0)
+	{
+		constexpr auto split_size = simd_size_v<T, Abi> / N;
+		std::array<resize_simd<split_size, simd<T, Abi>>, N> result;
+		for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i)
+			result[i / N][i % split_size] = value[i];
+		return result;
+	}
+
+	/** Concatenates elements of \a values into a single SIMD vector. */
+	template<typename T, typename... Abis>
+	[[nodiscard]] inline SVM_SAFE_ARRAY auto concat(const simd<T, Abis> &...values) noexcept
+	{
+		using result_t = simd<T, simd_abi::deduce_t<T, (simd_size_v<T, Abis> + ...)>>;
+		alignas(std::max({alignof(result_t), alignof(simd<T, Abis>)...})) std::array<T, result_t::size()> tmp_buff;
+		result_t result;
+
+		detail::concat_impl(tmp_buff, result, values...);
+		result.copy_from(tmp_buff.data(), vector_aligned);
+		return result;
+	}
+	/** Concatenates elements of \a values into a single SIMD vector. */
+	template<typename T, typename Abi, std::size_t N>
+	[[nodiscard]] inline SVM_SAFE_ARRAY auto concat(const std::array<simd<T, Abi>, N> &values) noexcept
+	{
+		using result_t = resize_simd<simd_size_v<T, Abi> * N, simd<T, Abi>>;
+		alignas(std::max(alignof(result_t), alignof(simd<T, Abi>))) std::array<T, result_t::size()> tmp_buff;
+		result_t result;
+
+		for (std::size_t i = 0, j = 0; i < tmp_buff.size(); i += simd_size_v<T, Abi>, ++j)
+			values[j].copy_to(tmp_buff.data() + i, vector_aligned);
+		result.copy_from(tmp_buff.data(), vector_aligned);
+		return result;
+	}
 
 	SVM_DECLARE_EXT_NAMESPACE
 	{

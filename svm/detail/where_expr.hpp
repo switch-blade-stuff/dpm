@@ -9,6 +9,8 @@
 #ifndef SVM_USE_IMPORT
 
 #include <utility>
+#include <limits>
+#include <bit>
 
 #endif
 
@@ -241,6 +243,53 @@ namespace svm
 		else
 			return identity;
 	}
+	/** Calculates a sum of selected elements from \a value. Equivalent to `reduce(value, typename V::value_type{0}, binary_op)` */
+	template<typename M, typename V>
+	[[nodiscard]] inline typename V::value_type reduce(const const_where_expression<M, V> &value, std::plus<> binary_op) noexcept
+	{
+		return reduce(value, typename V::value_type{0}, binary_op);
+	}
+	/** Calculates a product of selected elements from \a value. Equivalent to `reduce(value, typename V::value_type{1}, binary_op)` */
+	template<typename M, typename V>
+	[[nodiscard]] inline typename V::value_type reduce(const const_where_expression<M, V> &value, std::multiplies<> binary_op) noexcept
+	{
+		return reduce(value, typename V::value_type{1}, binary_op);
+	}
+	/** Calculates a bitwise AND of selected elements from \a value. Equivalent to `reduce(value, typename V::value_type{ones-mask}, binary_op)` */
+	template<typename M, typename V>
+	[[nodiscard]] inline typename V::value_type reduce(const const_where_expression<M, V> &value, std::bit_and<> binary_op) noexcept
+	{
+		using mask_int = detail::uint_of_size_t<sizeof(typename V::value_type)>;
+		return reduce(value, std::bit_cast<typename V::value_type>(~mask_int{0}), binary_op);
+	}
+	/** Calculates a bitwise OR of selected elements from \a value. Equivalent to `reduce(value, typename V::value_type{zeros-mask}, binary_op)` */
+	template<typename M, typename V>
+	[[nodiscard]] inline typename V::value_type reduce(const const_where_expression<M, V> &value, std::bit_or<> binary_op) noexcept
+	{
+		using mask_int = detail::uint_of_size_t<sizeof(typename V::value_type)>;
+		return reduce(value, std::bit_cast<typename V::value_type>(mask_int{0}), binary_op);
+	}
+	/** Calculates a bitwise XOR of selected elements from \a value. Equivalent to `reduce(value, typename V::value_type{zeros-mask}, binary_op)` */
+	template<typename M, typename V>
+	[[nodiscard]] inline typename V::value_type reduce(const const_where_expression<M, V> &value, std::bit_xor<> binary_op) noexcept
+	{
+		using mask_int = detail::uint_of_size_t<sizeof(typename V::value_type)>;
+		return reduce(value, std::bit_cast<typename V::value_type>(mask_int{0}), binary_op);
+	}
+
+	/** Finds the minimum of all selected elements (horizontal minimum) in \a value. */
+	template<typename M, typename V>
+	[[nodiscard]] inline typename V::value_type hmin(const const_where_expression<M, V> &value) noexcept
+	{
+		return reduce(value, std::numeric_limits<typename V::value_type>::max(), [](typename V::value_type a, typename V::value_type b) { return std::min(a, b); });
+	}
+	/** Finds the maximum of all selected elements (horizontal maximum) in \a value. */
+	template<typename M, typename V>
+	[[nodiscard]] inline typename V::value_type hmax(const const_where_expression<M, V> &value) noexcept
+	{
+		return reduce(value, std::numeric_limits<typename V::value_type>::min(), [](typename V::value_type a, typename V::value_type b) { return std::max(a, b); });
+	}
+
 	/** Calculates a reduction of selected element from \a value using \a binary_op and identity element \a identity. Equivalent to `binary_op(identity, +value)`. */
 	template<typename V, typename Op>
 	inline V reduce(const const_where_expression<bool, V> &value, V identity, Op binary_op = {}) { return std::invoke(binary_op, identity, +value); }

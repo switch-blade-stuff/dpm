@@ -580,6 +580,20 @@ namespace svm
 						case 1: reinterpret_cast<value_type *>(m_data)[i] = mem[i];
 					}
 			}
+#ifdef SVM_HAS_SSE2
+			else if constexpr (std::same_as<U, std::int32_t> && (std::derived_from<Flags, vector_aligned_tag> || detail::overaligned_tag_value_v<Flags> >= alignment))
+			{
+				for (std::size_t i = 0; i < size(); i += 4)
+					switch (size() - i)
+					{
+						default: m_data[i / 4] = _mm_cvtepi32_ps(reinterpret_cast<__m128i *>(mem)[i / 4]);
+							break;
+						case 3: reinterpret_cast<value_type *>(m_data)[i + 2] = static_cast<value_type>(mem[i + 2]); [[fallthrough]];
+						case 2: reinterpret_cast<value_type *>(m_data)[i + 1] = static_cast<value_type>(mem[i + 1]); [[fallthrough]];
+						case 1: reinterpret_cast<value_type *>(m_data)[i] = static_cast<value_type>(mem[i]);
+					}
+			}
+#endif
 			else
 				std::copy_n(mem, size(), reinterpret_cast<value_type *>(m_data));
 		}
@@ -594,11 +608,25 @@ namespace svm
 					{
 						default: reinterpret_cast<vector_type *>(mem)[i / 4] = m_data[i / 4];
 							break;
-						case 3: mem[i + 2] = reinterpret_cast<const value_type *>(m_data)[i + 2]; [[fallthrough]];
-						case 2: mem[i + 1] = reinterpret_cast<const value_type *>(m_data)[i + 1]; [[fallthrough]];
-						case 1: mem[i] = reinterpret_cast<const value_type *>(m_data)[i];
+						case 3: mem[i + 2] = operator[](i + 2); [[fallthrough]];
+						case 2: mem[i + 1] = operator[](i + 1); [[fallthrough]];
+						case 1: mem[i] = operator[](i);
 					}
 			}
+#ifdef SVM_HAS_SSE2
+			else if constexpr (std::same_as<U, std::int32_t> && (std::derived_from<Flags, vector_aligned_tag> || detail::overaligned_tag_value_v<Flags> >= alignment))
+			{
+				for (std::size_t i = 0; i < size(); i += 4)
+					switch (size() - i)
+					{
+						default: reinterpret_cast<__m128i *>(mem)[i / 4] = _mm_cvtps_epi32(m_data[i / 4]);
+							break;
+						case 3: mem[i + 2] = static_cast<std::int32_t>(operator[](i + 2)); [[fallthrough]];
+						case 2: mem[i + 1] = static_cast<std::int32_t>(operator[](i + 1)); [[fallthrough]];
+						case 1: mem[i] = static_cast<std::int32_t>(operator[](i));
+					}
+			}
+#endif
 			else
 				std::copy_n(reinterpret_cast<const value_type *>(m_data), size(), mem);
 		}
@@ -762,60 +790,62 @@ namespace svm
 					default: return m;
 				}
 #endif
-			};
+			}
 
-			template<typename F>
-			static void copy_from_masked(simd_t &v, const mask_t &m, const float *mem, F) noexcept
+			template<typename T, typename F>
+			static void copy_from_masked(simd_t &v, const mask_t &m, const T *mem, F) noexcept
 			{
-				const auto copy_unaligned = [&]() { for (std::size_t i = 0; i < simd_t::size(); ++i) if (m[i]) v[i] = mem[i]; };
-				const auto copy_aligned = [&]()
-				{
+				const auto copy_unaligned = [&]() { for (std::size_t i = 0; i < simd_t::size(); ++i) if (m[i]) v[i] = static_cast<float>(mem[i]); };
+
 #ifdef SVM_HAS_AVX
+				if constexpr (std::same_as<T, float> && (std::derived_from<F, vector_aligned_tag> || detail::overaligned_tag_value_v<F> >= simd_t::alignment))
 					for (std::size_t i = 0; i < simd_t::size(); i += 4)
 					{
 						const auto mi = _mm_castps_si128(buffer_index_mask(m.m_data[i / 4], i));
 						v.m_data[i] = _mm_maskload_ps(mem + i, mi);
 					}
-#else
-					copy_unaligned();
+				else if constexpr (std::same_as<T, std::int32_t> && (std::derived_from<F, vector_aligned_tag> || detail::overaligned_tag_value_v<F> >= simd_t::alignment))
+					for (std::size_t i = 0; i < simd_t::size(); i += 4)
+					{
+						const auto mi = _mm_castps_si128(buffer_index_mask(m.m_data[i / 4], i));
+						v.m_data[i] = _mm_cvtepi32_ps(_mm_maskload_epi32(mem + i, mi));
+					}
 #endif
-				};
-				if constexpr (std::derived_from<F, vector_aligned_tag> || detail::overaligned_tag_value_v<F> >= simd_t::alignment)
-					copy_aligned();
 				else
 					copy_unaligned();
 			}
-			template<typename F>
-			static void copy_to_masked(const simd_t &v, const mask_t &m, float *mem, F) noexcept
+			template<typename T, typename F>
+			static void copy_to_masked(const simd_t &v, const mask_t &m, T *mem, F) noexcept
 			{
 				const auto copy_unaligned = [&]()
 				{
 #ifdef SVM_HAS_SSE2
-					for (std::size_t i = 0; i < simd_t::size(); i += 4)
-					{
-						const auto mi = _mm_castps_si128(buffer_index_mask(m.m_data[i / 4], i));
-						const auto vi = _mm_castps_si128(v.m_data[i / 4]);
-						_mm_maskmoveu_si128(vi, mi, reinterpret_cast<char *>(mem + i));
-					}
-#else
-					for (std::size_t i = 0; i < simd_t::size(); ++i) if (m[i]) mem[i] = v[i];
+					if constexpr (std::same_as<T, float>)
+						for (std::size_t i = 0; i < simd_t::size(); i += 4)
+						{
+							const auto mi = _mm_castps_si128(buffer_index_mask(m.m_data[i / 4], i));
+							const auto vi = _mm_castps_si128(v.m_data[i / 4]);
+							_mm_maskmoveu_si128(vi, mi, reinterpret_cast<char *>(mem + i));
+						}
+					else
 #endif
+						for (std::size_t i = 0; i < simd_t::size(); ++i) if (m[i]) mem[i] = static_cast<float>(v[i]);
 				};
-				const auto copy_aligned = [&]()
-				{
 #ifdef SVM_HAS_AVX
+				if constexpr (std::same_as<T, float> && (std::derived_from<F, vector_aligned_tag> || detail::overaligned_tag_value_v<F> >= simd_t::alignment))
 					for (std::size_t i = 0; i < simd_t::size(); i += 4)
 					{
 						const auto mi = _mm_castps_si128(buffer_index_mask(m.m_data[i / 4], i));
 						_mm_maskstore_ps(mem + i, mi, v.m_data[i / 4]);
 					}
-#else
-					copy_unaligned();
-#endif
-				};
-				if constexpr (std::derived_from<F, vector_aligned_tag> || detail::overaligned_tag_value_v<F> >= simd_t::alignment)
-					copy_aligned();
+				else if constexpr (std::same_as<T, std::int32_t> && (std::derived_from<F, vector_aligned_tag> || detail::overaligned_tag_value_v<F> >= simd_t::alignment))
+					for (std::size_t i = 0; i < simd_t::size(); i += 4)
+					{
+						const auto mi = _mm_castps_si128(buffer_index_mask(m.m_data[i / 4], i));
+						_mm_maskstore_epi32(mem + i, mi, _mm_cvtps_epi32(v.m_data[i / 4]));
+					}
 				else
+#endif
 					copy_unaligned();
 			}
 

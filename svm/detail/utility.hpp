@@ -4,8 +4,40 @@
 
 #pragma once
 
+#include "define.hpp"
+
 namespace svm::detail
 {
+	template<std::size_t N>
+	struct int_of_size;
+
+	template<>
+	struct int_of_size<8> { using type = std::int8_t; };
+	template<>
+	struct int_of_size<16> { using type = std::int16_t; };
+	template<>
+	struct int_of_size<32> { using type = std::int32_t; };
+	template<>
+	struct int_of_size<64> { using type = std::int64_t; };
+
+	template<std::size_t N>
+	using int_of_size_t = typename int_of_size<N>::type;
+
+	template<std::size_t N>
+	struct uint_of_size;
+
+	template<>
+	struct uint_of_size<8> { using type = std::uint8_t; };
+	template<>
+	struct uint_of_size<16> { using type = std::uint16_t; };
+	template<>
+	struct uint_of_size<32> { using type = std::uint32_t; };
+	template<>
+	struct uint_of_size<64> { using type = std::uint64_t; };
+
+	template<std::size_t N>
+	using uint_of_size_t = typename uint_of_size<N>::type;
+
 	template<typename T>
 	[[nodiscard]] constexpr bool test_bit(T value, int pos) noexcept { return value & static_cast<T>(1 << pos); }
 	template<typename T>
