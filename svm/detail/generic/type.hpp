@@ -404,7 +404,7 @@ namespace svm
 		template<detail::vectorizable T, std::size_t N, std::size_t Align>
 		struct native_data_size<simd_mask<T, detail::avec<N, Align>>> : std::integral_constant<std::size_t, N> {};
 
-		/** Replaces elements of masks \a and \a b using mask \a m. Elements of \a b are selected if the corresponding element of \a m evaluates to `true`. */
+		/** Replaces elements of mask \a a with elements of mask \a b using mask \a m. Elements of \a b are selected if the corresponding element of \a m evaluates to `true`. */
 		template<typename T, typename Abi, typename M>
 		[[nodiscard]] inline SVM_SAFE_ARRAY simd_mask<T, Abi> blend(const simd_mask<T, Abi> &a, const simd_mask<T, Abi> &b, const simd_mask<T, Abi> &m)
 		{
@@ -1114,7 +1114,7 @@ namespace svm
 		template<detail::vectorizable T, std::size_t N, std::size_t Align>
 		struct native_data_size<simd<T, detail::avec<N, Align>>> : std::integral_constant<std::size_t, N> {};
 
-		/** Replaces elements of vectors \a and \a b using mask \a m. Elements of \a b are selected if the corresponding element of \a m evaluates to `true`. */
+		/** Replaces elements of vector \a a with elements of vector \a b using mask \a m. Elements of \a b are selected if the corresponding element of \a m evaluates to `true`. */
 		template<typename T, typename Abi>
 		[[nodiscard]] inline SVM_SAFE_ARRAY simd<T, Abi> blend(const simd<T, Abi> &a, const simd<T, Abi> &b, const simd_mask<T, Abi> &m)
 		{

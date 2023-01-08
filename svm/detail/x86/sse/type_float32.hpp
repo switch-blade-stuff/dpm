@@ -717,7 +717,7 @@ namespace svm
 		}
 
 #ifdef SVM_HAS_SSE4_1
-		/** Replaces elements of mask \a a with selected elements of where expression \a b. */
+		/** Replaces elements of mask \a a with elements of mask \a b using mask \a m. Elements of \a b are selected if the corresponding element of \a m evaluates to `true`. */
 		template<std::size_t N, std::size_t A>
 		[[nodiscard]] inline simd_mask<float, detail::avec<N, A>> blend(
 				const simd_mask<float, detail::avec<N, A>> &a,
@@ -739,24 +739,28 @@ namespace svm
 #endif
 	}
 
+	/** Returns `true` if all of the elements of the \a mask are `true`. Otherwise returns `false`. */
 	template<std::size_t N, std::size_t A>
 	[[nodiscard]] inline bool all_of(const simd_mask<float, detail::avec<N, A>> &mask) noexcept requires detail::x86_overload_sse<float, N, A>
 	{
 		constexpr auto data_size = ext::native_data_size_v<simd_mask<float, detail::avec<N, A>>>;
 		return detail::x86_impl<bool, __m128, N>::template all_of<data_size>(ext::to_native_data(mask).data());
 	}
+	/** Returns `true` if at least one of the elements of the \a mask are `true`. Otherwise returns `false`. */
 	template<std::size_t N, std::size_t A>
 	[[nodiscard]] inline bool any_of(const simd_mask<float, detail::avec<N, A>> &mask) noexcept requires detail::x86_overload_sse<float, N, A>
 	{
 		constexpr auto data_size = ext::native_data_size_v<simd_mask<float, detail::avec<N, A>>>;
 		return detail::x86_impl<bool, __m128, N>::template any_of<data_size>(ext::to_native_data(mask).data());
 	}
+	/** Returns `true` if at none of the elements of the \a mask is `true`. Otherwise returns `false`. */
 	template<std::size_t N, std::size_t A>
 	[[nodiscard]] inline bool none_of(const simd_mask<float, detail::avec<N, A>> &mask) noexcept requires detail::x86_overload_sse<float, N, A>
 	{
 		constexpr auto data_size = ext::native_data_size_v<simd_mask<float, detail::avec<N, A>>>;
 		return detail::x86_impl<bool, __m128, N>::template none_of<data_size>(ext::to_native_data(mask).data());
 	}
+	/** Returns `true` if at least one of the elements of the \a mask is `true` and at least one is `false`. Otherwise returns `false`. */
 	template<std::size_t N, std::size_t A>
 	[[nodiscard]] inline bool some_of(const simd_mask<float, detail::avec<N, A>> &mask) noexcept requires detail::x86_overload_sse<float, N, A>
 	{
@@ -764,18 +768,21 @@ namespace svm
 		return detail::x86_impl<bool, __m128, N>::template some_of<data_size>(ext::to_native_data(mask).data());
 	}
 
+	/** Returns the number of `true` elements of \a mask. */
 	template<std::size_t N, std::size_t A>
 	[[nodiscard]] inline std::size_t popcount(const simd_mask<float, detail::avec<N, A>> &mask) noexcept requires detail::x86_overload_sse<float, N, A>
 	{
 		constexpr auto data_size = ext::native_data_size_v<simd_mask<float, detail::avec<N, A>>>;
 		return detail::x86_impl<bool, __m128, N>::template popcount<data_size>(ext::to_native_data(mask).data());
 	}
+	/** Returns the index of the first `true` element of \a mask. */
 	template<std::size_t N, std::size_t A>
 	[[nodiscard]] inline std::size_t find_first_set(const simd_mask<float, detail::avec<N, A>> &mask) noexcept requires detail::x86_overload_sse<float, N, A>
 	{
 		constexpr auto data_size = ext::native_data_size_v<simd_mask<float, detail::avec<N, A>>>;
 		return detail::x86_impl<bool, __m128, N>::template find_first_set<data_size>(ext::to_native_data(mask).data());
 	}
+	/** Returns the index of the last `true` element of \a mask. */
 	template<std::size_t N, std::size_t A>
 	[[nodiscard]] inline std::size_t find_last_set(const simd_mask<float, detail::avec<N, A>> &mask) noexcept requires detail::x86_overload_sse<float, N, A>
 	{
@@ -1041,7 +1048,7 @@ namespace svm
 		}
 
 #ifdef SVM_HAS_SSE4_1
-		/** Replaces elements of vector \a a with selected elements of where expression \a b. */
+		/** Replaces elements of vector \a a with elements of vector \a b using mask \a m. Elements of \a b are selected if the corresponding element of \a m evaluates to `true`. */
 		template<std::size_t N, std::size_t A>
 		[[nodiscard]] inline simd<float, detail::avec<N, A>> blend(
 				const simd<float, detail::avec<N, A>> &a,
@@ -1063,6 +1070,7 @@ namespace svm
 #endif
 	}
 
+	/** Returns an SIMD vector of minimum elements of \a a and \a b. */
 	template<std::size_t N, std::size_t A>
 	[[nodiscard]] inline simd<float, detail::avec<N, A>> min(
 			const simd<float, detail::avec<N, A>> &a,
@@ -1079,6 +1087,7 @@ namespace svm
 		);
 		return result;
 	}
+	/** Returns an SIMD vector of maximum elements of \a a and \a b. */
 	template<std::size_t N, std::size_t A>
 	[[nodiscard]] inline simd<float, detail::avec<N, A>> max(
 			const simd<float, detail::avec<N, A>> &a,
@@ -1096,6 +1105,7 @@ namespace svm
 		return result;
 	}
 
+	/** Returns a pair of SIMD vectors of minimum and maximum elements of \a a and \a b. */
 	template<std::size_t N, std::size_t A>
 	[[nodiscard]] inline std::pair<simd<float, detail::avec<N, A>>, simd<float, detail::avec<N, A>>> minmax(
 			const simd<float, detail::avec<N, A>> &a,
@@ -1114,6 +1124,7 @@ namespace svm
 		return result;
 	}
 
+	/** Clamps elements \f \a value between corresponding elements of \a ming and \a max. */
 	template<std::size_t N, std::size_t A>
 	[[nodiscard]] inline simd<float, detail::avec<N, A>> clamp(
 			const simd<float, detail::avec<N, A>> &value,
