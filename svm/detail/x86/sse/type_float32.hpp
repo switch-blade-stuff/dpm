@@ -819,8 +819,8 @@ namespace svm
 						const auto mi = _mm_castps_si128(x86_maskzero_vector_f32<mask_t::size()>(m.m_data[i / 4], i));
 						v.m_data[i] = _mm_cvtepi32_ps(_mm_maskload_epi32(mem + i, mi));
 					}
-#endif
 				else
+#endif
 					copy_unaligned();
 			}
 			template<typename T, typename F>
