@@ -19,6 +19,9 @@ namespace svm
 		using simd_abi::detail::x86_overload_sse;
 		using simd_abi::detail::x86_overload_avx;
 		using simd_abi::detail::x86_overload_avx512;
+
+		template<typename V, typename D, std::size_t N>
+		struct x86_impl;
 	}
 
 	template<typename T, std::size_t N, std::size_t A> requires detail::x86_overload_all<T, N, A>
@@ -51,10 +54,12 @@ namespace svm
 		template<typename U, typename Flags>
 		inline void copy_to(U *mem, Flags) const && noexcept requires is_simd_flag_type_v<Flags>
 		{
-			if constexpr (std::same_as<U, value_type>)
-				detail::simd_access<simd_t>::copy_to_masked(m_data, m_mask, mem, Flags{});
-			else
-				for (std::size_t i = 0; i < simd_t::size(); ++i) if (m_mask[i]) mem[i] = static_cast<U>(m_data[i]);
+			detail::x86_impl<value_type, ext::native_data_type_t<simd_t>, simd_t::size()>::copy_to(
+					mem,
+					to_native_data(std::as_const(m_data)),
+					to_native_data(std::as_const(m_mask)),
+					Flags{}
+			);
 		}
 
 	protected:
@@ -134,7 +139,12 @@ namespace svm
 		template<typename U, typename Flags>
 		void copy_from(U *mem, Flags) const && noexcept requires is_simd_flag_type_v<Flags>
 		{
-			detail::simd_access<simd_t>::copy_from_masked(m_data, m_mask, mem, Flags{});
+			detail::x86_impl<value_type, ext::native_data_type_t<simd_t>, simd_t::size()>::copy_from(
+					mem,
+					to_native_data(m_data),
+					to_native_data(std::as_const(m_mask)),
+					Flags{}
+			);
 		}
 	};
 
@@ -165,7 +175,14 @@ namespace svm
 		inline void copy_to(U *mem, Flags) const && noexcept requires is_simd_flag_type_v<Flags>
 		{
 			if constexpr (std::same_as<U, value_type>)
-				detail::simd_access<mask_t>::copy_to_masked(m_data, m_mask, mem, Flags{});
+			{
+				detail::x86_impl<value_type, ext::native_data_type_t<mask_t>, mask_t::size()>::copy_to(
+						mem,
+						to_native_data(std::as_const(m_data)),
+						to_native_data(std::as_const(m_mask)),
+						Flags{}
+				);
+			}
 			else
 				for (std::size_t i = 0; i < mask_t::size(); ++i) if (m_mask[i]) mem[i] = static_cast<U>(m_data[i]);
 		}
@@ -216,7 +233,17 @@ namespace svm
 		template<typename U, typename Flags>
 		void copy_from(U *mem, Flags) const && noexcept requires is_simd_flag_type_v<Flags>
 		{
-			detail::simd_access<mask_t>::copy_from_masked(m_data, m_mask, mem, Flags{});
+			if constexpr (std::same_as<U, value_type>)
+			{
+				detail::x86_impl<value_type, ext::native_data_type_t<mask_t>, mask_t::size()>::copy_from(
+						mem,
+						to_native_data(m_data),
+						to_native_data(std::as_const(m_mask)),
+						Flags{}
+				);
+			}
+			else
+				for (std::size_t i = 0; i < mask_t::size(); ++i) if (m_mask[i]) m_data[i] = static_cast<value_type>(mem[i]);
 		}
 	};
 }

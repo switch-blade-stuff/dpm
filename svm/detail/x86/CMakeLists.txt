@@ -5,7 +5,7 @@ include(${CMAKE_CURRENT_LIST_DIR}/avx512/CMakeLists.txt)
 
 list(APPEND SVM_INTERFACE_SOURCES
         ${CMAKE_CURRENT_LIST_DIR}/abi.hpp
-        ${CMAKE_CURRENT_LIST_DIR}/where_expr.hpp
+        ${CMAKE_CURRENT_LIST_DIR}/common.hpp
         ${CMAKE_CURRENT_LIST_DIR}/type.hpp
         ${CMAKE_CURRENT_LIST_DIR}/cpuid.hpp)
 

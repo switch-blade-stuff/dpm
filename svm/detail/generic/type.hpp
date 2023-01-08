@@ -1010,12 +1010,12 @@ namespace svm
 	template<typename V, typename Abi, typename U = typename V::value_type>
 	[[nodiscard]] inline SVM_SAFE_ARRAY auto split(const simd<U, Abi> &value) noexcept requires detail::can_split_simd<V, Abi>
 	{
+		alignas(std::max(alignof(V), alignof(simd<U, Abi>))) std::array<U, simd<U, Abi>::size()> tmp_buff;
 		std::array<V, simd_size_v<U, Abi> / V::size()> result;
-		for (std::size_t j = 0; j < result.size(); ++j)
-		{
-			for (std::size_t i = 0; i < V::size(); ++i)
-				result[j][i] = value[j * V::size() + i];
-		}
+
+		value.copy_to(tmp_buff.data(), vector_aligned);
+		for (std::size_t i = 0, j = 0; i < result.size(); ++i, j += V::size())
+			result[j].copy_from(tmp_buff.data() + j, vector_aligned);
 		return result;
 	}
 	/** Returns an array of SIMD vectors where every `i`th element of the `j`th vector is a copy of the `i + j * (simd_size_v<T, Abi> / N)`th element from \a value.
@@ -1024,12 +1024,14 @@ namespace svm
 	[[nodiscard]] inline SVM_SAFE_ARRAY auto split_by(const simd<T, Abi> &value) noexcept requires (simd_size_v<T, Abi> % N == 0)
 	{
 		constexpr auto split_size = simd_size_v<T, Abi> / N;
-		std::array<resize_simd_t<split_size, simd<T, Abi>>, N> result;
-		for (std::size_t j = 0; j < N; ++j)
-		{
-			for (std::size_t i = 0; i < split_size; ++i)
-				result[j][i] = value[j * split_size + i];
-		}
+		using split_type = resize_simd_t<split_size, simd<T, Abi>>;
+
+		alignas(std::max(alignof(split_type), alignof(simd<T, Abi>))) std::array<T, simd<T, Abi>::size()> tmp_buff;
+		std::array<split_type, N> result;
+
+		value.copy_to(tmp_buff.data(), vector_aligned);
+		for (std::size_t i = 0, j = 0; i < result.size(); ++i, j += split_size)
+			result[i].copy_from(tmp_buff.data() + j, vector_aligned);
 		return result;
 	}
 

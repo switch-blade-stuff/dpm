@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "../where_expr.hpp"
+#include "../common.hpp"
 
 #if defined(SVM_ARCH_X86) && (defined(SVM_HAS_SSE) || defined(SVM_DYNAMIC_DISPATCH))
 
@@ -54,6 +54,390 @@ namespace svm
 				}
 #endif
 		}
+
+		template<std::size_t N>
+		struct x86_impl<bool, __m128, N>
+		{
+			template<std::size_t M, typename F>
+			static SVM_SAFE_ARRAY void copy_from(const bool *src, std::span<__m128, M> dst, F) noexcept
+			{
+				for (std::size_t i = 0; i < N; i += 4)
+				{
+					float f0 = 0.0f, f1 = 0.0f, f2 = 0.0f, f3 = 0.0f;
+					switch (N - i)
+					{
+						default: f3 = std::bit_cast<float>(detail::extend_bool<std::int32_t>(src[i + 3])); [[fallthrough]];
+						case 3: f2 = std::bit_cast<float>(detail::extend_bool<std::int32_t>(src[i + 2])); [[fallthrough]];
+						case 2: f1 = std::bit_cast<float>(detail::extend_bool<std::int32_t>(src[i + 1])); [[fallthrough]];
+						case 1: f0 = std::bit_cast<float>(detail::extend_bool<std::int32_t>(src[i]));
+					}
+					dst[i / 4] = _mm_set_ps(f3, f2, f1, f0);
+				}
+			}
+			template<std::size_t M, typename F>
+			static SVM_SAFE_ARRAY void copy_to(bool *dst, std::span<const __m128, M> src, F) noexcept
+			{
+				for (std::size_t i = 0; i < N; i += 4)
+					switch (const auto bits = _mm_movemask_ps(src[i / 4]); N - i)
+					{
+						default: dst[i + 3] = bits & 0b1000; [[fallthrough]];
+						case 3: dst[i + 2] = bits & 0b0100; [[fallthrough]];
+						case 2: dst[i + 1] = bits & 0b0010; [[fallthrough]];
+						case 1: dst[i] = bits & 0b0001;
+					}
+			}
+
+			template<std::size_t M, typename F>
+			static SVM_SAFE_ARRAY void copy_from(const bool *src, std::span<__m128, M> dst, std::span<const __m128, M> mask, F) noexcept
+			{
+				for (std::size_t i = 0; i < N; i += 4)
+				{
+					float f0 = 0.0f, f1 = 0.0f, f2 = 0.0f, f3 = 0.0f;
+					switch (N - i)
+					{
+						default: f3 = std::bit_cast<float>(detail::extend_bool<std::int32_t>(src[i + 3])); [[fallthrough]];
+						case 3: f2 = std::bit_cast<float>(detail::extend_bool<std::int32_t>(src[i + 2])); [[fallthrough]];
+						case 2: f1 = std::bit_cast<float>(detail::extend_bool<std::int32_t>(src[i + 1])); [[fallthrough]];
+						case 1: f0 = std::bit_cast<float>(detail::extend_bool<std::int32_t>(src[i]));
+					}
+					dst[i / 4] = _mm_and_ps(_mm_set_ps(f3, f2, f1, f0), mask[i / 4]);
+				}
+			}
+			template<std::size_t M, typename F>
+			static SVM_SAFE_ARRAY void copy_to(bool *dst, std::span<const __m128, M> src, std::span<const __m128, M> mask, F) noexcept
+			{
+				for (std::size_t i = 0; i < N; i += 4)
+				{
+					const auto bits = _mm_movemask_ps(_mm_and_ps(src[i / 4], mask[i / 4]));
+					switch (N - i)
+					{
+						default: dst[i + 3] = bits & 0b1000; [[fallthrough]];
+						case 3: dst[i + 2] = bits & 0b0100; [[fallthrough]];
+						case 2: dst[i + 1] = bits & 0b0010; [[fallthrough]];
+						case 1: dst[i] = bits & 0b0001;
+					}
+				}
+			}
+
+			template<std::size_t M>
+			static SVM_SAFE_ARRAY void invert(std::span<__m128, M> dst, std::span<const __m128, M> src) noexcept
+			{
+				const auto mask = _mm_set1_ps(std::bit_cast<float>(0xffff'ffff));
+				for (std::size_t i = 0; i < src.size(); ++i) dst[i] = _mm_xor_ps(src[i], mask);
+			}
+
+			template<std::size_t M>
+			static SVM_SAFE_ARRAY void bit_and(std::span<__m128, M> out, std::span<const __m128, M> a, std::span<const __m128, M> b) noexcept
+			{
+				for (std::size_t i = 0; i < out.size(); ++i) out[i] = _mm_and_ps(a[i], b[i]);
+			}
+			template<std::size_t M>
+			static SVM_SAFE_ARRAY void bit_or(std::span<__m128, M> out, std::span<const __m128, M> a, std::span<const __m128, M> b) noexcept
+			{
+				for (std::size_t i = 0; i < out.size(); ++i) out[i] = _mm_or_ps(a[i], b[i]);
+			}
+			template<std::size_t M>
+			static SVM_SAFE_ARRAY void bit_xor(std::span<__m128, M> out, std::span<const __m128, M> a, std::span<const __m128, M> b) noexcept
+			{
+				for (std::size_t i = 0; i < out.size(); ++i) out[i] = _mm_xor_ps(a[i], b[i]);
+			}
+
+			template<std::size_t M>
+			static SVM_SAFE_ARRAY void cmp_eq(std::span<__m128, M> out, std::span<const __m128, M> a, std::span<const __m128, M> b) noexcept
+			{
+#ifdef SVM_HAS_SSE2
+				for (std::size_t i = 0; i < out.size(); ++i)
+				{
+					const auto va = _mm_castps_si128(a[i]);
+					const auto vb = _mm_castps_si128(b[i]);
+					out[i] = _mm_castsi128_ps(_mm_cmpeq_epi32(va, vb));
+				}
+#else
+				const auto nan_mask = _mm_set1_ps(std::bit_cast<float>(0x3fff'ffff));
+				for (std::size_t i = 0; i < out.size(); ++i)
+				{
+					const auto va = _mm_and_ps(a[i], nan_mask);
+					const auto vb = _mm_and_ps(b[i], nan_mask);
+					out[i] = _mm_cmpeq_ps(va, vb);
+				}
+#endif
+			}
+			template<std::size_t M>
+			static SVM_SAFE_ARRAY void cmp_ne(std::span<__m128, M> out, std::span<const __m128, M> a, std::span<const __m128, M> b) noexcept
+			{
+#ifdef SVM_HAS_SSE2
+				const auto inv_mask = _mm_set1_ps(std::bit_cast<float>(0xffff'ffff));
+				for (std::size_t i = 0; i < out.size(); ++i)
+				{
+					const auto va = _mm_castps_si128(a[i]);
+					const auto vb = _mm_castps_si128(b[i]);
+					out[i] = _mm_xor_ps(_mm_castsi128_ps(_mm_cmpeq_epi32(va, vb)), inv_mask);
+				}
+#else
+				const auto nan_mask = _mm_set1_ps(std::bit_cast<float>(0x3fff'ffff));
+				for (std::size_t i = 0; i < out.size(); ++i)
+				{
+					const auto va = _mm_and_ps(a[i], nan_mask);
+					const auto vb = _mm_and_ps(b[i], nan_mask);
+					out[i] = _mm_cmpneq_ps(va, vb);
+				}
+#endif
+			}
+
+			template<std::size_t M>
+			[[nodiscard]] static SVM_SAFE_ARRAY bool all_of(std::span<const __m128, M> mask) noexcept
+			{
+#ifdef SVM_HAS_SSE4_1
+				if constexpr (M == 1)
+				{
+					const auto vm = x86_maskone_vector_f32<N>(mask[0], 0);
+					return _mm_test_all_ones(_mm_castps_si128(vm));
+				}
+#endif
+				auto result = _mm_set1_ps(std::bit_cast<float>(0xffff'ffff));
+				for (std::size_t i = 0; i < mask.size(); ++i)
+				{
+					const auto vm = x86_maskone_vector_f32<N>(mask[i], i * 4);
+					result = _mm_and_ps(result, vm);
+				}
+				return _mm_movemask_ps(result) == 0b1111;
+			}
+			template<std::size_t M>
+			[[nodiscard]] static SVM_SAFE_ARRAY bool any_of(std::span<const __m128, M> mask) noexcept
+			{
+				auto result = _mm_setzero_ps();
+				for (std::size_t i = 0; i < mask.size(); ++i)
+				{
+					const auto vm = x86_maskzero_vector_f32<N>(mask[i], i * 4);
+					result = _mm_or_ps(result, vm);
+				}
+#ifdef SVM_HAS_SSE4_1
+				const auto vi = _mm_castps_si128(result);
+				return !_mm_testz_si128(vi, vi);
+#else
+				return _mm_movemask_ps(result);
+#endif
+			}
+			template<std::size_t M>
+			[[nodiscard]] static SVM_SAFE_ARRAY bool none_of(std::span<const __m128, M> mask) noexcept
+			{
+				auto result = _mm_setzero_ps();
+				for (std::size_t i = 0; i < mask.size(); ++i)
+				{
+					const auto vm = x86_maskzero_vector_f32<N>(mask[i], i * 4);
+					result = _mm_or_ps(result, vm);
+				}
+#ifdef SVM_HAS_SSE4_1
+				const auto vi = _mm_castps_si128(result);
+				return _mm_testz_si128(vi, vi);
+#else
+				return !_mm_movemask_ps(result);
+#endif
+			}
+			template<std::size_t M>
+			[[nodiscard]] static SVM_SAFE_ARRAY bool some_of(std::span<const __m128, M> mask) noexcept
+			{
+				auto any_mask = _mm_setzero_ps(), all_mask = _mm_set1_ps(std::bit_cast<float>(0xffff'ffff));
+				for (std::size_t i = 0; i < mask.size(); ++i)
+				{
+					const auto vm = mask[i];
+					const auto vmz = x86_maskzero_vector_f32<N>(vm, i * 4);
+					const auto vmo = x86_maskone_vector_f32<N>(vm, i * 4);
+
+					all_mask = _mm_and_ps(all_mask, vmo);
+					any_mask = _mm_or_ps(any_mask, vmz);
+				}
+#ifdef SVM_HAS_SSE4_1
+				const auto any_vi = _mm_castps_si128(any_mask);
+				const auto all_vi = _mm_castps_si128(all_mask);
+				return !_mm_testz_si128(any_vi, any_vi) && !_mm_test_all_ones(all_vi);
+#else
+				return _mm_movemask_ps(any_mask) && _mm_movemask_ps(all_mask) != 0b1111;
+#endif
+			}
+
+			template<std::size_t M>
+			[[nodiscard]] static SVM_SAFE_ARRAY std::size_t popcount(std::span<const __m128, M> mask) noexcept
+			{
+				std::size_t result = 0;
+				for (std::size_t i = 0; i < mask.size(); ++i)
+				{
+					const auto vm = x86_maskzero_vector_f32<N>(mask[i], i * 4);
+					result += std::popcount(static_cast<std::uint32_t>(_mm_movemask_ps(vm)));
+				}
+				return result;
+			}
+			template<std::size_t M>
+			[[nodiscard]] static SVM_SAFE_ARRAY std::size_t find_first_set(std::span<const __m128, M> mask) noexcept
+			{
+				for (std::size_t i = 0; i < mask.size(); ++i)
+				{
+					const auto bits = static_cast<std::uint8_t>(_mm_movemask_ps(mask[i]));
+					if (bits) return std::countr_zero(bits) + i * 4;
+				}
+				SVM_UNREACHABLE();
+			}
+			template<std::size_t M>
+			[[nodiscard]] static SVM_SAFE_ARRAY std::size_t find_last_set(std::span<const __m128, M> mask) noexcept
+			{
+				for (std::size_t i = mask.size(), k; (k = i--) != 0;)
+				{
+					auto bits = static_cast<std::uint8_t>(_mm_movemask_ps(mask[i]));
+					switch (N - i * 4)
+					{
+						case 1: bits <<= 1; [[fallthrough]];
+						case 2: bits <<= 1; [[fallthrough]];
+						case 3: bits <<= 1; [[fallthrough]];
+						default: bits <<= 4;
+					}
+					if (bits) return (k * 4 - 1) - std::countl_zero(bits);
+				}
+				SVM_UNREACHABLE();
+			}
+
+#ifdef SVM_HAS_SSE4_1
+			template<std::size_t M>
+			static SVM_SAFE_ARRAY void blend(std::span<__m128, M> out, std::span<const __m128, M> a, std::span<const __m128, M> b, std::span<const __m128, M> m) noexcept
+			{
+				for (std::size_t i = 0; i < out.size(); ++i) out[i] = _mm_blendv_ps(a[i], b[i], m[i]);
+			}
+#endif
+		};
+
+		template<std::size_t N>
+		struct x86_impl<float, __m128, N>
+		{
+			template<typename U, std::size_t M>
+			static U &data_at(std::span<__m128, M> data, std::size_t i) noexcept { return reinterpret_cast<U *>(data.data())[i]; }
+			template<typename U, std::size_t M>
+			static std::add_const_t<U> &data_at(std::span<const __m128, M> data, std::size_t i) noexcept { return reinterpret_cast<std::add_const_t<U> *>(data.data())[i]; }
+
+			template<typename U, std::size_t M, typename F>
+			static SVM_SAFE_ARRAY void copy_from(const U *src, std::span<__m128, M> dst, F) noexcept
+			{
+				if constexpr (std::same_as<U, float> && (std::derived_from<F, vector_aligned_tag> || detail::overaligned_tag_value_v<F> >= alignof(__m128)))
+				{
+					for (std::size_t i = 0; i < N; i += 4)
+						switch (N - i)
+						{
+							default: dst[i / 4] = reinterpret_cast<const __m128 *>(src)[i / 4];
+								break;
+							case 3: data_at<float>(dst, i + 2) = src[i + 2]; [[fallthrough]];
+							case 2: data_at<float>(dst, i + 1) = src[i + 1]; [[fallthrough]];
+							case 1: data_at<float>(dst, i) = src[i];
+						}
+				}
+#ifdef SVM_HAS_SSE2
+				else if constexpr (std::same_as<U, std::int32_t> && (std::derived_from<F, vector_aligned_tag> || detail::overaligned_tag_value_v<F> >= alignof(__m128)))
+				{
+					for (std::size_t i = 0; i < N; i += 4)
+						switch (N - i)
+						{
+							default: dst[i / 4] = _mm_cvtepi32_ps(reinterpret_cast<__m128i *>(src)[i / 4]);
+								break;
+							case 3: data_at<float>(dst, i + 2) = static_cast<float>(src[i + 2]); [[fallthrough]];
+							case 2: data_at<float>(dst, i + 1) = static_cast<float>(src[i + 1]); [[fallthrough]];
+							case 1: data_at<float>(dst, i) = static_cast<float>(src[i]);
+						}
+				}
+#endif
+				else
+					std::copy_n(src, N, reinterpret_cast<float *>(dst.data()));
+			}
+			template<typename U, std::size_t M, typename F>
+			static SVM_SAFE_ARRAY void copy_to(U *dst, std::span<const __m128, M> src, F) noexcept
+			{
+				if constexpr (std::same_as<U, float> && (std::derived_from<F, vector_aligned_tag> || detail::overaligned_tag_value_v<F> >= alignof(__m128)))
+				{
+					for (std::size_t i = 0; i < N; i += 4)
+						switch (N - i)
+						{
+							default: reinterpret_cast<__m128 *>(dst)[i / 4] = src[i / 4];
+								break;
+							case 3: dst[i + 2] = data_at<float>(src, i + 2); [[fallthrough]];
+							case 2: dst[i + 1] = data_at<float>(src, i + 1); [[fallthrough]];
+							case 1: dst[i] = data_at<float>(src, i);
+						}
+				}
+#ifdef SVM_HAS_SSE2
+				else if constexpr (std::same_as<U, std::int32_t> && (std::derived_from<F, vector_aligned_tag> || detail::overaligned_tag_value_v<F> >= alignof(__m128)))
+				{
+					for (std::size_t i = 0; i < N; i += 4)
+						switch (N - i)
+						{
+							default: reinterpret_cast<__m128i *>(dst)[i / 4] = _mm_cvtps_epi32(src[i / 4]);
+								break;
+							case 3: dst[i + 2] = static_cast<std::int32_t>(data_at<float>(src, i + 2)); [[fallthrough]];
+							case 2: dst[i + 1] = static_cast<std::int32_t>(data_at<float>(src, i + 1)); [[fallthrough]];
+							case 1: dst[i] = static_cast<std::int32_t>(data_at<float>(src, i));
+						}
+				}
+#endif
+				else
+					std::copy_n(reinterpret_cast<const float *>(src.data()), N, dst);
+			}
+
+			template<typename U, std::size_t M, typename F>
+			static SVM_SAFE_ARRAY void copy_from(const U *src, std::span<__m128, M> dst, std::span<const __m128, M> mask, F) noexcept
+			{
+#ifdef SVM_HAS_AVX
+				if constexpr (std::same_as<U, float> && (std::derived_from<F, vector_aligned_tag> || detail::overaligned_tag_value_v<F> >= alignof(__m128)))
+					for (std::size_t i = 0; i < N; i += 4)
+					{
+						const auto mi = _mm_castps_si128(x86_maskzero_vector_f32<N>(mask[i / 4], i));
+						dst[i] = _mm_maskload_ps(src + i, mi);
+					}
+				else if constexpr (std::same_as<U, std::int32_t> && (std::derived_from<F, vector_aligned_tag> || detail::overaligned_tag_value_v<F> >= alignof(__m128)))
+					for (std::size_t i = 0; i < N; i += 4)
+					{
+						const auto mi = _mm_castps_si128(x86_maskzero_vector_f32<N>(mask[i / 4], i));
+						dst[i] = _mm_cvtepi32_ps(_mm_maskload_epi32(src + i, mi));
+					}
+				else
+#endif
+					for (std::size_t i = 0; i < N; ++i) if (data_at<std::uint32_t>(mask, i)) data_at<float>(dst, i) = src[i];
+			}
+			template<typename U, std::size_t M, typename F>
+			static SVM_SAFE_ARRAY void copy_to(U *dst, std::span<const __m128, M> src, std::span<const __m128, M> mask, F) noexcept
+			{
+#ifdef SVM_HAS_AVX
+				if constexpr (std::same_as<U, float> && (std::derived_from<F, vector_aligned_tag> || detail::overaligned_tag_value_v<F> >= alignof(__m128)))
+					for (std::size_t i = 0; i < N; i += 4)
+					{
+						const auto mi = _mm_castps_si128(x86_maskzero_vector_f32<N>(mask[i / 4], i));
+						_mm_maskstore_ps(dst + i, mi, src[i / 4]);
+					}
+				else if constexpr (std::same_as<U, std::int32_t> && (std::derived_from<F, vector_aligned_tag> || detail::overaligned_tag_value_v<F> >= alignof(__m128)))
+					for (std::size_t i = 0; i < N; i += 4)
+					{
+						const auto mi = _mm_castps_si128(x86_maskzero_vector_f32<N>(mask[i / 4], i));
+						_mm_maskstore_epi32(dst + i, mi, _mm_cvtps_epi32(src[i / 4]));
+					}
+				else
+#endif
+				{
+#ifdef SVM_HAS_SSE2
+					if constexpr (std::same_as<U, float>)
+						for (std::size_t i = 0; i < N; i += 4)
+						{
+							const auto mi = _mm_castps_si128(x86_maskzero_vector_f32<N>(mask[i / 4], i));
+							const auto vi = _mm_castps_si128(src[i / 4]);
+							_mm_maskmoveu_si128(vi, mi, reinterpret_cast<char *>(dst + i));
+						}
+					else
+#endif
+						for (std::size_t i = 0; i < N; ++i) if (data_at<std::uint32_t>(mask, i)) dst[i] = data_at<float>(src, i);
+				}
+			}
+
+#ifdef SVM_HAS_SSE4_1
+			template<std::size_t M>
+			static SVM_SAFE_ARRAY void blend(std::span<__m128, M> out, std::span<const __m128, M> a, std::span<const __m128, M> b, std::span<const __m128, M> m) noexcept
+			{
+				for (std::size_t i = 0; i < out.size(); ++i) out[i] = _mm_blendv_ps(a[i], b[i], m[i]);
+			}
+#endif
+		};
 	}
 
 	SVM_DECLARE_EXT_NAMESPACE
@@ -72,6 +456,8 @@ namespace svm
 	template<std::size_t N, std::size_t Align> requires detail::x86_overload_sse<float, N, Align>
 	class simd_mask<float, detail::avec<N, Align>>
 	{
+		friend struct detail::simd_access<simd_mask>;
+
 		using vector_type = __m128;
 
 		constexpr static auto data_size = ext::native_data_size_v<simd_mask>;
@@ -90,8 +476,7 @@ namespace svm
 		static constexpr std::size_t size() noexcept { return abi_type::size; }
 
 	private:
-		friend struct detail::simd_access<simd_type>;
-		friend struct detail::simd_access<simd_mask>;
+		using impl_t = detail::x86_impl<value_type, vector_type, size()>;
 
 	public:
 		constexpr simd_mask() noexcept = default;
@@ -118,7 +503,7 @@ namespace svm
 		SVM_SAFE_ARRAY simd_mask(const simd_mask<U, detail::avec<size(), OtherAlign>> &other) noexcept
 		{
 			if constexpr (std::same_as<U, value_type> && (OtherAlign == 0 || OtherAlign >= alignment))
-				std::copy_n(reinterpret_cast<const vector_type *>(ext::to_native_data(other).data()), data_size, m_data);
+				std::copy_n(reinterpret_cast<const vector_type *>(ext::to_native_data(other)), data_size, m_data);
 			else
 				for (std::size_t i = 0; i < size(); ++i) operator[](i) = other[i];
 		}
@@ -128,34 +513,10 @@ namespace svm
 
 		/** Copies the underlying elements from \a mem. */
 		template<typename Flags>
-		void copy_from(const value_type *mem, Flags) noexcept requires is_simd_flag_type_v<Flags>
-		{
-			for (std::size_t i = 0; i < size(); i += 4)
-			{
-				float f0 = 0.0f, f1 = 0.0f, f2 = 0.0f, f3 = 0.0f;
-				switch (size() - i)
-				{
-					default: f3 = std::bit_cast<float>(detail::extend_bool<std::int32_t>(mem[i + 3])); [[fallthrough]];
-					case 3: f2 = std::bit_cast<float>(detail::extend_bool<std::int32_t>(mem[i + 2])); [[fallthrough]];
-					case 2: f1 = std::bit_cast<float>(detail::extend_bool<std::int32_t>(mem[i + 1])); [[fallthrough]];
-					case 1: f0 = std::bit_cast<float>(detail::extend_bool<std::int32_t>(mem[i]));
-				}
-				m_data[i / 4] = _mm_set_ps(f3, f2, f1, f0);
-			}
-		}
+		void copy_from(const value_type *mem, Flags) noexcept requires is_simd_flag_type_v<Flags> { impl_t::copy_from(mem, std::span{m_data}, Flags{}); }
 		/** Copies the underlying elements to \a mem. */
 		template<typename Flags>
-		void copy_to(value_type *mem, Flags) const noexcept requires is_simd_flag_type_v<Flags>
-		{
-			for (std::size_t i = 0; i < size(); i += 4)
-				switch (const auto bits = _mm_movemask_ps(m_data[i / 4]); size() - i)
-				{
-					default: mem[i + 3] = bits & 0b1000; [[fallthrough]];
-					case 3: mem[i + 2] = bits & 0b0100; [[fallthrough]];
-					case 2: mem[i + 1] = bits & 0b0010; [[fallthrough]];
-					case 1: mem[i] = bits & 0b0001;
-				}
-		}
+		void copy_to(value_type *mem, Flags) const noexcept requires is_simd_flag_type_v<Flags> { impl_t::copy_to(mem, std::span{m_data}, Flags{}); }
 
 		[[nodiscard]] reference operator[](std::size_t i) noexcept
 		{
@@ -171,100 +532,68 @@ namespace svm
 		[[nodiscard]] SVM_SAFE_ARRAY simd_mask operator!() const noexcept
 		{
 			simd_mask result;
-			const auto mask = _mm_set1_ps(std::bit_cast<float>(0xffff'ffff));
-			for (std::size_t i = 0; i < data_size; ++i) result.m_data[i] = _mm_xor_ps(m_data[i], mask);
+			impl_t::invert(std::span{result.m_data}, {m_data});
 			return result;
 		}
 
 		[[nodiscard]] friend SVM_SAFE_ARRAY simd_mask operator&(const simd_mask &a, const simd_mask &b) noexcept
 		{
 			simd_mask result;
-			for (std::size_t i = 0; i < data_size; ++i) result.m_data[i] = _mm_and_ps(a.m_data[i], b.m_data[i]);
+			impl_t::bit_and(std::span{result.m_data}, {a.m_data}, {b.m_data});
 			return result;
 		}
 		[[nodiscard]] friend SVM_SAFE_ARRAY simd_mask operator|(const simd_mask &a, const simd_mask &b) noexcept
 		{
 			simd_mask result;
-			for (std::size_t i = 0; i < data_size; ++i) result.m_data[i] = _mm_or_ps(a.m_data[i], b.m_data[i]);
+			impl_t::bit_or(std::span{result.m_data}, {a.m_data}, {b.m_data});
 			return result;
 		}
 		[[nodiscard]] friend SVM_SAFE_ARRAY simd_mask operator^(const simd_mask &a, const simd_mask &b) noexcept
 		{
 			simd_mask result;
-			for (std::size_t i = 0; i < data_size; ++i) result.m_data[i] = _mm_xor_ps(a.m_data[i], b.m_data[i]);
+			impl_t::bit_xor(std::span{result.m_data}, {a.m_data}, {b.m_data});
 			return result;
 		}
 
 		friend SVM_SAFE_ARRAY simd_mask &operator&=(simd_mask &a, const simd_mask &b) noexcept
 		{
-			for (std::size_t i = 0; i < data_size; ++i) a.m_data[i] = _mm_and_ps(a.m_data[i], b.m_data[i]);
+			impl_t::bit_and(std::span{a.m_data}, {a.m_data}, {b.m_data});
 			return a;
 		}
 		friend SVM_SAFE_ARRAY simd_mask &operator|=(simd_mask &a, const simd_mask &b) noexcept
 		{
-			for (std::size_t i = 0; i < data_size; ++i) a.m_data[i] = _mm_or_ps(a.m_data[i], b.m_data[i]);
+			impl_t::bit_or(std::span{a.m_data}, {a.m_data}, {b.m_data});
 			return a;
 		}
 		friend SVM_SAFE_ARRAY simd_mask &operator^=(simd_mask &a, const simd_mask &b) noexcept
 		{
-			for (std::size_t i = 0; i < data_size; ++i) a.m_data[i] = _mm_xor_ps(a.m_data[i], b.m_data[i]);
+			impl_t::bit_xor(std::span{a.m_data}, {a.m_data}, {b.m_data});
 			return a;
 		}
 
 		[[nodiscard]] friend SVM_SAFE_ARRAY simd_mask operator&&(const simd_mask &a, const simd_mask &b) noexcept
 		{
 			simd_mask result;
-			for (std::size_t i = 0; i < data_size; ++i) result.m_data[i] = _mm_and_ps(a.m_data[i], b.m_data[i]);
+			impl_t::bit_and(std::span{result.m_data}, {a.m_data}, {b.m_data});
 			return result;
 		}
 		[[nodiscard]] friend SVM_SAFE_ARRAY simd_mask operator||(const simd_mask &a, const simd_mask &b) noexcept
 		{
 			simd_mask result;
-			for (std::size_t i = 0; i < data_size; ++i) result.m_data[i] = _mm_or_ps(a.m_data[i], b.m_data[i]);
+			impl_t::bit_or(std::span{result.m_data}, {a.m_data}, {b.m_data});
 			return result;
 		}
 
 		[[nodiscard]] friend SVM_SAFE_ARRAY simd_mask operator==(const simd_mask &a, const simd_mask &b) noexcept
 		{
 			simd_mask result;
-#ifdef SVM_HAS_SSE2
-			for (std::size_t i = 0; i < data_size; ++i)
-			{
-				const auto va = _mm_castps_si128(a.m_data[i]);
-				const auto vb = _mm_castps_si128(b.m_data[i]);
-				result.m_data[i] = _mm_castsi128_ps(_mm_cmpeq_epi32(va, vb));
-			}
-#else
-			const auto nan_mask = _mm_set1_ps(std::bit_cast<float>(0x3fff'ffff));
-			for (std::size_t i = 0; i < data_size; ++i)
-			{
-				const auto va = _mm_and_ps(a.m_data[i], nan_mask);
-				const auto vb = _mm_and_ps(b.m_data[i], nan_mask);
-				result.m_data[i] = _mm_cmpeq_ps(va, vb);
-			}
-#endif
+			impl_t::cmp_eq(std::span{result.m_data}, {a.m_data}, {b.m_data});
 			return result;
 		}
 		[[nodiscard]] friend SVM_SAFE_ARRAY simd_mask operator!=(const simd_mask &a, const simd_mask &b) noexcept
 		{
 			simd_mask result;
-#ifdef SVM_HAS_SSE2
-			const auto inv_mask = _mm_set1_ps(std::bit_cast<float>(0xffff'ffff));
-			for (std::size_t i = 0; i < data_size; ++i)
-			{
-				const auto va = _mm_castps_si128(a.m_data[i]);
-				const auto vb = _mm_castps_si128(b.m_data[i]);
-				result.m_data[i] = _mm_xor_ps(_mm_castsi128_ps(_mm_cmpeq_epi32(va, vb)), inv_mask);
-			}
-#else
-			const auto nan_mask = _mm_set1_ps(std::bit_cast<float>(0x3fff'ffff));
-			for (std::size_t i = 0; i < data_size; ++i)
-			{
-				const auto va = _mm_and_ps(a.m_data[i], nan_mask);
-				const auto vb = _mm_and_ps(b.m_data[i], nan_mask);
-				result.m_data[i] = _mm_cmpneq_ps(va, vb);
-			}
-#endif
+			impl_t::cmp_ne(std::span{result.m_data}, {a.m_data}, {b.m_data});
 			return result;
 		}
 
@@ -279,159 +608,8 @@ namespace svm
 		{
 			using mask_t = simd_mask<float, avec<N, A>>;
 
-			[[nodiscard]] static SVM_SAFE_ARRAY bool all_of(const mask_t &mask) noexcept
-			{
-#ifdef SVM_HAS_SSE4_1
-				if constexpr (mask_t::data_size == 1)
-				{
-					const auto vm = x86_maskone_vector_f32<mask_t::size()>(mask.m_data[0], 0);
-					return _mm_test_all_ones(_mm_castps_si128(vm));
-				}
-#endif
-				auto result = _mm_set1_ps(std::bit_cast<float>(0xffff'ffff));
-				for (std::size_t i = 0; i < mask_t::data_size; ++i)
-				{
-					const auto vm = x86_maskone_vector_f32<mask_t::size()>(mask.m_data[i], i * 4);
-					result = _mm_and_ps(result, vm);
-				}
-				return _mm_movemask_ps(result) == 0b1111;
-			}
-			[[nodiscard]] static SVM_SAFE_ARRAY bool any_of(const mask_t &mask) noexcept
-			{
-				auto result = _mm_setzero_ps();
-				for (std::size_t i = 0; i < mask_t::data_size; ++i)
-				{
-					const auto vm = x86_maskzero_vector_f32<mask_t::size()>(mask.m_data[i], i * 4);
-					result = _mm_or_ps(result, vm);
-				}
-#ifdef SVM_HAS_SSE4_1
-				const auto vi = _mm_castps_si128(result);
-				return !_mm_testz_si128(vi, vi);
-#else
-				return _mm_movemask_ps(result);
-#endif
-			}
-			[[nodiscard]] static SVM_SAFE_ARRAY bool none_of(const mask_t &mask) noexcept
-			{
-				auto result = _mm_setzero_ps();
-				for (std::size_t i = 0; i < mask_t::data_size; ++i)
-				{
-					const auto vm = x86_maskzero_vector_f32<mask_t::size()>(mask.m_data[i], i * 4);
-					result = _mm_or_ps(result, vm);
-				}
-#ifdef SVM_HAS_SSE4_1
-				const auto vi = _mm_castps_si128(result);
-				return _mm_testz_si128(vi, vi);
-#else
-				return !_mm_movemask_ps(result);
-#endif
-			}
-			[[nodiscard]] static SVM_SAFE_ARRAY bool some_of(const mask_t &mask) noexcept
-			{
-				auto any_mask = _mm_setzero_ps(), all_mask = _mm_set1_ps(std::bit_cast<float>(0xffff'ffff));
-				for (std::size_t i = 0; i < mask_t::data_size; ++i)
-				{
-					const auto vm = mask.m_data[i];
-					const auto vmz = x86_maskzero_vector_f32<mask_t::size()>(vm, i * 4);
-					const auto vmo = x86_maskone_vector_f32<mask_t::size()>(vm, i * 4);
-
-					all_mask = _mm_and_ps(all_mask, vmo);
-					any_mask = _mm_or_ps(any_mask, vmz);
-				}
-#ifdef SVM_HAS_SSE4_1
-				const auto any_vi = _mm_castps_si128(any_mask);
-				const auto all_vi = _mm_castps_si128(all_mask);
-				return !_mm_testz_si128(any_vi, any_vi) && !_mm_test_all_ones(all_vi);
-#else
-				return _mm_movemask_ps(any_mask) && _mm_movemask_ps(all_mask) != 0b1111;
-#endif
-			}
-
-			[[nodiscard]] static SVM_SAFE_ARRAY std::size_t popcount(const mask_t &mask) noexcept
-			{
-				std::size_t result = 0;
-				for (std::size_t i = 0; i < mask_t::data_size; ++i)
-				{
-					const auto vm = x86_maskzero_vector_f32<mask_t::size()>(mask.m_data[i], i * 4);
-					result += std::popcount(static_cast<std::uint32_t>(_mm_movemask_ps(vm)));
-				}
-				return result;
-			}
-			[[nodiscard]] static SVM_SAFE_ARRAY std::size_t find_first_set(const mask_t &mask) noexcept
-			{
-				for (std::size_t i = 0; i < mask_t::data_size; ++i)
-				{
-					const auto bits = static_cast<std::uint8_t>(_mm_movemask_ps(mask.m_data[i]));
-					if (bits) return std::countr_zero(bits) + i * 4;
-				}
-				SVM_UNREACHABLE();
-			}
-			[[nodiscard]] static SVM_SAFE_ARRAY std::size_t find_last_set(const mask_t &mask) noexcept
-			{
-				for (std::size_t i = mask_t::data_size, k; (k = i--) != 0;)
-				{
-					auto bits = static_cast<std::uint8_t>(_mm_movemask_ps(mask.m_data[i]));
-					switch (mask_t::size() - i * 4)
-					{
-						case 1: bits <<= 1; [[fallthrough]];
-						case 2: bits <<= 1; [[fallthrough]];
-						case 3: bits <<= 1; [[fallthrough]];
-						default: bits <<= 4;
-					}
-					if (bits) return (k * 4 - 1) - std::countl_zero(bits);
-				}
-				SVM_UNREACHABLE();
-			}
-
-			template<typename F>
-			static void copy_from_masked(mask_t &v, const mask_t &m, const bool *mem, F) noexcept
-			{
-				for (std::size_t i = 0; i < mask_t::size(); i += 4)
-				{
-					float f0 = 0.0f, f1 = 0.0f, f2 = 0.0f, f3 = 0.0f;
-					switch (mask_t::size() - i)
-					{
-						default: f3 = std::bit_cast<float>(detail::extend_bool<std::int32_t>(mem[i + 3])); [[fallthrough]];
-						case 3: f2 = std::bit_cast<float>(detail::extend_bool<std::int32_t>(mem[i + 2])); [[fallthrough]];
-						case 2: f1 = std::bit_cast<float>(detail::extend_bool<std::int32_t>(mem[i + 1])); [[fallthrough]];
-						case 1: f0 = std::bit_cast<float>(detail::extend_bool<std::int32_t>(mem[i]));
-					}
-					v.m_data[i / 4] = _mm_and_ps(_mm_set_ps(f3, f2, f1, f0), m.m_data[i / 4]);
-				}
-			}
-			template<typename F>
-			static void copy_to_masked(const mask_t &v, const mask_t &m, bool *mem, F) noexcept
-			{
-				for (std::size_t i = 0; i < mask_t::size(); i += 4)
-				{
-					const auto bits = _mm_movemask_ps(_mm_and_ps(v.m_data[i / 4], m.m_data[i / 4]));
-					switch (mask_t::size() - i)
-					{
-						default: mem[i + 3] = bits & 0b1000; [[fallthrough]];
-						case 3: mem[i + 2] = bits & 0b0100; [[fallthrough]];
-						case 2: mem[i + 1] = bits & 0b0010; [[fallthrough]];
-						case 1: mem[i] = bits & 0b0001;
-					}
-				}
-			}
-
 			[[nodiscard]] static std::span<__m128, mask_t::data_size> to_native_data(mask_t &value) noexcept { return {value.m_data}; }
 			[[nodiscard]] static std::span<const __m128, mask_t::data_size> to_native_data(const mask_t &value) noexcept { return {value.m_data}; }
-
-#ifdef SVM_HAS_SSE4_1
-			[[nodiscard]] static SVM_SAFE_ARRAY mask_t blend(const mask_t &a, const mask_t &b, const mask_t &m) noexcept
-			{
-				mask_t result;
-				for (std::size_t i = 0; i < mask_t::data_size; ++i)
-				{
-					const auto m_data = m.m_data[i];
-					const auto b_data = b.m_data[i];
-					const auto a_data = a.m_data[i];
-					result.m_data[i] = _mm_blendv_ps(a_data, b_data, m_data);
-				}
-				return result;
-			}
-#endif
 		};
 	}
 
@@ -459,7 +637,14 @@ namespace svm
 				const simd_mask<float, detail::avec<N, A>> &m)
 		noexcept requires detail::x86_overload_sse<float, N, A>
 		{
-			return detail::simd_access<simd_mask<float, detail::avec<N, A>>>::blend(a, b, m);
+			simd_mask<float, detail::avec<N, A>> result;
+			detail::x86_impl<bool, __m128, N>::blend(
+					to_native_data(result),
+					to_native_data(a),
+					to_native_data(b),
+					to_native_data(m)
+			);
+			return result;
 		}
 #endif
 	}
@@ -467,38 +652,38 @@ namespace svm
 	template<std::size_t N, std::size_t A>
 	[[nodiscard]] inline bool all_of(const simd_mask<float, detail::avec<N, A>> &mask) noexcept requires detail::x86_overload_sse<float, N, A>
 	{
-		return detail::simd_access<simd_mask<float, detail::avec<N, A>>>::all_of(mask);
+		return detail::x86_impl<bool, __m128, N>::all_of(ext::to_native_data(mask));
 	}
 	template<std::size_t N, std::size_t A>
 	[[nodiscard]] inline bool any_of(const simd_mask<float, detail::avec<N, A>> &mask) noexcept requires detail::x86_overload_sse<float, N, A>
 	{
-		return detail::simd_access<simd_mask<float, detail::avec<N, A>>>::any_of(mask);
+		return detail::x86_impl<bool, __m128, N>::any_of(ext::to_native_data(mask));
 	}
 	template<std::size_t N, std::size_t A>
 	[[nodiscard]] inline bool none_of(const simd_mask<float, detail::avec<N, A>> &mask) noexcept requires detail::x86_overload_sse<float, N, A>
 	{
-		return detail::simd_access<simd_mask<float, detail::avec<N, A>>>::none_of(mask);
+		return detail::x86_impl<bool, __m128, N>::none_of(ext::to_native_data(mask));
 	}
 	template<std::size_t N, std::size_t A>
 	[[nodiscard]] inline bool some_of(const simd_mask<float, detail::avec<N, A>> &mask) noexcept requires detail::x86_overload_sse<float, N, A>
 	{
-		return detail::simd_access<simd_mask<float, detail::avec<N, A>>>::some_of(mask);
+		return detail::x86_impl<bool, __m128, N>::some_of(ext::to_native_data(mask));
 	}
 
 	template<std::size_t N, std::size_t A>
 	[[nodiscard]] inline std::size_t popcount(const simd_mask<float, detail::avec<N, A>> &mask) noexcept requires detail::x86_overload_sse<float, N, A>
 	{
-		return detail::simd_access<simd_mask<float, detail::avec<N, A>>>::popcount(mask);
+		return detail::x86_impl<bool, __m128, N>::popcount(ext::to_native_data(mask));
 	}
 	template<std::size_t N, std::size_t A>
 	[[nodiscard]] inline std::size_t find_first_set(const simd_mask<float, detail::avec<N, A>> &mask) noexcept requires detail::x86_overload_sse<float, N, A>
 	{
-		return detail::simd_access<simd_mask<float, detail::avec<N, A>>>::find_first_set(mask);
+		return detail::x86_impl<bool, __m128, N>::find_first_set(ext::to_native_data(mask));
 	}
 	template<std::size_t N, std::size_t A>
 	[[nodiscard]] inline std::size_t find_last_set(const simd_mask<float, detail::avec<N, A>> &mask) noexcept requires detail::x86_overload_sse<float, N, A>
 	{
-		return detail::simd_access<simd_mask<float, detail::avec<N, A>>>::find_last_set(mask);
+		return detail::x86_impl<bool, __m128, N>::find_last_set(ext::to_native_data(mask));
 	}
 
 	SVM_DECLARE_EXT_NAMESPACE
@@ -517,6 +702,8 @@ namespace svm
 	template<std::size_t N, std::size_t Align> requires detail::x86_overload_sse<float, N, Align>
 	class simd<float, detail::avec<N, Align>>
 	{
+		friend struct detail::simd_access<simd>;
+
 		using vector_type = __m128;
 
 		constexpr static auto data_size = ext::native_data_size_v<simd>;
@@ -535,8 +722,7 @@ namespace svm
 		static constexpr std::size_t size() noexcept { return abi_type::size; }
 
 	private:
-		friend struct detail::simd_access<simd>;
-		friend struct detail::simd_access<mask_type>;
+		using impl_t = detail::x86_impl<value_type, vector_type, size()>;
 
 	public:
 		constexpr simd() noexcept = default;
@@ -596,70 +782,10 @@ namespace svm
 
 		/** Copies the underlying elements from \a mem. */
 		template<typename U, typename Flags>
-		void copy_from(const U *mem, Flags) noexcept requires is_simd_flag_type_v<Flags>
-		{
-			if constexpr (std::same_as<U, value_type> && (std::derived_from<Flags, vector_aligned_tag> || detail::overaligned_tag_value_v<Flags> >= alignment))
-			{
-				for (std::size_t i = 0; i < size(); i += 4)
-					switch (size() - i)
-					{
-						default: m_data[i / 4] = reinterpret_cast<const vector_type *>(mem)[i / 4];
-							break;
-						case 3: reinterpret_cast<value_type *>(m_data)[i + 2] = mem[i + 2]; [[fallthrough]];
-						case 2: reinterpret_cast<value_type *>(m_data)[i + 1] = mem[i + 1]; [[fallthrough]];
-						case 1: reinterpret_cast<value_type *>(m_data)[i] = mem[i];
-					}
-			}
-#ifdef SVM_HAS_SSE2
-			else if constexpr (std::same_as<U, std::int32_t> && (std::derived_from<Flags, vector_aligned_tag> || detail::overaligned_tag_value_v<Flags> >= alignment))
-			{
-				for (std::size_t i = 0; i < size(); i += 4)
-					switch (size() - i)
-					{
-						default: m_data[i / 4] = _mm_cvtepi32_ps(reinterpret_cast<__m128i *>(mem)[i / 4]);
-							break;
-						case 3: reinterpret_cast<value_type *>(m_data)[i + 2] = static_cast<value_type>(mem[i + 2]); [[fallthrough]];
-						case 2: reinterpret_cast<value_type *>(m_data)[i + 1] = static_cast<value_type>(mem[i + 1]); [[fallthrough]];
-						case 1: reinterpret_cast<value_type *>(m_data)[i] = static_cast<value_type>(mem[i]);
-					}
-			}
-#endif
-			else
-				std::copy_n(mem, size(), reinterpret_cast<value_type *>(m_data));
-		}
+		void copy_from(const U *mem, Flags) noexcept requires is_simd_flag_type_v<Flags> { impl_t::copy_from(mem, std::span{m_data}, Flags{}); }
 		/** Copies the underlying elements to \a mem. */
 		template<typename U, typename Flags>
-		void copy_to(U *mem, Flags) const noexcept requires is_simd_flag_type_v<Flags>
-		{
-			if constexpr (std::same_as<U, value_type> && (std::derived_from<Flags, vector_aligned_tag> || detail::overaligned_tag_value_v<Flags> >= alignment))
-			{
-				for (std::size_t i = 0; i < size(); i += 4)
-					switch (size() - i)
-					{
-						default: reinterpret_cast<vector_type *>(mem)[i / 4] = m_data[i / 4];
-							break;
-						case 3: mem[i + 2] = operator[](i + 2); [[fallthrough]];
-						case 2: mem[i + 1] = operator[](i + 1); [[fallthrough]];
-						case 1: mem[i] = operator[](i);
-					}
-			}
-#ifdef SVM_HAS_SSE2
-			else if constexpr (std::same_as<U, std::int32_t> && (std::derived_from<Flags, vector_aligned_tag> || detail::overaligned_tag_value_v<Flags> >= alignment))
-			{
-				for (std::size_t i = 0; i < size(); i += 4)
-					switch (size() - i)
-					{
-						default: reinterpret_cast<__m128i *>(mem)[i / 4] = _mm_cvtps_epi32(m_data[i / 4]);
-							break;
-						case 3: mem[i + 2] = static_cast<std::int32_t>(operator[](i + 2)); [[fallthrough]];
-						case 2: mem[i + 1] = static_cast<std::int32_t>(operator[](i + 1)); [[fallthrough]];
-						case 1: mem[i] = static_cast<std::int32_t>(operator[](i));
-					}
-			}
-#endif
-			else
-				std::copy_n(reinterpret_cast<const value_type *>(m_data), size(), mem);
-		}
+		void copy_to(U *mem, Flags) const noexcept requires is_simd_flag_type_v<Flags> { impl_t::copy_to(mem, std::span{m_data}, Flags{}); }
 
 		[[nodiscard]] reference operator[](std::size_t i) noexcept
 		{
@@ -799,82 +925,9 @@ namespace svm
 		struct simd_access<simd<float, avec<N, A>>>
 		{
 			using simd_t = simd<float, avec<N, A>>;
-			using mask_t = simd_mask<float, avec<N, A>>;
-
-			template<typename T, typename F>
-			static void copy_from_masked(simd_t &v, const mask_t &m, const T *mem, F) noexcept
-			{
-				const auto copy_unaligned = [&]() { for (std::size_t i = 0; i < simd_t::size(); ++i) if (m[i]) v[i] = static_cast<float>(mem[i]); };
-
-#ifdef SVM_HAS_AVX
-				if constexpr (std::same_as<T, float> && (std::derived_from<F, vector_aligned_tag> || detail::overaligned_tag_value_v<F> >= simd_t::alignment))
-					for (std::size_t i = 0; i < simd_t::size(); i += 4)
-					{
-						const auto mi = _mm_castps_si128(x86_maskzero_vector_f32<mask_t::size()>(m.m_data[i / 4], i));
-						v.m_data[i] = _mm_maskload_ps(mem + i, mi);
-					}
-				else if constexpr (std::same_as<T, std::int32_t> && (std::derived_from<F, vector_aligned_tag> || detail::overaligned_tag_value_v<F> >= simd_t::alignment))
-					for (std::size_t i = 0; i < simd_t::size(); i += 4)
-					{
-						const auto mi = _mm_castps_si128(x86_maskzero_vector_f32<mask_t::size()>(m.m_data[i / 4], i));
-						v.m_data[i] = _mm_cvtepi32_ps(_mm_maskload_epi32(mem + i, mi));
-					}
-				else
-#endif
-					copy_unaligned();
-			}
-			template<typename T, typename F>
-			static void copy_to_masked(const simd_t &v, const mask_t &m, T *mem, F) noexcept
-			{
-				const auto copy_unaligned = [&]()
-				{
-#ifdef SVM_HAS_SSE2
-					if constexpr (std::same_as<T, float>)
-						for (std::size_t i = 0; i < simd_t::size(); i += 4)
-						{
-							const auto mi = _mm_castps_si128(x86_maskzero_vector_f32<mask_t::size()>(m.m_data[i / 4], i));
-							const auto vi = _mm_castps_si128(v.m_data[i / 4]);
-							_mm_maskmoveu_si128(vi, mi, reinterpret_cast<char *>(mem + i));
-						}
-					else
-#endif
-						for (std::size_t i = 0; i < simd_t::size(); ++i) if (m[i]) mem[i] = static_cast<float>(v[i]);
-				};
-#ifdef SVM_HAS_AVX
-				if constexpr (std::same_as<T, float> && (std::derived_from<F, vector_aligned_tag> || detail::overaligned_tag_value_v<F> >= simd_t::alignment))
-					for (std::size_t i = 0; i < simd_t::size(); i += 4)
-					{
-						const auto mi = _mm_castps_si128(x86_maskzero_vector_f32<mask_t::size()>(m.m_data[i / 4], i));
-						_mm_maskstore_ps(mem + i, mi, v.m_data[i / 4]);
-					}
-				else if constexpr (std::same_as<T, std::int32_t> && (std::derived_from<F, vector_aligned_tag> || detail::overaligned_tag_value_v<F> >= simd_t::alignment))
-					for (std::size_t i = 0; i < simd_t::size(); i += 4)
-					{
-						const auto mi = _mm_castps_si128(x86_maskzero_vector_f32<mask_t::size()>(m.m_data[i / 4], i));
-						_mm_maskstore_epi32(mem + i, mi, _mm_cvtps_epi32(v.m_data[i / 4]));
-					}
-				else
-#endif
-					copy_unaligned();
-			}
 
 			[[nodiscard]] static std::span<__m128, simd_t::data_size> to_native_data(simd_t &value) noexcept { return {value.m_data}; }
 			[[nodiscard]] static std::span<const __m128, simd_t::data_size> to_native_data(const simd_t &value) noexcept { return {value.m_data}; }
-
-#ifdef SVM_HAS_SSE4_1
-			[[nodiscard]] static SVM_SAFE_ARRAY simd_t blend(const simd_t &a, const simd_t &b, const mask_t &m) noexcept
-			{
-				simd_t result;
-				for (std::size_t i = 0; i < simd_t::data_size; ++i)
-				{
-					const auto m_data = m.m_data[i];
-					const auto b_data = b.m_data[i];
-					const auto a_data = a.m_data[i];
-					result.m_data[i] = _mm_blendv_ps(a_data, b_data, m_data);
-				}
-				return result;
-			}
-#endif
 		};
 	}
 
@@ -902,7 +955,14 @@ namespace svm
 				const simd_mask<float, detail::avec<N, A>> &m)
 		noexcept requires detail::x86_overload_sse<float, N, A>
 		{
-			return detail::simd_access<simd<float, detail::avec<N, A>>>::blend(a, b, m);
+			simd<float, detail::avec<N, A>> result;
+			detail::x86_impl<float, __m128, N>::blend(
+					to_native_data(result),
+					to_native_data(a),
+					to_native_data(b),
+					to_native_data(m)
+			);
+			return result;
 		}
 #endif
 	}
