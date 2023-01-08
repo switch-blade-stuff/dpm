@@ -36,5 +36,8 @@ namespace svm
 		struct overaligned_tag_value<overaligned_tag<N>> : std::integral_constant<std::size_t, N> {};
 		template<typename T>
 		inline constexpr auto overaligned_tag_value_v = overaligned_tag_value<T>::value;
+
+		template<typename F, std::size_t A>
+		concept aligned_tag = std::derived_from<F, vector_aligned_tag> || detail::overaligned_tag_value_v<F> >= A;
 	}
 }

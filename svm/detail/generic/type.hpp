@@ -1061,6 +1061,47 @@ namespace svm
 		return result;
 	}
 
+	/** Returns an SIMD vector of minimum elements of \a a and \a b. */
+	template<typename T, typename Abi>
+	[[nodiscard]] inline SVM_SAFE_ARRAY simd<T, Abi> min(const simd<T, Abi> &a, const simd<T, Abi> &b) noexcept
+	{
+		simd<T, Abi> result;
+		for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i)
+			result[i] = std::min(a[i], b[i]);
+		return result;
+	}
+	/** Returns an SIMD vector of maximum elements of \a a and \a b. */
+	template<typename T, typename Abi>
+	[[nodiscard]] inline SVM_SAFE_ARRAY simd<T, Abi> max(const simd<T, Abi> &a, const simd<T, Abi> &b) noexcept
+	{
+		simd<T, Abi> result;
+		for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i)
+			result[i] = std::max(a[i], b[i]);
+		return result;
+	}
+	/** Returns a pair of SIMD vectors of minimum and maximum elements of \a a and \a b. */
+	template<typename T, typename Abi>
+	[[nodiscard]] inline SVM_SAFE_ARRAY std::pair<simd<T, Abi>, simd<T, Abi>> minmax(const simd<T, Abi> &a, const simd<T, Abi> &b) noexcept
+	{
+		std::pair<simd<T, Abi>, simd<T, Abi>> result;
+		for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i)
+		{
+			const auto [min, max] = std::minmax(a[i], b[i]);
+			result.first[i] = min;
+			result.second[i] = max;
+		}
+		return result;
+	}
+	/** Clamps elements \f \a value between corresponding elements of \a ming and \a max. */
+	template<typename T, typename Abi>
+	[[nodiscard]] inline SVM_SAFE_ARRAY simd<T, Abi> clamp(const simd<T, Abi> &value, const simd<T, Abi> &min, const simd<T, Abi> &max) noexcept
+	{
+		simd<T, Abi> result;
+		for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i)
+			result[i] = std::clamp(value[i], min[i], max[i]);
+		return result;
+	}
+
 	SVM_DECLARE_EXT_NAMESPACE
 	{
 		template<detail::vectorizable T>

@@ -187,4 +187,8 @@ int main()
 	where(!mask, a).copy_to(v_tmp.data(), svm::vector_aligned);
 
 	TEST_ASSERT(v_tmp == d_vals);
+
+	TEST_ASSERT(svm::all_of(svm::min(d, b) == b));
+	TEST_ASSERT(svm::all_of(svm::max(d, a) == a));
+	TEST_ASSERT(svm::all_of(svm::clamp(d, decltype(d){.5f}, decltype(d){.5f}) == decltype(b){0.5f}));
 }
