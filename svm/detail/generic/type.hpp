@@ -427,7 +427,7 @@ namespace svm
 	template<detail::vectorizable T>
 	class simd_mask<T, simd_abi::scalar>
 	{
-		friend struct detail::simd_access<simd_mask>;
+		friend struct detail::native_access<simd_mask>;
 
 	public:
 		using value_type = bool;
@@ -479,7 +479,7 @@ namespace svm
 	template<detail::vectorizable T, std::size_t N, std::size_t Align>
 	class simd_mask<T, detail::avec<N, Align>>
 	{
-		friend struct detail::simd_access<simd_mask>;
+		friend struct detail::native_access<simd_mask>;
 
 	public:
 		using value_type = bool;
@@ -549,7 +549,7 @@ namespace svm
 	namespace detail
 	{
 		template<detail::vectorizable T>
-		struct storage_access<simd_mask<T, simd_abi::scalar>>
+		struct native_access<simd_mask<T, simd_abi::scalar>>
 		{
 			using mask_t = simd_mask<T, simd_abi::scalar>;
 
@@ -557,7 +557,7 @@ namespace svm
 			[[nodiscard]] static std::span<const bool, 1> to_native_data(const mask_t &value) noexcept { return std::span<const bool, 1>{&value.m_value, &value.m_value + 1}; }
 		};
 		template<detail::vectorizable T, std::size_t N, std::size_t Align>
-		struct storage_access<simd_mask<T, detail::avec<N, Align>>>
+		struct native_access<simd_mask<T, detail::avec<N, Align>>>
 		{
 			using mask_t = simd_mask<T, detail::avec<N, Align>>;
 
@@ -572,26 +572,26 @@ namespace svm
 		template<detail::vectorizable T>
 		[[nodiscard]] inline std::span<bool, 1> to_native_data(simd_mask<T, simd_abi::scalar> &value) noexcept
 		{
-			return detail::storage_access<simd_mask<T, simd_abi::scalar>>::to_native_data(value);
+			return detail::native_access<simd_mask<T, simd_abi::scalar>>::to_native_data(value);
 		}
 		/** Returns a constant (single-element) span of the underlying boolean of \a value. */
 		template<detail::vectorizable T>
 		[[nodiscard]] inline std::span<const bool, 1> to_native_data(const simd_mask<T, simd_abi::scalar> &value) noexcept
 		{
-			return detail::storage_access<simd_mask<T, simd_abi::scalar>>::to_native_data(value);
+			return detail::native_access<simd_mask<T, simd_abi::scalar>>::to_native_data(value);
 		}
 
 		/** Returns a span of the underlying booleans of \a value. */
 		template<detail::vectorizable T, std::size_t N, std::size_t A>
 		[[nodiscard]] inline std::span<T, N> to_native_data(simd_mask<T, detail::avec<N, A>> &value) noexcept
 		{
-			return detail::storage_access<simd_mask<T, detail::avec<N, A>>>::to_native_data(value);
+			return detail::native_access<simd_mask<T, detail::avec<N, A>>>::to_native_data(value);
 		}
 		/** Returns a constant span of the underlying booleans of \a value. */
 		template<detail::vectorizable T, std::size_t N, std::size_t A>
 		[[nodiscard]] inline std::span<const T, N> to_native_data(const simd_mask<T, detail::avec<N, A>> &value) noexcept
 		{
-			return detail::storage_access<simd_mask<T, detail::avec<N, A>>>::to_native_data(value);
+			return detail::native_access<simd_mask<T, detail::avec<N, A>>>::to_native_data(value);
 		}
 	}
 
@@ -1096,7 +1096,7 @@ namespace svm
 	template<detail::vectorizable T>
 	class simd<T, simd_abi::scalar>
 	{
-		friend struct detail::simd_access<simd>;
+		friend struct detail::native_access<simd>;
 
 	public:
 		using value_type = T;
@@ -1168,7 +1168,7 @@ namespace svm
 	template<detail::vectorizable T, std::size_t N, std::size_t Align>
 	class simd<T, detail::avec<N, Align>>
 	{
-		friend struct detail::simd_access<simd>;
+		friend struct detail::native_access<simd>;
 
 	public:
 		using value_type = T;
@@ -1275,7 +1275,7 @@ namespace svm
 	namespace detail
 	{
 		template<detail::vectorizable T>
-		struct storage_access<simd<T, simd_abi::scalar>>
+		struct native_access<simd<T, simd_abi::scalar>>
 		{
 			using simd_t = simd<T, simd_abi::scalar>;
 
@@ -1283,7 +1283,7 @@ namespace svm
 			[[nodiscard]] static std::span<const T, 1> to_native_data(const simd_t &value) noexcept { return std::span<const T, 1>{&value.m_value, &value.m_value + 1}; }
 		};
 		template<detail::vectorizable T, std::size_t N, std::size_t Align>
-		struct storage_access<simd<T, detail::avec<N, Align>>>
+		struct native_access<simd<T, detail::avec<N, Align>>>
 		{
 			using simd_t = simd<T, detail::avec<N, Align>>;
 
@@ -1298,26 +1298,26 @@ namespace svm
 		template<detail::vectorizable T>
 		[[nodiscard]] inline std::span<T, 1> to_native_data(simd<T, simd_abi::scalar> &value) noexcept
 		{
-			return detail::storage_access<simd<T, simd_abi::scalar>>::to_native_data(value);
+			return detail::native_access<simd<T, simd_abi::scalar>>::to_native_data(value);
 		}
 		/** Returns a constant (single-element) span of the underlying scalar of \a value. */
 		template<detail::vectorizable T>
 		[[nodiscard]] inline std::span<const T, 1> to_native_data(const simd<T, simd_abi::scalar> &value) noexcept
 		{
-			return detail::storage_access<simd<T, simd_abi::scalar>>::to_native_data(value);
+			return detail::native_access<simd<T, simd_abi::scalar>>::to_native_data(value);
 		}
 
 		/** Returns a span of the underlying elements of \a value. */
 		template<detail::vectorizable T, std::size_t N, std::size_t A>
 		[[nodiscard]] inline std::span<T, N> to_native_data(simd<T, detail::avec<N, A>> &value) noexcept
 		{
-			return detail::storage_access<simd<T, detail::avec<N, A>>>::to_native_data(value);
+			return detail::native_access<simd<T, detail::avec<N, A>>>::to_native_data(value);
 		}
 		/** Returns a constant span of the underlying elements of \a value. */
 		template<detail::vectorizable T, std::size_t N, std::size_t A>
 		[[nodiscard]] inline std::span<const T, N> to_native_data(const simd<T, detail::avec<N, A>> &value) noexcept
 		{
-			return detail::storage_access<simd<T, detail::avec<N, A>>>::to_native_data(value);
+			return detail::native_access<simd<T, detail::avec<N, A>>>::to_native_data(value);
 		}
 	}
 }

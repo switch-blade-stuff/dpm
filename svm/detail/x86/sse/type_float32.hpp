@@ -456,7 +456,7 @@ namespace svm
 	template<std::size_t N, std::size_t Align> requires detail::x86_overload_sse<float, N, Align>
 	class simd_mask<float, detail::avec<N, Align>>
 	{
-		friend struct detail::simd_access<simd_mask>;
+		friend struct detail::native_access<simd_mask>;
 
 		using vector_type = __m128;
 
@@ -604,7 +604,7 @@ namespace svm
 	namespace detail
 	{
 		template<std::size_t N, std::size_t A> requires detail::x86_overload_sse<float, N, A>
-		struct storage_access<simd_mask<float, avec<N, A>>>
+		struct native_access<simd_mask<float, avec<N, A>>>
 		{
 			using mask_t = simd_mask<float, avec<N, A>>;
 
@@ -619,13 +619,13 @@ namespace svm
 		template<std::size_t N, std::size_t A>
 		[[nodiscard]] inline std::span<__m128, detail::align_data<float, N, 16>()> to_native_data(simd_mask<float, detail::avec<N, A>> &value) noexcept requires detail::x86_overload_sse<float, N, A>
 		{
-			return detail::storage_access<simd_mask<float, detail::avec<N, A>>>::to_native_data(value);
+			return detail::native_access<simd_mask<float, detail::avec<N, A>>>::to_native_data(value);
 		}
 		/** Returns a constant span of the underlying SSE vectors for \a value. */
 		template<std::size_t N, std::size_t A>
 		[[nodiscard]] inline std::span<const __m128, detail::align_data<float, N, 16>()> to_native_data(const simd_mask<float, detail::avec<N, A>> &value) noexcept requires detail::x86_overload_sse<float, N, A>
 		{
-			return detail::storage_access<simd_mask<float, detail::avec<N, A>>>::to_native_data(value);
+			return detail::native_access<simd_mask<float, detail::avec<N, A>>>::to_native_data(value);
 		}
 
 #ifdef SVM_HAS_SSE4_1
@@ -702,7 +702,7 @@ namespace svm
 	template<std::size_t N, std::size_t Align> requires detail::x86_overload_sse<float, N, Align>
 	class simd<float, detail::avec<N, Align>>
 	{
-		friend struct detail::simd_access<simd>;
+		friend struct detail::native_access<simd>;
 
 		using vector_type = __m128;
 
@@ -922,7 +922,7 @@ namespace svm
 	namespace detail
 	{
 		template<std::size_t N, std::size_t A> requires detail::x86_overload_sse<float, N, A>
-		struct storage_access<simd<float, avec<N, A>>>
+		struct native_access<simd<float, avec<N, A>>>
 		{
 			using simd_t = simd<float, avec<N, A>>;
 
@@ -937,13 +937,13 @@ namespace svm
 		template<std::size_t N, std::size_t A>
 		[[nodiscard]] inline std::span<__m128, detail::align_data<float, N, 16>()> to_native_data(simd<float, detail::avec<N, A>> &value) noexcept requires detail::x86_overload_sse<float, N, A>
 		{
-			return detail::storage_access<simd<float, detail::avec<N, A>>>::to_native_data(value);
+			return detail::native_access<simd<float, detail::avec<N, A>>>::to_native_data(value);
 		}
 		/** Returns a constant span of the underlying SSE vectors for \a value. */
 		template<std::size_t N, std::size_t A>
 		[[nodiscard]] inline std::span<const __m128, detail::align_data<float, N, 16>()> to_native_data(const simd<float, detail::avec<N, A>> &value) noexcept requires detail::x86_overload_sse<float, N, A>
 		{
-			return detail::storage_access<simd<float, detail::avec<N, A>>>::to_native_data(value);
+			return detail::native_access<simd<float, detail::avec<N, A>>>::to_native_data(value);
 		}
 
 #ifdef SVM_HAS_SSE4_1
