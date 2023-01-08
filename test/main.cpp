@@ -155,8 +155,8 @@ int main()
 	TEST_ASSERT(svm::all_of(decltype(b){svm::concat(b2)} == c));
 	TEST_ASSERT(svm::all_of(decltype(b){svm::concat(c2)} == c));
 
-	const auto b4 = svm::split_by<1>(b);
-	const auto c4 = svm::split_by<1>(c);
+	const auto b4 = svm::split_by<4>(b);
+	const auto c4 = svm::split_by<4>(c);
 
 	TEST_ASSERT(svm::all_of(b4[0] == b4[0]));
 	TEST_ASSERT(svm::all_of(b4[1] == b4[1]));

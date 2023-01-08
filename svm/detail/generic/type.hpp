@@ -344,8 +344,11 @@ namespace svm
 	[[nodiscard]] inline SVM_SAFE_ARRAY auto split(const simd_mask<typename V::simd_type::value_type, Abi> &value) noexcept requires detail::can_split_mask<V, Abi>
 	{
 		std::array<V, simd_size_v<U, Abi> / V::size()> result;
-		for (std::size_t i = 0; i < simd_mask<U, Abi>::size(); ++i)
-			result[i / V::size()][i % V::size()] = value[i];
+		for (std::size_t j = 0; j < result.size(); ++j)
+		{
+			for (std::size_t i = 0; i < V::size(); ++i)
+				result[j][i] = value[j * V::size() + i];
+		}
 		return result;
 	}
 	/** Returns an array of SIMD masks where every `i`th element of the `j`th mask is a copy of the `i + j * (simd_size_v<T, Abi> / N)`th element from \a value.
@@ -355,8 +358,11 @@ namespace svm
 	{
 		constexpr auto split_size = simd_size_v<T, Abi> / N;
 		std::array<resize_simd_t<split_size, simd_mask<T, Abi>>, N> result;
-		for (std::size_t i = 0; i < simd_mask<T, Abi>::size(); ++i)
-			result[i / N][i % split_size] = value[i];
+		for (std::size_t j = 0; j < N; ++j)
+		{
+			for (std::size_t i = 0; i < split_size; ++i)
+				result[j][i] = value[j * split_size + i];
+		}
 		return result;
 	}
 
@@ -1005,8 +1011,11 @@ namespace svm
 	[[nodiscard]] inline SVM_SAFE_ARRAY auto split(const simd<U, Abi> &value) noexcept requires detail::can_split_simd<V, Abi>
 	{
 		std::array<V, simd_size_v<U, Abi> / V::size()> result;
-		for (std::size_t i = 0; i < simd<U, Abi>::size(); ++i)
-			result[i / V::size()][i % V::size()] = value[i];
+		for (std::size_t j = 0; j < result.size(); ++j)
+		{
+			for (std::size_t i = 0; i < V::size(); ++i)
+				result[j][i] = value[j * V::size() + i];
+		}
 		return result;
 	}
 	/** Returns an array of SIMD vectors where every `i`th element of the `j`th vector is a copy of the `i + j * (simd_size_v<T, Abi> / N)`th element from \a value.
@@ -1016,8 +1025,11 @@ namespace svm
 	{
 		constexpr auto split_size = simd_size_v<T, Abi> / N;
 		std::array<resize_simd_t<split_size, simd<T, Abi>>, N> result;
-		for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i)
-			result[i / N][i % split_size] = value[i];
+		for (std::size_t j = 0; j < N; ++j)
+		{
+			for (std::size_t i = 0; i < split_size; ++i)
+				result[j][i] = value[j * split_size + i];
+		}
 		return result;
 	}
 
