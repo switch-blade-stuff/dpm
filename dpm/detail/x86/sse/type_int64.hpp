@@ -552,6 +552,58 @@ namespace dpm
 				for (std::size_t i = 0; i < M; ++i) out[i] = _mm_blendv_epi8(a[i], b[i], m[i]);
 			}
 #endif
+
+#ifdef DPM_HAS_AVX512VL
+			template<std::size_t M>
+			static DPM_SAFE_ARRAY void min(__m128i *out, const __m128i *a, const __m128i *b) noexcept requires std::signed_integral<I>
+			{
+				for (std::size_t i = 0; i < M; ++i) out[i] = _mm_min_epi64(a[i], b[i]);
+			}
+			template<std::size_t M>
+			static DPM_SAFE_ARRAY void max(__m128i *out, const __m128i *a, const __m128i *b) noexcept requires std::signed_integral<I>
+			{
+				for (std::size_t i = 0; i < M; ++i) out[i] = _mm_max_epi64(a[i], b[i]);
+			}
+			template<std::size_t M>
+			static DPM_SAFE_ARRAY void minmax(__m128i *out_min, __m128i *out_max, const __m128i *a, const __m128i *b) noexcept requires std::signed_integral<I>
+			{
+				for (std::size_t i = 0; i < M; ++i)
+				{
+					out_min[i] = _mm_min_epi64(a[i], b[i]);
+					out_max[i] = _mm_max_epi64(a[i], b[i]);
+				}
+			}
+			template<std::size_t M>
+			static DPM_SAFE_ARRAY void clamp(__m128i *out, const __m128i *value, const __m128i *min, const __m128i *max) noexcept requires std::signed_integral<I>
+			{
+				for (std::size_t i = 0; i < M; ++i) out[i] = _mm_min_epi64(_mm_max_epi64(value[i], min[i]), max[i]);
+			}
+
+			template<std::size_t M>
+			static DPM_SAFE_ARRAY void min(__m128i *out, const __m128i *a, const __m128i *b) noexcept requires std::unsigned_integral<I>
+			{
+				for (std::size_t i = 0; i < M; ++i) out[i] = _mm_min_epu64(a[i], b[i]);
+			}
+			template<std::size_t M>
+			static DPM_SAFE_ARRAY void max(__m128i *out, const __m128i *a, const __m128i *b) noexcept requires std::unsigned_integral<I>
+			{
+				for (std::size_t i = 0; i < M; ++i) out[i] = _mm_max_epu64(a[i], b[i]);
+			}
+			template<std::size_t M>
+			static DPM_SAFE_ARRAY void minmax(__m128i *out_min, __m128i *out_max, const __m128i *a, const __m128i *b) noexcept requires std::unsigned_integral<I>
+			{
+				for (std::size_t i = 0; i < M; ++i)
+				{
+					out_min[i] = _mm_min_epu64(a[i], b[i]);
+					out_max[i] = _mm_max_epu64(a[i], b[i]);
+				}
+			}
+			template<std::size_t M>
+			static DPM_SAFE_ARRAY void clamp(__m128i *out, const __m128i *value, const __m128i *min, const __m128i *max) noexcept requires std::unsigned_integral<I>
+			{
+				for (std::size_t i = 0; i < M; ++i) out[i] = _mm_min_epu64(_mm_max_epu64(value[i], min[i]), max[i]);
+			}
+#endif
 		};
 	}
 
@@ -1129,6 +1181,84 @@ namespace dpm
 		}
 #endif
 	}
+
+#pragma region "simd algorithms"
+#ifdef DPM_HAS_AVX512VL
+	/** Returns an SIMD vector of minimum elements of \a a and \a b. */
+	template<detail::integral_of_size<8> I, std::size_t N, std::size_t A>
+	[[nodiscard]] inline simd<I, detail::avec<N, A>> min(
+			const simd<I, detail::avec<N, A>> &a,
+			const simd<I, detail::avec<N, A>> &b)
+	noexcept requires detail::x86_overload_sse<I, N, A>
+	{
+		constexpr auto data_size = ext::native_data_size_v<simd<I, detail::avec<N, A>>>;
+
+		simd<double, detail::avec<N, A>> result;
+		detail::x86_simd_impl<I, __m128i, N>::template min<data_size>(
+				ext::to_native_data(result).data(),
+				ext::to_native_data(a).data(),
+				ext::to_native_data(b).data()
+		);
+		return result;
+	}
+	/** Returns an SIMD vector of maximum elements of \a a and \a b. */
+	template<detail::integral_of_size<8> I, std::size_t N, std::size_t A>
+	[[nodiscard]] inline simd<I, detail::avec<N, A>> max(
+			const simd<I, detail::avec<N, A>> &a,
+			const simd<I, detail::avec<N, A>> &b)
+	noexcept requires detail::x86_overload_sse<I, N, A>
+	{
+		constexpr auto data_size = ext::native_data_size_v<simd<I, detail::avec<N, A>>>;
+
+		simd<I, detail::avec<N, A>> result;
+		detail::x86_simd_impl<I, __m128i, N>::template max<data_size>(
+				ext::to_native_data(result).data(),
+				ext::to_native_data(a).data(),
+				ext::to_native_data(b).data()
+		);
+		return result;
+	}
+
+	/** Returns a pair of SIMD vectors of minimum and maximum elements of \a a and \a b. */
+	template<detail::integral_of_size<8> I, std::size_t N, std::size_t A>
+	[[nodiscard]] inline std::pair<simd<I, detail::avec<N, A>>, simd<I, detail::avec<N, A>>> minmax(
+			const simd<I, detail::avec<N, A>> &a,
+			const simd<I, detail::avec<N, A>> &b)
+	noexcept requires detail::x86_overload_sse<I, N, A>
+	{
+		constexpr auto data_size = ext::native_data_size_v<simd<I, detail::avec<N, A>>>;
+
+		std::pair<simd<I, detail::avec<N, A>>, simd<I, detail::avec<N, A>>> result;
+		detail::x86_simd_impl<I, __m128i, N>::template minmax<data_size>(
+				ext::to_native_data(result.first).data(),
+				ext::to_native_data(result.second).data(),
+				ext::to_native_data(a).data(),
+				ext::to_native_data(b).data()
+		);
+		return result;
+	}
+
+	/** Clamps elements \f \a value between corresponding elements of \a ming and \a max. */
+	template<detail::integral_of_size<8> I, std::size_t N, std::size_t A>
+	[[nodiscard]] inline simd<I, detail::avec<N, A>> clamp(
+			const simd<I, detail::avec<N, A>> &value,
+			const simd<I, detail::avec<N, A>> &min,
+			const simd<I, detail::avec<N, A>> &max)
+	noexcept requires detail::x86_overload_sse<I, N, A>
+	{
+		constexpr auto data_size = ext::native_data_size_v<simd<I, detail::avec<N, A>>>;
+
+		simd<I, detail::avec<N, A>> result;
+		detail::x86_simd_impl<I, __m128i, N>::template clamp<data_size>(
+				ext::to_native_data(result).data(),
+				ext::to_native_data(value).data(),
+				ext::to_native_data(min).data(),
+				ext::to_native_data(max).data()
+		);
+		return result;
+	}
+#endif
+#pragma endregion
 }
 
 #endif

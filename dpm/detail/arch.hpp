@@ -69,7 +69,7 @@
 #define DPM_HAS_AVX512DQ
 #endif
 #ifdef __AVX512VL__
-#define DPM_HAS_AVX512VL /* AVX operations on non-AVX registers. */
+#define DPM_HAS_AVX512VL
 #endif
 #endif
 
