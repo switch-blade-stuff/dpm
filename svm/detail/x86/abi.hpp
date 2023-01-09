@@ -58,7 +58,7 @@ namespace svm
 			concept has_x86_default = has_x86_vector<T> && N > 1 && requires { typename default_x86_align<T, N>; };
 
 			template<typename T, std::size_t N, std::size_t A, std::size_t VAlign>
-			concept x86_overload_simd = vectorizable<T> && (A == 0 || A >= VAlign) && has_x86_default<T, N> && default_x86_align<T, N>::value == VAlign;
+			concept x86_overload_simd = vectorizable<T> && ((A == 0 && has_x86_default<T, N> && default_x86_align<T, N>::value == VAlign) || A >= VAlign);
 			template<typename T, std::size_t N, std::size_t A = 0>
 			concept x86_overload_sse = x86_overload_simd<T, N, A, alignof(__m128)>;
 			template<typename T, std::size_t N, std::size_t A = 0>
