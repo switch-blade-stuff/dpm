@@ -48,7 +48,7 @@ namespace svm
 		}
 
 		template<std::size_t N>
-		struct x86_impl<bool, __m128, N>
+		struct x86_mask_impl<float, __m128, N>
 		{
 			template<std::size_t M, typename F>
 			static SVM_SAFE_ARRAY void copy_from(const bool *src, __m128 *dst, F) noexcept
@@ -297,7 +297,7 @@ namespace svm
 		};
 
 		template<std::size_t N>
-		struct x86_impl<float, __m128, N>
+		struct x86_simd_impl<float, __m128, N>
 		{
 			template<typename U>
 			static U &data_at(__m128 *data, std::size_t i) noexcept { return reinterpret_cast<U *>(data)[i]; }
@@ -334,7 +334,7 @@ namespace svm
 				}
 #endif
 				else
-					std::copy_n(src, N, reinterpret_cast<float *>(dst));
+					for (std::size_t i = 0; i < N; ++i) data_at<float>(dst, i) = static_cast<float>(src[i]);
 			}
 			template<std::size_t M, typename U, typename F>
 			static SVM_SAFE_ARRAY void copy_to(U *dst, const __m128 *src, F) noexcept
@@ -366,7 +366,7 @@ namespace svm
 				}
 #endif
 				else
-					std::copy_n(reinterpret_cast<const float *>(src), N, dst);
+					for (std::size_t i = 0; i < N; ++i) dst[i] = static_cast<U>(data_at<float>(src, i));
 			}
 
 			template<std::size_t M, typename U, typename F>
@@ -552,7 +552,7 @@ namespace svm
 	{
 		friend struct detail::native_access<simd_mask>;
 
-		using impl_t = detail::x86_impl<bool, __m128, detail::avec<N, Align>::size>;
+		using impl_t = detail::x86_mask_impl<float, __m128, detail::avec<N, Align>::size>;
 		using vector_type = __m128;
 
 		constexpr static auto data_size = ext::native_data_size_v<simd_mask>;
@@ -732,7 +732,7 @@ namespace svm
 			constexpr auto data_size = native_data_size_v<simd_mask<float, detail::avec<N, A>>>;
 
 			simd_mask<float, detail::avec<N, A>> result;
-			detail::x86_impl<bool, __m128, N>::template blend<data_size>(
+			detail::x86_mask_impl<float, __m128, N>::template blend<data_size>(
 					to_native_data(result).data(),
 					to_native_data(a).data(),
 					to_native_data(b).data(),
@@ -749,28 +749,28 @@ namespace svm
 	[[nodiscard]] inline bool all_of(const simd_mask<float, detail::avec<N, A>> &mask) noexcept requires detail::x86_overload_sse<float, N, A>
 	{
 		constexpr auto data_size = ext::native_data_size_v<simd_mask<float, detail::avec<N, A>>>;
-		return detail::x86_impl<bool, __m128, N>::template all_of<data_size>(ext::to_native_data(mask).data());
+		return detail::x86_mask_impl<float, __m128, N>::template all_of<data_size>(ext::to_native_data(mask).data());
 	}
 	/** Returns `true` if at least one of the elements of the \a mask are `true`. Otherwise returns `false`. */
 	template<std::size_t N, std::size_t A>
 	[[nodiscard]] inline bool any_of(const simd_mask<float, detail::avec<N, A>> &mask) noexcept requires detail::x86_overload_sse<float, N, A>
 	{
 		constexpr auto data_size = ext::native_data_size_v<simd_mask<float, detail::avec<N, A>>>;
-		return detail::x86_impl<bool, __m128, N>::template any_of<data_size>(ext::to_native_data(mask).data());
+		return detail::x86_mask_impl<float, __m128, N>::template any_of<data_size>(ext::to_native_data(mask).data());
 	}
 	/** Returns `true` if at none of the elements of the \a mask is `true`. Otherwise returns `false`. */
 	template<std::size_t N, std::size_t A>
 	[[nodiscard]] inline bool none_of(const simd_mask<float, detail::avec<N, A>> &mask) noexcept requires detail::x86_overload_sse<float, N, A>
 	{
 		constexpr auto data_size = ext::native_data_size_v<simd_mask<float, detail::avec<N, A>>>;
-		return detail::x86_impl<bool, __m128, N>::template none_of<data_size>(ext::to_native_data(mask).data());
+		return detail::x86_mask_impl<float, __m128, N>::template none_of<data_size>(ext::to_native_data(mask).data());
 	}
 	/** Returns `true` if at least one of the elements of the \a mask is `true` and at least one is `false`. Otherwise returns `false`. */
 	template<std::size_t N, std::size_t A>
 	[[nodiscard]] inline bool some_of(const simd_mask<float, detail::avec<N, A>> &mask) noexcept requires detail::x86_overload_sse<float, N, A>
 	{
 		constexpr auto data_size = ext::native_data_size_v<simd_mask<float, detail::avec<N, A>>>;
-		return detail::x86_impl<bool, __m128, N>::template some_of<data_size>(ext::to_native_data(mask).data());
+		return detail::x86_mask_impl<float, __m128, N>::template some_of<data_size>(ext::to_native_data(mask).data());
 	}
 
 	/** Returns the number of `true` elements of \a mask. */
@@ -778,21 +778,21 @@ namespace svm
 	[[nodiscard]] inline std::size_t popcount(const simd_mask<float, detail::avec<N, A>> &mask) noexcept requires detail::x86_overload_sse<float, N, A>
 	{
 		constexpr auto data_size = ext::native_data_size_v<simd_mask<float, detail::avec<N, A>>>;
-		return detail::x86_impl<bool, __m128, N>::template popcount<data_size>(ext::to_native_data(mask).data());
+		return detail::x86_mask_impl<float, __m128, N>::template popcount<data_size>(ext::to_native_data(mask).data());
 	}
 	/** Returns the index of the first `true` element of \a mask. */
 	template<std::size_t N, std::size_t A>
 	[[nodiscard]] inline std::size_t find_first_set(const simd_mask<float, detail::avec<N, A>> &mask) noexcept requires detail::x86_overload_sse<float, N, A>
 	{
 		constexpr auto data_size = ext::native_data_size_v<simd_mask<float, detail::avec<N, A>>>;
-		return detail::x86_impl<bool, __m128, N>::template find_first_set<data_size>(ext::to_native_data(mask).data());
+		return detail::x86_mask_impl<float, __m128, N>::template find_first_set<data_size>(ext::to_native_data(mask).data());
 	}
 	/** Returns the index of the last `true` element of \a mask. */
 	template<std::size_t N, std::size_t A>
 	[[nodiscard]] inline std::size_t find_last_set(const simd_mask<float, detail::avec<N, A>> &mask) noexcept requires detail::x86_overload_sse<float, N, A>
 	{
 		constexpr auto data_size = ext::native_data_size_v<simd_mask<float, detail::avec<N, A>>>;
-		return detail::x86_impl<bool, __m128, N>::template find_last_set<data_size>(ext::to_native_data(mask).data());
+		return detail::x86_mask_impl<float, __m128, N>::template find_last_set<data_size>(ext::to_native_data(mask).data());
 	}
 #pragma endregion
 
@@ -814,7 +814,7 @@ namespace svm
 	{
 		friend struct detail::native_access<simd>;
 
-		using impl_t = detail::x86_impl<float, __m128, detail::avec<N, Align>::size>;
+		using impl_t = detail::x86_simd_impl<float, __m128, detail::avec<N, Align>::size>;
 		using vector_type = __m128;
 
 		constexpr static auto data_size = ext::native_data_size_v<simd>;
@@ -857,7 +857,7 @@ namespace svm
 		template<detail::element_generator<value_type, size()> G>
 		SVM_SAFE_ARRAY simd(G &&gen) noexcept
 		{
-			detail::generate<data_size>(m_data, [&gen]<std::size_t I>(std::integral_constant<std::size_t, I>)
+			detail::generate_n<data_size>(m_data, [&gen]<std::size_t I>(std::integral_constant<std::size_t, I>)
 			{
 				float f0 = 0.0f, f1 = 0.0f, f2 = 0.0f, f3 = 0.0f;
 				switch (constexpr auto value_idx = I * 4; size() - value_idx)
@@ -1065,7 +1065,7 @@ namespace svm
 			constexpr auto data_size = native_data_size_v<simd<float, detail::avec<N, A>>>;
 
 			simd<float, detail::avec<N, A>> result;
-			detail::x86_impl<float, __m128, N>::template blend<data_size>(
+			detail::x86_simd_impl<float, __m128, N>::template blend<data_size>(
 					to_native_data(result).data(),
 					to_native_data(a).data(),
 					to_native_data(b).data(),
@@ -1087,7 +1087,7 @@ namespace svm
 		constexpr auto data_size = ext::native_data_size_v<simd<float, detail::avec<N, A>>>;
 
 		simd<float, detail::avec<N, A>> result;
-		detail::x86_impl<float, __m128, N>::template min<data_size>(
+		detail::x86_simd_impl<float, __m128, N>::template min<data_size>(
 				ext::to_native_data(result).data(),
 				ext::to_native_data(a).data(),
 				ext::to_native_data(b).data()
@@ -1104,7 +1104,7 @@ namespace svm
 		constexpr auto data_size = ext::native_data_size_v<simd<float, detail::avec<N, A>>>;
 
 		simd<float, detail::avec<N, A>> result;
-		detail::x86_impl<float, __m128, N>::template max<data_size>(
+		detail::x86_simd_impl<float, __m128, N>::template max<data_size>(
 				ext::to_native_data(result).data(),
 				ext::to_native_data(a).data(),
 				ext::to_native_data(b).data()
@@ -1122,7 +1122,7 @@ namespace svm
 		constexpr auto data_size = ext::native_data_size_v<simd<float, detail::avec<N, A>>>;
 
 		std::pair<simd<float, detail::avec<N, A>>, simd<float, detail::avec<N, A>>> result;
-		detail::x86_impl<float, __m128, N>::template minmax<data_size>(
+		detail::x86_simd_impl<float, __m128, N>::template minmax<data_size>(
 				ext::to_native_data(result.first).data(),
 				ext::to_native_data(result.second).data(),
 				ext::to_native_data(a).data(),
@@ -1142,7 +1142,7 @@ namespace svm
 		constexpr auto data_size = ext::native_data_size_v<simd<float, detail::avec<N, A>>>;
 
 		simd<float, detail::avec<N, A>> result;
-		detail::x86_impl<float, __m128, N>::template clamp<data_size>(
+		detail::x86_simd_impl<float, __m128, N>::template clamp<data_size>(
 				ext::to_native_data(result).data(),
 				ext::to_native_data(value).data(),
 				ext::to_native_data(min).data(),

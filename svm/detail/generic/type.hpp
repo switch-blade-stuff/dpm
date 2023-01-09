@@ -66,12 +66,12 @@ namespace svm
 		};
 
 		template<std::size_t N, std::size_t I = 0, typename G>
-		inline SVM_SAFE_ARRAY void generate(auto &data, G &&gen) noexcept
+		inline SVM_SAFE_ARRAY void generate_n(auto &data, G &&gen) noexcept
 		{
 			if constexpr (I != N)
 			{
 				data[I] = std::invoke(gen, std::integral_constant<std::size_t, I>());
-				generate<N, I + 1>(data, std::forward<G>(gen));
+				generate_n<N, I + 1>(data, std::forward<G>(gen));
 			}
 		}
 
@@ -1254,7 +1254,7 @@ namespace svm
 		constexpr SVM_SAFE_ARRAY simd(U &&value) noexcept { std::fill_n(m_data, size(), static_cast<value_type>(std::forward<U>(value))); }
 		/** Initializes the underlying elements with values provided by the generator \a gen. */
 		template<detail::element_generator<value_type, size()> G>
-		SVM_SAFE_ARRAY simd(G &&gen) noexcept { detail::generate<size()>(m_data, std::forward<G>(gen)); }
+		SVM_SAFE_ARRAY simd(G &&gen) noexcept { detail::generate_n<size()>(m_data, std::forward<G>(gen)); }
 
 		/** Copies elements from \a other. */
 		template<typename U, std::size_t OtherAlign>

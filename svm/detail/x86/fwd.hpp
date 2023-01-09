@@ -20,7 +20,9 @@ namespace svm::detail
 
 	/* Separate underlying implementation to allow higher-tier SIMD levels to re-use lower-tier implementations. */
 	template<typename V, typename D, std::size_t N>
-	struct x86_impl;
+	struct x86_mask_impl;
+	template<typename V, typename D, std::size_t N>
+	struct x86_simd_impl;
 }
 
 #endif

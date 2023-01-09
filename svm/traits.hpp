@@ -33,7 +33,7 @@ namespace svm
 		concept vectorizable = std::is_arithmetic_v<T>;
 
 		template<typename U, typename T, typename From = std::remove_cvref_t<U>>
-		concept compatible_element = (std::unsigned_integral<T> && std::same_as<From, unsigned int>) || std::same_as<From, int> || std::convertible_to<From, T>;
+		concept compatible_element = (std::unsigned_integral<T> && std::same_as<From, unsigned int>) || std::same_as<From, int> || std::is_convertible_v<From, T>;
 
 		template<typename G, typename T, std::size_t N, std::size_t I = 0>
 		static constexpr bool valid_generator() noexcept

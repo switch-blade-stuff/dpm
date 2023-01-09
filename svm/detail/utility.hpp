@@ -38,6 +38,13 @@ namespace svm::detail
 	template<std::size_t N>
 	using uint_of_size_t = typename uint_of_size<N>::type;
 
+	template<typename I, std::size_t N>
+	concept integral_of_size = std::integral<I> && sizeof(I) == N;
+	template<typename I, std::size_t N>
+	concept signed_integral_of_size = std::signed_integral<I> && sizeof(I) == N;
+	template<typename I, std::size_t N>
+	concept unsigned_integral_of_size = std::unsigned_integral<I> && sizeof(I) == N;
+
 	template<typename T>
 	[[nodiscard]] constexpr bool test_bit(T value, int pos) noexcept { return value & static_cast<T>(1 << pos); }
 	template<typename T>

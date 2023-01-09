@@ -47,7 +47,7 @@ namespace svm
 			using data_type = ext::native_data_type_t<simd_t>;
 			constexpr auto data_size = ext::native_data_size_v<simd_t>;
 
-			detail::x86_impl<value_type, data_type, simd_t::size()>::template copy_to<data_size>(
+			detail::x86_simd_impl<value_type, data_type, simd_t::size()>::template copy_to<data_size>(
 					mem,
 					ext::to_native_data(m_data).data(),
 					ext::to_native_data(m_mask).data(),
@@ -135,7 +135,7 @@ namespace svm
 			using data_type = ext::native_data_type_t<simd_t>;
 			constexpr auto data_size = ext::native_data_size_v<simd_t>;
 
-			detail::x86_impl<value_type, data_type, simd_t::size()>::template copy_from<data_size>(
+			detail::x86_simd_impl<value_type, data_type, simd_t::size()>::template copy_from<data_size>(
 					mem,
 					ext::to_native_data(m_data).data(),
 					ext::to_native_data(m_mask).data(),
@@ -175,7 +175,7 @@ namespace svm
 
 			if constexpr (std::same_as<U, value_type>)
 			{
-				detail::x86_impl<value_type, data_type, mask_t::size()>::template copy_to<data_size>(
+				detail::x86_mask_impl<value_type, data_type, mask_t::size()>::template copy_to<data_size>(
 						mem,
 						ext::to_native_data(m_data).data(),
 						ext::to_native_data(m_mask).data(),
@@ -237,7 +237,7 @@ namespace svm
 
 			if constexpr (std::same_as<U, value_type>)
 			{
-				detail::x86_impl<value_type, data_type, mask_t::size()>::template copy_from<data_size>(
+				detail::x86_mask_impl<value_type, data_type, mask_t::size()>::template copy_from<data_size>(
 						mem,
 						ext::to_native_data(m_data).data(),
 						ext::to_native_data(m_mask).data(),
