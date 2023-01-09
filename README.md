@@ -98,12 +98,12 @@ The library provides the following extensions to the standard API:
     * ARM
         * `neon`
 * Storage traits & accessors
-  * `native_data_type`
-  * `native_data_size`
-  * `std::span to_native_data(simd &)`
-  * `std::span to_native_data(const simd &)`
-  * `std::span to_native_data(simd_mask &)`
-  * `std::span to_native_data(const simd_mask &)`
+    * `native_data_type`
+    * `native_data_size`
+    * `std::span to_native_data(simd &)`
+    * `std::span to_native_data(const simd &)`
+    * `std::span to_native_data(simd_mask &)`
+    * `std::span to_native_data(const simd_mask &)`
 * Blend functions
     * `simd blend(const simd &, const simd &, const simd_mask &)`
     * `simd blend(const simd &, const const_where_expression &)`
@@ -111,6 +111,8 @@ The library provides the following extensions to the standard API:
     * `simd_mask blend(const simd_mask &, const const_where_expression &)`
     * `T blend(const T &, const T &, /* bool-wrapper */)`
     * `T blend(const T &, const const_where_expression &)`
+* Other utilities
+    * `cpuid`
 
 All extensions are available from the `svm::ext` and `svm::simd_abi::ext` namespaces. If `SVM_INLINE_EXTENSIONS` is
 defined, the `ext` namespaces are declared as inline.
