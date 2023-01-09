@@ -1,6 +1,6 @@
-# Standard Vector Math
+# Data-Parralel Math
 
-This library contains a feature-complete implementation of the C++ Data-parallel vector library TS with optional
+This library contains a feature-complete implementation of the C++ data-parallel math library TS with optional
 extensions.
 
 ## Compiler support
@@ -29,38 +29,38 @@ On architectures without SIMD intrinsic support, vectorization is emulated via s
 <table>
   <tr><th>#define macro</th><th>CMake option</th><th>Default value</th><th>Description</th></tr>
   <tr>
-    <td>SVM_USE_MODULES</td>
-    <td>-DSVM_USE_MODULES</td>
+    <td>DPM_USE_MODULES</td>
+    <td>-DDPM_USE_MODULES</td>
     <td>ON</td>
     <td>Toggles support for C++20 modules</td>
   </tr>
   <tr>
-    <td>SVM_INLINE_EXTENSIONS</td>
-    <td>-DSVM_INLINE_EXTENSIONS</td>
+    <td>DPM_INLINE_EXTENSIONS</td>
+    <td>-DDPM_INLINE_EXTENSIONS</td>
     <td>ON</td>
     <td>Toggles inlining of the library extension namespace (see notes)</td>
   </tr>
   <tr>
-    <td>SVM_DYNAMIC_DISPATCH</td>
-    <td>-DSVM_DYNAMIC_DISPATCH</td>
+    <td>DPM_DYNAMIC_DISPATCH</td>
+    <td>-DDPM_DYNAMIC_DISPATCH</td>
     <td>ON</td>
     <td>Toggles runtime detection & dispatch of SIMD operations</td>
   </tr>
   <tr>
-    <td>SVM_NATIVE_AVX512</td>
-    <td>-DSVM_NATIVE_AVX512</td>
+    <td>DPM_NATIVE_AVX512</td>
+    <td>-DDPM_NATIVE_AVX512</td>
     <td>OFF</td>
     <td>Toggles global support for AVX512 instructions on x86 targets (see notes)</td>
   </tr>
   <tr>
     <td>N/A</td>
-    <td>-DSVM_USE_IPO</td>
+    <td>-DDPM_USE_IPO</td>
     <td>ON</td>
     <td>Toggles support for inter-procedural optimization</td>
   </tr>
   <tr>
     <td>N/A</td>
-    <td>-DSVM_TESTS</td>
+    <td>-DDPM_TESTS</td>
     <td>OFF</td>
     <td>Enables unit test target</td>
   </tr>
@@ -81,8 +81,8 @@ Build artifacts will be found in `build/bin` and `build/lib`. Minimum required C
 
 In order to use the library as a CMake link dependency, you must link to one of the following targets:
 
-* `svm-interface` - interface headers of the library.
-* `svm` - static or shared library target, depending on the value of `BUILD_SHARED_LIBS`.
+* `dpm-interface` - interface headers of the library.
+* `dpm` - static or shared library target, depending on the value of `BUILD_SHARED_LIBS`.
 
 ## Notes
 
@@ -114,15 +114,15 @@ The library provides the following extensions to the standard API:
 * Other utilities
     * `cpuid`
 
-All extensions are available from the `svm::ext` and `svm::simd_abi::ext` namespaces. If `SVM_INLINE_EXTENSIONS` is
+All extensions are available from the `dpm::ext` and `dpm::simd_abi::ext` namespaces. If `DPM_INLINE_EXTENSIONS` is
 defined, the `ext` namespaces are declared as inline.
 
 ### Dynamic dispatch
 
-By default, SVM will attempt to automatically detect SIMD support and dispatch vectorized functions appropriately on
+By default, DPM will attempt to automatically detect SIMD support and dispatch vectorized functions appropriately on
 supported CPUs. This enables the library to support multiple tiers of hardware with the same binary. This, however, may
 increase binary size and add additional overhead to every dispatched operation. In order to disable dynamic dispatch,
-use the `SVM_DYNAMIC_DISPATCH` option.
+use the `DPM_DYNAMIC_DISPATCH` option.
 
 ### AVX512
 
@@ -134,4 +134,4 @@ inefficiency of AVX512 operations on certain CPUs. See the following articles fo
 - [https://www.phoronix.com/news/Linus-Torvalds-On-AVX-512](https://www.phoronix.com/news/Linus-Torvalds-On-AVX-512)
 
 In order to take advantage of AVX512 SIMD operations, use the `avx512<T>` extension ABI tag.
-To enable AVX512 operations globally, use the `SVM_NATIVE_AVX512` option.
+To enable AVX512 operations globally, use the `DPM_NATIVE_AVX512` option.

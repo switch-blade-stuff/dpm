@@ -3,10 +3,10 @@ cmake_minimum_required(VERSION 3.19)
 include_directories(${CMAKE_CURRENT_LIST_DIR}/..)
 enable_testing()
 
-project(svm-tests)
+project(dpm-tests)
 
 add_executable(${PROJECT_NAME} ${CMAKE_CURRENT_LIST_DIR}/main.cpp)
-target_link_libraries(${PROJECT_NAME} PRIVATE svm)
+target_link_libraries(${PROJECT_NAME} PRIVATE dpm)
 
 # Enable max error reporting
 if (MSVC)
@@ -16,8 +16,8 @@ else ()
 endif ()
 
 # On MSVC, use c++latest instead of c++20 for experimental module support
-if (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC" AND SVM_USE_MODULES)
-    target_compile_features(${SVM_PROJECT} PUBLIC cxx_std_23)
+if (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC" AND DPM_USE_MODULES)
+    target_compile_features(${DPM_PROJECT} PUBLIC cxx_std_23)
 else ()
-    target_compile_features(${SVM_PROJECT} PUBLIC cxx_std_20)
+    target_compile_features(${DPM_PROJECT} PUBLIC cxx_std_20)
 endif ()
