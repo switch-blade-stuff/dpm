@@ -577,10 +577,10 @@ namespace svm
 		constexpr simd_mask(simd_mask &&) noexcept = default;
 		constexpr simd_mask &operator=(simd_mask &&) noexcept = default;
 
-		/** Initializes the SIMD mask object with a native SSE vector.
+		/** Initializes the SIMD mask object with a native SSE mask vector.
 		 * @note This constructor is available for overload resolution only when the SIMD mask contains a single SSE vector. */
 		constexpr SVM_SAFE_ARRAY simd_mask(__m128 native) noexcept requires (data_size == 1) { m_data[0] = native; }
-		/** Initializes the SIMD mask object with an array of native SSE vectors.
+		/** Initializes the SIMD mask object with an array of native SSE mask vectors.
 		 * @note Size of the native vector array must be the same as `sizeof(simd_mask) / sizeof(__m128)`. */
 		constexpr SVM_SAFE_ARRAY simd_mask(const __m128 (&native)[data_size]) noexcept { std::copy_n(native, data_size, m_data); }
 
