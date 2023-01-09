@@ -1,13 +1,10 @@
 # Data-Parralel Math
 
-This library contains a feature-complete implementation of the C++ data-parallel math library TS with optional
-extensions.
-
-## Compiler support
+This library implements a feature-complete version of the C++ data-parallel math library TS with optional extensions.
 
 ## SIMD intrinsics support
 
-The library currently supports the following architectures for SIMD operations:
+DPM currently supports the following architectures for SIMD operations:
 
 - x86
     - SSE
@@ -88,7 +85,7 @@ In order to use the library as a CMake link dependency, you must link to one of 
 
 ### Extensions
 
-The library provides the following extensions to the standard API:
+DPM provides the following extensions to the standard API:
 
 * ABI tags
     * x86
@@ -123,6 +120,8 @@ By default, DPM will attempt to automatically detect SIMD support and dispatch v
 supported CPUs. This enables the library to support multiple tiers of hardware with the same binary. This, however, may
 increase binary size and add additional overhead to every dispatched operation. In order to disable dynamic dispatch,
 use the `DPM_DYNAMIC_DISPATCH` option.
+
+Note that inline functions such as operators, reductions, min/max algorithms, etc. are never dispatched.
 
 ### AVX512
 
