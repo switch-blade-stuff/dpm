@@ -13,37 +13,37 @@ namespace svm
 	namespace detail
 	{
 		template<std::size_t N>
-		static __m128 x86_maskzero_vector_f32(__m128 m, std::size_t i) noexcept
+		static __m128 x86_maskzero_vector_f32(__m128 v, std::size_t i) noexcept
 		{
-			switch (N - i)
+			switch ([[maybe_unused]] const auto mask = std::bit_cast<float>(0xffff'ffff); N - i)
 			{
 #ifdef SVM_HAS_SSE4_1
-				case 3: return _mm_blend_ps(m, _mm_setzero_ps(), 0b1000);
-				case 2: return _mm_blend_ps(m, _mm_setzero_ps(), 0b1100);
-				case 1: return _mm_blend_ps(m, _mm_setzero_ps(), 0b1110);
+				case 3: return _mm_blend_ps(v, _mm_setzero_ps(), 0b1000);
+				case 2: return _mm_blend_ps(v, _mm_setzero_ps(), 0b1100);
+				case 1: return _mm_blend_ps(v, _mm_setzero_ps(), 0b1110);
 #else
-					case 3: return _mm_and_ps(m, _mm_set_ps(0.0f, std::bit_cast<float>(0xffff'ffff), std::bit_cast<float>(0xffff'ffff), std::bit_cast<float>(0xffff'ffff)));
-					case 2: return _mm_and_ps(m, _mm_set_ps(0.0f, 0.0f, std::bit_cast<float>(0xffff'ffff), std::bit_cast<float>(0xffff'ffff)));
-					case 1: return _mm_and_ps(m, _mm_set_ps(0.0f, 0.0f, 0.0f, std::bit_cast<float>(0xffff'ffff)));
+					case 3: return _mm_and_ps(v, _mm_set_ps(0.0f, mask, mask, mask));
+					case 2: return _mm_and_ps(v, _mm_set_ps(0.0f, 0.0f, mask, mask));
+					case 1: return _mm_and_ps(v, _mm_set_ps(0.0f, 0.0f, 0.0f, mask));
 #endif
-				default: return m;
+				default: return v;
 			}
 		}
 		template<std::size_t N>
-		static __m128 x86_maskone_vector_f32(__m128 m, std::size_t i) noexcept
+		static __m128 x86_maskone_vector_f32(__m128 v, std::size_t i) noexcept
 		{
-			switch (const auto fm = std::bit_cast<float>(0xffff'ffff); N - i)
+			switch (const auto mask = std::bit_cast<float>(0xffff'ffff); N - i)
 			{
 #ifdef SVM_HAS_SSE4_1
-				case 3: return _mm_blend_ps(m, _mm_set1_ps(fm), 0b1000);
-				case 2: return _mm_blend_ps(m, _mm_set1_ps(fm), 0b1100);
-				case 1: return _mm_blend_ps(m, _mm_set1_ps(fm), 0b1110);
+				case 3: return _mm_blend_ps(v, _mm_set1_ps(mask), 0b1000);
+				case 2: return _mm_blend_ps(v, _mm_set1_ps(mask), 0b1100);
+				case 1: return _mm_blend_ps(v, _mm_set1_ps(mask), 0b1110);
 #else
-					case 3: return _mm_or_ps(m, _mm_set_ps(fm, 0.0f, 0.0f, 0.0f));
-					case 2: return _mm_or_ps(m, _mm_set_ps(fm, fm, 0.0f, 0.0f));
-					case 1: return _mm_or_ps(m, _mm_set_ps(fm, fm, fm, 0.0f));
+					case 3: return _mm_or_ps(v, _mm_set_ps(mask, 0.0f, 0.0f, 0.0f));
+					case 2: return _mm_or_ps(v, _mm_set_ps(mask, mask, 0.0f, 0.0f));
+					case 1: return _mm_or_ps(v, _mm_set_ps(mask, mask, mask, 0.0f));
 #endif
-				default: return m;
+				default: return v;
 			}
 		}
 
@@ -58,10 +58,10 @@ namespace svm
 					float f0 = 0.0f, f1 = 0.0f, f2 = 0.0f, f3 = 0.0f;
 					switch (N - i)
 					{
-						default: f3 = std::bit_cast<float>(detail::extend_bool<std::int32_t>(src[i + 3])); [[fallthrough]];
-						case 3: f2 = std::bit_cast<float>(detail::extend_bool<std::int32_t>(src[i + 2])); [[fallthrough]];
-						case 2: f1 = std::bit_cast<float>(detail::extend_bool<std::int32_t>(src[i + 1])); [[fallthrough]];
-						case 1: f0 = std::bit_cast<float>(detail::extend_bool<std::int32_t>(src[i]));
+						default: f3 = std::bit_cast<float>(extend_bool<std::int32_t>(src[i + 3])); [[fallthrough]];
+						case 3: f2 = std::bit_cast<float>(extend_bool<std::int32_t>(src[i + 2])); [[fallthrough]];
+						case 2: f1 = std::bit_cast<float>(extend_bool<std::int32_t>(src[i + 1])); [[fallthrough]];
+						case 1: f0 = std::bit_cast<float>(extend_bool<std::int32_t>(src[i]));
 					}
 					dst[i / 4] = _mm_set_ps(f3, f2, f1, f0);
 				}
@@ -87,10 +87,10 @@ namespace svm
 					float f0 = 0.0f, f1 = 0.0f, f2 = 0.0f, f3 = 0.0f;
 					switch (N - i)
 					{
-						default: f3 = std::bit_cast<float>(detail::extend_bool<std::int32_t>(src[i + 3])); [[fallthrough]];
-						case 3: f2 = std::bit_cast<float>(detail::extend_bool<std::int32_t>(src[i + 2])); [[fallthrough]];
-						case 2: f1 = std::bit_cast<float>(detail::extend_bool<std::int32_t>(src[i + 1])); [[fallthrough]];
-						case 1: f0 = std::bit_cast<float>(detail::extend_bool<std::int32_t>(src[i]));
+						default: f3 = std::bit_cast<float>(extend_bool<std::int32_t>(src[i + 3])); [[fallthrough]];
+						case 3: f2 = std::bit_cast<float>(extend_bool<std::int32_t>(src[i + 2])); [[fallthrough]];
+						case 2: f1 = std::bit_cast<float>(extend_bool<std::int32_t>(src[i + 1])); [[fallthrough]];
+						case 1: f0 = std::bit_cast<float>(extend_bool<std::int32_t>(src[i]));
 					}
 					dst[i / 4] = _mm_and_ps(_mm_set_ps(f3, f2, f1, f0), mask[i / 4]);
 				}
