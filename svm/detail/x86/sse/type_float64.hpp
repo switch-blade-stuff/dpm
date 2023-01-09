@@ -380,19 +380,16 @@ namespace svm
 			[[nodiscard]] static SVM_SAFE_ARRAY std::size_t popcount(const __m128d *mask) noexcept
 			{
 				std::size_t result = 0;
-#ifdef SVM_HAS_SSE2
 				for (std::size_t i = 0; i < M; ++i)
 				{
+#ifdef SVM_HAS_SSE2
 					const auto vm = x86_maskzero_vector_f64<N>(mask[i], i * 2);
 					result += std::popcount(static_cast<std::uint32_t>(_mm_movemask_pd(vm)));
-				}
 #else
-				for (std::size_t i = 0; i < M; ++i)
-				{
 					const auto vm = std::bit_cast<__m128>(x86_maskzero_vector_f64<N>(mask[i], i * 2));
 					result += std::popcount(static_cast<std::uint32_t>(_mm_movemask_ps(vm) & 0b0101));
-				}
 #endif
+				}
 				return result;
 			}
 			template<std::size_t M>
@@ -405,7 +402,7 @@ namespace svm
 					if (bits) return std::countr_zero(bits) + i * 2;
 #else
 					const auto bits = static_cast<std::uint8_t>(_mm_movemask_pd(mask[i]));
-					if (bits) return std::countr_zero((bits & 0b0110) >> 2) + i * 2;
+					if (bits) return std::countr_zero((bits & 0b0110) >> 1) + i * 2;
 #endif
 				}
 				SVM_UNREACHABLE();
