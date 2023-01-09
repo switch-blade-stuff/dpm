@@ -13,7 +13,7 @@ namespace svm
 	namespace detail
 	{
 		template<std::size_t N>
-		static __m128 x86_maskzero_vector_f32(__m128 v, std::size_t i) noexcept
+		[[nodiscard]] static __m128 x86_maskzero_vector_f32(__m128 v, std::size_t i) noexcept
 		{
 			switch ([[maybe_unused]] const auto mask = std::bit_cast<float>(0xffff'ffff); N - i)
 			{
@@ -30,7 +30,7 @@ namespace svm
 			}
 		}
 		template<std::size_t N>
-		static __m128 x86_maskone_vector_f32(__m128 v, std::size_t i) noexcept
+		[[nodiscard]] static __m128 x86_maskone_vector_f32(__m128 v, std::size_t i) noexcept
 		{
 			switch (const auto mask = std::bit_cast<float>(0xffff'ffff); N - i)
 			{
@@ -377,14 +377,16 @@ namespace svm
 					for (std::size_t i = 0; i < N; i += 4)
 					{
 						const auto mi = _mm_castps_si128(x86_maskzero_vector_f32<N>(mask[i / 4], i));
-						dst[i] = _mm_maskload_ps(src + i, mi);
+						dst[i / 4] = _mm_maskload_ps(src + i, mi);
 					}
+#ifdef SVM_HAS_AVX2
 				else if constexpr (std::same_as<U, std::int32_t> && aligned_tag<F, alignof(__m128)>)
 					for (std::size_t i = 0; i < N; i += 4)
 					{
 						const auto mi = _mm_castps_si128(x86_maskzero_vector_f32<N>(mask[i / 4], i));
-						dst[i] = _mm_cvtepi32_ps(_mm_maskload_epi32(src + i, mi));
+						dst[i / 4] = _mm_cvtepi32_ps(_mm_maskload_epi32(src + i, mi));
 					}
+#endif
 				else
 #endif
 					for (std::size_t i = 0; i < N; ++i) if (data_at<std::uint32_t>(mask, i)) data_at<float>(dst, i) = src[i];
@@ -399,12 +401,14 @@ namespace svm
 						const auto mi = _mm_castps_si128(x86_maskzero_vector_f32<N>(mask[i / 4], i));
 						_mm_maskstore_ps(dst + i, mi, src[i / 4]);
 					}
+#ifdef SVM_HAS_AVX2
 				else if constexpr (std::same_as<U, std::int32_t> && aligned_tag<F, alignof(__m128)>)
 					for (std::size_t i = 0; i < N; i += 4)
 					{
 						const auto mi = _mm_castps_si128(x86_maskzero_vector_f32<N>(mask[i / 4], i));
 						_mm_maskstore_epi32(dst + i, mi, _mm_cvtps_epi32(src[i / 4]));
 					}
+#endif
 				else
 #endif
 				{
@@ -538,9 +542,9 @@ namespace svm
 		struct native_data_size<simd_mask<float, detail::avec<N, Align>>> : std::integral_constant<std::size_t, detail::align_data<float, N, 16>()> {};
 
 		template<std::size_t N, std::size_t A>
-		[[nodiscard]] inline std::span<__m128, detail::align_data<float, N, 16>()> to_native_data(simd_mask<float, detail::avec<N, A>> &value) noexcept requires detail::x86_overload_sse<float, N, A>;
+		[[nodiscard]] inline std::span<__m128, detail::align_data<float, N, 16>()> to_native_data(simd_mask<float, detail::avec<N, A>> &) noexcept requires detail::x86_overload_sse<float, N, A>;
 		template<std::size_t N, std::size_t A>
-		[[nodiscard]] inline std::span<const __m128, detail::align_data<float, N, 16>()> to_native_data(const simd_mask<float, detail::avec<N, A>> &value) noexcept requires detail::x86_overload_sse<float, N, A>;
+		[[nodiscard]] inline std::span<const __m128, detail::align_data<float, N, 16>()> to_native_data(const simd_mask<float, detail::avec<N, A>> &) noexcept requires detail::x86_overload_sse<float, N, A>;
 	}
 
 	template<std::size_t N, std::size_t Align> requires detail::x86_overload_sse<float, N, Align>
@@ -581,7 +585,7 @@ namespace svm
 		constexpr SVM_SAFE_ARRAY simd_mask(const __m128 (&native)[data_size]) noexcept { std::copy_n(native, data_size, m_data); }
 
 		/** Initializes the underlying elements with \a value. */
-		constexpr SVM_SAFE_ARRAY simd_mask(value_type value) noexcept
+		SVM_SAFE_ARRAY simd_mask(value_type value) noexcept
 		{
 			const auto v = value ? _mm_set1_ps(std::bit_cast<float>(0xffff'ffff)) : _mm_setzero_ps();
 			std::fill_n(m_data, data_size, v);
@@ -591,7 +595,7 @@ namespace svm
 		SVM_SAFE_ARRAY simd_mask(const simd_mask<U, detail::avec<size(), OtherAlign>> &other) noexcept
 		{
 			if constexpr (std::same_as<U, value_type> && (OtherAlign == 0 || OtherAlign >= alignment))
-				std::copy_n(reinterpret_cast<const vector_type *>(ext::to_native_data(other)), data_size, m_data);
+				std::copy_n(reinterpret_cast<const vector_type *>(ext::to_native_data(other).data()), data_size, m_data);
 			else
 				for (std::size_t i = 0; i < size(); ++i) operator[](i) = other[i];
 		}
@@ -800,9 +804,9 @@ namespace svm
 		struct native_data_size<simd<float, detail::avec<N, Align>>> : std::integral_constant<std::size_t, detail::align_data<float, N, 16>()> {};
 
 		template<std::size_t N, std::size_t A>
-		[[nodiscard]] inline std::span<__m128, detail::align_data<float, N, 16>()> to_native_data(simd<float, detail::avec<N, A>> &value) noexcept requires detail::x86_overload_sse<float, N, A>;
+		[[nodiscard]] inline std::span<__m128, detail::align_data<float, N, 16>()> to_native_data(simd<float, detail::avec<N, A>> &) noexcept requires detail::x86_overload_sse<float, N, A>;
 		template<std::size_t N, std::size_t A>
-		[[nodiscard]] inline std::span<const __m128, detail::align_data<float, N, 16>()> to_native_data(const simd<float, detail::avec<N, A>> &value) noexcept requires detail::x86_overload_sse<float, N, A>;
+		[[nodiscard]] inline std::span<const __m128, detail::align_data<float, N, 16>()> to_native_data(const simd<float, detail::avec<N, A>> &) noexcept requires detail::x86_overload_sse<float, N, A>;
 	}
 
 	template<std::size_t N, std::size_t Align> requires detail::x86_overload_sse<float, N, Align>
