@@ -140,9 +140,9 @@ namespace dpm
 #ifdef DPM_HAS_SSE2
 				for (std::size_t i = 0; i < M; ++i)
 				{
-					const auto va = _mm_castps_si128(a[i]);
-					const auto vb = _mm_castps_si128(b[i]);
-					out[i] = _mm_castsi128_ps(_mm_cmpeq_epi32(va, vb));
+					const auto va = std::bit_cast<__m128i>(a[i]);
+					const auto vb = std::bit_cast<__m128i>(b[i]);
+					out[i] = std::bit_cast<__m128>(_mm_cmpeq_epi32(va, vb));
 				}
 #else
 				const auto nan_mask = _mm_set1_ps(std::bit_cast<float>(0x3fff'ffff));
@@ -161,9 +161,9 @@ namespace dpm
 				const auto inv_mask = _mm_set1_ps(std::bit_cast<float>(0xffff'ffff));
 				for (std::size_t i = 0; i < M; ++i)
 				{
-					const auto va = _mm_castps_si128(a[i]);
-					const auto vb = _mm_castps_si128(b[i]);
-					out[i] = _mm_xor_ps(_mm_castsi128_ps(_mm_cmpeq_epi32(va, vb)), inv_mask);
+					const auto va = std::bit_cast<__m128i>(a[i]);
+					const auto vb = std::bit_cast<__m128i>(b[i]);
+					out[i] = _mm_xor_ps(std::bit_cast<__m128>(_mm_cmpeq_epi32(va, vb)), inv_mask);
 				}
 #else
 				const auto nan_mask = _mm_set1_ps(std::bit_cast<float>(0x3fff'ffff));
@@ -183,7 +183,7 @@ namespace dpm
 				if constexpr (M == 1)
 				{
 					const auto vm = x86_maskone_vector_f32<N>(mask[0], 0);
-					return _mm_test_all_ones(_mm_castps_si128(vm));
+					return _mm_test_all_ones(std::bit_cast<__m128i>(vm));
 				}
 #endif
 				auto result = _mm_set1_ps(std::bit_cast<float>(0xffff'ffff));
@@ -204,7 +204,7 @@ namespace dpm
 					result = _mm_or_ps(result, vm);
 				}
 #ifdef DPM_HAS_SSE4_1
-				const auto vi = _mm_castps_si128(result);
+				const auto vi = std::bit_cast<__m128i>(result);
 				return !_mm_testz_si128(vi, vi);
 #else
 				return _mm_movemask_ps(result);
@@ -220,7 +220,7 @@ namespace dpm
 					result = _mm_or_ps(result, vm);
 				}
 #ifdef DPM_HAS_SSE4_1
-				const auto vi = _mm_castps_si128(result);
+				const auto vi = std::bit_cast<__m128i>(result);
 				return _mm_testz_si128(vi, vi);
 #else
 				return !_mm_movemask_ps(result);
@@ -240,8 +240,8 @@ namespace dpm
 					any_mask = _mm_or_ps(any_mask, vmz);
 				}
 #ifdef DPM_HAS_SSE4_1
-				const auto any_vi = _mm_castps_si128(any_mask);
-				const auto all_vi = _mm_castps_si128(all_mask);
+				const auto any_vi = std::bit_cast<__m128i>(any_mask);
+				const auto all_vi = std::bit_cast<__m128i>(all_mask);
 				return !_mm_testz_si128(any_vi, any_vi) && !_mm_test_all_ones(all_vi);
 #else
 				return _mm_movemask_ps(any_mask) && _mm_movemask_ps(all_mask) != 0b1111;
@@ -297,8 +297,12 @@ namespace dpm
 		};
 
 		template<std::size_t N>
-		struct x86_simd_impl<float, __m128, N>
+		struct x86_simd_impl<float, __m128, N> : x86_mask_impl<float, __m128, N>
 		{
+#ifdef DPM_HAS_SSE4_1
+			using x86_mask_impl<float, __m128, N>::blend;
+#endif
+
 			template<typename U>
 			static U &data_at(__m128 *data, std::size_t i) noexcept { return reinterpret_cast<U *>(data)[i]; }
 			template<typename U>
@@ -376,20 +380,20 @@ namespace dpm
 				if constexpr (std::same_as<U, float> && aligned_tag<F, alignof(__m128)>)
 					for (std::size_t i = 0; i < N; i += 4)
 					{
-						const auto mi = _mm_castps_si128(x86_maskzero_vector_f32<N>(mask[i / 4], i));
+						const auto mi = std::bit_cast<__m128i>(x86_maskzero_vector_f32<N>(mask[i / 4], i));
 						dst[i / 4] = _mm_maskload_ps(src + i, mi);
 					}
 #ifdef DPM_HAS_AVX2
 				else if constexpr (std::same_as<U, std::int32_t> && aligned_tag<F, alignof(__m128)>)
 					for (std::size_t i = 0; i < N; i += 4)
 					{
-						const auto mi = _mm_castps_si128(x86_maskzero_vector_f32<N>(mask[i / 4], i));
+						const auto mi = std::bit_cast<__m128i>(x86_maskzero_vector_f32<N>(mask[i / 4], i));
 						dst[i / 4] = _mm_cvtepi32_ps(_mm_maskload_epi32(src + i, mi));
 					}
 #endif
 				else
 #endif
-					for (std::size_t i = 0; i < N; ++i) if (data_at<std::uint32_t>(mask, i)) data_at<float>(dst, i) = src[i];
+					for (std::size_t i = 0; i < N; ++i) if (data_at<std::int32_t>(mask, i)) data_at<float>(dst, i) = src[i];
 			}
 			template<std::size_t M, typename U, typename F>
 			static DPM_SAFE_ARRAY void copy_to(U *dst, const __m128 *src, const __m128 *mask, F) noexcept
@@ -398,14 +402,14 @@ namespace dpm
 				if constexpr (std::same_as<U, float> && aligned_tag<F, alignof(__m128)>)
 					for (std::size_t i = 0; i < N; i += 4)
 					{
-						const auto mi = _mm_castps_si128(x86_maskzero_vector_f32<N>(mask[i / 4], i));
+						const auto mi = std::bit_cast<__m128i>(x86_maskzero_vector_f32<N>(mask[i / 4], i));
 						_mm_maskstore_ps(dst + i, mi, src[i / 4]);
 					}
 #ifdef DPM_HAS_AVX2
 				else if constexpr (std::same_as<U, std::int32_t> && aligned_tag<F, alignof(__m128)>)
 					for (std::size_t i = 0; i < N; i += 4)
 					{
-						const auto mi = _mm_castps_si128(x86_maskzero_vector_f32<N>(mask[i / 4], i));
+						const auto mi = std::bit_cast<__m128i>(x86_maskzero_vector_f32<N>(mask[i / 4], i));
 						_mm_maskstore_epi32(dst + i, mi, _mm_cvtps_epi32(src[i / 4]));
 					}
 #endif
@@ -416,13 +420,13 @@ namespace dpm
 					if constexpr (std::same_as<U, float>)
 						for (std::size_t i = 0; i < N; i += 4)
 						{
-							const auto mi = _mm_castps_si128(x86_maskzero_vector_f32<N>(mask[i / 4], i));
-							const auto vi = _mm_castps_si128(src[i / 4]);
+							const auto mi = std::bit_cast<__m128i>(x86_maskzero_vector_f32<N>(mask[i / 4], i));
+							const auto vi = std::bit_cast<__m128i>(src[i / 4]);
 							_mm_maskmoveu_si128(vi, mi, reinterpret_cast<char *>(dst + i));
 						}
 					else
 #endif
-						for (std::size_t i = 0; i < N; ++i) if (data_at<std::uint32_t>(mask, i)) dst[i] = data_at<float>(src, i);
+						for (std::size_t i = 0; i < N; ++i) if (data_at<std::int32_t>(mask, i)) dst[i] = data_at<float>(src, i);
 				}
 			}
 
@@ -499,14 +503,6 @@ namespace dpm
 				for (std::size_t i = 0; i < M; ++i) out[i] = _mm_cmpneq_ps(a[i], b[i]);
 			}
 
-#ifdef DPM_HAS_SSE4_1
-			template<std::size_t M>
-			static DPM_SAFE_ARRAY void blend(__m128 *out, const __m128 *a, const __m128 *b, const __m128 *m) noexcept
-			{
-				for (std::size_t i = 0; i < M; ++i) out[i] = _mm_blendv_ps(a[i], b[i], m[i]);
-			}
-#endif
-
 			template<std::size_t M>
 			static DPM_SAFE_ARRAY void min(__m128 *out, const __m128 *a, const __m128 *b) noexcept
 			{
@@ -536,9 +532,9 @@ namespace dpm
 
 	DPM_DECLARE_EXT_NAMESPACE
 	{
-		template<std::size_t N, std::size_t Align> requires simd_abi::detail::x86_overload_sse<float, N, Align>
+		template<std::size_t N, std::size_t Align> requires detail::x86_overload_sse<float, N, Align>
 		struct native_data_type<simd_mask<float, detail::avec<N, Align>>> { using type = __m128; };
-		template<std::size_t N, std::size_t Align> requires simd_abi::detail::x86_overload_sse<float, N, Align>
+		template<std::size_t N, std::size_t Align> requires detail::x86_overload_sse<float, N, Align>
 		struct native_data_size<simd_mask<float, detail::avec<N, Align>>> : std::integral_constant<std::size_t, detail::align_data<float, N, 16>()> {};
 
 		template<std::size_t N, std::size_t A>
@@ -798,9 +794,9 @@ namespace dpm
 
 	DPM_DECLARE_EXT_NAMESPACE
 	{
-		template<std::size_t N, std::size_t Align> requires simd_abi::detail::x86_overload_sse<float, N, Align>
+		template<std::size_t N, std::size_t Align> requires detail::x86_overload_sse<float, N, Align>
 		struct native_data_type<simd<float, detail::avec<N, Align>>> { using type = __m128; };
-		template<std::size_t N, std::size_t Align> requires simd_abi::detail::x86_overload_sse<float, N, Align>
+		template<std::size_t N, std::size_t Align> requires detail::x86_overload_sse<float, N, Align>
 		struct native_data_size<simd<float, detail::avec<N, Align>>> : std::integral_constant<std::size_t, detail::align_data<float, N, 16>()> {};
 
 		template<std::size_t N, std::size_t A>
@@ -875,9 +871,7 @@ namespace dpm
 		template<typename U, std::size_t OtherAlign>
 		DPM_SAFE_ARRAY simd(const simd<U, detail::avec<size(), OtherAlign>> &other) noexcept
 		{
-			if constexpr (!std::same_as<U, value_type>)
-				for (std::size_t i = 0; i < size(); ++i) operator[](i) = other[i];
-			else if constexpr (OtherAlign == 0 || OtherAlign >= alignment)
+			if constexpr (OtherAlign == 0 || OtherAlign >= alignment)
 				copy_from(reinterpret_cast<const U *>(ext::to_native_data(other).data()), vector_aligned);
 			else if constexpr (OtherAlign != alignof(value_type))
 				copy_from(reinterpret_cast<const U *>(ext::to_native_data(other).data()), overaligned<OtherAlign>);

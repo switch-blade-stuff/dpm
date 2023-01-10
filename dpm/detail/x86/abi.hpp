@@ -56,15 +56,21 @@ namespace dpm
 
 			template<typename T, std::size_t N>
 			concept has_x86_default = has_x86_vector<T> && N > 1 && requires { typename default_x86_align<T, N>; };
+			template<typename T, std::size_t N, std::size_t A, std::size_t VAlign, std::size_t MaxAlign>
+			concept x86_overload_simd = vectorizable<T> && (A == VAlign || (A < MaxAlign && has_x86_default<T, N> && default_x86_align<T, N>::value == VAlign));
 
-			template<typename T, std::size_t N, std::size_t A, std::size_t VAlign>
-			concept x86_overload_simd = vectorizable<T> && ((A == 0 && has_x86_default<T, N> && default_x86_align<T, N>::value == VAlign) || A >= VAlign);
 			template<typename T, std::size_t N, std::size_t A = 0>
-			concept x86_overload_sse = x86_overload_simd<T, N, A, alignof(__m128)>;
+			concept x86_overload_avx512 = x86_overload_simd<T, N, A, alignof(__m512), std::numeric_limits<std::size_t>::max()>;
+#ifdef DPM_NATIVE_AVX512
 			template<typename T, std::size_t N, std::size_t A = 0>
-			concept x86_overload_avx = x86_overload_simd<T, N, A, alignof(__m256)>;
+			concept x86_overload_avx = x86_overload_simd<T, N, A, alignof(__m256), alignof(__m512)>;
+#else
 			template<typename T, std::size_t N, std::size_t A = 0>
-			concept x86_overload_avx512 = x86_overload_simd<T, N, A, alignof(__m512)>;
+			concept x86_overload_avx = x86_overload_simd<T, N, A, alignof(__m256), std::numeric_limits<std::size_t>::max()>;
+#endif
+			template<typename T, std::size_t N, std::size_t A = 0>
+			concept x86_overload_sse = x86_overload_simd<T, N, A, alignof(__m128), alignof(__m256)>;
+
 			template<typename T, std::size_t N, std::size_t A = 0>
 			concept x86_overload_all = x86_overload_sse<T, N, A> || x86_overload_avx<T, N, A> || x86_overload_avx512<T, N, A>;
 

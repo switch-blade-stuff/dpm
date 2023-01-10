@@ -9,6 +9,7 @@
 #ifndef DPM_USE_IMPORT
 
 #include <functional>
+#include <limits>
 
 #endif
 
