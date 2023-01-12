@@ -17,6 +17,16 @@ if (${DPM_DYNAMIC_DISPATCH})
     add_compile_definitions(DPM_DYNAMIC_DISPATCH)
 endif ()
 
+option(DPM_HANDLE_ERRORS "Toggles detection & reporting of math errors via math_errhandling" ON)
+if (${DPM_HANDLE_ERRORS})
+    add_compile_definitions(DPM_HANDLE_ERRORS)
+endif ()
+
+option(DPM_PROPAGATE_NAN "Toggles guaranteed propagation of NaN" ON)
+if (${DPM_PROPAGATE_NAN})
+    add_compile_definitions(DPM_PROPAGATE_NAN)
+endif ()
+
 option(DPM_NATIVE_AVX512 "Toggles global support for AVX512 instructions on x86 targets" OFF)
 if (${DPM_NATIVE_AVX512})
     add_compile_definitions(DPM_NATIVE_AVX512)

@@ -10,9 +10,9 @@ target_link_libraries(${PROJECT_NAME} PRIVATE dpm)
 
 # Enable max error reporting
 if (MSVC)
-    target_compile_options(${PROJECT_NAME} PRIVATE /W3 /WX)
+    target_compile_options(${PROJECT_NAME} PUBLIC /W3 /WX)
 else ()
-    target_compile_options(${PROJECT_NAME} PRIVATE -Wall -Wextra -Wpedantic -Werror)
+    target_compile_options(${PROJECT_NAME} PUBLIC -Wall -Wextra -Wpedantic -Werror)
 endif ()
 
 # On MSVC, use c++latest instead of c++20 for experimental module support

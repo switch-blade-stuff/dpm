@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "../fwd.hpp"
+#include "../../fwd.hpp"
 
 #if defined(DPM_ARCH_X86) && (defined(DPM_HAS_SSE) || defined(DPM_DYNAMIC_DISPATCH))
 
@@ -68,6 +68,11 @@ namespace dpm
 		template<integral_of_size<2> I, std::size_t N>
 		struct x86_mask_impl<I, __m128i, N>
 		{
+			template<typename U>
+			static U &data_at(__m128i *data, std::size_t i) noexcept { return reinterpret_cast<U *>(data)[i]; }
+			template<typename U>
+			static std::add_const_t<U> &data_at(const __m128i *data, std::size_t i) noexcept { return reinterpret_cast<std::add_const_t<U> *>(data)[i]; }
+
 			template<std::size_t M, typename F>
 			static DPM_SAFE_ARRAY void copy_from(const bool *src, __m128i *dst, F) noexcept
 			{
@@ -122,14 +127,14 @@ namespace dpm
 #else
 					switch (N - i)
 					{
-						default: dst[i + 7] = static_cast<bool>(data_at<I>(dst, i + 7)); [[fallthrough]];
-						case 7: dst[i + 6] = static_cast<bool>(data_at<I>(dst, i + 6)); [[fallthrough]];
-						case 6: dst[i + 5] = static_cast<bool>(data_at<I>(dst, i + 5)); [[fallthrough]];
-						case 5: dst[i + 4] = static_cast<bool>(data_at<I>(dst, i + 4)); [[fallthrough]];
-						case 4: dst[i + 3] = static_cast<bool>(data_at<I>(dst, i + 3)); [[fallthrough]];
-						case 3: dst[i + 2] = static_cast<bool>(data_at<I>(dst, i + 2)); [[fallthrough]];
-						case 2: dst[i + 1] = static_cast<bool>(data_at<I>(dst, i + 1)); [[fallthrough]];
-						case 1: dst[i] = static_cast<bool>(data_at<I>(dst, i));
+						default: dst[i + 7] = static_cast<bool>(data_at<I>(src, i + 7)); [[fallthrough]];
+						case 7: dst[i + 6] = static_cast<bool>(data_at<I>(src, i + 6)); [[fallthrough]];
+						case 6: dst[i + 5] = static_cast<bool>(data_at<I>(src, i + 5)); [[fallthrough]];
+						case 5: dst[i + 4] = static_cast<bool>(data_at<I>(src, i + 4)); [[fallthrough]];
+						case 4: dst[i + 3] = static_cast<bool>(data_at<I>(src, i + 3)); [[fallthrough]];
+						case 3: dst[i + 2] = static_cast<bool>(data_at<I>(src, i + 2)); [[fallthrough]];
+						case 2: dst[i + 1] = static_cast<bool>(data_at<I>(src, i + 1)); [[fallthrough]];
+						case 1: dst[i] = static_cast<bool>(data_at<I>(src, i));
 					}
 #endif
 				}
@@ -190,14 +195,14 @@ namespace dpm
 #else
 					switch (N - i)
 					{
-						default: dst[i + 7] = data_at<std::int16_t>(dst, i + 7) & data_at<std::int16_t>(mask, i + 7)); [[fallthrough]];
-						case 7: dst[i + 6] = data_at<std::int16_t>(dst, i + 6) & data_at<std::int16_t>(mask, i + 7)); [[fallthrough]];
-						case 6: dst[i + 5] = data_at<std::int16_t>(dst, i + 5) & data_at<std::int16_t>(mask, i + 7)); [[fallthrough]];
-						case 5: dst[i + 4] = data_at<std::int16_t>(dst, i + 4) & data_at<std::int16_t>(mask, i + 7)); [[fallthrough]];
-						case 4: dst[i + 3] = data_at<std::int16_t>(dst, i + 3) & data_at<std::int16_t>(mask, i + 7)); [[fallthrough]];
-						case 3: dst[i + 2] = data_at<std::int16_t>(dst, i + 2) & data_at<std::int16_t>(mask, i + 7)); [[fallthrough]];
-						case 2: dst[i + 1] = data_at<std::int16_t>(dst, i + 1) & data_at<std::int16_t>(mask, i + 7)); [[fallthrough]];
-						case 1: dst[i] = data_at<std::int16_t>(dst, i) & data_at<std::int16_t>(mask, i));
+						default: dst[i + 7] = data_at<std::int16_t>(src, i + 7) & data_at<std::int16_t>(mask, i + 7); [[fallthrough]];
+						case 7: dst[i + 6] = data_at<std::int16_t>(src, i + 6) & data_at<std::int16_t>(mask, i + 7); [[fallthrough]];
+						case 6: dst[i + 5] = data_at<std::int16_t>(src, i + 5) & data_at<std::int16_t>(mask, i + 7); [[fallthrough]];
+						case 5: dst[i + 4] = data_at<std::int16_t>(src, i + 4) & data_at<std::int16_t>(mask, i + 7); [[fallthrough]];
+						case 4: dst[i + 3] = data_at<std::int16_t>(src, i + 3) & data_at<std::int16_t>(mask, i + 7); [[fallthrough]];
+						case 3: dst[i + 2] = data_at<std::int16_t>(src, i + 2) & data_at<std::int16_t>(mask, i + 7); [[fallthrough]];
+						case 2: dst[i + 1] = data_at<std::int16_t>(src, i + 1) & data_at<std::int16_t>(mask, i + 7); [[fallthrough]];
+						case 1: dst[i] = data_at<std::int16_t>(src, i) & data_at<std::int16_t>(mask, i);
 					}
 #endif
 				}
@@ -221,7 +226,7 @@ namespace dpm
 #ifdef DPM_HAS_SSE2
 				for (std::size_t i = 0; i < M; ++i) out[i] = _mm_and_si128(a[i], b[i]);
 #else
-				for (std::size_t i = 0; i < M; ++i) dst[i] = std::bit_cast<__m128i>(_mm_and_ps(std::bit_cast<__m128>(a[i]), std::bit_cast<__m128>(b[i])));
+				for (std::size_t i = 0; i < M; ++i) out[i] = std::bit_cast<__m128i>(_mm_and_ps(std::bit_cast<__m128>(a[i]), std::bit_cast<__m128>(b[i])));
 #endif
 			}
 			template<std::size_t M>
@@ -230,7 +235,7 @@ namespace dpm
 #ifdef DPM_HAS_SSE2
 				for (std::size_t i = 0; i < M; ++i) out[i] = _mm_or_si128(a[i], b[i]);
 #else
-				for (std::size_t i = 0; i < M; ++i) dst[i] = std::bit_cast<__m128i>(_mm_or_ps(std::bit_cast<__m128>(a[i]), std::bit_cast<__m128>(b[i])));
+				for (std::size_t i = 0; i < M; ++i) out[i] = std::bit_cast<__m128i>(_mm_or_ps(std::bit_cast<__m128>(a[i]), std::bit_cast<__m128>(b[i])));
 #endif
 			}
 			template<std::size_t M>
@@ -239,7 +244,7 @@ namespace dpm
 #ifdef DPM_HAS_SSE2
 				for (std::size_t i = 0; i < M; ++i) out[i] = _mm_xor_si128(a[i], b[i]);
 #else
-				for (std::size_t i = 0; i < M; ++i) dst[i] = std::bit_cast<__m128i>(_mm_xor_ps(std::bit_cast<__m128>(a[i]), std::bit_cast<__m128>(b[i])));
+				for (std::size_t i = 0; i < M; ++i) out[i] = std::bit_cast<__m128i>(_mm_xor_ps(std::bit_cast<__m128>(a[i]), std::bit_cast<__m128>(b[i])));
 #endif
 			}
 

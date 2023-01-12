@@ -9,14 +9,14 @@
 
 #include "abi.hpp"
 
-#if defined(DPM_ARCH_X86) && (defined(DPM_HAS_SSE) || defined(DPM_DYNAMIC_DISPATCH))
+#if defined(DPM_ARCH_X86) && defined(DPM_HAS_SSE)
 
 namespace dpm::detail
 {
 	using simd_abi::detail::x86_overload_all;
-	using simd_abi::detail::x86_overload_sse;
-	using simd_abi::detail::x86_overload_avx;
-	using simd_abi::detail::x86_overload_avx512;
+	using simd_abi::detail::x86_overload_m128;
+	using simd_abi::detail::x86_overload_m256;
+	using simd_abi::detail::x86_overload_m512;
 
 	/* Separate underlying implementation to allow higher-tier SIMD levels to re-use lower-tier implementations. */
 	template<typename V, typename D, std::size_t N>

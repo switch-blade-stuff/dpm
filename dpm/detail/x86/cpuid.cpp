@@ -170,7 +170,7 @@ namespace dpm
 							pos = sv.find_first_not_of("\t :"sv, pos + 5);
 							if (pos == std::string_view::npos) continue;
 
-							sse_mask |= sv.find("sse"sv, pos) != std::string_view::npos;
+							sse_mask |= sv.find("m128"sv, pos) != std::string_view::npos;
 							sse2_mask |= sv.find("sse2"sv, pos) != std::string_view::npos;
 							sse3_mask |= sv.find("pni"sv, pos) != std::string_view::npos;
 							ssse3_mask |= sv.find("ssse3"sv, pos) != std::string_view::npos;

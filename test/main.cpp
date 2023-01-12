@@ -88,6 +88,8 @@ static inline void test_mask() noexcept
 	}
 }
 
+#include <cmath>
+
 int main()
 {
 	test_mask<float, dpm::simd_abi::scalar>();

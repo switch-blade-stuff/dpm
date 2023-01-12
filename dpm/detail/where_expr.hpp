@@ -5,6 +5,7 @@
 #pragma once
 
 #include "../traits.hpp"
+#include "utility.hpp"
 
 #ifndef DPM_USE_IMPORT
 

@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "../fwd.hpp"
+#include "dpm/detail/x86/fwd.hpp"
 
 #if defined(DPM_ARCH_X86) && (defined(DPM_HAS_SSE) || defined(DPM_DYNAMIC_DISPATCH))
 
@@ -165,7 +165,7 @@ namespace dpm
 #ifdef DPM_HAS_SSE2
 				for (std::size_t i = 0; i < M; ++i) out[i] = _mm_and_pd(a[i], b[i]);
 #else
-				for (std::size_t i = 0; i < M; ++i) dst[i] = std::bit_cast<__m128d>(_mm_and_ps(std::bit_cast<__m128>(a[i]), std::bit_cast<__m128>(b[i])));
+				for (std::size_t i = 0; i < M; ++i) out[i] = std::bit_cast<__m128d>(_mm_and_ps(std::bit_cast<__m128>(a[i]), std::bit_cast<__m128>(b[i])));
 #endif
 			}
 			template<std::size_t M>
@@ -174,7 +174,7 @@ namespace dpm
 #ifdef DPM_HAS_SSE2
 				for (std::size_t i = 0; i < M; ++i) out[i] = _mm_or_pd(a[i], b[i]);
 #else
-				for (std::size_t i = 0; i < M; ++i) dst[i] = std::bit_cast<__m128d>(_mm_or_ps(std::bit_cast<__m128>(a[i]), std::bit_cast<__m128>(b[i])));
+				for (std::size_t i = 0; i < M; ++i) out[i] = std::bit_cast<__m128d>(_mm_or_ps(std::bit_cast<__m128>(a[i]), std::bit_cast<__m128>(b[i])));
 #endif
 			}
 			template<std::size_t M>
@@ -183,7 +183,7 @@ namespace dpm
 #ifdef DPM_HAS_SSE2
 				for (std::size_t i = 0; i < M; ++i) out[i] = _mm_xor_pd(a[i], b[i]);
 #else
-				for (std::size_t i = 0; i < M; ++i) dst[i] = std::bit_cast<__m128d>(_mm_xor_ps(std::bit_cast<__m128>(a[i]), std::bit_cast<__m128>(b[i])));
+				for (std::size_t i = 0; i < M; ++i) out[i] = std::bit_cast<__m128d>(_mm_xor_ps(std::bit_cast<__m128>(a[i]), std::bit_cast<__m128>(b[i])));
 #endif
 			}
 
@@ -203,7 +203,7 @@ namespace dpm
 				{
 					const auto va = _mm_and_ps(std::bit_cast<__m128>(a[i]), nan_mask);
 					const auto vb = _mm_and_ps(std::bit_cast<__m128>(b[i]), nan_mask);
-					fo[i] = std::bit_cast<__m128d>(_mm_cmpeq_ps(va, vb));
+					out[i] = std::bit_cast<__m128d>(_mm_cmpeq_ps(va, vb));
 				}
 #endif
 			}
@@ -224,7 +224,7 @@ namespace dpm
 				{
 					const auto va = _mm_and_ps(std::bit_cast<__m128>(a[i]), nan_mask);
 					const auto vb = _mm_and_ps(std::bit_cast<__m128>(b[i]), nan_mask);
-					fo[i] = std::bit_cast<__m128d>(_mm_cmpneq_ps(va, vb));
+					out[i] = std::bit_cast<__m128d>(_mm_cmpneq_ps(va, vb));
 				}
 #endif
 			}
@@ -372,7 +372,7 @@ namespace dpm
 					if (bits) return std::countr_zero(bits) + i * 2;
 #else
 					const auto bits = static_cast<std::uint8_t>(_mm_movemask_pd(mask[i]));
-					if (bits) return std::countr_zero((bits & 0b0110) >> 1) + i * 2;
+					if (bits) return std::countr_zero((bits & 0b0110u) >> 1) + i * 2;
 #endif
 				}
 				DPM_UNREACHABLE();
@@ -609,18 +609,18 @@ namespace dpm
 
 	DPM_DECLARE_EXT_NAMESPACE
 	{
-		template<std::size_t N, std::size_t Align> requires detail::x86_overload_sse<double, N, Align>
+		template<std::size_t N, std::size_t Align> requires detail::x86_overload_m128<double, N, Align>
 		struct native_data_type<simd_mask<double, detail::avec<N, Align>>> { using type = __m128d; };
-		template<std::size_t N, std::size_t Align> requires detail::x86_overload_sse<double, N, Align>
+		template<std::size_t N, std::size_t Align> requires detail::x86_overload_m128<double, N, Align>
 		struct native_data_size<simd_mask<double, detail::avec<N, Align>>> : std::integral_constant<std::size_t, detail::align_data<double, N, 16>()> {};
 
 		template<std::size_t N, std::size_t A>
-		[[nodiscard]] inline std::span<__m128d, detail::align_data<double, N, 16>()> to_native_data(simd_mask<double, detail::avec<N, A>> &) noexcept requires detail::x86_overload_sse<double, N, A>;
+		[[nodiscard]] inline std::span<__m128d, detail::align_data<double, N, 16>()> to_native_data(simd_mask<double, detail::avec<N, A>> &) noexcept requires detail::x86_overload_m128<double, N, A>;
 		template<std::size_t N, std::size_t A>
-		[[nodiscard]] inline std::span<const __m128d, detail::align_data<double, N, 16>()> to_native_data(const simd_mask<double, detail::avec<N, A>> &) noexcept requires detail::x86_overload_sse<double, N, A>;
+		[[nodiscard]] inline std::span<const __m128d, detail::align_data<double, N, 16>()> to_native_data(const simd_mask<double, detail::avec<N, A>> &) noexcept requires detail::x86_overload_m128<double, N, A>;
 	}
 
-	template<std::size_t N, std::size_t Align> requires detail::x86_overload_sse<double, N, Align>
+	template<std::size_t N, std::size_t Align> requires detail::x86_overload_m128<double, N, Align>
 	class simd_mask<double, detail::avec<N, Align>>
 	{
 		friend struct detail::native_access<simd_mask>;
@@ -768,7 +768,7 @@ namespace dpm
 
 	namespace detail
 	{
-		template<std::size_t N, std::size_t A> requires detail::x86_overload_sse<double, N, A>
+		template<std::size_t N, std::size_t A> requires detail::x86_overload_m128<double, N, A>
 		struct native_access<simd_mask<double, avec<N, A>>>
 		{
 			using mask_t = simd_mask<double, avec<N, A>>;
@@ -782,13 +782,13 @@ namespace dpm
 	{
 		/** Returns a span of the underlying SSE vectors for \a value. */
 		template<std::size_t N, std::size_t A>
-		[[nodiscard]] inline std::span<__m128d, detail::align_data<double, N, 16>()> to_native_data(simd_mask<double, detail::avec<N, A>> &value) noexcept requires detail::x86_overload_sse<double, N, A>
+		[[nodiscard]] inline std::span<__m128d, detail::align_data<double, N, 16>()> to_native_data(simd_mask<double, detail::avec<N, A>> &value) noexcept requires detail::x86_overload_m128<double, N, A>
 		{
 			return detail::native_access<simd_mask<double, detail::avec<N, A>>>::to_native_data(value);
 		}
 		/** Returns a constant span of the underlying SSE vectors for \a value. */
 		template<std::size_t N, std::size_t A>
-		[[nodiscard]] inline std::span<const __m128d, detail::align_data<double, N, 16>()> to_native_data(const simd_mask<double, detail::avec<N, A>> &value) noexcept requires detail::x86_overload_sse<double, N, A>
+		[[nodiscard]] inline std::span<const __m128d, detail::align_data<double, N, 16>()> to_native_data(const simd_mask<double, detail::avec<N, A>> &value) noexcept requires detail::x86_overload_m128<double, N, A>
 		{
 			return detail::native_access<simd_mask<double, detail::avec<N, A>>>::to_native_data(value);
 		}
@@ -800,7 +800,7 @@ namespace dpm
 				const simd_mask<double, detail::avec<N, A>> &a,
 				const simd_mask<double, detail::avec<N, A>> &b,
 				const simd_mask<double, detail::avec<N, A>> &m)
-		noexcept requires detail::x86_overload_sse<double, N, A>
+		noexcept requires detail::x86_overload_m128<double, N, A>
 		{
 			constexpr auto data_size = native_data_size_v<simd_mask<double, detail::avec<N, A>>>;
 
@@ -819,28 +819,28 @@ namespace dpm
 #pragma region "simd_mask reductions"
 	/** Returns `true` if all of the elements of the \a mask are `true`. Otherwise returns `false`. */
 	template<std::size_t N, std::size_t A>
-	[[nodiscard]] inline bool all_of(const simd_mask<double, detail::avec<N, A>> &mask) noexcept requires detail::x86_overload_sse<double, N, A>
+	[[nodiscard]] inline bool all_of(const simd_mask<double, detail::avec<N, A>> &mask) noexcept requires detail::x86_overload_m128<double, N, A>
 	{
 		constexpr auto data_size = ext::native_data_size_v<simd_mask<double, detail::avec<N, A>>>;
 		return detail::x86_mask_impl<double, __m128d, N>::template all_of<data_size>(ext::to_native_data(mask).data());
 	}
 	/** Returns `true` if at least one of the elements of the \a mask are `true`. Otherwise returns `false`. */
 	template<std::size_t N, std::size_t A>
-	[[nodiscard]] inline bool any_of(const simd_mask<double, detail::avec<N, A>> &mask) noexcept requires detail::x86_overload_sse<double, N, A>
+	[[nodiscard]] inline bool any_of(const simd_mask<double, detail::avec<N, A>> &mask) noexcept requires detail::x86_overload_m128<double, N, A>
 	{
 		constexpr auto data_size = ext::native_data_size_v<simd_mask<double, detail::avec<N, A>>>;
 		return detail::x86_mask_impl<double, __m128d, N>::template any_of<data_size>(ext::to_native_data(mask).data());
 	}
 	/** Returns `true` if at none of the elements of the \a mask is `true`. Otherwise returns `false`. */
 	template<std::size_t N, std::size_t A>
-	[[nodiscard]] inline bool none_of(const simd_mask<double, detail::avec<N, A>> &mask) noexcept requires detail::x86_overload_sse<double, N, A>
+	[[nodiscard]] inline bool none_of(const simd_mask<double, detail::avec<N, A>> &mask) noexcept requires detail::x86_overload_m128<double, N, A>
 	{
 		constexpr auto data_size = ext::native_data_size_v<simd_mask<double, detail::avec<N, A>>>;
 		return detail::x86_mask_impl<double, __m128d, N>::template none_of<data_size>(ext::to_native_data(mask).data());
 	}
 	/** Returns `true` if at least one of the elements of the \a mask is `true` and at least one is `false`. Otherwise returns `false`. */
 	template<std::size_t N, std::size_t A>
-	[[nodiscard]] inline bool some_of(const simd_mask<double, detail::avec<N, A>> &mask) noexcept requires detail::x86_overload_sse<double, N, A>
+	[[nodiscard]] inline bool some_of(const simd_mask<double, detail::avec<N, A>> &mask) noexcept requires detail::x86_overload_m128<double, N, A>
 	{
 		constexpr auto data_size = ext::native_data_size_v<simd_mask<double, detail::avec<N, A>>>;
 		return detail::x86_mask_impl<double, __m128d, N>::template some_of<data_size>(ext::to_native_data(mask).data());
@@ -848,21 +848,21 @@ namespace dpm
 
 	/** Returns the number of `true` elements of \a mask. */
 	template<std::size_t N, std::size_t A>
-	[[nodiscard]] inline std::size_t popcount(const simd_mask<double, detail::avec<N, A>> &mask) noexcept requires detail::x86_overload_sse<double, N, A>
+	[[nodiscard]] inline std::size_t popcount(const simd_mask<double, detail::avec<N, A>> &mask) noexcept requires detail::x86_overload_m128<double, N, A>
 	{
 		constexpr auto data_size = ext::native_data_size_v<simd_mask<double, detail::avec<N, A>>>;
 		return detail::x86_mask_impl<double, __m128d, N>::template popcount<data_size>(ext::to_native_data(mask).data());
 	}
 	/** Returns the index of the first `true` element of \a mask. */
 	template<std::size_t N, std::size_t A>
-	[[nodiscard]] inline std::size_t find_first_set(const simd_mask<double, detail::avec<N, A>> &mask) noexcept requires detail::x86_overload_sse<double, N, A>
+	[[nodiscard]] inline std::size_t find_first_set(const simd_mask<double, detail::avec<N, A>> &mask) noexcept requires detail::x86_overload_m128<double, N, A>
 	{
 		constexpr auto data_size = ext::native_data_size_v<simd_mask<double, detail::avec<N, A>>>;
 		return detail::x86_mask_impl<double, __m128d, N>::template find_first_set<data_size>(ext::to_native_data(mask).data());
 	}
 	/** Returns the index of the last `true` element of \a mask. */
 	template<std::size_t N, std::size_t A>
-	[[nodiscard]] inline std::size_t find_last_set(const simd_mask<double, detail::avec<N, A>> &mask) noexcept requires detail::x86_overload_sse<double, N, A>
+	[[nodiscard]] inline std::size_t find_last_set(const simd_mask<double, detail::avec<N, A>> &mask) noexcept requires detail::x86_overload_m128<double, N, A>
 	{
 		constexpr auto data_size = ext::native_data_size_v<simd_mask<double, detail::avec<N, A>>>;
 		return detail::x86_mask_impl<double, __m128d, N>::template find_last_set<data_size>(ext::to_native_data(mask).data());
@@ -871,18 +871,18 @@ namespace dpm
 
 	DPM_DECLARE_EXT_NAMESPACE
 	{
-		template<std::size_t N, std::size_t Align> requires detail::x86_overload_sse<double, N, Align>
+		template<std::size_t N, std::size_t Align> requires detail::x86_overload_m128<double, N, Align>
 		struct native_data_type<simd<double, detail::avec<N, Align>>> { using type = __m128d; };
-		template<std::size_t N, std::size_t Align> requires detail::x86_overload_sse<double, N, Align>
+		template<std::size_t N, std::size_t Align> requires detail::x86_overload_m128<double, N, Align>
 		struct native_data_size<simd<double, detail::avec<N, Align>>> : std::integral_constant<std::size_t, detail::align_data<double, N, 16>()> {};
 
 		template<std::size_t N, std::size_t A>
-		[[nodiscard]] inline std::span<__m128d, detail::align_data<double, N, 16>()> to_native_data(simd<double, detail::avec<N, A>> &) noexcept requires detail::x86_overload_sse<double, N, A>;
+		[[nodiscard]] inline std::span<__m128d, detail::align_data<double, N, 16>()> to_native_data(simd<double, detail::avec<N, A>> &) noexcept requires detail::x86_overload_m128<double, N, A>;
 		template<std::size_t N, std::size_t A>
-		[[nodiscard]] inline std::span<const __m128d, detail::align_data<double, N, 16>()> to_native_data(const simd<double, detail::avec<N, A>> &) noexcept requires detail::x86_overload_sse<double, N, A>;
+		[[nodiscard]] inline std::span<const __m128d, detail::align_data<double, N, 16>()> to_native_data(const simd<double, detail::avec<N, A>> &) noexcept requires detail::x86_overload_m128<double, N, A>;
 	}
 
-	template<std::size_t N, std::size_t Align> requires detail::x86_overload_sse<double, N, Align>
+	template<std::size_t N, std::size_t Align> requires detail::x86_overload_m128<double, N, Align>
 	class simd<double, detail::avec<N, Align>>
 	{
 		friend struct detail::native_access<simd>;
@@ -1107,7 +1107,7 @@ namespace dpm
 
 	namespace detail
 	{
-		template<std::size_t N, std::size_t A> requires detail::x86_overload_sse<double, N, A>
+		template<std::size_t N, std::size_t A> requires detail::x86_overload_m128<double, N, A>
 		struct native_access<simd<double, avec<N, A>>>
 		{
 			using simd_t = simd<double, avec<N, A>>;
@@ -1121,13 +1121,13 @@ namespace dpm
 	{
 		/** Returns a span of the underlying SSE vectors for \a value. */
 		template<std::size_t N, std::size_t A>
-		[[nodiscard]] inline std::span<__m128d, detail::align_data<double, N, 16>()> to_native_data(simd<double, detail::avec<N, A>> &value) noexcept requires detail::x86_overload_sse<double, N, A>
+		[[nodiscard]] inline std::span<__m128d, detail::align_data<double, N, 16>()> to_native_data(simd<double, detail::avec<N, A>> &value) noexcept requires detail::x86_overload_m128<double, N, A>
 		{
 			return detail::native_access<simd<double, detail::avec<N, A>>>::to_native_data(value);
 		}
 		/** Returns a constant span of the underlying SSE vectors for \a value. */
 		template<std::size_t N, std::size_t A>
-		[[nodiscard]] inline std::span<const __m128d, detail::align_data<double, N, 16>()> to_native_data(const simd<double, detail::avec<N, A>> &value) noexcept requires detail::x86_overload_sse<double, N, A>
+		[[nodiscard]] inline std::span<const __m128d, detail::align_data<double, N, 16>()> to_native_data(const simd<double, detail::avec<N, A>> &value) noexcept requires detail::x86_overload_m128<double, N, A>
 		{
 			return detail::native_access<simd<double, detail::avec<N, A>>>::to_native_data(value);
 		}
@@ -1139,7 +1139,7 @@ namespace dpm
 				const simd<double, detail::avec<N, A>> &a,
 				const simd<double, detail::avec<N, A>> &b,
 				const simd_mask<double, detail::avec<N, A>> &m)
-		noexcept requires detail::x86_overload_sse<double, N, A>
+		noexcept requires detail::x86_overload_m128<double, N, A>
 		{
 			constexpr auto data_size = native_data_size_v<simd<double, detail::avec<N, A>>>;
 
@@ -1162,7 +1162,7 @@ namespace dpm
 	[[nodiscard]] inline simd<double, detail::avec<N, A>> min(
 			const simd<double, detail::avec<N, A>> &a,
 			const simd<double, detail::avec<N, A>> &b)
-	noexcept requires detail::x86_overload_sse<double, N, A>
+	noexcept requires detail::x86_overload_m128<double, N, A>
 	{
 		constexpr auto data_size = ext::native_data_size_v<simd<double, detail::avec<N, A>>>;
 
@@ -1179,7 +1179,7 @@ namespace dpm
 	[[nodiscard]] inline simd<double, detail::avec<N, A>> max(
 			const simd<double, detail::avec<N, A>> &a,
 			const simd<double, detail::avec<N, A>> &b)
-	noexcept requires detail::x86_overload_sse<double, N, A>
+	noexcept requires detail::x86_overload_m128<double, N, A>
 	{
 		constexpr auto data_size = ext::native_data_size_v<simd<double, detail::avec<N, A>>>;
 
@@ -1197,7 +1197,7 @@ namespace dpm
 	[[nodiscard]] inline std::pair<simd<double, detail::avec<N, A>>, simd<double, detail::avec<N, A>>> minmax(
 			const simd<double, detail::avec<N, A>> &a,
 			const simd<double, detail::avec<N, A>> &b)
-	noexcept requires detail::x86_overload_sse<double, N, A>
+	noexcept requires detail::x86_overload_m128<double, N, A>
 	{
 		constexpr auto data_size = ext::native_data_size_v<simd<double, detail::avec<N, A>>>;
 
@@ -1217,7 +1217,7 @@ namespace dpm
 			const simd<double, detail::avec<N, A>> &value,
 			const simd<double, detail::avec<N, A>> &min,
 			const simd<double, detail::avec<N, A>> &max)
-	noexcept requires detail::x86_overload_sse<double, N, A>
+	noexcept requires detail::x86_overload_m128<double, N, A>
 	{
 		constexpr auto data_size = ext::native_data_size_v<simd<double, detail::avec<N, A>>>;
 

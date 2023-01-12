@@ -116,7 +116,7 @@ namespace dpm
 		 *
 		 * @tparam T Type of SIMD vector or mask to obtain the native data type for.
 		 *
-		 * @example On x86 platforms with SSE support, `native_data_type<simd<float, simd_abi::ext::sse<float>>>::type` is `__m128`.
+		 * @example On x86 platforms with SSE support, `native_data_type<simd<float, simd_abi::ext::m128<float>>>::type` is `__m128`.
 		 * @note This trait is well-defined only when `is_simd_v<T>` or `is_simd_mask_v<T>` evaluate to `true`. */
 		template<typename T>
 		struct native_data_type;

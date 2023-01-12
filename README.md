@@ -44,6 +44,18 @@ On architectures without SIMD intrinsic support, vectorization is emulated via s
     <td>Toggles runtime detection & dispatch of SIMD operations</td>
   </tr>
   <tr>
+    <td>DPM_HANDLE_ERRORS</td>
+    <td>-DDPM_HANDLE_ERRORS</td>
+    <td>ON</td>
+    <td>Toggles detection & reporting of math errors via <a hred="https://en.cppreference.com/w/cpp/numeric/math/math_errhandling">math_errhandling</a> (see notes)</td>
+  </tr>
+  <tr>
+    <td>DPM_PROPAGATE_NAN</td>
+    <td>-DDPM_PROPAGATE_NAN</td>
+    <td>ON</td>
+    <td>Toggles guaranteed propagation of NaN (see notes)</td>
+  </tr>
+  <tr>
     <td>DPM_NATIVE_AVX512</td>
     <td>-DDPM_NATIVE_AVX512</td>
     <td>OFF</td>
@@ -62,6 +74,8 @@ On architectures without SIMD intrinsic support, vectorization is emulated via s
     <td>Enables unit test target</td>
   </tr>
 </table>
+
+Note that the default value applies only to CMake options.
 
 ## Build & usage instructions
 
@@ -88,6 +102,7 @@ In order to use the library as a CMake link dependency, you must link to one of 
 DPM provides the following extensions to the standard API:
 
 * ABI tags
+    * `aligned_vector`
     * x86
         * `sse`
         * `avx`
@@ -111,8 +126,8 @@ DPM provides the following extensions to the standard API:
 * Other utilities
     * `cpuid`
 
-All extensions are available from the `dpm::ext` and `dpm::simd_abi::ext` namespaces. If `DPM_INLINE_EXTENSIONS` is
-defined, the `ext` namespaces are declared as inline.
+All extensions are available from the `dpm::ext` and `dpm::simd_abi::ext` namespaces. If `DPM_INLINE_EXTENSIONS` option
+is enabled, the `ext` namespaces are declared as inline.
 
 ### Dynamic dispatch
 
@@ -121,7 +136,29 @@ supported CPUs. This enables the library to support multiple tiers of hardware w
 increase binary size and add additional overhead to every dispatched operation. In order to disable dynamic dispatch,
 use the `DPM_DYNAMIC_DISPATCH` option.
 
-Note that inline functions such as operators, reductions, min/max algorithms, etc. are never dispatched.
+Note that inline functions such as operators, reductions, min/max algorithms, etc. are never dispatched. Additionally,
+dispatched functions require a minimum SIMD level to be used for ABI compatibility. For example, functions operating
+on AVX vectors require the consumer to have AVX enabled at compile-time, regardless of runtime availability.
+
+**Do not manually specify architecture options for DPM target if `DPM_DYNAMIC_DISPATCH` is enabled. Doing so may mess up
+code generation and lead to crashes.** This happens because most compilers give preference to the highest architecture
+level specified. As such, for example, if AVX is enabled from command-line arguments, all functions will be allowed to
+use AVX instructions, even if those functions are meant to be SSE2-only, causing unintended behavior in situations
+like `vaddpd` instruction being emitted for SSE2 functions when `addpd` was intended instead.
+See [this godbolt example](https://godbolt.org/#z:OYLghAFBqd5QCxAYwPYBMCmBRdBLAF1QCcAaPECAMzwBtMA7AQwFtMQByARg9KtQYEAysib0QXACx8BBAKoBnTAAUAHpwAMvAFYTStJg1DIApACYAQuYukl9ZATwDKjdAGFUtAK4sGISVykrgAyeAyYAHI%2BAEaYxBKBAA6oCoRODB7evv5JKWkCoeFRLLHxXIF2mA7pQgRMxASZPn4Btpj2jgK19QSFkTFxCbZ1DU3ZrQojvWH9JYPlAJS2qF7EyOwcJhoAguYAzGHI3lgA1CZ7bngsLGEExGEAdAjn2Fu7OwD6HyxcZgAc6BOXyYBDueGiXgImC%2BUBGwEwBAg5jMCiUZmRC0xJyY6HQEC%2BP3%2BgKYpCB31%2BAJO0QWbxMAHYrDsTsyTgB6ABUJwAkoJXJhAWFJsQvNUBCc8ApsbjEoD2ay3iyTsQEasGEDrh8cegPjKICSqTS9ozdnSACJvAkUwHA0H3CFQmEQOEIpFmMxMABuqgxWK1%2BPJROxpMtgeptIZCpZHO5vIYWAFDCFIs6aolJw9WplJzlkeZyoIqvVLE1uJ1eP1YaN4dNHCWtE4AFZeH4OFpSKhOG5rNYTgoVmtMGczHseKQCJpa0sANYgABsZgee0kfz%2BezMGg0dL%2BAS4AE5Z/pOJJeCwJBvSC22x2OLwFCANGOJ0s4LAYIgUKgWIk6HFyJQ0F%2BP7xEchjAFwDbnlgHp4OsABqeCYAA7gA8okjCcKONC0FCxB3hA0QTqQ0RhPUACeGG8MRzDEKRyHRNoVTjtwvAAWwgjIQwtDka2vBYCwoHiDxpD4Mq1Qepgd5CZgqhVJCGyjrc7SEbQ4LEGRHhYIRYKnsxSxUAYwAKPBSGoehzEyIIIhiOwUgWfIShqIRuhmPooEoN2lj6OCd6QEsqCJCmkkALSTOg5ymqYljWOuJxBchZixfxXqJaimBmLe7SMekLhxmMfiBCEMzFKUejJKkKZ5aVeQpn0xXzG0HQ1FMlUVJlooMN0DS1QMZTDD0LV9V1RU9RISx9qs6yjYeHBNhehHXicqh/LOQWzpIJwgUYJzgQ8Gi7ScEC4IQJBDiOCy8ExWiYqQM57HSDyzg25SznSu67mY4Eri59YcMepCnhBc1Cdet73o%2BPHPm%2BEBIAB370GQFAQLDQEgGBbrCZg0FwQhKFoS2mF0DheEEUJVFkRRREkTRdEMQ4FOsYwBAcVxhF8QJGxtiJWXiZJbbSbJUIU4pP1tip0RqTRGkcxd9w6TwekGUZOOmfjvD8JZojiLZ6v2So6hCbogQGEY7lRZ5Ys%2BRAfkBekwWheFkVWJYMVxQlQVJaoKVohljXOBArgDYVRQjbk5XpANZX5Aw3VzL1lTtZ1jSeM0ejxymicxyVFTNcn2TZz0mfzGN/aTVwdaNs282cIty2retwDIMg20Lglh34EQxCnWXF1PksCCYDigxW9Nf0Aw%2Bl68CDthg5dk43SAd0PU9XAvW9H0Nl9017JXwOcD3EPlxw6VA1ee/g1dSzibh2WSEAA)
+for details.
+
+### Error handling & NaN
+
+The standard specifies that floating-point math functions such as `sin`, `cos`, etc. must report math errors via the
+mechanism specified in [math_errhandling](https://en.cppreference.com/w/cpp/numeric/math/math_errhandling).
+When `DPM_HANDLE_ERRORS` option is enabled, DPM catches and reports errors as specified by the standard, however this
+does reduce efficiency of math functions due to the additional safety checks. If performance is preferred over accuracy,
+disable `DPM_HANDLE_ERRORS`.
+
+Additionally, if `DPM_PROPAGATE_NAN` option is enabled, the library guarantees that math functions will propagate any
+NaN inputs, which may be used as a form of error handling. If `DPM_PROPAGATE_NAN` is disabled, invoking math functions
+with `NaN` as input will result in undefined behavior unless otherwise specified.
 
 ### AVX512
 
