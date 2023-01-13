@@ -10,13 +10,14 @@
 
 #ifndef DPM_USE_IMPORT
 
-#include <array>
+#include <numbers>
+#include <limits>
 
 #endif
 
 namespace dpm::detail
 {
-	extern const DPM_PRIVATE std::array<double, 440> sincos_tbl_f64;
+	static const double fopi_f64 = 4.0 / std::numbers::pi_v<double>; /* 4 / Pi */
 }
 
 #endif

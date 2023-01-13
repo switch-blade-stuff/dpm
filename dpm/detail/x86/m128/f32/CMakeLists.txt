@@ -6,7 +6,7 @@ list(APPEND DPM_INTERFACE_SOURCES
 list(APPEND DPM_PRIVATE_SOURCES
         ${CMAKE_CURRENT_LIST_DIR}/sincos.cpp)
 
-# Limit allowed instruction sets.
+# Limit allowed instruction sets
 if (MSVC)
     set_source_files_properties(${CMAKE_CURRENT_LIST_DIR}/sincos.cpp PROPERTIES COMPILE_FLAGS "/arch:SSE")
 else ()

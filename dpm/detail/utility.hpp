@@ -46,9 +46,9 @@ namespace dpm::detail
 	concept unsigned_integral_of_size = std::unsigned_integral<I> && sizeof(I) == N;
 
 	template<typename T>
-	[[nodiscard]] constexpr bool test_bit(T value, int pos) noexcept { return value & static_cast<T>(1 << pos); }
+	[[nodiscard]] constexpr bool test_bit(T x, int pos) noexcept { return x & static_cast<T>(1 << pos); }
 	template<typename T>
-	constexpr void mask_bit(T &value, int pos, bool bit = true) noexcept { value &= ~static_cast<T>(!bit << pos); }
+	constexpr void mask_bit(T &x, int pos, bool bit = true) noexcept { x &= ~static_cast<T>(!bit << pos); }
 
 	template<typename T>
 	[[nodiscard]] constexpr T extend_bool(bool b) noexcept { return -static_cast<T>(b); }

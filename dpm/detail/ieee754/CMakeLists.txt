@@ -1,4 +1,4 @@
 
 list(APPEND DPM_INTERFACE_SOURCES
-        ${CMAKE_CURRENT_LIST_DIR}/const_sincos.hpp)
+        ${CMAKE_CURRENT_LIST_DIR}/const_f64.hpp)
 

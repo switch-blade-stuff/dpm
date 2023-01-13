@@ -120,16 +120,16 @@ namespace dpm
 		}
 	}
 
-	/** Returns \a value. */
-	[[nodiscard]] constexpr bool all_of(detail::bool_wrapper value) noexcept { return value; }
+	/** Returns \a x. */
+	[[nodiscard]] constexpr bool all_of(detail::bool_wrapper x) noexcept { return x; }
 	/** @copydoc any_of */
-	[[nodiscard]] constexpr bool any_of(detail::bool_wrapper value) noexcept { return value; }
-	/** Returns the negation of \a value. */
-	[[nodiscard]] constexpr bool none_of(detail::bool_wrapper value) noexcept { return !value; }
+	[[nodiscard]] constexpr bool any_of(detail::bool_wrapper x) noexcept { return x; }
+	/** Returns the negation of \a x. */
+	[[nodiscard]] constexpr bool none_of(detail::bool_wrapper x) noexcept { return !x; }
 	/** Returns `false`. */
 	[[nodiscard]] constexpr bool some_of([[maybe_unused]] detail::bool_wrapper value) noexcept { return false; }
-	/** Returns the integral representation of \a value. */
-	[[nodiscard]] constexpr std::size_t popcount(detail::bool_wrapper value) noexcept { return static_cast<std::size_t>(value); }
+	/** Returns the integral representation of \a x. */
+	[[nodiscard]] constexpr std::size_t popcount(detail::bool_wrapper x) noexcept { return static_cast<std::size_t>(x); }
 
 	/** Returns `0`. */
 	[[nodiscard]] constexpr std::size_t find_first_set([[maybe_unused]] detail::bool_wrapper value) noexcept { return 0; }
@@ -320,55 +320,55 @@ namespace dpm
 #pragma endregion
 
 #pragma region "simd_mask casts"
-	/** Converts SIMD mask \a value to it's fixed-size equivalent for value type `T`. */
+	/** Converts SIMD mask \a x to it's fixed-size equivalent for value type `T`. */
 	template<typename T, typename Abi>
-	[[nodiscard]] inline DPM_SAFE_ARRAY fixed_size_simd_mask<T, simd_size_v<T, Abi>> to_fixed_size(const simd_mask<T, Abi> &value) noexcept
+	[[nodiscard]] inline DPM_SAFE_ARRAY fixed_size_simd_mask<T, simd_size_v<T, Abi>> to_fixed_size(const simd_mask<T, Abi> &x) noexcept
 	{
 		fixed_size_simd_mask<T, simd_size_v<T, Abi>> result;
-		detail::copy_cast(value, result);
+		detail::copy_cast(x, result);
 		return result;
 	}
-	/** Converts SIMD mask \a value to it's native ABI equivalent for value type `T`. */
+	/** Converts SIMD mask \a x to it's native ABI equivalent for value type `T`. */
 	template<typename T, typename Abi>
-	[[nodiscard]] inline DPM_SAFE_ARRAY native_simd_mask<T> to_native(const simd_mask<T, Abi> &value) noexcept
+	[[nodiscard]] inline DPM_SAFE_ARRAY native_simd_mask<T> to_native(const simd_mask<T, Abi> &x) noexcept
 	{
 		native_simd_mask<T> result;
-		detail::copy_cast(value, result);
+		detail::copy_cast(x, result);
 		return result;
 	}
-	/** Converts SIMD mask \a value to it's compatible ABI equivalent for value type `T`. */
+	/** Converts SIMD mask \a x to it's compatible ABI equivalent for value type `T`. */
 	template<typename T, typename Abi>
-	[[nodiscard]] inline DPM_SAFE_ARRAY simd_mask<T> to_compatible(const simd_mask<T, Abi> &value) noexcept
+	[[nodiscard]] inline DPM_SAFE_ARRAY simd_mask<T> to_compatible(const simd_mask<T, Abi> &x) noexcept
 	{
 		simd_mask<T> result;
-		detail::copy_cast(value, result);
+		detail::copy_cast(x, result);
 		return result;
 	}
 
-	/** Returns an array of SIMD masks where every `i`th element of the `j`th mask a copy of the `i + j * V::size()`th element from \a value.
-	 * @note Size of \a value must be a multiple of `V::size()`. */
+	/** Returns an array of SIMD masks where every `i`th element of the `j`th mask a copy of the `i + j * V::size()`th element from \a x.
+	 * @note Size of \a x must be a multiple of `V::size()`. */
 	template<typename V, typename Abi, typename U = typename V::simd_type::value_type>
-	[[nodiscard]] inline DPM_SAFE_ARRAY auto split(const simd_mask<typename V::simd_type::value_type, Abi> &value) noexcept requires detail::can_split_mask<V, Abi>
+	[[nodiscard]] inline DPM_SAFE_ARRAY auto split(const simd_mask<typename V::simd_type::value_type, Abi> &x) noexcept requires detail::can_split_mask<V, Abi>
 	{
 		std::array<V, simd_size_v<U, Abi> / V::size()> result;
 		for (std::size_t j = 0; j < result.size(); ++j)
 		{
 			for (std::size_t i = 0; i < V::size(); ++i)
-				result[j][i] = value[j * V::size() + i];
+				result[j][i] = x[j * V::size() + i];
 		}
 		return result;
 	}
-	/** Returns an array of SIMD masks where every `i`th element of the `j`th mask is a copy of the `i + j * (simd_size_v<T, Abi> / N)`th element from \a value.
+	/** Returns an array of SIMD masks where every `i`th element of the `j`th mask is a copy of the `i + j * (simd_size_v<T, Abi> / N)`th element from \a x.
 	 * @note `N` must be a multiple of `simd_size_v<T, Abi>::size()`. */
 	template<std::size_t N, typename T, typename Abi>
-	[[nodiscard]] inline DPM_SAFE_ARRAY auto split_by(const simd_mask<T, Abi> &value) noexcept requires (simd_size_v<T, Abi> % N == 0)
+	[[nodiscard]] inline DPM_SAFE_ARRAY auto split_by(const simd_mask<T, Abi> &x) noexcept requires (simd_size_v<T, Abi> % N == 0)
 	{
 		constexpr auto split_size = simd_size_v<T, Abi> / N;
 		std::array<resize_simd_t<split_size, simd_mask<T, Abi>>, N> result;
 		for (std::size_t j = 0; j < N; ++j)
 		{
 			for (std::size_t i = 0; i < split_size; ++i)
-				result[j][i] = value[j * split_size + i];
+				result[j][i] = x[j * split_size + i];
 		}
 		return result;
 	}
@@ -422,14 +422,14 @@ namespace dpm
 		}
 
 		template<detail::vectorizable T>
-		[[nodiscard]] inline std::span<bool, 1> to_native_data(simd_mask<T, simd_abi::scalar> &value) noexcept;
+		[[nodiscard]] inline std::span<bool, 1> to_native_data(simd_mask<T, simd_abi::scalar> &) noexcept;
 		template<detail::vectorizable T>
-		[[nodiscard]] inline std::span<const bool, 1> to_native_data(const simd_mask<T, simd_abi::scalar> &value) noexcept;
+		[[nodiscard]] inline std::span<const bool, 1> to_native_data(const simd_mask<T, simd_abi::scalar> &) noexcept;
 
 		template<detail::vectorizable T, std::size_t N, std::size_t Align>
-		[[nodiscard]] inline std::span<T, N> to_native_data(simd_mask<T, detail::avec<N, Align>> &value) noexcept;
+		[[nodiscard]] inline std::span<T, N> to_native_data(simd_mask<T, detail::avec<N, Align>> &) noexcept;
 		template<detail::vectorizable T, std::size_t N, std::size_t Align>
-		[[nodiscard]] inline std::span<const T, N> to_native_data(const simd_mask<T, detail::avec<N, Align>> &value) noexcept;
+		[[nodiscard]] inline std::span<const T, N> to_native_data(const simd_mask<T, detail::avec<N, Align>> &) noexcept;
 	}
 
 	template<detail::vectorizable T>
@@ -561,45 +561,45 @@ namespace dpm
 		{
 			using mask_t = simd_mask<T, simd_abi::scalar>;
 
-			[[nodiscard]] static std::span<bool, 1> to_native_data(mask_t &value) noexcept { return std::span<bool, 1>{&value.m_value, &value.m_value + 1}; }
-			[[nodiscard]] static std::span<const bool, 1> to_native_data(const mask_t &value) noexcept { return std::span<const bool, 1>{&value.m_value, &value.m_value + 1}; }
+			[[nodiscard]] static std::span<bool, 1> to_native_data(mask_t &x) noexcept { return std::span<bool, 1>{&x.m_value, &x.m_value + 1}; }
+			[[nodiscard]] static std::span<const bool, 1> to_native_data(const mask_t &x) noexcept { return std::span<const bool, 1>{&x.m_value, &x.m_value + 1}; }
 		};
 		template<detail::vectorizable T, std::size_t N, std::size_t Align>
 		struct native_access<simd_mask<T, detail::avec<N, Align>>>
 		{
 			using mask_t = simd_mask<T, detail::avec<N, Align>>;
 
-			[[nodiscard]] static std::span<bool, N> to_native_data(mask_t &value) noexcept { return {value.m_data}; }
-			[[nodiscard]] static std::span<const bool, N> to_native_data(const mask_t &value) noexcept { return {value.m_data}; }
+			[[nodiscard]] static std::span<bool, N> to_native_data(mask_t &x) noexcept { return {x.m_data}; }
+			[[nodiscard]] static std::span<const bool, N> to_native_data(const mask_t &x) noexcept { return {x.m_data}; }
 		};
 	}
 
 	DPM_DECLARE_EXT_NAMESPACE
 	{
-		/** Returns a (single-element) span of the underlying boolean of \a value. */
+		/** Returns a (single-element) span of the underlying boolean of \a x. */
 		template<detail::vectorizable T>
-		[[nodiscard]] inline std::span<bool, 1> to_native_data(simd_mask<T, simd_abi::scalar> &value) noexcept
+		[[nodiscard]] inline std::span<bool, 1> to_native_data(simd_mask<T, simd_abi::scalar> &x) noexcept
 		{
-			return detail::native_access<simd_mask<T, simd_abi::scalar>>::to_native_data(value);
+			return detail::native_access<simd_mask<T, simd_abi::scalar>>::to_native_data(x);
 		}
-		/** Returns a constant (single-element) span of the underlying boolean of \a value. */
+		/** Returns a constant (single-element) span of the underlying boolean of \a x. */
 		template<detail::vectorizable T>
-		[[nodiscard]] inline std::span<const bool, 1> to_native_data(const simd_mask<T, simd_abi::scalar> &value) noexcept
+		[[nodiscard]] inline std::span<const bool, 1> to_native_data(const simd_mask<T, simd_abi::scalar> &x) noexcept
 		{
-			return detail::native_access<simd_mask<T, simd_abi::scalar>>::to_native_data(value);
+			return detail::native_access<simd_mask<T, simd_abi::scalar>>::to_native_data(x);
 		}
 
-		/** Returns a span of the underlying booleans of \a value. */
+		/** Returns a span of the underlying booleans of \a x. */
 		template<detail::vectorizable T, std::size_t N, std::size_t A>
-		[[nodiscard]] inline std::span<T, N> to_native_data(simd_mask<T, detail::avec<N, A>> &value) noexcept
+		[[nodiscard]] inline std::span<T, N> to_native_data(simd_mask<T, detail::avec<N, A>> &x) noexcept
 		{
-			return detail::native_access<simd_mask<T, detail::avec<N, A>>>::to_native_data(value);
+			return detail::native_access<simd_mask<T, detail::avec<N, A>>>::to_native_data(x);
 		}
-		/** Returns a constant span of the underlying booleans of \a value. */
+		/** Returns a constant span of the underlying booleans of \a x. */
 		template<detail::vectorizable T, std::size_t N, std::size_t A>
-		[[nodiscard]] inline std::span<const T, N> to_native_data(const simd_mask<T, detail::avec<N, A>> &value) noexcept
+		[[nodiscard]] inline std::span<const T, N> to_native_data(const simd_mask<T, detail::avec<N, A>> &x) noexcept
 		{
-			return detail::native_access<simd_mask<T, detail::avec<N, A>>>::to_native_data(value);
+			return detail::native_access<simd_mask<T, detail::avec<N, A>>>::to_native_data(x);
 		}
 	}
 
@@ -916,10 +916,10 @@ namespace dpm
 			}
 		}
 		template<std::size_t N, typename T, typename Abi, typename Op>
-		[[nodiscard]] inline DPM_SAFE_ARRAY T reduce_impl(const simd<T, Abi> &value, Op binary_op)
+		[[nodiscard]] inline DPM_SAFE_ARRAY T reduce_impl(const simd<T, Abi> &x, Op binary_op)
 		{
 			alignas(simd<T, Abi>) std::array<T, simd<T, Abi>::size()> buff;
-			value.copy_to(buff.data(), vector_aligned);
+			x.copy_to(buff.data(), vector_aligned);
 			return reduce_array(buff, binary_op);
 		}
 	}
@@ -940,16 +940,16 @@ namespace dpm
 #pragma endregion
 
 #pragma region "simd reductions"
-	/** Calculates a reduction of all elements from \a value using \a binary_op. */
+	/** Calculates a reduction of all elements from \a x using \a binary_op. */
 	template<typename T, typename Abi, typename Op = std::plus<>>
-	inline T reduce(const simd<T, Abi> &value, Op binary_op = {}) { return detail::reduce_impl<simd_size_v<T, Abi>>(value, binary_op); }
+	inline T reduce(const simd<T, Abi> &x, Op binary_op = {}) { return detail::reduce_impl<simd_size_v<T, Abi>>(x, binary_op); }
 
-	/** Finds the minimum of all elements (horizontal minimum) in \a value. */
+	/** Finds the minimum of all elements (horizontal minimum) in \a x. */
 	template<typename T, typename Abi>
-	[[nodiscard]] inline T hmin(const simd<T, Abi> &value) noexcept { return reduce(value, [](T a, T b) { return std::min(a, b); }); }
-	/** Finds the maximum of all elements (horizontal maximum) in \a value. */
+	[[nodiscard]] inline T hmin(const simd<T, Abi> &x) noexcept { return reduce(x, [](T a, T b) { return std::min(a, b); }); }
+	/** Finds the maximum of all elements (horizontal maximum) in \a x. */
 	template<typename T, typename Abi>
-	[[nodiscard]] inline T hmax(const simd<T, Abi> &value) noexcept { return reduce(value, [](T a, T b) { return std::max(a, b); }); }
+	[[nodiscard]] inline T hmax(const simd<T, Abi> &x) noexcept { return reduce(x, [](T a, T b) { return std::max(a, b); }); }
 #pragma endregion
 
 	namespace detail
@@ -978,65 +978,65 @@ namespace dpm
 	}
 
 #pragma region "simd reductions"
-	/** Implicitly converts elements of SIMD vector \a value to the `To` type, where `To` is either `typename T::value_type` or `T` if `T` is a scalar. */
+	/** Implicitly converts elements of SIMD vector \a x to the `To` type, where `To` is either `typename T::value_type` or `T` if `T` is a scalar. */
 	template<typename T, typename U, typename Abi, typename To = typename detail::deduce_cast<T>::type>
-	[[nodiscard]] inline DPM_SAFE_ARRAY auto simd_cast(const simd<U, Abi> &value) noexcept requires (std::is_convertible_v<U, To> && detail::equal_cast_size<T, U, Abi>::value)
+	[[nodiscard]] inline DPM_SAFE_ARRAY auto simd_cast(const simd<U, Abi> &x) noexcept requires (std::is_convertible_v<U, To> && detail::equal_cast_size<T, U, Abi>::value)
 	{
 		typename detail::cast_return<T, U, Abi, simd<U, Abi>::size()>::type result;
-		detail::copy_cast(value, result);
+		detail::copy_cast(x, result);
 		return result;
 	}
-	/** Explicitly converts elements of SIMD vector \a value to the `To` type, where `To` is either `typename T::value_type` or `T` if `T` is a scalar. */
+	/** Explicitly converts elements of SIMD vector \a x to the `To` type, where `To` is either `typename T::value_type` or `T` if `T` is a scalar. */
 	template<typename T, typename U, typename Abi, typename To = typename detail::deduce_cast<T>::type>
-	[[nodiscard]] inline DPM_SAFE_ARRAY auto static_simd_cast(const simd<U, Abi> &value) noexcept requires (std::convertible_to<U, To> && detail::equal_cast_size<T, U, Abi>::value)
+	[[nodiscard]] inline DPM_SAFE_ARRAY auto static_simd_cast(const simd<U, Abi> &x) noexcept requires (std::convertible_to<U, To> && detail::equal_cast_size<T, U, Abi>::value)
 	{
 		typename detail::static_cast_return<T, U, Abi, simd<U, Abi>::size()>::type result;
-		detail::copy_cast(value, result);
+		detail::copy_cast(x, result);
 		return result;
 	}
 
-	/** Converts SIMD vector \a value to it's fixed-size ABI equivalent for value type `T`. */
+	/** Converts SIMD vector \a x to it's fixed-size ABI equivalent for value type `T`. */
 	template<typename T, typename Abi>
-	[[nodiscard]] inline DPM_SAFE_ARRAY fixed_size_simd<T, simd_size_v<T, Abi>> to_fixed_size(const simd<T, Abi> &value) noexcept
+	[[nodiscard]] inline DPM_SAFE_ARRAY fixed_size_simd<T, simd_size_v<T, Abi>> to_fixed_size(const simd<T, Abi> &x) noexcept
 	{
 		fixed_size_simd<T, simd_size_v<T, Abi>> result;
-		detail::copy_cast(value, result);
+		detail::copy_cast(x, result);
 		return result;
 	}
-	/** Converts SIMD vector \a value to it's native ABI equivalent for value type `T`. */
+	/** Converts SIMD vector \a x to it's native ABI equivalent for value type `T`. */
 	template<typename T, typename Abi>
-	[[nodiscard]] inline DPM_SAFE_ARRAY native_simd<T> to_native(const simd<T, Abi> &value) noexcept
+	[[nodiscard]] inline DPM_SAFE_ARRAY native_simd<T> to_native(const simd<T, Abi> &x) noexcept
 	{
 		native_simd<T> result;
-		detail::copy_cast(value, result);
+		detail::copy_cast(x, result);
 		return result;
 	}
-	/** Converts SIMD vector \a value to it's compatible ABI equivalent for value type `T`. */
+	/** Converts SIMD vector \a x to it's compatible ABI equivalent for value type `T`. */
 	template<typename T, typename Abi>
-	[[nodiscard]] inline DPM_SAFE_ARRAY simd<T> to_compatible(const simd<T, Abi> &value) noexcept
+	[[nodiscard]] inline DPM_SAFE_ARRAY simd<T> to_compatible(const simd<T, Abi> &x) noexcept
 	{
 		simd<T> result;
-		detail::copy_cast(value, result);
+		detail::copy_cast(x, result);
 		return result;
 	}
 
-	/** Returns an array of SIMD vectors where every `i`th element of the `j`th vector is a copy of the `i + j * V::size()`th element from \a value.
-	 * @note Size of \a value must be a multiple of `V::size()`. */
+	/** Returns an array of SIMD vectors where every `i`th element of the `j`th vector is a copy of the `i + j * V::size()`th element from \a x.
+	 * @note Size of \a x must be a multiple of `V::size()`. */
 	template<typename V, typename Abi, typename U = typename V::value_type>
-	[[nodiscard]] inline DPM_SAFE_ARRAY auto split(const simd<U, Abi> &value) noexcept requires detail::can_split_simd<V, Abi>
+	[[nodiscard]] inline DPM_SAFE_ARRAY auto split(const simd<U, Abi> &x) noexcept requires detail::can_split_simd<V, Abi>
 	{
 		alignas(std::max(alignof(V), alignof(simd<U, Abi>))) std::array<U, simd<U, Abi>::size()> tmp_buff;
 		std::array<V, simd_size_v<U, Abi> / V::size()> result;
 
-		value.copy_to(tmp_buff.data(), vector_aligned);
+		x.copy_to(tmp_buff.data(), vector_aligned);
 		for (std::size_t i = 0, j = 0; i < result.size(); ++i, j += V::size())
 			result[j].copy_from(tmp_buff.data() + j, vector_aligned);
 		return result;
 	}
-	/** Returns an array of SIMD vectors where every `i`th element of the `j`th vector is a copy of the `i + j * (simd_size_v<T, Abi> / N)`th element from \a value.
+	/** Returns an array of SIMD vectors where every `i`th element of the `j`th vector is a copy of the `i + j * (simd_size_v<T, Abi> / N)`th element from \a x.
 	 * @note `N` must be a multiple of `simd_size_v<T, Abi>::size()`. */
 	template<std::size_t N, typename T, typename Abi>
-	[[nodiscard]] inline DPM_SAFE_ARRAY auto split_by(const simd<T, Abi> &value) noexcept requires (simd_size_v<T, Abi> % N == 0)
+	[[nodiscard]] inline DPM_SAFE_ARRAY auto split_by(const simd<T, Abi> &x) noexcept requires (simd_size_v<T, Abi> % N == 0)
 	{
 		constexpr auto split_size = simd_size_v<T, Abi> / N;
 		using split_type = resize_simd_t<split_size, simd<T, Abi>>;
@@ -1044,7 +1044,7 @@ namespace dpm
 		alignas(std::max(alignof(split_type), alignof(simd<T, Abi>))) std::array<T, simd<T, Abi>::size()> tmp_buff;
 		std::array<split_type, N> result;
 
-		value.copy_to(tmp_buff.data(), vector_aligned);
+		x.copy_to(tmp_buff.data(), vector_aligned);
 		for (std::size_t i = 0, j = 0; i < result.size(); ++i, j += split_size)
 			result[i].copy_from(tmp_buff.data() + j, vector_aligned);
 		return result;
@@ -1109,13 +1109,13 @@ namespace dpm
 		}
 		return result;
 	}
-	/** Clamps elements \f \a value between corresponding elements of \a ming and \a max. */
+	/** Clamps elements of \a x between corresponding elements of \a ming and \a max. */
 	template<typename T, typename Abi>
-	[[nodiscard]] inline DPM_SAFE_ARRAY simd<T, Abi> clamp(const simd<T, Abi> &value, const simd<T, Abi> &min, const simd<T, Abi> &max) noexcept
+	[[nodiscard]] inline DPM_SAFE_ARRAY simd<T, Abi> clamp(const simd<T, Abi> &x, const simd<T, Abi> &min, const simd<T, Abi> &max) noexcept
 	{
 		simd<T, Abi> result;
 		for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i)
-			result[i] = std::clamp(value[i], min[i], max[i]);
+			result[i] = std::clamp(x[i], min[i], max[i]);
 		return result;
 	}
 #pragma endregion
@@ -1142,14 +1142,14 @@ namespace dpm
 		}
 
 		template<detail::vectorizable T>
-		[[nodiscard]] inline std::span<T, 1> to_native_data(simd<T, simd_abi::scalar> &value) noexcept;
+		[[nodiscard]] inline std::span<T, 1> to_native_data(simd<T, simd_abi::scalar> &) noexcept;
 		template<detail::vectorizable T>
-		[[nodiscard]] inline std::span<const T, 1> to_native_data(const simd<T, simd_abi::scalar> &value) noexcept;
+		[[nodiscard]] inline std::span<const T, 1> to_native_data(const simd<T, simd_abi::scalar> &) noexcept;
 
 		template<detail::vectorizable T, std::size_t N, std::size_t Align>
-		[[nodiscard]] inline std::span<T, N> to_native_data(simd<T, detail::avec<N, Align>> &value) noexcept;
+		[[nodiscard]] inline std::span<T, N> to_native_data(simd<T, detail::avec<N, Align>> &) noexcept;
 		template<detail::vectorizable T, std::size_t N, std::size_t Align>
-		[[nodiscard]] inline std::span<const T, N> to_native_data(const simd<T, detail::avec<N, Align>> &value) noexcept;
+		[[nodiscard]] inline std::span<const T, N> to_native_data(const simd<T, detail::avec<N, Align>> &) noexcept;
 	}
 
 	template<detail::vectorizable T>
@@ -1338,45 +1338,45 @@ namespace dpm
 		{
 			using simd_t = simd<T, simd_abi::scalar>;
 
-			[[nodiscard]] static std::span<T, 1> to_native_data(simd_t &value) noexcept { return std::span<T, 1>{&value.m_value, &value.m_value + 1}; }
-			[[nodiscard]] static std::span<const T, 1> to_native_data(const simd_t &value) noexcept { return std::span<const T, 1>{&value.m_value, &value.m_value + 1}; }
+			[[nodiscard]] static std::span<T, 1> to_native_data(simd_t &x) noexcept { return std::span<T, 1>{&x.m_value, &x.m_value + 1}; }
+			[[nodiscard]] static std::span<const T, 1> to_native_data(const simd_t &x) noexcept { return std::span<const T, 1>{&x.m_value, &x.m_value + 1}; }
 		};
 		template<detail::vectorizable T, std::size_t N, std::size_t Align>
 		struct native_access<simd<T, detail::avec<N, Align>>>
 		{
 			using simd_t = simd<T, detail::avec<N, Align>>;
 
-			[[nodiscard]] static std::span<T, N> to_native_data(simd_t &value) noexcept { return {value.m_data}; }
-			[[nodiscard]] static std::span<const T, N> to_native_data(const simd_t &value) noexcept { return {value.m_data}; }
+			[[nodiscard]] static std::span<T, N> to_native_data(simd_t &x) noexcept { return {x.m_data}; }
+			[[nodiscard]] static std::span<const T, N> to_native_data(const simd_t &x) noexcept { return {x.m_data}; }
 		};
 	}
 
 	DPM_DECLARE_EXT_NAMESPACE
 	{
-		/** Returns a (single-element) span of the underlying scalar of \a value. */
+		/** Returns a (single-element) span of the underlying scalar of \a x. */
 		template<detail::vectorizable T>
-		[[nodiscard]] inline std::span<T, 1> to_native_data(simd<T, simd_abi::scalar> &value) noexcept
+		[[nodiscard]] inline std::span<T, 1> to_native_data(simd<T, simd_abi::scalar> &x) noexcept
 		{
-			return detail::native_access<simd<T, simd_abi::scalar>>::to_native_data(value);
+			return detail::native_access<simd<T, simd_abi::scalar>>::to_native_data(x);
 		}
-		/** Returns a constant (single-element) span of the underlying scalar of \a value. */
+		/** Returns a constant (single-element) span of the underlying scalar of \a x. */
 		template<detail::vectorizable T>
-		[[nodiscard]] inline std::span<const T, 1> to_native_data(const simd<T, simd_abi::scalar> &value) noexcept
+		[[nodiscard]] inline std::span<const T, 1> to_native_data(const simd<T, simd_abi::scalar> &x) noexcept
 		{
-			return detail::native_access<simd<T, simd_abi::scalar>>::to_native_data(value);
+			return detail::native_access<simd<T, simd_abi::scalar>>::to_native_data(x);
 		}
 
-		/** Returns a span of the underlying elements of \a value. */
+		/** Returns a span of the underlying elements of \a x. */
 		template<detail::vectorizable T, std::size_t N, std::size_t A>
-		[[nodiscard]] inline std::span<T, N> to_native_data(simd<T, detail::avec<N, A>> &value) noexcept
+		[[nodiscard]] inline std::span<T, N> to_native_data(simd<T, detail::avec<N, A>> &x) noexcept
 		{
-			return detail::native_access<simd<T, detail::avec<N, A>>>::to_native_data(value);
+			return detail::native_access<simd<T, detail::avec<N, A>>>::to_native_data(x);
 		}
-		/** Returns a constant span of the underlying elements of \a value. */
+		/** Returns a constant span of the underlying elements of \a x. */
 		template<detail::vectorizable T, std::size_t N, std::size_t A>
-		[[nodiscard]] inline std::span<const T, N> to_native_data(const simd<T, detail::avec<N, A>> &value) noexcept
+		[[nodiscard]] inline std::span<const T, N> to_native_data(const simd<T, detail::avec<N, A>> &x) noexcept
 		{
-			return detail::native_access<simd<T, detail::avec<N, A>>>::to_native_data(value);
+			return detail::native_access<simd<T, detail::avec<N, A>>>::to_native_data(x);
 		}
 	}
 }
