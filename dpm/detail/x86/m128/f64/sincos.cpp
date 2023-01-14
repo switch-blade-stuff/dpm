@@ -24,7 +24,14 @@
 
 namespace dpm::detail
 {
-	inline static std::tuple<__m128d, __m128d, __m128d> DPM_FORCEINLINE prepare_cos(__m128d x, __m128d abs_x) noexcept
+	enum sincos_op
+	{
+		OP_SINCOS = 3,
+		OP_COS = 2,
+		OP_SIN = 1,
+	};
+
+	inline static std::tuple<__m128d, __m128d, __m128d> DPM_FORCEINLINE prepare_sincos(__m128d x, __m128d abs_x) noexcept
 	{
 		/* y = |x| * 4 / Pi */
 		auto y = _mm_mul_pd(abs_x, _mm_set1_pd(fopi_f64));
@@ -47,18 +54,10 @@ namespace dpm::detail
 	}
 
 #if defined(DPM_HAS_FMA) || defined(DPM_DYNAMIC_DISPATCH)
-	/* TODO: Implement FMA versions. */
-	[[maybe_unused]] inline static std::pair<__m128d, __m128d> FMA_FUNC sincos_fma(__m128d x) noexcept
+	template<sincos_op Mask>
+	inline static std::pair<__m128d, __m128d> FMA_FUNC DPM_FORCEINLINE sincos_fma(__m128d x, __m128d abs_x, [[maybe_unused]] __m128d nan_mask, [[maybe_unused]] __m128d zero_mask) noexcept
 	{
-		return {x, x};
-	}
-	[[maybe_unused]] inline static __m128d FMA_FUNC sin_fma(__m128d x, __m128d abs_x, [[maybe_unused]] __m128d nan_mask, [[maybe_unused]] __m128d zero_mask) noexcept
-	{
-		return _mm_add_pd(x, abs_x);
-	}
-	[[maybe_unused]] inline static __m128d FMA_FUNC cos_fma(__m128d x, __m128d abs_x, [[maybe_unused]] __m128d nan_mask, [[maybe_unused]] __m128d zero_mask) noexcept
-	{
-		const auto [y, sign, p_mask] = prepare_cos(x, abs_x);
+		const auto [y, sign, p_mask] = prepare_sincos(x, abs_x);
 
 		auto z = _mm_fnmadd_pd(y, _mm_set1_pd(dp_sincos_f64[0]), x);
 		z = _mm_fnmadd_pd(y, _mm_set1_pd(dp_sincos_f64[1]), z);
@@ -75,133 +74,310 @@ namespace dpm::detail
 		p2 = _mm_fmadd_pd(zz, _mm_set1_pd(0.5), p2);                /* p2 = zz * 0.5 + p2 */
 		p2 = _mm_sub_pd(_mm_set1_pd(1.0), p2);                      /* p2 = 1.0 - p2 */
 
-		/* Select between p1 and p2 & restore sign */
-		auto p = _mm_blendv_pd(p2, p1, p_mask); /* p = p_mask ? p1 : p2 */
-		p = _mm_xor_pd(p, sign);                /* p = sign ? -p : p */
+		__m128d p_sin, p_cos;
+		if constexpr (Mask & sincos_op::OP_SIN)
+		{
+			/* Select between p1 and p2 & restore sign */
+			p_sin = _mm_blendv_pd(p1, p2, p_mask);  /* p_sin = p_mask ? p2 : p1 */
+			p_sin = _mm_xor_pd(p_sin, sign);        /* p_sin = sign ? -p_sin : p_sin */
 
-		/* Handle errors & propagate NaN. */
+			/* Handle errors & propagate NaN. */
 #ifdef DPM_PROPAGATE_NAN
-		/* p = nan_mask ? NaN : p */
-		p = _mm_blendv_pd(p, _mm_set1_pd(std::numeric_limits<double>::quiet_NaN()), nan_mask);
+			/* p_sin = nan_mask ? NaN : p_sin */
+			const auto nan = _mm_set1_pd(std::numeric_limits<double>::quiet_NaN());
+			p_sin = _mm_blendv_pd(p_sin, nan, nan_mask);
 #endif
 #ifdef DPM_HANDLE_ERRORS
-		/* p = zero_mask ? 1.0 : p */
-		p = _mm_blendv_pd(p, _mm_set1_pd(1.0), zero_mask);
+			/* p_sin = zero_mask ? x : p_sin */
+			p_sin = _mm_blendv_pd(p_sin, x, zero_mask);
 #endif
-		return p;
+		}
+		if constexpr (Mask & sincos_op::OP_COS)
+		{
+			/* Select between p1 and p2 & restore sign */
+			p_cos = _mm_or_pd(_mm_andnot_pd(p_mask, p2), _mm_and_pd(p_mask, p1));   /* p_cos = p_mask ? p1 : p2 */
+			p_cos = _mm_xor_pd(p_cos, sign);                                        /* p_cos = sign ? -p_cos : p_cos */
+
+			/* Handle errors & propagate NaN. */
+#ifdef DPM_PROPAGATE_NAN
+			/* p_sin = nan_mask ? NaN : p_sin */
+			const auto nan = _mm_set1_pd(std::numeric_limits<double>::quiet_NaN());
+			p_cos = _mm_blendv_pd(p_cos, nan, nan_mask);
+#endif
+#ifdef DPM_HANDLE_ERRORS
+			/* p_sin = zero_mask ? 1.0 : p_sin */
+			p_cos = _mm_blendv_pd(p_cos, _mm_set1_pd(1.0), zero_mask);
+#endif
+		}
+
+		return {p_sin, p_cos};
+	}
+
+	[[maybe_unused]] inline static std::pair<__m128d, __m128d> FMA_FUNC sincos_fma(__m128d x, __m128d abs_x, __m128d nan_mask, __m128d zero_mask) noexcept
+	{
+		return sincos_fma<sincos_op::OP_SINCOS>(x, abs_x, nan_mask, zero_mask);
+	}
+	[[maybe_unused]] inline static __m128d FMA_FUNC sin_fma(__m128d x, __m128d abs_x, __m128d nan_mask, __m128d zero_mask) noexcept
+	{
+		return sincos_fma<sincos_op::OP_SIN>(x, abs_x, nan_mask, zero_mask).first;
+	}
+	[[maybe_unused]] inline static __m128d FMA_FUNC cos_fma(__m128d x, __m128d abs_x, __m128d nan_mask, __m128d zero_mask) noexcept
+	{
+		return sincos_fma<sincos_op::OP_COS>(x, abs_x, nan_mask, zero_mask).second;
 	}
 #endif
 
 #if defined(DPM_HAS_SSE4_1) || defined(DPM_DYNAMIC_DISPATCH)
-	/* TODO: Implement SSE4.1 versions. */
-	[[maybe_unused]] inline static std::pair<__m128d, __m128d> SSE4_1_FUNC sincos_sse4_1(__m128d x) noexcept
+	template<sincos_op Mask>
+	inline static std::pair<__m128d, __m128d> SSE4_1_FUNC DPM_FORCEINLINE sincos_sse4_1(__m128d x, __m128d abs_x, [[maybe_unused]] __m128d nan_mask, [[maybe_unused]] __m128d zero_mask) noexcept
 	{
-		return {x, x};
-	}
-	[[maybe_unused]] inline static __m128d SSE4_1_FUNC sin_sse4_1(__m128d x, __m128d abs_x, [[maybe_unused]] __m128d nan_mask, [[maybe_unused]] __m128d zero_mask) noexcept
-	{
-		return _mm_add_pd(x, abs_x);
-	}
-	[[maybe_unused]] inline static __m128d SSE4_1_FUNC cos_sse4_1(__m128d x, __m128d abs_x, [[maybe_unused]] __m128d nan_mask, [[maybe_unused]] __m128d zero_mask) noexcept
-	{
-		const auto [y, sign, p_mask] = prepare_cos(x, abs_x);
+		const auto [y, sign, p_mask] = prepare_sincos(x, abs_x);
 
 		auto z = _mm_sub_pd(x, _mm_mul_pd(y, _mm_set1_pd(dp_sincos_f64[0]))); /* _mm_fnmadd_pd */
 		z = _mm_sub_pd(z, _mm_mul_pd(y, _mm_set1_pd(dp_sincos_f64[1])));      /* _mm_fnmadd_pd */
 		z = _mm_sub_pd(z, _mm_mul_pd(y, _mm_set1_pd(dp_sincos_f64[2])));      /* _mm_fnmadd_pd */
 		const auto zz = _mm_mul_pd(z, z);
 
-		/* p1 (0 <= a <= Pi/4) */
+		/* p1 */
 		auto p1 = x86_polevl_f64_sse(zz, std::span{sincof_f64});    /* p1 = sincof_f64(zz) */
 		p1 = _mm_add_pd(_mm_mul_pd(_mm_mul_pd(p1, zz), z), z);      /* p1 = p1 * zz * z + z */
 
-		/* p2 (Pi/4 <= a <= 0) */
+		/* p2 */
 		auto p2 = x86_polevl_f64_sse(zz, std::span{coscof_f64});    /* p2 = coscof_f64(zz) */
 		p2 = _mm_mul_pd(_mm_mul_pd(zz, p2), zz);                    /* p2 = zz * p2 * zz */
 		p2 = _mm_add_pd(_mm_mul_pd(zz, _mm_set1_pd(0.5)), p2);      /* p2 = zz * 0.5 + p2 */
 		p2 = _mm_sub_pd(_mm_set1_pd(1.0), p2);                      /* p2 = 1.0 - p2 */
 
-		/* Select between p1 and p2 & restore sign */
-		auto p = _mm_blendv_pd(p2, p1, p_mask);             /* p = p_mask ? p1 : p2 */
-		p = _mm_xor_pd(p, sign);                            /* p = sign ? -p : p */
+		__m128d p_sin, p_cos;
+		if constexpr (Mask & sincos_op::OP_SIN)
+		{
+			/* Select between p1 and p2 & restore sign */
+			p_sin = _mm_blendv_pd(p1, p2, p_mask);  /* p_sin = p_mask ? p2 : p1 */
+			p_sin = _mm_xor_pd(p_sin, sign);        /* p_sin = sign ? -p_sin : p_sin */
 
-		/* Handle errors & propagate NaN. */
+			/* Handle errors & propagate NaN. */
 #ifdef DPM_PROPAGATE_NAN
-		const auto nan = _mm_set1_pd(std::numeric_limits<double>::quiet_NaN());
-		p = _mm_blendv_pd(p, nan, nan_mask);                /* p = nan_mask ? NaN : p */
+			/* p_sin = nan_mask ? NaN : p_sin */
+			const auto nan = _mm_set1_pd(std::numeric_limits<double>::quiet_NaN());
+			p_sin = _mm_blendv_pd(p_sin, nan, nan_mask);
 #endif
 #ifdef DPM_HANDLE_ERRORS
-		p = _mm_blendv_pd(p, _mm_set1_pd(1.0), zero_mask);  /* p = zero_mask ? 1.0 : p */
+			/* p_sin = zero_mask ? x : p_sin */
+			p_sin = _mm_blendv_pd(p_sin, x, zero_mask);
 #endif
-		return p;
+		}
+		if constexpr (Mask & sincos_op::OP_COS)
+		{
+			/* Select between p1 and p2 & restore sign */
+			p_cos = _mm_or_pd(_mm_andnot_pd(p_mask, p2), _mm_and_pd(p_mask, p1));   /* p_cos = p_mask ? p1 : p2 */
+			p_cos = _mm_xor_pd(p_cos, sign);                                        /* p_cos = sign ? -p_cos : p_cos */
+
+			/* Handle errors & propagate NaN. */
+#ifdef DPM_PROPAGATE_NAN
+			/* p_sin = nan_mask ? NaN : p_sin */
+			const auto nan = _mm_set1_pd(std::numeric_limits<double>::quiet_NaN());
+			p_cos = _mm_blendv_pd(p_cos, nan, nan_mask);
+#endif
+#ifdef DPM_HANDLE_ERRORS
+			/* p_sin = zero_mask ? 1.0 : p_sin */
+			p_cos = _mm_blendv_pd(p_cos, _mm_set1_pd(1.0), zero_mask);
+#endif
+		}
+
+		return {p_sin, p_cos};
+	}
+
+	[[maybe_unused]] inline static std::pair<__m128d, __m128d> SSE4_1_FUNC sincos_sse4_1(__m128d x, __m128d abs_x, __m128d nan_mask, __m128d zero_mask) noexcept
+	{
+		return sincos_sse4_1<sincos_op::OP_SINCOS>(x, abs_x, nan_mask, zero_mask);
+	}
+	[[maybe_unused]] inline static __m128d SSE4_1_FUNC sin_sse4_1(__m128d x, __m128d abs_x, __m128d nan_mask, __m128d zero_mask) noexcept
+	{
+		return sincos_sse4_1<sincos_op::OP_SIN>(x, abs_x, nan_mask, zero_mask).first;
+	}
+	[[maybe_unused]] inline static __m128d SSE4_1_FUNC cos_sse4_1(__m128d x, __m128d abs_x, __m128d nan_mask, __m128d zero_mask) noexcept
+	{
+		return sincos_sse4_1<sincos_op::OP_COS>(x, abs_x, nan_mask, zero_mask).second;
 	}
 #endif
 
-	[[maybe_unused]] inline static std::pair<__m128d, __m128d> SSE2_FUNC sincos_sse2(__m128d x) noexcept
+	template<sincos_op Mask>
+	inline static std::pair<__m128d, __m128d> SSE2_FUNC DPM_FORCEINLINE sincos_sse2(__m128d x, __m128d abs_x, [[maybe_unused]] __m128d nan_mask, [[maybe_unused]] __m128d zero_mask) noexcept
 	{
-		return {x, x};
-	}
-	[[maybe_unused]] inline static __m128d SSE2_FUNC sin_sse2(__m128d x, __m128d abs_x, [[maybe_unused]] __m128d nan_mask, [[maybe_unused]] __m128d zero_mask) noexcept
-	{
-		return _mm_add_pd(x, abs_x);
-	}
-	[[maybe_unused]] inline static __m128d SSE2_FUNC cos_sse2(__m128d x, __m128d abs_x, [[maybe_unused]] __m128d nan_mask, [[maybe_unused]] __m128d zero_mask) noexcept
-	{
-		const auto [y, sign, p_mask] = prepare_cos(x, abs_x);
+		const auto [y, sign, p_mask] = prepare_sincos(x, abs_x);
 
 		auto z = _mm_sub_pd(x, _mm_mul_pd(y, _mm_set1_pd(dp_sincos_f64[0]))); /* _mm_fnmadd_pd */
 		z = _mm_sub_pd(z, _mm_mul_pd(y, _mm_set1_pd(dp_sincos_f64[1])));      /* _mm_fnmadd_pd */
 		z = _mm_sub_pd(z, _mm_mul_pd(y, _mm_set1_pd(dp_sincos_f64[2])));      /* _mm_fnmadd_pd */
 		const auto zz = _mm_mul_pd(z, z);
 
-		/* p1 (0 <= a <= Pi/4) */
+		/* p1 */
 		auto p1 = x86_polevl_f64_sse(zz, std::span{sincof_f64});    /* p1 = sincof_f64(zz) */
 		p1 = _mm_add_pd(_mm_mul_pd(_mm_mul_pd(p1, zz), z), z);      /* p1 = p1 * zz * z + z */
 
-		/* p2 (Pi/4 <= a <= 0) */
+		/* p2 */
 		auto p2 = x86_polevl_f64_sse(zz, std::span{coscof_f64});    /* p2 = coscof_f64(zz) */
 		p2 = _mm_mul_pd(_mm_mul_pd(zz, p2), zz);                    /* p2 = zz * p2 * zz */
 		p2 = _mm_add_pd(_mm_mul_pd(zz, _mm_set1_pd(0.5)), p2);      /* p2 = zz * 0.5 + p2 */
 		p2 = _mm_sub_pd(_mm_set1_pd(1.0), p2);                      /* p2 = 1.0 - p2 */
 
-		/* Select between p1 and p2 & restore sign */
-		auto p = _mm_or_pd(_mm_andnot_pd(p_mask, p2), _mm_and_pd(p_mask, p1));  /* p = p_mask ? p1 : p2 */
-		p = _mm_xor_pd(p, sign);                                                /* p = sign ? -p : p */
+		__m128d p_sin, p_cos;
+		if constexpr (Mask & sincos_op::OP_SIN)
+		{
+			/* Select between p1 and p2 & restore sign */
+			p_sin = _mm_or_pd(_mm_andnot_pd(p_mask, p1), _mm_and_pd(p_mask, p2));   /* p_sin = p_mask ? p2 : p1 */
+			p_sin = _mm_xor_pd(p_sin, sign);                                        /* p_sin = sign ? -p_sin : p_sin */
 
-		/* Handle errors & propagate NaN. */
+			/* Handle errors & propagate NaN. */
 #ifdef DPM_PROPAGATE_NAN
-		/* p = nan_mask ? NaN : p */
-		const auto nan = _mm_set1_pd(std::numeric_limits<double>::quiet_NaN());
-		p = _mm_or_pd(_mm_andnot_pd(nan_mask, p), _mm_and_pd(nan_mask, nan));
+			/* p_sin = nan_mask ? NaN : p_sin */
+			const auto nan = _mm_set1_pd(std::numeric_limits<double>::quiet_NaN());
+			p_sin = _mm_or_pd(_mm_andnot_pd(nan_mask, p_sin), _mm_and_pd(nan_mask, nan));
 #endif
 #ifdef DPM_HANDLE_ERRORS
-		/* p = zero_mask ? 1.0 : p */
-		p = _mm_or_pd(_mm_andnot_pd(zero_mask, p), _mm_and_pd(zero_mask, _mm_set1_pd(1.0)));
+			/* p_sin = zero_mask ? x : p_sin */
+			p_sin = _mm_or_pd(_mm_andnot_pd(zero_mask, p_sin), _mm_and_pd(zero_mask, x));
 #endif
-		return p;
+		}
+		if constexpr (Mask & sincos_op::OP_COS)
+		{
+			/* Select between p1 and p2 & restore sign */
+			p_cos = _mm_or_pd(_mm_andnot_pd(p_mask, p2), _mm_and_pd(p_mask, p1));   /* p_cos = p_mask ? p1 : p2 */
+			p_cos = _mm_xor_pd(p_cos, sign);                                        /* p_cos = sign ? -p_cos : p_cos */
+
+			/* Handle errors & propagate NaN. */
+#ifdef DPM_PROPAGATE_NAN
+			/* p_sin = nan_mask ? NaN : p_sin */
+			const auto nan = _mm_set1_pd(std::numeric_limits<double>::quiet_NaN());
+			p_cos = _mm_or_pd(_mm_andnot_pd(nan_mask, p_cos), _mm_and_pd(nan_mask, nan));
+#endif
+#ifdef DPM_HANDLE_ERRORS
+			/* p_sin = zero_mask ? 1.0 : p_sin */
+			p_cos = _mm_or_pd(_mm_andnot_pd(zero_mask, p_cos), _mm_and_pd(zero_mask, _mm_set1_pd(1.0)));
+#endif
+		}
+
+		return {p_sin, p_cos};
+	}
+
+	[[maybe_unused]] inline static std::pair<__m128d, __m128d> SSE2_FUNC sincos_sse2(__m128d x, __m128d abs_x, __m128d nan_mask, __m128d zero_mask) noexcept
+	{
+		return sincos_sse2<sincos_op::OP_SINCOS>(x, abs_x, nan_mask, zero_mask);
+	}
+	[[maybe_unused]] inline static __m128d SSE2_FUNC sin_sse2(__m128d x, __m128d abs_x, __m128d nan_mask, __m128d zero_mask) noexcept
+	{
+		return sincos_sse2<sincos_op::OP_SIN>(x, abs_x, nan_mask, zero_mask).first;
+	}
+	[[maybe_unused]] inline static __m128d SSE2_FUNC cos_sse2(__m128d x, __m128d abs_x, __m128d nan_mask, __m128d zero_mask) noexcept
+	{
+		return sincos_sse2<sincos_op::OP_COS>(x, abs_x, nan_mask, zero_mask).second;
 	}
 
 	std::pair<__m128d, __m128d> x86_sincos(__m128d x) noexcept
 	{
-		constinit static dispatcher sincos_disp = []()
+		const auto abs_x = x86_abs(x);
+
+		/* Check for infinity, NaN & errors. */
+#ifdef DPM_PROPAGATE_NAN
+		const auto nan = _mm_set1_pd(std::numeric_limits<double>::quiet_NaN());
+		auto nan_mask = x86_isnan(x);
+
+#ifdef DPM_HANDLE_ERRORS
+		const auto inf = _mm_set1_pd(std::numeric_limits<double>::infinity());
+		const auto inf_mask = _mm_cmpeq_pd(abs_x, inf);
+		nan_mask = _mm_or_pd(nan_mask, inf_mask);
+
+		if (_mm_movemask_pd(inf_mask)) [[unlikely]]
 		{
-#ifndef DPM_HAS_FMA
-			if (!cpuid::has_fma())
-			{
+			std::feraiseexcept(FE_INVALID);
+			errno = EDOM;
+		}
+#endif
+		if (_mm_movemask_pd(nan_mask) == 0b11) [[unlikely]]
+			return {nan, nan};
+#else
+		const __m128d nan_mask = {};
+#endif
+#ifdef DPM_HANDLE_ERRORS
+		const auto zero_mask = _mm_cmpeq_pd(abs_x, _mm_setzero_pd());
+		if (_mm_movemask_pd(zero_mask) == 0b11) [[unlikely]]
+			return {x, _mm_set1_pd(1.0)};
+#else
+		const __m128d zero_mask = {};
+#endif
+
+#if !defined(DPM_HAS_FMA) && defined(DPM_DYNAMIC_DISPATCH)
+		constinit static dispatcher sincos_disp = []() -> std::pair<__m128d, __m128d> (*)(__m128d, __m128d, __m128d, __m128d)
+		{
+			if (cpuid::has_fma())
+				return sincos_fma;
 #ifndef DPM_HAS_SSE4_1
-				if (!cpuid::has_sse4_1())
-					return sincos_sse2;
+			if (!cpuid::has_sse4_1())
+				return sincos_sse2;
 #endif
-				return sincos_sse4_1;
-			}
-#endif
-			return sincos_fma;
+			return sincos_sse4_1;
 		};
-		return sincos_disp(x);
+		return sincos_disp(x, abs_x, nan_mask, zero_mask);
+#elif defined(DPM_HAS_FMA)
+		return sincos_fma(x, abs_x, nan_mask, zero_mask);
+#elif defined(DPM_HAS_SSE4_1)
+		return sincos_sse4_1(x, abs_x, nan_mask, zero_mask);
+#else
+		return sincos_sse2(x, abs_x, nan_mask, zero_mask);
+#endif
 	}
 	__m128d x86_sin(__m128d x) noexcept
 	{
-		return x;
+		const auto abs_x = x86_abs(x);
+
+		/* Check for infinity, NaN & errors. */
+#ifdef DPM_PROPAGATE_NAN
+		const auto nan = _mm_set1_pd(std::numeric_limits<double>::quiet_NaN());
+		auto nan_mask = x86_isnan(x);
+
+#ifdef DPM_HANDLE_ERRORS
+		const auto inf = _mm_set1_pd(std::numeric_limits<double>::infinity());
+		const auto inf_mask = _mm_cmpeq_pd(abs_x, inf);
+		nan_mask = _mm_or_pd(nan_mask, inf_mask);
+
+		if (_mm_movemask_pd(inf_mask)) [[unlikely]]
+		{
+			std::feraiseexcept(FE_INVALID);
+			errno = EDOM;
+		}
+#endif
+		if (_mm_movemask_pd(nan_mask) == 0b11) [[unlikely]]
+			return nan;
+#else
+		const __m128d nan_mask = {};
+#endif
+#ifdef DPM_HANDLE_ERRORS
+		const auto zero_mask = _mm_cmpeq_pd(abs_x, _mm_setzero_pd());
+		if (_mm_movemask_pd(zero_mask) == 0b11) [[unlikely]]
+			return x;
+#else
+		const __m128d zero_mask = {};
+#endif
+
+#if !defined(DPM_HAS_FMA) && defined(DPM_DYNAMIC_DISPATCH)
+		constinit static dispatcher sin_disp = []()
+		{
+			if (cpuid::has_fma())
+				return sin_fma;
+#ifndef DPM_HAS_SSE4_1
+			if (!cpuid::has_sse4_1())
+				return sin_sse2;
+#endif
+			return sin_sse4_1;
+		};
+		return sin_disp(x, abs_x, nan_mask, zero_mask);
+#elif defined(DPM_HAS_FMA)
+		return sin_fma(x, abs_x, nan_mask, zero_mask);
+#elif defined(DPM_HAS_SSE4_1)
+		return sin_sse4_1(x, abs_x, nan_mask, zero_mask);
+#else
+		return sin_sse2(x, abs_x, nan_mask, zero_mask);
+#endif
 	}
 	__m128d x86_cos(__m128d x) noexcept
 	{
