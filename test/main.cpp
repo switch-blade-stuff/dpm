@@ -4,7 +4,7 @@
 
 #define DPM_DEBUG
 
-#include <dpm/type.hpp>
+#include <dpm/simd.hpp>
 
 #define TEST_ASSERT(x) assert(x)
 
@@ -208,5 +208,18 @@ int main()
 
 		TEST_ASSERT(dpm::all_of(~c == d));
 		TEST_ASSERT(dpm::all_of(!c == !!decltype(c){}));
+	}
+	{
+		dpm::simd<double, dpm::simd_abi::fixed_size<2>> a = {0.1234}, b = {12.7};
+		dpm::simd<double, dpm::simd_abi::scalar> c = {0.1234}, d = {12.7};
+
+		TEST_ASSERT(std::abs(dpm::sin(a)[0] - dpm::sin(c)[0]) < 0.0001);
+		TEST_ASSERT(std::abs(dpm::sin(a)[1] - dpm::sin(c)[0]) < 0.0001);
+		TEST_ASSERT(std::abs(dpm::sin(b)[0] - dpm::sin(d)[0]) < 0.0001);
+		TEST_ASSERT(std::abs(dpm::sin(b)[1] - dpm::sin(d)[0]) < 0.0001);
+		TEST_ASSERT(std::abs(dpm::cos(a)[0] - dpm::cos(c)[0]) < 0.0001);
+		TEST_ASSERT(std::abs(dpm::cos(a)[1] - dpm::cos(c)[0]) < 0.0001);
+		TEST_ASSERT(std::abs(dpm::cos(b)[0] - dpm::cos(d)[0]) < 0.0001);
+		TEST_ASSERT(std::abs(dpm::cos(b)[1] - dpm::cos(d)[0]) < 0.0001);
 	}
 }

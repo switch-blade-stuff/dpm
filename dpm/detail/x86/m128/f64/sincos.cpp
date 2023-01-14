@@ -78,7 +78,7 @@ namespace dpm::detail
 		if constexpr (Mask & sincos_op::OP_SIN)
 		{
 			/* Select between p1 and p2 & restore sign */
-			p_sin = _mm_blendv_pd(p1, p2, p_mask);  /* p_sin = p_mask ? p2 : p1 */
+			p_sin = _mm_blendv_pd(p2, p1, p_mask);  /* p_sin = p_mask ? p2 : p1 */
 			p_sin = _mm_xor_pd(p_sin, sign);        /* p_sin = sign ? -p_sin : p_sin */
 
 			/* Handle errors & propagate NaN. */
@@ -95,8 +95,8 @@ namespace dpm::detail
 		if constexpr (Mask & sincos_op::OP_COS)
 		{
 			/* Select between p1 and p2 & restore sign */
-			p_cos = _mm_or_pd(_mm_andnot_pd(p_mask, p2), _mm_and_pd(p_mask, p1));   /* p_cos = p_mask ? p1 : p2 */
-			p_cos = _mm_xor_pd(p_cos, sign);                                        /* p_cos = sign ? -p_cos : p_cos */
+			p_cos = _mm_blendv_pd(p1, p2, p_mask);  /* p_cos = p_mask ? p1 : p2 */
+			p_cos = _mm_xor_pd(p_cos, sign);        /* p_cos = sign ? -p_cos : p_cos */
 
 			/* Handle errors & propagate NaN. */
 #ifdef DPM_PROPAGATE_NAN

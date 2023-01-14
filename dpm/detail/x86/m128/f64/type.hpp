@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "../../fwd.hpp"
+#include "type.hpp"
 
 #if defined(DPM_ARCH_X86) && defined(DPM_HAS_SSE2)
 

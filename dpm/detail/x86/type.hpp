@@ -8,9 +8,9 @@
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wignored-attributes"
 
-#include "sse/type.hpp"
-#include "avx/type.hpp"
-#include "avx512/type.hpp"
+#include "m128/type.hpp"
+#include "m256/type.hpp"
+#include "m512/type.hpp"
 
 namespace dpm
 {
