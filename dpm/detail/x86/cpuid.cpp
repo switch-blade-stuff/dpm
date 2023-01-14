@@ -5,12 +5,6 @@
 #include "cpuid.hpp"
 
 #if defined(DPM_ARCH_X86) && defined(DPM_DYNAMIC_DISPATCH)
-#ifndef DPM_USE_IMPORT
-
-#include <string_view>
-#include <string>
-
-#endif
 
 #if defined(__linux__) || defined(__ANDROID__) || defined(__FreeBSD__)
 
@@ -31,6 +25,13 @@
 
 #include <immintrin.h>
 #include <intrin.h>
+
+#endif
+
+#ifndef DPM_USE_IMPORT
+
+#include <string_view>
+#include <string>
 
 #endif
 

@@ -95,7 +95,7 @@ namespace dpm
 			{
 				for (std::size_t i = 0; i < N; i += 2)
 				{
-					const auto bits = _mm_movemask_ps(_mm_and_ps(src[i / 2], mask[i / 2]));
+					const auto bits = _mm_movemask_pd(_mm_and_pd(src[i / 2], mask[i / 2]));
 					switch (N - i)
 					{
 						default: dst[i + 1] = bits & 0b10; [[fallthrough]];

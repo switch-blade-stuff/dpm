@@ -17,7 +17,7 @@
 
 namespace dpm::detail
 {
-	static const double sincof_f64[6] = {
+	static constexpr double sincof_f64[6] = {
 			1.58962301576546568060e-10,
 			-2.50507477628578072866e-8,
 			2.75573136213857245213e-6,
@@ -25,7 +25,7 @@ namespace dpm::detail
 			8.33333333332211858878e-3,
 			-1.66666666666666307295e-1
 	};
-	static const double coscof_f64[6] = {
+	static constexpr double coscof_f64[6] = {
 			-1.13585365213876817300e-11,
 			2.08757008419747316778e-9,
 			-2.75573141792967388112e-7,
@@ -34,8 +34,8 @@ namespace dpm::detail
 			4.16666666666665929218e-2
 	};
 
-	static const double dp_sincos_f64[3] = {7.85398125648498535156E-1, 3.77489470793079817668E-8, 2.69515142907905952645E-15};
-	static const double fopi_f64 = 4.0 / std::numbers::pi_v<double>; /* 4 / Pi */
+	static constexpr double dp_sincos_f64[3] = {7.85398125648498535156E-1, 3.77489470793079817668E-8, 2.69515142907905952645E-15};
+	static constexpr double fopi_f64 = 4.0 / std::numbers::pi_v<double>; /* 4 / Pi */
 }
 
 #endif

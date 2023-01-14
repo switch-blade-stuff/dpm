@@ -16,10 +16,9 @@
 
 #endif
 
-
 namespace dpm::detail
 {
-	[[nodiscard]] inline __m128d DPM_FORCEINLINE x86_floor_f64(__m128i x) noexcept
+	[[nodiscard]] inline __m128d DPM_FORCEINLINE x86_floor_f64(__m128d x) noexcept
 	{
 #ifdef DPM_HAS_SSE4_1
 		return _mm_floor_pd(x);

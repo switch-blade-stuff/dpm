@@ -19,8 +19,8 @@ namespace dpm
 		{
 			if (N - i == 1)
 			{
-#if defined(DPM_HAS_SSE4_1)
-				return _mm_blend_epi16(v, _mm_setzero_pd(), 0xf0);
+#ifdef DPM_HAS_SSE4_1
+				return _mm_blend_epi16(v, _mm_setzero_si128(), 0xf0);
 #else
 				const auto mask = static_cast<std::int64_t>(0xffff'ffff'ffff'ffff);
 				return _mm_and_si128(v, _mm_set_epi64x(0, mask));
@@ -34,7 +34,7 @@ namespace dpm
 		{
 			if (N - i == 1)
 			{
-#if defined(DPM_HAS_SSE4_1)
+#ifdef DPM_HAS_SSE4_1
 				const auto mask = static_cast<std::int64_t>(0xffff'ffff'ffff'ffff);
 				return _mm_blend_epi16(v, _mm_set1_epi64x(mask), 0xf0);
 #else
@@ -87,7 +87,7 @@ namespace dpm
 						default: i1 = extend_bool<std::int64_t>(src[i + 1]); [[fallthrough]];
 						case 1: i0 = extend_bool<std::int64_t>(src[i]);
 					}
-					dst[i / 2] = _mm_and_pd(_mm_set_epi64x(i1, i0), mask[i / 2]);
+					dst[i / 2] = _mm_and_si128(_mm_set_epi64x(i1, i0), mask[i / 2]);
 				}
 			}
 			template<std::size_t M, typename F>

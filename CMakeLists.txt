@@ -72,7 +72,7 @@ endif ()
 if (MSVC)
     target_compile_options(${PROJECT_NAME} PRIVATE /W3 /WX)
 else ()
-    target_compile_options(${PROJECT_NAME} PRIVATE -Wall -Wextra -Wpedantic -Werror)
+    target_compile_options(${PROJECT_NAME} PRIVATE -Wall -Wextra -Wpedantic -Werror -Wno-unknown-pragmas -Wno-ignored-attributes)
 endif ()
 
 # Unit tests

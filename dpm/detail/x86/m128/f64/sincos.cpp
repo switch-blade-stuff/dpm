@@ -18,9 +18,13 @@
 
 #endif
 
+#define FMA_FUNC DPM_SAFE_ARRAY DPM_VECTORCALL DPM_TARGET("fma")
+#define SSE4_1_FUNC DPM_SAFE_ARRAY DPM_VECTORCALL DPM_TARGET("sse4.1")
+#define SSE2_FUNC DPM_SAFE_ARRAY DPM_VECTORCALL DPM_TARGET("sse2")
+
 namespace dpm::detail
 {
-	static std::tuple<__m128d, __m128d, __m128i> DPM_FORCEINLINE prepare_cos(__m128d x, __m128d abs_x) noexcept
+	inline static std::tuple<__m128d, __m128d, __m128d> DPM_FORCEINLINE prepare_cos(__m128d x, __m128d abs_x) noexcept
 	{
 		/* y = |x| * 4 / Pi */
 		auto y = _mm_mul_pd(abs_x, _mm_set1_pd(fopi_f64));
@@ -34,30 +38,36 @@ namespace dpm::detail
 		/* Extract sign bit mask */
 		const auto flip_sign = _mm_slli_epi64(_mm_and_si128(i, _mm_set1_epi64x(4)), 61);
 		const auto sign = _mm_xor_pd(x86_masksign(x), std::bit_cast<__m128d>(flip_sign));
-		return {y, sign, i};
+
+		/* Find polynomial selection mask */
+		auto p_mask = std::bit_cast<__m128d>(_mm_and_si128(i, _mm_set1_epi64x(2)));
+		p_mask = _mm_cmpeq_pd(p_mask, _mm_setzero_pd());
+
+		return {y, sign, p_mask};
 	}
 
 #if defined(DPM_HAS_FMA) || defined(DPM_DYNAMIC_DISPATCH)
 	/* TODO: Implement FMA versions. */
-	[[maybe_unused]] static void DPM_PRIVATE DPM_VECTORCALL DPM_TARGET("fma") sincos_fma(__m128d, __m128d &, __m128d &) noexcept {}
-	[[maybe_unused]] static __m128d DPM_PRIVATE DPM_VECTORCALL DPM_TARGET("fma") sin_fma(__m128d x) noexcept { return x; }
-	[[maybe_unused]] static __m128d DPM_PRIVATE DPM_VECTORCALL DPM_TARGET("fma") cos_fma(__m128d x, __m128d abs_x, [[maybe_unused]] __m128d nan_mask, [[maybe_unused]] __m128d zero_mask) noexcept
+	[[maybe_unused]] inline static std::pair<__m128d, __m128d> FMA_FUNC sincos_fma(__m128d x) noexcept
 	{
-		auto [y, sign, i] = prepare_cos(x, abs_x);
+		return {x, x};
+	}
+	[[maybe_unused]] inline static __m128d FMA_FUNC sin_fma(__m128d x, __m128d abs_x, [[maybe_unused]] __m128d nan_mask, [[maybe_unused]] __m128d zero_mask) noexcept
+	{
+		return _mm_add_pd(x, abs_x);
+	}
+	[[maybe_unused]] inline static __m128d FMA_FUNC cos_fma(__m128d x, __m128d abs_x, [[maybe_unused]] __m128d nan_mask, [[maybe_unused]] __m128d zero_mask) noexcept
+	{
+		const auto [y, sign, p_mask] = prepare_cos(x, abs_x);
 
-		/* Calculate polynomial selection mask i & 0b10 */
-		i = _mm_and_si128(i, _mm_set1_epi64x(2));
-		i = _mm_cmpeq_epi64(i, _mm_setzero_si128());
-		const auto p_mask = std::bit_cast<__m128d>(i);
-
-		auto c = _mm_fnmadd_pd(y, _mm_set1_pd(dp_sincos_f64[0]), x);
-		c = _mm_fnmadd_pd(y, _mm_set1_pd(dp_sincos_f64[1]), c);
-		c = _mm_fnmadd_pd(y, _mm_set1_pd(dp_sincos_f64[2]), c);
-		const auto zz = _mm_mul_pd(c, c);
+		auto z = _mm_fnmadd_pd(y, _mm_set1_pd(dp_sincos_f64[0]), x);
+		z = _mm_fnmadd_pd(y, _mm_set1_pd(dp_sincos_f64[1]), z);
+		z = _mm_fnmadd_pd(y, _mm_set1_pd(dp_sincos_f64[2]), z);
+		const auto zz = _mm_mul_pd(z, z);
 
 		/* p1 (0 <= a <= Pi/4) */
 		auto p1 = x86_polevl_f64_fma(zz, std::span{sincof_f64});    /* p1 = sincof_f64(zz) */
-		p1 = _mm_fmadd_pd(_mm_mul_pd(p1, zz), c, c);                /* p1 = p1 * zz * c + c */
+		p1 = _mm_fmadd_pd(_mm_mul_pd(p1, zz), z, z);                /* p1 = p1 * zz * z + z */
 
 		/* p2 (Pi/4 <= a <= 0) */
 		auto p2 = x86_polevl_f64_fma(zz, std::span{coscof_f64});    /* p2 = coscof_f64(zz) */
@@ -84,25 +94,26 @@ namespace dpm::detail
 
 #if defined(DPM_HAS_SSE4_1) || defined(DPM_DYNAMIC_DISPATCH)
 	/* TODO: Implement SSE4.1 versions. */
-	[[maybe_unused]] static void DPM_PRIVATE DPM_VECTORCALL DPM_TARGET("sse4.1") sincos_sse4_1(__m128d, __m128d &, __m128d &) noexcept {}
-	[[maybe_unused]] static __m128d DPM_PRIVATE DPM_VECTORCALL DPM_TARGET("sse4.1") sin_sse4_1(__m128d x) noexcept { return x; }
-	[[maybe_unused]] static __m128d DPM_PRIVATE DPM_VECTORCALL DPM_TARGET("sse4.1") cos_sse4_1(__m128d x, __m128d abs_x, [[maybe_unused]] __m128d nan_mask, [[maybe_unused]] __m128d zero_mask) noexcept
+	[[maybe_unused]] inline static std::pair<__m128d, __m128d> SSE4_1_FUNC sincos_sse4_1(__m128d x) noexcept
 	{
-		auto [y, sign, i] = prepare_cos(x, abs_x);
+		return {x, x};
+	}
+	[[maybe_unused]] inline static __m128d SSE4_1_FUNC sin_sse4_1(__m128d x, __m128d abs_x, [[maybe_unused]] __m128d nan_mask, [[maybe_unused]] __m128d zero_mask) noexcept
+	{
+		return _mm_add_pd(x, abs_x);
+	}
+	[[maybe_unused]] inline static __m128d SSE4_1_FUNC cos_sse4_1(__m128d x, __m128d abs_x, [[maybe_unused]] __m128d nan_mask, [[maybe_unused]] __m128d zero_mask) noexcept
+	{
+		const auto [y, sign, p_mask] = prepare_cos(x, abs_x);
 
-		/* Calculate polynomial selection mask i & 0b10 */
-		i = _mm_and_si128(i, _mm_set1_epi64x(2));
-		i = _mm_cmpeq_epi64(i, _mm_setzero_si128());
-		const auto p_mask = std::bit_cast<__m128d>(i);
-
-		auto c = _mm_sub_pd(x, _mm_mul_pd(y, _mm_set1_pd(dp_sincos_f64[0]))); /* _mm_fnmadd_pd */
-		c = _mm_sub_pd(c, _mm_mul_pd(y, _mm_set1_pd(dp_sincos_f64[1])));      /* _mm_fnmadd_pd */
-		c = _mm_sub_pd(c, _mm_mul_pd(y, _mm_set1_pd(dp_sincos_f64[2])));      /* _mm_fnmadd_pd */
-		const auto zz = _mm_mul_pd(c, c);
+		auto z = _mm_sub_pd(x, _mm_mul_pd(y, _mm_set1_pd(dp_sincos_f64[0]))); /* _mm_fnmadd_pd */
+		z = _mm_sub_pd(z, _mm_mul_pd(y, _mm_set1_pd(dp_sincos_f64[1])));      /* _mm_fnmadd_pd */
+		z = _mm_sub_pd(z, _mm_mul_pd(y, _mm_set1_pd(dp_sincos_f64[2])));      /* _mm_fnmadd_pd */
+		const auto zz = _mm_mul_pd(z, z);
 
 		/* p1 (0 <= a <= Pi/4) */
 		auto p1 = x86_polevl_f64_sse(zz, std::span{sincof_f64});    /* p1 = sincof_f64(zz) */
-		p1 = _mm_add_pd(_mm_mul_pd(_mm_mul_pd(p1, zz), c), c);      /* p1 = p1 * zz * c + c */
+		p1 = _mm_add_pd(_mm_mul_pd(_mm_mul_pd(p1, zz), z), z);      /* p1 = p1 * zz * z + z */
 
 		/* p2 (Pi/4 <= a <= 0) */
 		auto p2 = x86_polevl_f64_sse(zz, std::span{coscof_f64});    /* p2 = coscof_f64(zz) */
@@ -126,36 +137,26 @@ namespace dpm::detail
 	}
 #endif
 
-	/* TODO: Implement SSE2 versions. */
-	[[maybe_unused]] static void DPM_PRIVATE DPM_VECTORCALL DPM_TARGET("sse2") sincos_sse2(__m128d, __m128d &, __m128d &) noexcept
+	[[maybe_unused]] inline static std::pair<__m128d, __m128d> SSE2_FUNC sincos_sse2(__m128d x) noexcept
 	{
+		return {x, x};
 	}
-	[[maybe_unused]] static __m128d DPM_PRIVATE DPM_VECTORCALL DPM_TARGET("sse2") sin_sse2(__m128d x) noexcept
+	[[maybe_unused]] inline static __m128d SSE2_FUNC sin_sse2(__m128d x, __m128d abs_x, [[maybe_unused]] __m128d nan_mask, [[maybe_unused]] __m128d zero_mask) noexcept
 	{
-		return _mm_add_pd(x, x);
+		return _mm_add_pd(x, abs_x);
 	}
-	[[maybe_unused]] static __m128d DPM_PRIVATE DPM_VECTORCALL DPM_TARGET("sse2") cos_sse2(__m128d x, __m128d abs_x, [[maybe_unused]] __m128d nan_mask, [[maybe_unused]] __m128d zero_mask) noexcept
+	[[maybe_unused]] inline static __m128d SSE2_FUNC cos_sse2(__m128d x, __m128d abs_x, [[maybe_unused]] __m128d nan_mask, [[maybe_unused]] __m128d zero_mask) noexcept
 	{
-		auto [y, sign, i] = prepare_cos(x, abs_x);
+		const auto [y, sign, p_mask] = prepare_cos(x, abs_x);
 
-		/* Calculate polynomial selection mask i & 0b10 */
-		i = _mm_and_si128(i, _mm_set1_epi64x(2));
-#ifndef SEK_USE_SSE4_1
-		i = _mm_or_si128(i, _mm_slli_epi64(i, 32)); /* c |= c << 32 */
-		i = _mm_cmpeq_epi32(i, _mm_setzero_si128());
-#else
-		i = _mm_cmpeq_epi64(i, _mm_setzero_si128());
-#endif
-		const auto p_mask = std::bit_cast<__m128d>(i);
-
-		auto c = _mm_sub_pd(x, _mm_mul_pd(y, _mm_set1_pd(dp_sincos_f64[0]))); /* _mm_fnmadd_pd */
-		c = _mm_sub_pd(c, _mm_mul_pd(y, _mm_set1_pd(dp_sincos_f64[1])));      /* _mm_fnmadd_pd */
-		c = _mm_sub_pd(c, _mm_mul_pd(y, _mm_set1_pd(dp_sincos_f64[2])));      /* _mm_fnmadd_pd */
-		const auto zz = _mm_mul_pd(c, c);
+		auto z = _mm_sub_pd(x, _mm_mul_pd(y, _mm_set1_pd(dp_sincos_f64[0]))); /* _mm_fnmadd_pd */
+		z = _mm_sub_pd(z, _mm_mul_pd(y, _mm_set1_pd(dp_sincos_f64[1])));      /* _mm_fnmadd_pd */
+		z = _mm_sub_pd(z, _mm_mul_pd(y, _mm_set1_pd(dp_sincos_f64[2])));      /* _mm_fnmadd_pd */
+		const auto zz = _mm_mul_pd(z, z);
 
 		/* p1 (0 <= a <= Pi/4) */
 		auto p1 = x86_polevl_f64_sse(zz, std::span{sincof_f64});    /* p1 = sincof_f64(zz) */
-		p1 = _mm_add_pd(_mm_mul_pd(_mm_mul_pd(p1, zz), c), c);      /* p1 = p1 * zz * c + c */
+		p1 = _mm_add_pd(_mm_mul_pd(_mm_mul_pd(p1, zz), z), z);      /* p1 = p1 * zz * z + z */
 
 		/* p2 (Pi/4 <= a <= 0) */
 		auto p2 = x86_polevl_f64_sse(zz, std::span{coscof_f64});    /* p2 = coscof_f64(zz) */
@@ -164,8 +165,8 @@ namespace dpm::detail
 		p2 = _mm_sub_pd(_mm_set1_pd(1.0), p2);                      /* p2 = 1.0 - p2 */
 
 		/* Select between p1 and p2 & restore sign */
-		auto p = _mm_or_si128(_mm_andnot_si128(p_mask, p2), _mm_and_si128(p_mask, p1)); /* p = p_mask ? p1 : p2 */
-		p = _mm_xor_pd(p, sign);                                                        /* p = sign ? -p : p */
+		auto p = _mm_or_pd(_mm_andnot_pd(p_mask, p2), _mm_and_pd(p_mask, p1));  /* p = p_mask ? p1 : p2 */
+		p = _mm_xor_pd(p, sign);                                                /* p = sign ? -p : p */
 
 		/* Handle errors & propagate NaN. */
 #ifdef DPM_PROPAGATE_NAN
@@ -180,7 +181,7 @@ namespace dpm::detail
 		return p;
 	}
 
-	void x86_sincos(__m128d x, __m128d &sin, __m128d &cos) noexcept
+	std::pair<__m128d, __m128d> x86_sincos(__m128d x) noexcept
 	{
 		constinit static dispatcher sincos_disp = []()
 		{
@@ -196,25 +197,11 @@ namespace dpm::detail
 #endif
 			return sincos_fma;
 		};
-		sincos_disp(x, sin, cos);
+		return sincos_disp(x);
 	}
 	__m128d x86_sin(__m128d x) noexcept
 	{
-		constinit static dispatcher sin_disp = []()
-		{
-#ifndef DPM_HAS_FMA
-			if (!cpuid::has_fma())
-			{
-#ifndef DPM_HAS_SSE4_1
-				if (!cpuid::has_sse4_1())
-					return sin_sse2;
-#endif
-				return sin_sse4_1;
-			}
-#endif
-			return sin_fma;
-		};
-		return sin_disp(x);
+		return x;
 	}
 	__m128d x86_cos(__m128d x) noexcept
 	{
@@ -228,6 +215,8 @@ namespace dpm::detail
 #ifdef DPM_HANDLE_ERRORS
 		const auto inf = _mm_set1_pd(std::numeric_limits<double>::infinity());
 		const auto inf_mask = _mm_cmpeq_pd(abs_x, inf);
+		nan_mask = _mm_or_pd(nan_mask, inf_mask);
+
 		if (_mm_movemask_pd(inf_mask)) [[unlikely]]
 		{
 			std::feraiseexcept(FE_INVALID);

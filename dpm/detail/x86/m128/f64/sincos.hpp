@@ -12,7 +12,7 @@
 
 namespace dpm::detail
 {
-	void DPM_PUBLIC DPM_PURE DPM_VECTORCALL DPM_TARGET("sse2") x86_sincos(__m128d x, __m128d &sin, __m128d &cos) noexcept;
+	[[nodiscard]] std::pair<__m128d, __m128d> DPM_PUBLIC DPM_PURE DPM_VECTORCALL DPM_TARGET("sse2") x86_sincos(__m128d x) noexcept;
 	[[nodiscard]] __m128d DPM_PUBLIC DPM_PURE DPM_VECTORCALL DPM_TARGET("sse2") x86_sin(__m128d x) noexcept;
 	[[nodiscard]] __m128d DPM_PUBLIC DPM_PURE DPM_VECTORCALL DPM_TARGET("sse2") x86_cos(__m128d x) noexcept;
 }
