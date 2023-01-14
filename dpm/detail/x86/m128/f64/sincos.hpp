@@ -40,13 +40,13 @@ namespace dpm
 	DPM_DECLARE_EXT_NAMESPACE
 	{
 		template<std::size_t N, std::size_t A>
-		[[nodiscard]] inline DPM_SAFE_ARRAY void sincos(const simd<double, detail::avec<N, A>> &x, simd<double, detail::avec<N, A>> &sin, simd<double, detail::avec<N, A>> &cos) noexcept requires detail::x86_overload_m128<double, N, A>
+		[[nodiscard]] inline DPM_SAFE_ARRAY void sincos(const simd<double, detail::avec<N, A>> &x, simd<double, detail::avec<N, A>> &out_sin, simd<double, detail::avec<N, A>> &out_cos) noexcept requires detail::x86_overload_m128<double, N, A>
 		{
 			for (std::size_t i = 0; i < ext::native_data_size_v<simd<double, detail::avec<N, A>>>; ++i)
 			{
-				const auto sincos = detail::x86_sincos(ext::to_native_data(x)[i]);
-				ext::to_native_data(sin)[i] = sincos.first;
-				ext::to_native_data(cos)[i] = sincos.second;
+				const auto [sin, cos] = detail::x86_sincos(ext::to_native_data(x)[i]);
+				ext::to_native_data(out_sin)[i] = sin;
+				ext::to_native_data(out_cos)[i] = cos;
 			}
 		}
 	}
