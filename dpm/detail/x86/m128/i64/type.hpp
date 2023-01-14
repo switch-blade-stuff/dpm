@@ -8,7 +8,7 @@
 
 #if defined(DPM_ARCH_X86) && defined(DPM_HAS_SSE2)
 
-#include "utility.hpp"
+#include "../f64/utility.hpp"
 
 namespace dpm
 {
@@ -392,7 +392,6 @@ namespace dpm
 								_mm_maskmoveu_si128(std::bit_cast<__m128i>(x86_cvt_u64_f64(src[i / 2])), mi, reinterpret_cast<char *>(dst + i));
 						}
 					else
-#endif
 						for (std::size_t i = 0; i < N; ++i) if (data_at<std::int64_t>(mask, i)) dst[i] = static_cast<U>(data_at<I>(src, i));
 				}
 			}

@@ -446,7 +446,7 @@ namespace dpm
 			template<std::size_t M>
 			static DPM_SAFE_ARRAY void negate(__m128 *dst, const __m128 *src) noexcept
 			{
-				const auto mask = _mm_set1_ps(std::bit_cast<float>(0x8000'0000));
+				const auto mask = _mm_set1_ps(-0.0f);
 				for (std::size_t i = 0; i < M; ++i) dst[i] = _mm_xor_ps(src[i], mask);
 			}
 

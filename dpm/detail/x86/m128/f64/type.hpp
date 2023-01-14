@@ -351,7 +351,7 @@ namespace dpm
 						const auto mi = std::bit_cast<__m128i>(x86_maskzero_vector_f64<N>(mask[i / 2], i));
 						dst[i / 2] = _mm_maskload_pd(src + i, mi);
 					}
-				else if constexpr signed_integral_of_size<U, 8> && aligned_tag<F, alignof(__m128d)>)
+				else if constexpr (signed_integral_of_size<U, 8> && aligned_tag<F, alignof(__m128d)>)
 					for (std::size_t i = 0; i < N; i += 2)
 					{
 						const auto mi = std::bit_cast<__m128i>(x86_maskzero_vector_f64<N>(mask[i / 2], i));
@@ -432,7 +432,7 @@ namespace dpm
 			template<std::size_t M>
 			static DPM_SAFE_ARRAY void negate(__m128d *dst, const __m128d *src) noexcept
 			{
-				const auto mask = _mm_set1_pd(std::bit_cast<double>(0x8000'0000'0000'0000));
+				const auto mask = _mm_set1_pd(-0.0);
 				for (std::size_t i = 0; i < M; ++i) dst[i] = _mm_xor_pd(src[i], mask);
 			}
 
