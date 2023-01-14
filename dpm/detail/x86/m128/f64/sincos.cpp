@@ -287,7 +287,7 @@ namespace dpm::detail
 #endif
 
 #if !defined(DPM_HAS_FMA) && defined(DPM_DYNAMIC_DISPATCH)
-		constinit static dispatcher sincos_disp = []()
+		constinit static dispatcher sincos_disp = []() -> std::pair<__m128d, __m128d> (*)(__m128d, __m128d, __m128d, __m128d)
 		{
 			if (cpuid::has_fma())
 				return sincos_fma<Mask>;
