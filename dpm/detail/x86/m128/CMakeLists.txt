@@ -8,6 +8,4 @@ include(${CMAKE_CURRENT_LIST_DIR}/f64/CMakeLists.txt)
 
 list(APPEND DPM_INTERFACE_SOURCES
         ${CMAKE_CURRENT_LIST_DIR}/type.hpp
-        ${CMAKE_CURRENT_LIST_DIR}/class.hpp
-        ${CMAKE_CURRENT_LIST_DIR}/sign.hpp
         ${CMAKE_CURRENT_LIST_DIR}/math.hpp)

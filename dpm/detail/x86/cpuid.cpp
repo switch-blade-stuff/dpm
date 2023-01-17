@@ -42,16 +42,16 @@ namespace dpm
 		using cpuid_regs = std::uint32_t[4];
 
 #if defined(_MSC_VER) || defined(__CYGWIN__)
-		static DPM_FORCEINLINE void platform_cpuid(std::uint32_t leaf, cpuid_regs &regs) noexcept
+		static void DPM_FORCEINLINE platform_cpuid(std::uint32_t leaf, cpuid_regs &regs) noexcept
 		{
 			__cpuid(reinterpret_cast<int *>(regs), static_cast<int>(leaf));
 		}
-		static DPM_FORCEINLINE std::uint32_t platrofm_xcr0() noexcept
+		static std::uint32_t DPM_FORCEINLINE platrofm_xcr0() noexcept
 		{
 			return static_cast<std::uint32_t>(_xgetbv(0));
 		}
 #elif defined(__GNUC__) || defined(__clang__)
-		inline static DPM_FORCEINLINE void platform_cpuid(std::uint32_t leaf, cpuid_regs &regs) noexcept
+		inline static void DPM_FORCEINLINE platform_cpuid(std::uint32_t leaf, cpuid_regs &regs) noexcept
 		{
 			__asm("xchgq  %%rbx,%q1\n"
 			      "\tcpuid\n"
@@ -59,7 +59,7 @@ namespace dpm
 					: "=a"(regs[0]), "=r" (regs[1]), "=c"(regs[2]), "=d"(regs[3])
 					: "0"(leaf));
 		}
-		inline static DPM_FORCEINLINE std::uint32_t platrofm_xcr0() noexcept
+		inline static std::uint32_t DPM_FORCEINLINE platrofm_xcr0() noexcept
 		{
 			uint32_t eax, edx;
 			__asm(".byte 0x0F, 0x01, 0xd0" : "=a"(eax), "=d"(edx) : "c"(0));

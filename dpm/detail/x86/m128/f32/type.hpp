@@ -6,7 +6,7 @@
 
 #include "../../fwd.hpp"
 
-#if defined(DPM_ARCH_X86) && (defined(DPM_HAS_SSE) || defined(DPM_DYNAMIC_DISPATCH))
+#if defined(DPM_ARCH_X86) && defined(DPM_HAS_SSE)
 
 namespace dpm
 {
@@ -51,7 +51,7 @@ namespace dpm
 		struct x86_mask_impl<float, __m128, N>
 		{
 			template<std::size_t M, typename F>
-			static DPM_SAFE_ARRAY void copy_from(const bool *src, __m128 *dst, F) noexcept
+			static void DPM_SAFE_INLINE copy_from(const bool *src, __m128 *dst, F) noexcept
 			{
 				for (std::size_t i = 0; i < N; i += 4)
 				{
@@ -67,7 +67,7 @@ namespace dpm
 				}
 			}
 			template<std::size_t M, typename F>
-			static DPM_SAFE_ARRAY void copy_to(bool *dst, const __m128 *src, F) noexcept
+			static void DPM_SAFE_INLINE copy_to(bool *dst, const __m128 *src, F) noexcept
 			{
 				for (std::size_t i = 0; i < N; i += 4)
 					switch (const auto bits = _mm_movemask_ps(src[i / 4]); N - i)
@@ -80,7 +80,7 @@ namespace dpm
 			}
 
 			template<std::size_t M, typename F>
-			static DPM_SAFE_ARRAY void copy_from(const bool *src, __m128 *dst, const __m128 *mask, F) noexcept
+			static void DPM_SAFE_INLINE copy_from(const bool *src, __m128 *dst, const __m128 *mask, F) noexcept
 			{
 				for (std::size_t i = 0; i < N; i += 4)
 				{
@@ -96,7 +96,7 @@ namespace dpm
 				}
 			}
 			template<std::size_t M, typename F>
-			static DPM_SAFE_ARRAY void copy_to(bool *dst, const __m128 *src, const __m128 *mask, F) noexcept
+			static void DPM_SAFE_INLINE copy_to(bool *dst, const __m128 *src, const __m128 *mask, F) noexcept
 			{
 				for (std::size_t i = 0; i < N; i += 4)
 				{
@@ -112,30 +112,30 @@ namespace dpm
 			}
 
 			template<std::size_t M>
-			static DPM_SAFE_ARRAY void invert(__m128 *dst, const __m128 *src) noexcept
+			static void DPM_SAFE_INLINE invert(__m128 *dst, const __m128 *src) noexcept
 			{
 				const auto mask = _mm_set1_ps(std::bit_cast<float>(0xffff'ffff));
 				for (std::size_t i = 0; i < M; ++i) dst[i] = _mm_xor_ps(src[i], mask);
 			}
 
 			template<std::size_t M>
-			static DPM_SAFE_ARRAY void bit_and(__m128 *out, const __m128 *a, const __m128 *b) noexcept
+			static void DPM_SAFE_INLINE bit_and(__m128 *out, const __m128 *a, const __m128 *b) noexcept
 			{
 				for (std::size_t i = 0; i < M; ++i) out[i] = _mm_and_ps(a[i], b[i]);
 			}
 			template<std::size_t M>
-			static DPM_SAFE_ARRAY void bit_or(__m128 *out, const __m128 *a, const __m128 *b) noexcept
+			static void DPM_SAFE_INLINE bit_or(__m128 *out, const __m128 *a, const __m128 *b) noexcept
 			{
 				for (std::size_t i = 0; i < M; ++i) out[i] = _mm_or_ps(a[i], b[i]);
 			}
 			template<std::size_t M>
-			static DPM_SAFE_ARRAY void bit_xor(__m128 *out, const __m128 *a, const __m128 *b) noexcept
+			static void DPM_SAFE_INLINE bit_xor(__m128 *out, const __m128 *a, const __m128 *b) noexcept
 			{
 				for (std::size_t i = 0; i < M; ++i) out[i] = _mm_xor_ps(a[i], b[i]);
 			}
 
 			template<std::size_t M>
-			static DPM_SAFE_ARRAY void cmp_eq(__m128 *out, const __m128 *a, const __m128 *b) noexcept
+			static void DPM_SAFE_INLINE cmp_eq(__m128 *out, const __m128 *a, const __m128 *b) noexcept
 			{
 #ifdef DPM_HAS_SSE2
 				for (std::size_t i = 0; i < M; ++i)
@@ -155,7 +155,7 @@ namespace dpm
 #endif
 			}
 			template<std::size_t M>
-			static DPM_SAFE_ARRAY void cmp_ne(__m128 *out, const __m128 *a, const __m128 *b) noexcept
+			static void DPM_SAFE_INLINE cmp_ne(__m128 *out, const __m128 *a, const __m128 *b) noexcept
 			{
 #ifdef DPM_HAS_SSE2
 				const auto inv_mask = _mm_set1_ps(std::bit_cast<float>(0xffff'ffff));
@@ -289,7 +289,7 @@ namespace dpm
 
 #ifdef DPM_HAS_SSE4_1
 			template<std::size_t M>
-			static DPM_SAFE_ARRAY void blend(__m128 *out, const __m128 *a, const __m128 *b, const __m128 *m) noexcept
+			static void DPM_SAFE_INLINE blend(__m128 *out, const __m128 *a, const __m128 *b, const __m128 *m) noexcept
 			{
 				for (std::size_t i = 0; i < M; ++i) out[i] = _mm_blendv_ps(a[i], b[i], m[i]);
 			}
@@ -309,7 +309,7 @@ namespace dpm
 			static std::add_const_t<U> &data_at(const __m128 *data, std::size_t i) noexcept { return reinterpret_cast<std::add_const_t<U> *>(data)[i]; }
 
 			template<std::size_t M, typename U, typename F>
-			static DPM_SAFE_ARRAY void copy_from(const U *src, __m128 *dst, F) noexcept
+			static void DPM_SAFE_INLINE copy_from(const U *src, __m128 *dst, F) noexcept
 			{
 				if constexpr (std::same_as<U, float> && aligned_tag<F, alignof(__m128)>)
 				{
@@ -341,7 +341,7 @@ namespace dpm
 					for (std::size_t i = 0; i < N; ++i) data_at<float>(dst, i) = static_cast<float>(src[i]);
 			}
 			template<std::size_t M, typename U, typename F>
-			static DPM_SAFE_ARRAY void copy_to(U *dst, const __m128 *src, F) noexcept
+			static void DPM_SAFE_INLINE copy_to(U *dst, const __m128 *src, F) noexcept
 			{
 				if constexpr (std::same_as<U, float> && aligned_tag<F, alignof(__m128)>)
 				{
@@ -374,7 +374,7 @@ namespace dpm
 			}
 
 			template<std::size_t M, typename U, typename F>
-			static DPM_SAFE_ARRAY void copy_from(const U *src, __m128 *dst, const __m128 *mask, F) noexcept
+			static void DPM_SAFE_INLINE copy_from(const U *src, __m128 *dst, const __m128 *mask, F) noexcept
 			{
 #ifdef DPM_HAS_AVX
 				if constexpr (std::same_as<U, float> && aligned_tag<F, alignof(__m128)>)
@@ -396,7 +396,7 @@ namespace dpm
 					for (std::size_t i = 0; i < N; ++i) if (data_at<std::int32_t>(mask, i)) data_at<float>(dst, i) = src[i];
 			}
 			template<std::size_t M, typename U, typename F>
-			static DPM_SAFE_ARRAY void copy_to(U *dst, const __m128 *src, const __m128 *mask, F) noexcept
+			static void DPM_SAFE_INLINE copy_to(U *dst, const __m128 *src, const __m128 *mask, F) noexcept
 			{
 #ifdef DPM_HAS_AVX
 				if constexpr (std::same_as<U, float> && aligned_tag<F, alignof(__m128)>)
@@ -431,90 +431,90 @@ namespace dpm
 			}
 
 			template<std::size_t M>
-			static DPM_SAFE_ARRAY void inc(__m128 *data) noexcept
+			static void DPM_SAFE_INLINE inc(__m128 *data) noexcept
 			{
 				const auto one = _mm_set1_ps(1.0f);
 				for (std::size_t i = 0; i < M; ++i) data[i] = _mm_add_ps(data[i], one);
 			}
 			template<std::size_t M>
-			static DPM_SAFE_ARRAY void dec(__m128 *data) noexcept
+			static void DPM_SAFE_INLINE dec(__m128 *data) noexcept
 			{
 				const auto one = _mm_set1_ps(1.0f);
 				for (std::size_t i = 0; i < M; ++i) data[i] = _mm_sub_ps(data[i], one);
 			}
 
 			template<std::size_t M>
-			static DPM_SAFE_ARRAY void negate(__m128 *dst, const __m128 *src) noexcept
+			static void DPM_SAFE_INLINE negate(__m128 *dst, const __m128 *src) noexcept
 			{
 				const auto mask = _mm_set1_ps(-0.0f);
 				for (std::size_t i = 0; i < M; ++i) dst[i] = _mm_xor_ps(src[i], mask);
 			}
 
 			template<std::size_t M>
-			static DPM_SAFE_ARRAY void add(__m128 *out, const __m128 *a, const __m128 *b) noexcept
+			static void DPM_SAFE_INLINE add(__m128 *out, const __m128 *a, const __m128 *b) noexcept
 			{
 				for (std::size_t i = 0; i < M; ++i) out[i] = _mm_add_ps(a[i], b[i]);
 			}
 			template<std::size_t M>
-			static DPM_SAFE_ARRAY void sub(__m128 *out, const __m128 *a, const __m128 *b) noexcept
+			static void DPM_SAFE_INLINE sub(__m128 *out, const __m128 *a, const __m128 *b) noexcept
 			{
 				for (std::size_t i = 0; i < M; ++i) out[i] = _mm_sub_ps(a[i], b[i]);
 			}
 
 			template<std::size_t M>
-			static DPM_SAFE_ARRAY void mul(__m128 *out, const __m128 *a, const __m128 *b) noexcept
+			static void DPM_SAFE_INLINE mul(__m128 *out, const __m128 *a, const __m128 *b) noexcept
 			{
 				for (std::size_t i = 0; i < M; ++i) out[i] = _mm_mul_ps(a[i], b[i]);
 			}
 			template<std::size_t M>
-			static DPM_SAFE_ARRAY void div(__m128 *out, const __m128 *a, const __m128 *b) noexcept
+			static void DPM_SAFE_INLINE div(__m128 *out, const __m128 *a, const __m128 *b) noexcept
 			{
 				for (std::size_t i = 0; i < M; ++i) out[i] = _mm_div_ps(a[i], b[i]);
 			}
 
 			template<std::size_t M>
-			static DPM_SAFE_ARRAY void cmp_eq(__m128 *out, const __m128 *a, const __m128 *b) noexcept
+			static void DPM_SAFE_INLINE cmp_eq(__m128 *out, const __m128 *a, const __m128 *b) noexcept
 			{
 				for (std::size_t i = 0; i < M; ++i) out[i] = _mm_cmpeq_ps(a[i], b[i]);
 			}
 			template<std::size_t M>
-			static DPM_SAFE_ARRAY void cmp_le(__m128 *out, const __m128 *a, const __m128 *b) noexcept
+			static void DPM_SAFE_INLINE cmp_le(__m128 *out, const __m128 *a, const __m128 *b) noexcept
 			{
 				for (std::size_t i = 0; i < M; ++i) out[i] = _mm_cmple_ps(a[i], b[i]);
 			}
 			template<std::size_t M>
-			static DPM_SAFE_ARRAY void cmp_ge(__m128 *out, const __m128 *a, const __m128 *b) noexcept
+			static void DPM_SAFE_INLINE cmp_ge(__m128 *out, const __m128 *a, const __m128 *b) noexcept
 			{
 				for (std::size_t i = 0; i < M; ++i) out[i] = _mm_cmpge_ps(a[i], b[i]);
 			}
 			template<std::size_t M>
-			static DPM_SAFE_ARRAY void cmp_lt(__m128 *out, const __m128 *a, const __m128 *b) noexcept
+			static void DPM_SAFE_INLINE cmp_lt(__m128 *out, const __m128 *a, const __m128 *b) noexcept
 			{
 				for (std::size_t i = 0; i < M; ++i) out[i] = _mm_cmplt_ps(a[i], b[i]);
 			}
 			template<std::size_t M>
-			static DPM_SAFE_ARRAY void cmp_gt(__m128 *out, const __m128 *a, const __m128 *b) noexcept
+			static void DPM_SAFE_INLINE cmp_gt(__m128 *out, const __m128 *a, const __m128 *b) noexcept
 			{
 				for (std::size_t i = 0; i < M; ++i) out[i] = _mm_cmpgt_ps(a[i], b[i]);
 			}
 			template<std::size_t M>
-			static DPM_SAFE_ARRAY void cmp_ne(__m128 *out, const __m128 *a, const __m128 *b) noexcept
+			static void DPM_SAFE_INLINE cmp_ne(__m128 *out, const __m128 *a, const __m128 *b) noexcept
 			{
 				for (std::size_t i = 0; i < M; ++i) out[i] = _mm_cmpneq_ps(a[i], b[i]);
 			}
 
 			template<std::size_t M>
-			static DPM_SAFE_ARRAY void min(__m128 *out, const __m128 *a, const __m128 *b) noexcept
+			static void DPM_SAFE_INLINE min(__m128 *out, const __m128 *a, const __m128 *b) noexcept
 			{
 				for (std::size_t i = 0; i < M; ++i) out[i] = _mm_min_ps(a[i], b[i]);
 			}
 			template<std::size_t M>
-			static DPM_SAFE_ARRAY void max(__m128 *out, const __m128 *a, const __m128 *b) noexcept
+			static void DPM_SAFE_INLINE max(__m128 *out, const __m128 *a, const __m128 *b) noexcept
 			{
 				for (std::size_t i = 0; i < M; ++i) out[i] = _mm_max_ps(a[i], b[i]);
 			}
 			template<std::size_t M>
-			static DPM_SAFE_ARRAY void minmax(__m128 *out_min, __m128 *out_max, const __m128 *a, const __m128 *b) noexcept
+			static void DPM_SAFE_INLINE minmax(__m128 *out_min, __m128 *out_max, const __m128 *a, const __m128 *b) noexcept
 			{
 				for (std::size_t i = 0; i < M; ++i)
 				{
@@ -523,7 +523,7 @@ namespace dpm
 				}
 			}
 			template<std::size_t M>
-			static DPM_SAFE_ARRAY void clamp(__m128 *out, const __m128 *value, const __m128 *min, const __m128 *max) noexcept
+			static void DPM_SAFE_INLINE clamp(__m128 *out, const __m128 *value, const __m128 *min, const __m128 *max) noexcept
 			{
 				for (std::size_t i = 0; i < M; ++i) out[i] = _mm_min_ps(_mm_max_ps(value[i], min[i]), max[i]);
 			}
@@ -912,12 +912,12 @@ namespace dpm
 			operator--();
 			return tmp;
 		}
-		inline DPM_SAFE_ARRAY simd &operator++() noexcept
+		DPM_SAFE_ARRAY simd &operator++() noexcept
 		{
 			impl_t::template inc<data_size>(m_data);
 			return *this;
 		}
-		inline DPM_SAFE_ARRAY simd &operator--() noexcept
+		DPM_SAFE_ARRAY simd &operator--() noexcept
 		{
 			impl_t::template inc<data_size>(m_data);
 			return *this;

@@ -66,7 +66,7 @@ namespace dpm
 		};
 
 		template<std::size_t N, std::size_t I = 0, typename G>
-		inline DPM_SAFE_ARRAY void generate_n(auto &data, G &&gen) noexcept
+		inline void DPM_SAFE_INLINE generate_n(auto &data, G &&gen) noexcept
 		{
 			if constexpr (I != N)
 			{
@@ -76,7 +76,7 @@ namespace dpm
 		}
 
 		template<typename From, typename To, typename FromAbi, typename ToAbi>
-		inline DPM_SAFE_ARRAY void copy_cast(const simd_mask<From, FromAbi> &from, simd_mask<To, ToAbi> &to) noexcept
+		inline void DPM_SAFE_INLINE copy_cast(const simd_mask<From, FromAbi> &from, simd_mask<To, ToAbi> &to) noexcept
 		{
 			if constexpr (!std::same_as<simd_mask<From, FromAbi>, simd_mask<To, ToAbi>>)
 			{
@@ -91,7 +91,7 @@ namespace dpm
 				to = from;
 		}
 		template<typename From, typename To, typename FromAbi, typename ToAbi>
-		inline DPM_SAFE_ARRAY void copy_cast(const simd<From, FromAbi> &from, simd<To, ToAbi> &to) noexcept
+		inline void DPM_SAFE_INLINE copy_cast(const simd<From, FromAbi> &from, simd<To, ToAbi> &to) noexcept
 		{
 			if constexpr (!std::same_as<simd<From, FromAbi>, simd<To, ToAbi>>)
 			{
@@ -107,13 +107,13 @@ namespace dpm
 		}
 
 		template<std::size_t I = 0, std::size_t N, typename T, typename Abi, typename... Abis>
-		inline DPM_SAFE_ARRAY void concat_impl(std::array<bool, N> &buff, const simd_mask<T, Abi> &src, const simd_mask<T, Abis> &...other) noexcept
+		inline void DPM_SAFE_INLINE concat_impl(std::array<bool, N> &buff, const simd_mask<T, Abi> &src, const simd_mask<T, Abis> &...other) noexcept
 		{
 			src.copy_to(buff.data() + I, vector_aligned);
 			if constexpr (sizeof...(other) != 0) concat_impl<simd_mask<T, Abi>::size()>(buff, other...);
 		}
 		template<std::size_t I = 0, std::size_t N, typename T, typename Abi, typename... Abis>
-		inline DPM_SAFE_ARRAY void concat_impl(std::array<T, N> &buff, const simd<T, Abi> &src, const simd<T, Abis> &...other) noexcept
+		inline void DPM_SAFE_INLINE concat_impl(std::array<T, N> &buff, const simd<T, Abi> &src, const simd<T, Abis> &...other) noexcept
 		{
 			src.copy_to(buff.data() + I, vector_aligned);
 			if constexpr (sizeof...(other) != 0) concat_impl<simd_mask<T, Abi>::size()>(buff, other...);
@@ -542,7 +542,7 @@ namespace dpm
 			return m_data[i];
 		}
 
-		[[nodiscard]] DPM_SAFE_ARRAY simd_mask operator!() const noexcept
+		[[nodiscard]] simd_mask DPM_SAFE_ARRAY operator!() const noexcept
 		{
 			simd_mask result;
 			for (std::size_t i = 0; i < size(); ++i)
@@ -1284,13 +1284,13 @@ namespace dpm
 			return m_data[i];
 		}
 
-		DPM_SAFE_ARRAY simd operator++(int) noexcept requires (requires { std::declval<value_type &>()++; })
+		simd DPM_SAFE_ARRAY operator++(int) noexcept requires (requires { std::declval<value_type &>()++; })
 		{
 			simd result;
 			for (std::size_t i = 0; i < size(); ++i) result[i] = m_data[i]++;
 			return result;
 		}
-		DPM_SAFE_ARRAY simd operator--(int) noexcept requires (requires { std::declval<value_type &>()--; })
+		simd DPM_SAFE_ARRAY operator--(int) noexcept requires (requires { std::declval<value_type &>()--; })
 		{
 			simd result;
 			for (std::size_t i = 0; i < size(); ++i) result[i] = m_data[i]--;

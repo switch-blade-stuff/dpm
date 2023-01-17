@@ -90,6 +90,8 @@ import std;
 
 #endif
 
+#define DPM_SAFE_INLINE DPM_SAFE_ARRAY DPM_FORCEINLINE
+
 #if defined(_WIN32) || defined(_WIN64) || defined(__CYGWIN__)
 
 #define DPM_API_HIDDEN
@@ -127,4 +129,19 @@ import std;
 #define DPM_DECLARE_EXT_NAMESPACE inline namespace ext
 #else
 #define DPM_DECLARE_EXT_NAMESPACE namespace ext
+#endif
+
+#ifdef DPM_HANDLE_ERRORS
+#define DPM_HANDLE_ERRORS_OPT_OR(a, b) a
+#define DPM_HANDLE_ERRORS_OPT(x) x
+#else
+#define DPM_HANDLE_ERRORS_OPT_OR(a, b) b
+#define DPM_HANDLE_ERRORS_OPT(x)
+#endif
+#ifdef DPM_PROPAGATE_NAN
+#define DPM_PROPAGATE_NAN_OPT_OR(a, b) a
+#define DPM_PROPAGATE_NAN_OPT(x) x
+#else
+#define DPM_PROPAGATE_NAN_OPT_OR(a, b) b
+#define DPM_PROPAGATE_NAN_OPT(x)
 #endif

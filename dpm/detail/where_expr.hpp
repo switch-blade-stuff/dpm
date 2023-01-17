@@ -109,7 +109,7 @@ namespace dpm
 
 		/** Copies selected elements to \a mem. */
 		template<typename U, typename Flags>
-		inline DPM_SAFE_ARRAY void copy_to(U *mem, Flags) const && noexcept requires is_simd_flag_type_v<Flags>
+		DPM_SAFE_ARRAY void copy_to(U *mem, Flags) const && noexcept requires is_simd_flag_type_v<Flags>
 		{
 			for (std::size_t i = 0; i < data_size; ++i) if (mask_at(m_mask, i)) mem[i] = static_cast<U>(data_at(m_data, i));
 		}
@@ -221,7 +221,7 @@ namespace dpm
 
 		/** Copies selected elements from \a mem. */
 		template<typename U, typename Flags>
-		DPM_SAFE_ARRAY void copy_from(U *mem, Flags) const && noexcept requires is_simd_flag_type_v<Flags>
+		DPM_SAFE_ARRAY void copy_from(U *mem, Flags) && noexcept requires is_simd_flag_type_v<Flags>
 		{
 			for (std::size_t i = 0; i < data_size; ++i) if (mask_at(m_mask, i)) data_at(m_data, i) = static_cast<value_type>(mem[i]);
 		}
