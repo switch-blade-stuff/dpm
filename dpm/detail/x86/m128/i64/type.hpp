@@ -287,7 +287,7 @@ namespace dpm
 						else
 							data_at<I>(dst, i) = src[i];
 					}
-				else if constexpr (std::same_as<U, double> && aligned_tag<F, alignof(__m128i)>)
+				else if constexpr (std::same_as<std::remove_cvref_t<U>, double> && aligned_tag<F, alignof(__m128i)>)
 					for (std::size_t i = 0; i < N; i += 2)
 					{
 						if (N - i != i)
@@ -314,7 +314,7 @@ namespace dpm
 						else
 							dst[i] = data_at<I>(src, i);
 					}
-				else if constexpr (std::same_as<U, double> && aligned_tag<F, alignof(__m128i)>)
+				else if constexpr (std::same_as<std::remove_cvref_t<U>, double> && aligned_tag<F, alignof(__m128i)>)
 					for (std::size_t i = 0; i < N; i += 2)
 					{
 						if (N - i != i)
@@ -341,7 +341,7 @@ namespace dpm
 						const auto mi = std::bit_cast<__m128i>(x86_maskzero_vector_i64<N>(mask[i / 2], i));
 						dst[i / 2] = std::bit_cast<__m128i>(_mm_maskload_pd(src + i, mi));
 					}
-				else if constexpr (std::same_as<U, double> && aligned_tag<F, alignof(__m128i)>)
+				else if constexpr (std::same_as<std::remove_cvref_t<U>, double> && aligned_tag<F, alignof(__m128i)>)
 					for (std::size_t i = 0; i < N; i += 2)
 					{
 						const auto mi = std::bit_cast<__m128i>(x86_maskzero_vector_i64<N>(mask[i / 2], i));
@@ -364,7 +364,7 @@ namespace dpm
 						const auto mi = std::bit_cast<__m128i>(x86_maskzero_vector_i64<N>(mask[i / 2], i));
 						_mm_maskstore_pd(dst + i, mi, std::bit_cast<__m128d>(src[i / 2]));
 					}
-				else if constexpr (std::same_as<U, double> && aligned_tag<F, alignof(__m128i)>)
+				else if constexpr (std::same_as<std::remove_cvref_t<U>, double> && aligned_tag<F, alignof(__m128i)>)
 					for (std::size_t i = 0; i < N; i += 2)
 					{
 						const auto mi = std::bit_cast<__m128i>(x86_maskzero_vector_i64<N>(mask[i / 2], i));
@@ -382,7 +382,7 @@ namespace dpm
 							const auto mi = x86_maskzero_vector_i64<N>(mask[i / 2], i);
 							_mm_maskmoveu_si128(src[i / 2], mi, reinterpret_cast<char *>(dst + i));
 						}
-					else if constexpr (std::same_as<U, double>)
+					else if constexpr (std::same_as<std::remove_cvref_t<U>, double>)
 						for (std::size_t i = 0; i < N; i += 2)
 						{
 							const auto mi = x86_maskzero_vector_i64<N>(mask[i / 2], i);

@@ -377,26 +377,36 @@ namespace dpm
 	template<typename T, typename... Abis>
 	[[nodiscard]] inline DPM_SAFE_ARRAY auto concat(const simd_mask<T, Abis> &...values) noexcept
 	{
-		using result_t = simd_mask<T, simd_abi::deduce_t<T, (simd_size_v<T, Abis> + ...)>>;
-		alignas(std::max({alignof(result_t), alignof(simd_mask<T, Abis>)...})) std::array<bool, result_t::size()> tmp_buff;
-		result_t result;
+		if constexpr (sizeof...(values) == 1)
+			return (values, ...);
+		else
+		{
+			using result_t = simd_mask<T, simd_abi::deduce_t<T, (simd_size_v<T, Abis> + ...)>>;
+			alignas(std::max({alignof(result_t), alignof(simd_mask<T, Abis>)...})) std::array<bool, result_t::size()> tmp_buff;
+			result_t result;
 
-		detail::concat_impl(tmp_buff, result, values...);
-		result.copy_from(tmp_buff.data(), vector_aligned);
-		return result;
+			detail::concat_impl(tmp_buff, result, values...);
+			result.copy_from(tmp_buff.data(), vector_aligned);
+			return result;
+		}
 	}
 	/** Concatenates elements of \a values into a single SIMD mask. */
 	template<typename T, typename Abi, std::size_t N>
 	[[nodiscard]] inline DPM_SAFE_ARRAY auto concat(const std::array<simd_mask<T, Abi>, N> &values) noexcept
 	{
-		using result_t = resize_simd_t<simd_size_v<T, Abi> * N, simd_mask<T, Abi>>;
-		alignas(std::max(alignof(result_t), alignof(simd_mask<T, Abi>))) std::array<bool, result_t::size()> tmp_buff;
-		result_t result;
+		if constexpr (N == 1)
+			return values[0];
+		else
+		{
+			using result_t = resize_simd_t<simd_size_v<T, Abi> * N, simd_mask<T, Abi>>;
+			alignas(std::max(alignof(result_t), alignof(simd_mask<T, Abi>))) std::array<bool, result_t::size()> tmp_buff;
+			result_t result;
 
-		for (std::size_t i = 0, j = 0; i < tmp_buff.size(); i += simd_size_v<T, Abi>, ++j)
-			values[j].copy_to(tmp_buff.data() + i, vector_aligned);
-		result.copy_from(tmp_buff.data(), vector_aligned);
-		return result;
+			for (std::size_t i = 0, j = 0; i < tmp_buff.size(); i += simd_size_v<T, Abi>, ++j)
+				values[j].copy_to(tmp_buff.data() + i, vector_aligned);
+			result.copy_from(tmp_buff.data(), vector_aligned);
+			return result;
+		}
 	}
 #pragma endregion
 
@@ -975,20 +985,25 @@ namespace dpm
 		struct equal_cast_size : std::bool_constant<simd<U, Abi>::size() == T::size()> {};
 		template<typename T, typename U, typename Abi> requires (!is_simd_v<T>)
 		struct equal_cast_size<T, U, Abi> : std::true_type {};
+
+		template<typename T, typename U, typename Abi>
+		concept valid_simd_cast = std::is_convertible_v<U, typename detail::deduce_cast<T>::type> && detail::equal_cast_size<T, U, Abi>::value;
+		template<typename T, typename U, typename Abi>
+		concept valid_simd_static_cast = std::convertible_to<U, typename detail::deduce_cast<T>::type> && detail::equal_cast_size<T, U, Abi>::value;
 	}
 
-#pragma region "simd reductions"
-	/** Implicitly converts elements of SIMD vector \a x to the `To` type, where `To` is either `typename T::value_type` or `T` if `T` is a scalar. */
-	template<typename T, typename U, typename Abi, typename To = typename detail::deduce_cast<T>::type>
-	[[nodiscard]] inline DPM_SAFE_ARRAY auto simd_cast(const simd<U, Abi> &x) noexcept requires (std::is_convertible_v<U, To> && detail::equal_cast_size<T, U, Abi>::value)
+#pragma region "simd casts"
+	/** Implicitly converts elements of SIMD vector \a x to `T` or `T::value_type` if `T` is an instance of `simd`. */
+	template<typename T, typename U, typename Abi>
+	[[nodiscard]] inline DPM_SAFE_ARRAY auto simd_cast(const simd<U, Abi> &x) noexcept requires detail::valid_simd_cast<T, U, Abi>
 	{
 		typename detail::cast_return<T, U, Abi, simd<U, Abi>::size()>::type result;
 		detail::copy_cast(x, result);
 		return result;
 	}
-	/** Explicitly converts elements of SIMD vector \a x to the `To` type, where `To` is either `typename T::value_type` or `T` if `T` is a scalar. */
-	template<typename T, typename U, typename Abi, typename To = typename detail::deduce_cast<T>::type>
-	[[nodiscard]] inline DPM_SAFE_ARRAY auto static_simd_cast(const simd<U, Abi> &x) noexcept requires (std::convertible_to<U, To> && detail::equal_cast_size<T, U, Abi>::value)
+	/** Explicitly converts elements of SIMD vector \a x to `T` or `T::value_type` if `T` is an instance of `simd`. */
+	template<typename T, typename U, typename Abi>
+	[[nodiscard]] inline DPM_SAFE_ARRAY auto static_simd_cast(const simd<U, Abi> &x) noexcept requires detail::valid_simd_static_cast<T, U, Abi>
 	{
 		typename detail::static_cast_return<T, U, Abi, simd<U, Abi>::size()>::type result;
 		detail::copy_cast(x, result);
@@ -997,28 +1012,13 @@ namespace dpm
 
 	/** Converts SIMD vector \a x to it's fixed-size ABI equivalent for value type `T`. */
 	template<typename T, typename Abi>
-	[[nodiscard]] inline DPM_SAFE_ARRAY fixed_size_simd<T, simd_size_v<T, Abi>> to_fixed_size(const simd<T, Abi> &x) noexcept
-	{
-		fixed_size_simd<T, simd_size_v<T, Abi>> result;
-		detail::copy_cast(x, result);
-		return result;
-	}
+	[[nodiscard]] inline DPM_SAFE_ARRAY fixed_size_simd<T, simd_size_v<T, Abi>> to_fixed_size(const simd<T, Abi> &x) noexcept { return simd_cast<fixed_size_simd<T, simd_size_v<T, Abi>>>(x); }
 	/** Converts SIMD vector \a x to it's native ABI equivalent for value type `T`. */
 	template<typename T, typename Abi>
-	[[nodiscard]] inline DPM_SAFE_ARRAY native_simd<T> to_native(const simd<T, Abi> &x) noexcept
-	{
-		native_simd<T> result;
-		detail::copy_cast(x, result);
-		return result;
-	}
+	[[nodiscard]] inline DPM_SAFE_ARRAY native_simd<T> to_native(const simd<T, Abi> &x) noexcept { return simd_cast<native_simd<T>>(x); }
 	/** Converts SIMD vector \a x to it's compatible ABI equivalent for value type `T`. */
 	template<typename T, typename Abi>
-	[[nodiscard]] inline DPM_SAFE_ARRAY simd<T> to_compatible(const simd<T, Abi> &x) noexcept
-	{
-		simd<T> result;
-		detail::copy_cast(x, result);
-		return result;
-	}
+	[[nodiscard]] inline DPM_SAFE_ARRAY simd<T> to_compatible(const simd<T, Abi> &x) noexcept { return simd_cast<simd<T>>(x); }
 
 	/** Returns an array of SIMD vectors where every `i`th element of the `j`th vector is a copy of the `i + j * V::size()`th element from \a x.
 	 * @note Size of \a x must be a multiple of `V::size()`. */
@@ -1054,26 +1054,36 @@ namespace dpm
 	template<typename T, typename... Abis>
 	[[nodiscard]] inline DPM_SAFE_ARRAY auto concat(const simd<T, Abis> &...values) noexcept
 	{
-		using result_t = simd<T, simd_abi::deduce_t<T, (simd_size_v<T, Abis> + ...)>>;
-		alignas(std::max({alignof(result_t), alignof(simd<T, Abis>)...})) std::array<T, result_t::size()> tmp_buff;
-		result_t result;
+		if constexpr (sizeof...(values) == 1)
+			return (values, ...);
+		else
+		{
+			using result_t = simd<T, simd_abi::deduce_t<T, (simd_size_v<T, Abis> + ...)>>;
+			alignas(std::max({alignof(result_t), alignof(simd<T, Abis>)...})) std::array<T, result_t::size()> tmp_buff;
+			result_t result;
 
-		detail::concat_impl(tmp_buff, result, values...);
-		result.copy_from(tmp_buff.data(), vector_aligned);
-		return result;
+			detail::concat_impl(tmp_buff, result, values...);
+			result.copy_from(tmp_buff.data(), vector_aligned);
+			return result;
+		}
 	}
 	/** Concatenates elements of \a values into a single SIMD vector. */
 	template<typename T, typename Abi, std::size_t N>
 	[[nodiscard]] inline DPM_SAFE_ARRAY auto concat(const std::array<simd<T, Abi>, N> &values) noexcept
 	{
-		using result_t = resize_simd_t<simd_size_v<T, Abi> * N, simd<T, Abi>>;
-		alignas(std::max(alignof(result_t), alignof(simd<T, Abi>))) std::array<T, result_t::size()> tmp_buff;
-		result_t result;
+		if constexpr (N == 1)
+			return values[0];
+		else
+		{
+			using result_t = resize_simd_t<simd_size_v<T, Abi> * N, simd<T, Abi>>;
+			alignas(std::max(alignof(result_t), alignof(simd<T, Abi>))) std::array<T, result_t::size()> tmp_buff;
+			result_t result;
 
-		for (std::size_t i = 0, j = 0; i < tmp_buff.size(); i += simd_size_v<T, Abi>, ++j)
-			values[j].copy_to(tmp_buff.data() + i, vector_aligned);
-		result.copy_from(tmp_buff.data(), vector_aligned);
-		return result;
+			for (std::size_t i = 0, j = 0; i < tmp_buff.size(); i += simd_size_v<T, Abi>, ++j)
+				values[j].copy_to(tmp_buff.data() + i, vector_aligned);
+			result.copy_from(tmp_buff.data(), vector_aligned);
+			return result;
+		}
 	}
 #pragma endregion
 

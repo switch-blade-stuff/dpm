@@ -14,6 +14,29 @@ namespace dpm
 {
 	namespace detail
 	{
+		template<std::size_t I, typename OutAbi, typename XAbi, typename... Abis>
+		[[nodiscard]] inline DPM_SAFE_ARRAY auto concat_impl(simd_mask<double, OutAbi> &out, const simd_mask<double, XAbi> &x, const simd_mask<double, Abis> &...rest) noexcept
+		{
+			auto *data = reinterpret_cast<double *>(ext::to_native_data(out).data());
+			if constexpr (I % sizeof(__m128d) != 0)
+				x.copy_to(data + I, element_aligned);
+			else
+				x.copy_to(data + I, vector_aligned);
+
+			if constexpr (sizeof...(Abis) != 0) concat_impl<I + simd_mask<double, XAbi>::size()>(out, rest...);
+		}
+		template<std::size_t I, typename OutAbi, typename XAbi, typename... Abis>
+		[[nodiscard]] inline DPM_SAFE_ARRAY auto concat_impl(simd<double, OutAbi> &out, const simd<double, XAbi> &x, const simd<double, Abis> &...rest) noexcept
+		{
+			auto *data = reinterpret_cast<double *>(ext::to_native_data(out).data());
+			if constexpr (I % sizeof(__m128d) != 0)
+				x.copy_to(data + I, element_aligned);
+			else
+				x.copy_to(data + I, vector_aligned);
+
+			if constexpr (sizeof...(Abis) != 0) concat_impl<I + simd<double, XAbi>::size()>(out, rest...);
+		}
+
 		[[nodiscard]] inline __m128d x86_maskzero_vector_f64(std::size_t n, __m128d v) noexcept
 		{
 			if (n == 1)
@@ -63,13 +86,10 @@ namespace dpm
 	{
 		friend struct detail::native_access<simd_mask>;
 
-		using impl_t = detail::x86_mask_impl<double, __m128d, detail::avec<N, Align>::size>;
-		using vector_type = __m128d;
-
 		constexpr static auto data_size = ext::native_data_size_v<simd_mask>;
-		constexpr static auto alignment = std::max(Align, alignof(vector_type));
+		constexpr static auto alignment = std::max(Align, alignof(__m128d));
 
-		using data_type = vector_type[data_size];
+		using data_type = __m128d[data_size];
 
 	public:
 		using value_type = bool;
@@ -106,7 +126,7 @@ namespace dpm
 		DPM_SAFE_ARRAY simd_mask(const simd_mask<U, detail::avec<size(), OtherAlign>> &other) noexcept
 		{
 			if constexpr (std::same_as<U, value_type> && (OtherAlign == 0 || OtherAlign >= alignment))
-				std::copy_n(reinterpret_cast<const vector_type *>(ext::to_native_data(other).data()), data_size, m_data);
+				std::copy_n(reinterpret_cast<const __m128d *>(ext::to_native_data(other).data()), data_size, m_data);
 			else
 				for (std::size_t i = 0; i < size(); ++i) operator[](i) = other[i];
 		}
@@ -495,7 +515,7 @@ namespace dpm
 		for (std::size_t i = ext::native_data_size_v<mask_t>, k; (k = i--) != 0;)
 		{
 			auto bits = static_cast<std::uint8_t>(_mm_movemask_pd(mask_data[i]));
-			switch (N - i * 2)
+			switch (mask_t::size() - i * 2)
 			{
 				case 1: bits <<= 1; [[fallthrough]];
 				default: bits <<= 2;
@@ -503,6 +523,61 @@ namespace dpm
 			if (bits) return (k * 2 - 1) - std::countl_zero(bits);
 		}
 		DPM_UNREACHABLE();
+	}
+#pragma endregion
+
+#pragma region "simd_mask casts"
+	/** Converts SIMD mask \a x to it's fixed-size equivalent for value type `T`. */
+	template<std::size_t N, std::size_t A>
+	[[nodiscard]] inline DPM_SAFE_ARRAY simd_mask<double, simd_abi::fixed_size<N>> to_fixed_size(const simd_mask<double, detail::avec<N, A>> &x) noexcept requires detail::x86_overload_m128<double, N, A>
+	{
+		return simd_mask<double, simd_abi::fixed_size<N>>{x};
+	}
+	/** Converts SIMD mask \a x to it's native ABI equivalent for value type `T`. */
+	template<std::size_t N, std::size_t A>
+	[[nodiscard]] inline DPM_SAFE_ARRAY native_simd_mask<double> to_native(const simd_mask<double, detail::avec<N, A>> &x) noexcept requires detail::x86_overload_m128<double, N, A>
+	{
+		return native_simd_mask<double>{x};
+	}
+	/** Converts SIMD mask \a x to it's compatible ABI equivalent for value type `T`. */
+	template<std::size_t N, std::size_t A>
+	[[nodiscard]] inline DPM_SAFE_ARRAY simd_mask<double> to_compatible(const simd_mask<double, detail::avec<N, A>> &x) noexcept requires detail::x86_overload_m128<double, N, A>
+	{
+		return simd_mask<double>{x};
+	}
+
+	/** Concatenates elements of \a values into a single SIMD mask. */
+	template<detail::x86_simd_abi_m128<double>... Abis>
+	[[nodiscard]] inline DPM_SAFE_ARRAY auto concat(const simd_mask<double, Abis> &...values) noexcept
+	{
+		if constexpr (sizeof...(values) == 1)
+			return (values, ...);
+		else
+		{
+			simd_mask<double, simd_abi::deduce_t<double, (simd_size_v<double, Abis> + ...)>> result;
+			detail::concat_impl<0>(result, values...);
+			return result;
+		}
+	}
+	/** Concatenates elements of \a values into a single SIMD mask. */
+	template<std::size_t N, std::size_t A, std::size_t M>
+	[[nodiscard]] inline DPM_SAFE_ARRAY auto concat(const std::array<simd_mask<double, detail::avec<N, A>>, M> &values) noexcept requires detail::x86_overload_m128<double, N, A>
+	{
+		if constexpr (M == 1)
+			return values[0];
+		else
+		{
+			simd_mask<double, detail::avec<N * M, A>> result;
+			auto *data = reinterpret_cast<double *>(ext::to_native_data(result).data());
+			for (std::size_t i = 0; i < M; ++i)
+			{
+				if ((i * N) % sizeof(__m128d) != 0)
+					values[i].copy_to(data + i * N, element_aligned);
+				else
+					values[i].copy_to(data + i * N, vector_aligned);
+			}
+			return result;
+		}
 	}
 #pragma endregion
 
@@ -524,13 +599,10 @@ namespace dpm
 	{
 		friend struct detail::native_access<simd>;
 
-		using impl_t = detail::x86_simd_impl<double, __m128d, detail::avec<N, Align>::size>;
-		using vector_type = __m128d;
-
 		constexpr static auto data_size = ext::native_data_size_v<simd>;
-		constexpr static auto alignment = std::max(Align, alignof(vector_type));
+		constexpr static auto alignment = std::max(Align, alignof(__m128d));
 
-		using data_type = vector_type[data_size];
+		using data_type = __m128d[data_size];
 
 	public:
 		using value_type = double;
@@ -598,86 +670,85 @@ namespace dpm
 		template<typename U, typename Flags>
 		DPM_SAFE_ARRAY void copy_from(const U *mem, Flags) noexcept requires is_simd_flag_type_v<Flags>
 		{
-			std::copy_n(reinterpret_cast<const double *>(m_data), size(), mem);
-		}
-		/** @copydoc copy_from */
-		template<detail::aligned_tag<alignof(vector_type)> Flags>
-		DPM_SAFE_ARRAY void copy_from(const double *mem, Flags) noexcept requires is_simd_flag_type_v<Flags>
-		{
-			for (std::size_t i = 0; i < size(); i += 2)
+			if constexpr (detail::aligned_tag<Flags, alignof(__m128d)>)
 			{
-				if (size() - i > 1)
-					m_data[i / 2] = reinterpret_cast<const vector_type *>(mem)[i / 2];
-				else
-					operator[](i) = mem[i];
+				if constexpr (std::same_as<std::remove_cvref_t<U>, double>)
+				{
+					for (std::size_t i = 0; i < size(); i += 2)
+					{
+						if (size() - i > 1)
+							m_data[i / 2] = reinterpret_cast<const __m128d *>(mem)[i / 2];
+						else
+							operator[](i) = mem[i];
+					}
+					return;
+				}
+				else if constexpr (detail::signed_integral_of_size<std::remove_cvref_t<U>, 8>)
+				{
+					for (std::size_t i = 0; i < size(); i += 2)
+					{
+						if (size() - i > 1)
+							m_data[i / 2] = detail::x86_cvt_i64_f64(reinterpret_cast<const __m128i *>(mem)[i / 2]);
+						else
+							operator[](i) = static_cast<double>(mem[i]);
+					}
+					return;
+				}
+				else if constexpr (detail::unsigned_integral_of_size<std::remove_cvref_t<U>, 8>)
+				{
+					for (std::size_t i = 0; i < size(); i += 2)
+					{
+						if (size() - i > 1)
+							m_data[i / 2] = detail::x86_cvt_u64_f64(reinterpret_cast<const __m128i *>(mem)[i / 2]);
+						else
+							operator[](i) = static_cast<double>(mem[i]);
+					}
+					return;
+				}
 			}
+			for (std::size_t i = 0; i < size(); ++i) operator[](i) = static_cast<double>(mem[i]);
 		}
-		/** @copydoc copy_from */
-		template<detail::signed_integral_of_size<8> U, detail::aligned_tag<alignof(vector_type)> Flags>
-		DPM_SAFE_ARRAY void copy_from(const U *mem, Flags) noexcept requires is_simd_flag_type_v<Flags>
-		{
-			for (std::size_t i = 0; i < size(); i += 2)
-			{
-				if (size() - i > 1)
-					m_data[i / 2] = detail::x86_cvt_i64_f64(reinterpret_cast<const __m128i *>(mem)[i / 2]);
-				else
-					operator[](i) = static_cast<double>(mem[i]);
-			}
-		}
-		/** @copydoc copy_from */
-		template<detail::unsigned_integral_of_size<8> U, detail::aligned_tag<alignof(vector_type)> Flags>
-		DPM_SAFE_ARRAY void copy_from(const U *mem, Flags) noexcept requires is_simd_flag_type_v<Flags>
-		{
-			for (std::size_t i = 0; i < size(); i += 2)
-			{
-				if (size() - i > 1)
-					m_data[i / 2] = detail::x86_cvt_u64_f64(reinterpret_cast<const __m128i *>(mem)[i / 2]);
-				else
-					operator[](i) = static_cast<double>(mem[i]);
-			}
-		}
-
 		/** Copies the underlying elements to \a mem. */
 		template<typename U, typename Flags>
 		DPM_SAFE_ARRAY void copy_to(U *mem, Flags) const noexcept requires is_simd_flag_type_v<Flags>
 		{
-			std::copy_n(reinterpret_cast<const double *>(m_data), size(), mem);
-		}
-		/** @copydoc copy_to */
-		template<detail::aligned_tag<alignof(vector_type)> Flags>
-		DPM_SAFE_ARRAY void copy_to(double *mem, Flags) const noexcept
-		{
-			for (std::size_t i = 0; i < size(); i += 2)
+			if constexpr (detail::aligned_tag<Flags, alignof(__m128d)>)
 			{
-				if (size() - i != 1)
-					reinterpret_cast<__m128d *>(mem)[i / 2] = m_data[i / 2];
-				else
-					mem[i] = operator[](i);
+				if constexpr (std::same_as<std::remove_cvref_t<U>, double>)
+				{
+					for (std::size_t i = 0; i < size(); i += 2)
+					{
+						if (size() - i != 1)
+							reinterpret_cast<__m128d *>(mem)[i / 2] = m_data[i / 2];
+						else
+							mem[i] = operator[](i);
+					}
+					return;
+				}
+				else if constexpr (detail::signed_integral_of_size<std::remove_cvref_t<U>, 8>)
+				{
+					for (std::size_t i = 0; i < size(); i += 2)
+					{
+						if (size() - i != i)
+							reinterpret_cast<__m128i *>(mem)[i / 2] = detail::x86_cvt_f64_i64(m_data[i / 2]);
+						else
+							mem[i] = static_cast<U>(operator[](i));
+					}
+					return;
+				}
+				else if constexpr (detail::unsigned_integral_of_size<std::remove_cvref_t<U>, 8>)
+				{
+					for (std::size_t i = 0; i < size(); i += 2)
+					{
+						if (size() - i != i)
+							reinterpret_cast<__m128i *>(mem)[i / 2] = detail::x86_cvt_f64_u64(m_data[i / 2]);
+						else
+							mem[i] = static_cast<U>(operator[](i));
+					}
+					return;
+				}
 			}
-		}
-		/** @copydoc copy_to */
-		template<detail::signed_integral_of_size<8> U, detail::aligned_tag<alignof(vector_type)> Flags>
-		DPM_SAFE_ARRAY void copy_to(U *mem, Flags) const noexcept
-		{
-			for (std::size_t i = 0; i < N; i += 2)
-			{
-				if (N - i != i)
-					reinterpret_cast<__m128i *>(mem)[i / 2] = detail::x86_cvt_f64_i64(m_data[i / 2]);
-				else
-					mem[i] = static_cast<U>(operator[](i));
-			}
-		}
-		/** @copydoc copy_to */
-		template<detail::unsigned_integral_of_size<8> U, detail::aligned_tag<alignof(vector_type)> Flags>
-		DPM_SAFE_ARRAY void copy_to(U *mem, Flags) const noexcept
-		{
-			for (std::size_t i = 0; i < N; i += 2)
-			{
-				if (N - i != i)
-					reinterpret_cast<__m128i *>(mem)[i / 2] = detail::x86_cvt_f64_u64(m_data[i / 2]);
-				else
-					mem[i] = static_cast<U>(operator[](i));
-			}
+			for (std::size_t i = 0; i < size(); ++i) mem[i] = static_cast<U>(operator[](i));
 		}
 
 		[[nodiscard]] reference operator[](std::size_t i) noexcept
@@ -842,78 +913,63 @@ namespace dpm
 
 		/** Copies selected elements to \a mem. */
 		template<typename U, typename Flags>
-		void DPM_SAFE_ARRAY copy_to(U *mem, Flags) const && noexcept requires is_simd_flag_type_v<Flags>
-		{
-			for (std::size_t i = 0; i < mask_t::size(); ++i) if (m_mask[i]) mem[i] = static_cast<U>(m_data[i]);
-		}
-		/** @copydoc copy_to */
-		template<typename Flags>
-		void DPM_SAFE_ARRAY copy_to(double *mem, Flags) const && noexcept requires is_simd_flag_type_v<Flags>
+		DPM_SAFE_ARRAY void copy_to(U *mem, Flags) const && noexcept requires is_simd_flag_type_v<Flags>
 		{
 			const auto v_mask = ext::to_native_data(m_data);
 			const auto v_data = ext::to_native_data(m_data);
-			for (std::size_t i = 0; i < mask_t::size(); i += 2)
-			{
+			if constexpr (std::same_as<std::remove_cvref_t<U>, double>)
+				for (std::size_t i = 0; i < mask_t::size(); i += 2)
+				{
 #ifdef DPM_HAS_AVX
-				if constexpr (aligned_tag<Flags, alignof(vector_type)>)
-				{
-					const auto mi = std::bit_cast<__m128i>(detail::x86_maskzero_vector_f64(mask_i::size() - i, v_mask[i / 2]));
-					_mm_maskstore_pd(mem, mi, v_data[i / 2]);
-				}
-				else
+					if constexpr (detail::aligned_tag<Flags, alignof(__m128d)>)
+					{
+						const auto mi = std::bit_cast<__m128i>(detail::x86_maskzero_vector_f64(mask_i::size() - i, v_mask[i / 2]));
+						_mm_maskstore_pd(mem, mi, v_data[i / 2]);
+					}
+					else
 #endif
-				{
-					const auto mi = std::bit_cast<__m128i>(detail::x86_maskzero_vector_f64(mask_t::size() - i, v_mask[i / 2]));
-					const auto vi = std::bit_cast<__m128i>(v_data[i / 2]);
-					_mm_maskmoveu_si128(vi, mi, reinterpret_cast<char *>(mem));
+					{
+						const auto mi = std::bit_cast<__m128i>(detail::x86_maskzero_vector_f64(mask_t::size() - i, v_mask[i / 2]));
+						const auto vi = std::bit_cast<__m128i>(v_data[i / 2]);
+						_mm_maskmoveu_si128(vi, mi, reinterpret_cast<char *>(mem));
+					}
 				}
-			}
-		}
-		/** @copydoc copy_to */
-		template<detail::signed_integral_of_size<8> U, typename Flags>
-		void DPM_SAFE_ARRAY copy_to(U *mem, Flags) const && noexcept requires is_simd_flag_type_v<Flags>
-		{
-			const auto v_mask = ext::to_native_data(m_data);
-			const auto v_data = ext::to_native_data(m_data);
-			for (std::size_t i = 0; i < mask_t::size(); i += 2)
-			{
+			else if constexpr (detail::signed_integral_of_size<std::remove_cvref_t<U>, 8>)
+				for (std::size_t i = 0; i < mask_t::size(); i += 2)
+				{
 #ifdef DPM_HAS_AVX
-				if constexpr (aligned_tag<Flags, alignof(vector_type)>)
-				{
-					const auto mi = std::bit_cast<__m128i>(detail::x86_maskzero_vector_f64(mask_i::size() - i, v_mask[i / 2]));
-					_mm_maskstore_pd(mem, mi, std::bit_cast<__m128d>(detail::x86_cvt_f64_i64(v_data[i / 2])));
-				}
-				else
+					if constexpr (detail::aligned_tag<Flags, alignof(__m128d)>)
+					{
+						const auto mi = std::bit_cast<__m128i>(detail::x86_maskzero_vector_f64(mask_i::size() - i, v_mask[i / 2]));
+						_mm_maskstore_pd(mem, mi, std::bit_cast<__m128d>(detail::x86_cvt_f64_i64(v_data[i / 2])));
+					}
+					else
 #endif
-				{
-					const auto mi = std::bit_cast<__m128i>(detail::x86_maskzero_vector_f64(mask_t::size() - i, v_mask[i / 2]));
-					const auto vi = detail::x86_cvt_f64_i64(v_data[i / 2]);
-					_mm_maskmoveu_si128(vi, mi, reinterpret_cast<char *>(mem));
+					{
+						const auto mi = std::bit_cast<__m128i>(detail::x86_maskzero_vector_f64(mask_t::size() - i, v_mask[i / 2]));
+						const auto vi = detail::x86_cvt_f64_i64(v_data[i / 2]);
+						_mm_maskmoveu_si128(vi, mi, reinterpret_cast<char *>(mem));
+					}
 				}
-			}
-		}
-		/** @copydoc copy_to */
-		template<detail::unsigned_integral_of_size<8> U, typename Flags>
-		void DPM_SAFE_ARRAY copy_to(U *mem, Flags) const && noexcept requires is_simd_flag_type_v<Flags>
-		{
-			const auto v_mask = ext::to_native_data(m_data);
-			const auto v_data = ext::to_native_data(m_data);
-			for (std::size_t i = 0; i < mask_t::size(); i += 2)
-			{
+			else if constexpr (detail::unsigned_integral_of_size<std::remove_cvref_t<U>, 8>)
+				for (std::size_t i = 0; i < mask_t::size(); i += 2)
+				{
 #ifdef DPM_HAS_AVX
-				if constexpr (aligned_tag<Flags, alignof(vector_type)>)
-				{
-					const auto mi = std::bit_cast<__m128i>(detail::x86_maskzero_vector_f64(mask_i::size() - i, v_mask[i / 2]));
-					_mm_maskstore_pd(mem, mi, std::bit_cast<__m128d>(detail::x86_cvt_f64_u64(v_data[i / 2])));
-				}
-				else
+					if constexpr (detail::aligned_tag<Flags, alignof(__m128d)>)
+					{
+						const auto mi = std::bit_cast<__m128i>(detail::x86_maskzero_vector_f64(mask_i::size() - i, v_mask[i / 2]));
+						_mm_maskstore_pd(mem, mi, std::bit_cast<__m128d>(detail::x86_cvt_f64_u64(v_data[i / 2])));
+					}
+					else
 #endif
-				{
-					const auto mi = std::bit_cast<__m128i>(detail::x86_maskzero_vector_f64(mask_t::size() - i, v_mask[i / 2]));
-					const auto vi = detail::x86_cvt_f64_u64(v_data[i / 2]);
-					_mm_maskmoveu_si128(vi, mi, reinterpret_cast<char *>(mem));
+					{
+						const auto mi = std::bit_cast<__m128i>(detail::x86_maskzero_vector_f64(mask_t::size() - i, v_mask[i / 2]));
+						const auto vi = detail::x86_cvt_f64_u64(v_data[i / 2]);
+						_mm_maskmoveu_si128(vi, mi, reinterpret_cast<char *>(mem));
+					}
 				}
-			}
+			else
+				for (std::size_t i = 0; i < mask_t::size(); ++i) if (m_mask[i]) mem[i] = static_cast<U>(m_data[i]);
 		}
 
 	protected:
@@ -989,78 +1045,63 @@ namespace dpm
 
 		/** Copies selected elements from \a mem. */
 		template<typename U, typename Flags>
-		void DPM_SAFE_ARRAY copy_from(U *mem, Flags) && noexcept requires is_simd_flag_type_v<Flags>
-		{
-			for (std::size_t i = 0; i < mask_t::size(); ++i) if (m_mask[i]) m_data[i] = static_cast<double>(mem[i]);
-		}
-		/** @copydoc copy_from */
-		template<typename Flags>
-		void DPM_SAFE_ARRAY copy_from(double *mem, Flags) && noexcept requires is_simd_flag_type_v<Flags>
+		DPM_SAFE_ARRAY void copy_from(const U *mem, Flags) && noexcept requires is_simd_flag_type_v<Flags>
 		{
 			const auto v_mask = ext::to_native_data(m_data);
 			const auto v_data = ext::to_native_data(m_data);
-			for (std::size_t i = 0; i < N; i += 2)
-			{
+			if constexpr (std::same_as<std::remove_cvref_t<U>, double>)
+				for (std::size_t i = 0; i < mask_t::size(); i += 2)
+				{
 #ifdef DPM_HAS_AVX
-				if constexpr (aligned_tag<F, alignof(__m128d)>)
-				{
-					const auto mi = std::bit_cast<__m128i>(detail::x86_maskzero_vector_f64(mask_t::size() - i, v_mask[i / 2]));
-					v_data[i / 2] = _mm_maskload_pd(mem + i, mi);
-				}
-				else
+					if constexpr (detail::aligned_tag<F, alignof(__m128d)>)
+					{
+						const auto mi = std::bit_cast<__m128i>(detail::x86_maskzero_vector_f64(mask_t::size() - i, v_mask[i / 2]));
+						v_data[i / 2] = _mm_maskload_pd(mem + i, mi);
+					}
+					else
 #endif
-				{
-					const auto mi = std::bit_cast<__m128i>(detail::x86_maskzero_vector_f64(mask_t::size() - i, v_mask[i / 2]));
-					const auto vi = std::bit_cast<__m128i>(v_data[i / 2]);
-					_mm_maskmoveu_si128(vi, mi, reinterpret_cast<char *>(mem + i));
+					{
+						const auto mi = std::bit_cast<__m128i>(detail::x86_maskzero_vector_f64(mask_t::size() - i, v_mask[i / 2]));
+						const auto vi = std::bit_cast<__m128i>(v_data[i / 2]);
+						_mm_maskmoveu_si128(vi, mi, reinterpret_cast<char *>(mem + i));
+					}
 				}
-			}
-		}
-		/** @copydoc copy_from */
-		template<detail::signed_integral_of_size<8> U, typename Flags>
-		void DPM_SAFE_ARRAY copy_from(U *mem, Flags) && noexcept requires is_simd_flag_type_v<Flags>
-		{
-			const auto v_mask = ext::to_native_data(m_data);
-			const auto v_data = ext::to_native_data(m_data);
-			for (std::size_t i = 0; i < N; i += 2)
-			{
+			else if constexpr (detail::signed_integral_of_size<std::remove_cvref_t<U>, 8>)
+				for (std::size_t i = 0; i < mask_t::size(); i += 2)
+				{
 #ifdef DPM_HAS_AVX
-				if constexpr (aligned_tag<F, alignof(__m128d)>)
-				{
-					const auto mi = std::bit_cast<__m128i>(detail::x86_maskzero_vector_f64(mask_t::size() - i, v_mask[i / 2]));
-					v_data[i / 2] = detail::x86_cvt_i64_f64(_mm_maskload_pd(mem + i, mi));
-				}
-				else
+					if constexpr (detail::aligned_tag<F, alignof(__m128d)>)
+					{
+						const auto mi = std::bit_cast<__m128i>(detail::x86_maskzero_vector_f64(mask_t::size() - i, v_mask[i / 2]));
+						v_data[i / 2] = detail::x86_cvt_i64_f64(_mm_maskload_pd(mem + i, mi));
+					}
+					else
 #endif
-				{
-					const auto mi = std::bit_cast<__m128i>(detail::x86_maskzero_vector_f64(mask_t::size() - i, v_mask[i / 2]));
-					const auto vi = detail::x86_cvt_i64_f64(v_data[i / 2]);
-					_mm_maskmoveu_si128(vi, mi, reinterpret_cast<char *>(mem + i));
+					{
+						const auto mi = std::bit_cast<__m128i>(detail::x86_maskzero_vector_f64(mask_t::size() - i, v_mask[i / 2]));
+						const auto vi = detail::x86_cvt_i64_f64(v_data[i / 2]);
+						_mm_maskmoveu_si128(vi, mi, reinterpret_cast<char *>(mem + i));
+					}
 				}
-			}
-		}
-		/** @copydoc copy_from */
-		template<detail::unsigned_integral_of_size<8> U, typename Flags>
-		void DPM_SAFE_ARRAY copy_from(U *mem, Flags) && noexcept requires is_simd_flag_type_v<Flags>
-		{
-			const auto v_mask = ext::to_native_data(m_data);
-			const auto v_data = ext::to_native_data(m_data);
-			for (std::size_t i = 0; i < N; i += 2)
-			{
+			else if constexpr (detail::unsigned_integral_of_size<std::remove_cvref_t<U>, 8>)
+				for (std::size_t i = 0; i < mask_t::size(); i += 2)
+				{
 #ifdef DPM_HAS_AVX
-				if constexpr (aligned_tag<F, alignof(__m128d)>)
-				{
-					const auto mi = std::bit_cast<__m128i>(detail::x86_maskzero_vector_f64(mask_t::size() - i, v_mask[i / 2]));
-					v_data[i / 2] = detail::x86_cvt_u64_f64(_mm_maskload_pd(mem + i, mi));
-				}
-				else
+					if constexpr (detail::aligned_tag<F, alignof(__m128d)>)
+					{
+						const auto mi = std::bit_cast<__m128i>(detail::x86_maskzero_vector_f64(mask_t::size() - i, v_mask[i / 2]));
+						v_data[i / 2] = detail::x86_cvt_u64_f64(_mm_maskload_pd(mem + i, mi));
+					}
+					else
 #endif
-				{
-					const auto mi = std::bit_cast<__m128i>(detail::x86_maskzero_vector_f64(mask_t::size() - i, v_mask[i / 2]));
-					const auto vi = detail::x86_cvt_u64_f64(v_data[i / 2]);
-					_mm_maskmoveu_si128(vi, mi, reinterpret_cast<char *>(mem + i));
+					{
+						const auto mi = std::bit_cast<__m128i>(detail::x86_maskzero_vector_f64(mask_t::size() - i, v_mask[i / 2]));
+						const auto vi = detail::x86_cvt_u64_f64(v_data[i / 2]);
+						_mm_maskmoveu_si128(vi, mi, reinterpret_cast<char *>(mem + i));
+					}
 				}
-			}
+			else
+				for (std::size_t i = 0; i < mask_t::size(); ++i) if (m_mask[i]) m_data[i] = static_cast<double>(mem[i]);
 		}
 	};
 
@@ -1114,6 +1155,65 @@ namespace dpm
 #endif
 	}
 
+#pragma region "simd casts"
+	/** Implicitly converts elements of SIMD vector \a x to the `To` type, where `To` is either `typename T::value_type` or `T` if `T` is a scalar. */
+	template<typename T, std::size_t N, std::size_t A, typename To = typename detail::deduce_cast<T>::type>
+	[[nodiscard]] inline DPM_SAFE_ARRAY auto simd_cast(const simd<double, detail::avec<N, A>> &x) noexcept
+	requires (detail::valid_simd_cast<T, double, detail::avec<N, A>> &&
+	          detail::x86_overload_m128<double, N, A> &&
+	          detail::x86_overload_any<To, N, A>)
+	{
+		typename detail::cast_return<T, double, detail::avec<N, A>, simd<double, detail::avec<N, A>>::size()>::type result;
+		x.copy_to(reinterpret_cast<To *>(ext::to_native_data(result).data()), vector_aligned);
+		return result;
+	}
+	/** Explicitly converts elements of SIMD vector \a x to the `To` type, where `To` is either `typename T::value_type` or `T` if `T` is a scalar. */
+	template<typename T, std::size_t N, std::size_t A, typename To = typename detail::deduce_cast<T>::type>
+	[[nodiscard]] inline DPM_SAFE_ARRAY auto static_simd_cast(const simd<double, detail::avec<N, A>> &x) noexcept
+	requires (detail::valid_simd_static_cast<T, double, detail::avec<N, A>> &&
+	          detail::x86_overload_m128<double, N, A> &&
+	          detail::x86_overload_any<To, N, A>)
+	{
+		typename detail::static_cast_return<T, double, detail::avec<N, A>, simd<double, detail::avec<N, A>>::size()>::type result;
+		x.copy_to(reinterpret_cast<To *>(ext::to_native_data(result).data()), vector_aligned);
+		return result;
+	}
+
+	/** Concatenates elements of \a values into a single SIMD vector. */
+	template<detail::x86_simd_abi_m128<double>... Abis>
+	[[nodiscard]] inline DPM_SAFE_ARRAY auto concat(const simd<double, Abis> &...values) noexcept
+	{
+		if constexpr (sizeof...(values) == 1)
+			return (values, ...);
+		else
+		{
+			simd<double, simd_abi::deduce_t<double, (simd_size_v<double, Abis> + ...)>> result;
+			detail::concat_impl<0>(result, values...);
+			return result;
+		}
+	}
+	/** Concatenates elements of \a values into a single SIMD vector. */
+	template<std::size_t N, std::size_t A, std::size_t M>
+	[[nodiscard]] inline DPM_SAFE_ARRAY auto concat(const std::array<simd<double, detail::avec<N, A>>, M> &values) noexcept requires detail::x86_overload_m128<double, N, A>
+	{
+		if constexpr (M == 1)
+			return values[0];
+		else
+		{
+			simd<double, detail::avec<N * M, A>> result;
+			auto *data = reinterpret_cast<double *>(ext::to_native_data(result).data());
+			for (std::size_t i = 0; i < M; ++i)
+			{
+				if ((i * N) % sizeof(__m128d) != 0)
+					values[i].copy_to(data + i * N, element_aligned);
+				else
+					values[i].copy_to(data + i * N, vector_aligned);
+			}
+			return result;
+		}
+	}
+#pragma endregion
+
 #pragma region "simd algorithms"
 	/** Returns an SIMD vector of minimum elements of \a a and \a b. */
 	template<std::size_t N, std::size_t A>
@@ -1125,9 +1225,9 @@ namespace dpm
 		constexpr auto data_size = native_data_size_v<simd<double, detail::avec<N, A>>>;
 
 		simd<double, detail::avec<N, A>> result;
-		auto result_data = to_native_data(result);
-		const auto a_data = to_native_data(a);
-		const auto b_data = to_native_data(b);
+		auto result_data = ext::to_native_data(result);
+		const auto a_data = ext::to_native_data(a);
+		const auto b_data = ext::to_native_data(b);
 
 		for (std::size_t i = 0; i < data_size; ++i) result_data[i] = _mm_min_pd(a_data[i], b_data[i]);
 		return result;
@@ -1142,9 +1242,9 @@ namespace dpm
 		constexpr auto data_size = native_data_size_v<simd<double, detail::avec<N, A>>>;
 
 		simd<double, detail::avec<N, A>> result;
-		auto result_data = to_native_data(result);
-		const auto a_data = to_native_data(a);
-		const auto b_data = to_native_data(b);
+		auto result_data = ext::to_native_data(result);
+		const auto a_data = ext::to_native_data(a);
+		const auto b_data = ext::to_native_data(b);
 
 		for (std::size_t i = 0; i < data_size; ++i) result_data[i] = _mm_max_pd(a_data[i], b_data[i]);
 		return result;
@@ -1160,9 +1260,9 @@ namespace dpm
 		constexpr auto data_size = native_data_size_v<simd<double, detail::avec<N, A>>>;
 
 		std::pair<simd<double, detail::avec<N, A>>, simd<double, detail::avec<N, A>>> result;
-		auto min_data = to_native_data(result.first), max_data = to_native_data(result.second);
-		const auto a_data = to_native_data(a);
-		const auto b_data = to_native_data(b);
+		auto min_data = ext::to_native_data(result.first), max_data = ext::to_native_data(result.second);
+		const auto a_data = ext::to_native_data(a);
+		const auto b_data = ext::to_native_data(b);
 
 		for (std::size_t i = 0; i < data_size; ++i)
 		{
@@ -1183,10 +1283,10 @@ namespace dpm
 		constexpr auto data_size = native_data_size_v<simd<double, detail::avec<N, A>>>;
 
 		simd<double, detail::avec<N, A>> result;
-		auto result_data = to_native_data(result);
-		const auto min_data = to_native_data(min);
-		const auto max_data = to_native_data(max);
-		const auto x_data = to_native_data(x);
+		auto result_data = ext::to_native_data(result);
+		const auto min_data = ext::to_native_data(min);
+		const auto max_data = ext::to_native_data(max);
+		const auto x_data = ext::to_native_data(x);
 
 		for (std::size_t i = 0; i < data_size; ++i) result_data[i] = _mm_min_pd(_mm_max_pd(x_data[i], min_data[i]), max_data[i]);
 		return result;

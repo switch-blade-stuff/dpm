@@ -4,42 +4,12 @@
 
 #pragma once
 
-#include "../../../define.hpp"
+#include "../../fwd.hpp"
 
 #if defined(DPM_ARCH_X86) && (defined(DPM_HAS_SSE2) || defined(DPM_DYNAMIC_DISPATCH))
 
-#include <smmintrin.h>
-
-#ifndef DPM_USE_IMPORT
-
-#include <bit>
-
-#endif
-
 namespace dpm::detail
 {
-	[[maybe_unused]] [[nodiscard]] inline __m128d DPM_FORCEINLINE x86_floor_f64_sse2(__m128d x) noexcept
-	{
-		const auto exp52 = _mm_set1_pd(0x0010'0000'0000'0000);
-		const auto mask = _mm_cmpnlt_pd(x, exp52);
-
-		const auto magic = _mm_set1_pd(std::bit_cast<double>(0x4338'0000'0000'0000));
-		const auto a = _mm_sub_pd(_mm_add_pd(x, magic), magic);
-		const auto b = _mm_and_pd(_mm_cmplt_pd(x, a), _mm_set1_pd(1.0));
-		const auto result = _mm_sub_pd(a, b);
-
-		return _mm_or_pd(_mm_and_pd(mask, x), _mm_andnot_pd(mask, result));
-	}
-
-	[[nodiscard]] inline __m128d DPM_FORCEINLINE x86_floor_f64(__m128d x) noexcept
-	{
-#ifdef DPM_HAS_SSE4_1
-		return _mm_floor_pd(x);
-#else
-		return x86_floor_f64_sse2(x);
-#endif
-	}
-
 	[[maybe_unused]] [[nodiscard]] inline __m128d DPM_FORCEINLINE x86_cvt_u64_f64_sse2(__m128i x) noexcept
 	{
 		const auto exp84 = std::bit_cast<__m128i>(_mm_set1_pd(19342813113834066795298816.));  /* 2^84 */
@@ -106,6 +76,38 @@ namespace dpm::detail
 #else
 		return x86_cvt_f64_i64_sse2(x);
 #endif
+	}
+
+	[[maybe_unused]] [[nodiscard]] inline __m128d DPM_FORCEINLINE x86_floor_f64_sse2(__m128d x) noexcept
+	{
+		const auto exp52 = _mm_set1_pd(0x0010'0000'0000'0000);
+		const auto mask = _mm_cmpnlt_pd(x, exp52);
+
+		const auto magic = _mm_set1_pd(std::bit_cast<double>(0x4338'0000'0000'0000));
+		const auto a = _mm_sub_pd(_mm_add_pd(x, magic), magic);
+		const auto b = _mm_and_pd(_mm_cmplt_pd(x, a), _mm_set1_pd(1.0));
+		const auto result = _mm_sub_pd(a, b);
+
+		return _mm_or_pd(_mm_and_pd(mask, x), _mm_andnot_pd(mask, result));
+	}
+
+	[[nodiscard]] inline __m128d DPM_FORCEINLINE x86_floor_f64(__m128d x) noexcept
+	{
+#ifdef DPM_HAS_SSE4_1
+		return _mm_floor_pd(x);
+#else
+		return x86_floor_f64_sse2(x);
+#endif
+	}
+
+	[[nodiscard]] inline __m128d DPM_FORCEINLINE x86_frexp_pd(__m128d v, __m128d &e) noexcept
+	{
+		const auto mant_mask = _mm_set1_pd(std::bit_cast<double>(0x800f'ffff'ffff'ffff));
+		const auto a = _mm_srli_epi64(_mm_castpd_si128(v), 52);
+		v = _mm_and_pd(v, mant_mask);
+		v = _mm_or_pd(v, _mm_set1_pd(0.5));
+		e = _mm_add_pd(x86_cvt_i64_f64(_mm_sub_epi64(a, _mm_set1_epi64x(0x3ff))), _mm_set1_pd(1.0));
+		return v;
 	}
 }
 

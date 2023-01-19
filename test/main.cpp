@@ -146,6 +146,16 @@ int main()
 		TEST_ASSERT(dpm::all_of(id - ib == ia));
 		TEST_ASSERT(dpm::all_of(ib + ib == ib * decltype(ib){2}));
 
+		const auto da = dpm::simd_cast<double>(a);
+		const auto db = dpm::simd_cast<double>(b);
+		const auto dc = dpm::simd_cast<double>(c);
+		const auto dd = dpm::simd_cast<double>(d);
+
+		TEST_ASSERT(dpm::all_of(dpm::static_simd_cast<float>(da) == a));
+		TEST_ASSERT(dpm::all_of(dpm::static_simd_cast<float>(db) == b));
+		TEST_ASSERT(dpm::all_of(dpm::static_simd_cast<float>(dc) == c));
+		TEST_ASSERT(dpm::all_of(dpm::static_simd_cast<float>(dd) == d));
+
 		const auto b2 = dpm::split_by<2>(b);
 		const auto c2 = dpm::split_by<2>(c);
 
