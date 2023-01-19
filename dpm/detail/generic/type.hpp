@@ -47,6 +47,13 @@ namespace dpm
 
 	namespace detail
 	{
+		template<std::size_t, std::size_t...>
+		struct is_sequential : std::false_type {};
+		template<std::size_t I>
+		struct is_sequential<I, I> : std::true_type {};
+		template<std::size_t I, std::size_t... Is>
+		struct is_sequential<I, I, Is...> : is_sequential<I + 1, Is...> {};
+
 		template<typename V, typename Abi>
 		concept can_split_simd = is_simd_v<V> && !(simd_size_v<typename V::value_type, Abi> % V::size());
 		template<typename V, typename Abi>
@@ -117,6 +124,21 @@ namespace dpm
 		{
 			src.copy_to(buff.data() + I, vector_aligned);
 			if constexpr (sizeof...(other) != 0) concat_impl<simd_mask<T, Abi>::size()>(buff, other...);
+		}
+
+		template<std::size_t I, std::size_t... Is, typename T, typename FromAbi, typename ToAbi>
+		inline void DPM_SAFE_INLINE shuffle_impl(const simd_mask<T, FromAbi> &from, simd_mask<T, ToAbi> &to) noexcept
+		{
+			to[I] = from[I];
+			if constexpr (sizeof...(Is) != 0)
+				shuffle_impl<Is...>(from, to);
+		}
+		template<std::size_t I, std::size_t... Is, typename T, typename FromAbi, typename ToAbi>
+		inline void DPM_SAFE_INLINE shuffle_impl(const simd<T, FromAbi> &from, simd<T, ToAbi> &to) noexcept
+		{
+			to[I] = from[I];
+			if constexpr (sizeof...(Is) != 0)
+				shuffle_impl<Is...>(from, to);
 		}
 	}
 
@@ -429,6 +451,23 @@ namespace dpm
 			simd_mask<T, Abi> result = a;
 			for (std::size_t i = 0; i < m.size(); ++i) result[i] = m[i] ? b[i] : a[i];
 			return result;
+		}
+
+		/** Shuffles elements of mask \a x into a new vector according to the specified indices. ABI of the resulting mask is deduced via `simd_abi::deduce_t<T, sizeof...(Is), Abi>`. */
+		template<std::size_t I, std::size_t... Is, typename T, typename Abi>
+		[[nodiscard]] inline DPM_SAFE_ARRAY simd_mask<T, simd_abi::deduce_t<T, sizeof...(Is) + 1, Abi>> shuffle(const simd_mask<T, Abi> &x)
+		{
+			using result_t = simd_mask<T, simd_abi::deduce_t<T, sizeof...(Is) + 1, Abi>>;
+			if constexpr (detail::is_sequential<0, I, Is...>::value && result_t::size() == simd_mask<T, Abi>::size())
+				return result_t{x};
+			else if constexpr (sizeof...(Is) == 0 || ((Is == I) && ...))
+				return result_t{x[I]};
+			else
+			{
+				result_t result;
+				detail::shuffle_impl<I, Is...>(x, result);
+				return result;
+			}
 		}
 
 		template<detail::vectorizable T>
@@ -1149,6 +1188,23 @@ namespace dpm
 			simd<T, Abi> result = a;
 			for (std::size_t i = 0; i < m.size(); ++i) result[i] = m[i] ? b[i] : a[i];
 			return result;
+		}
+
+		/** Shuffles elements of vector \a x into a new vector according to the specified indices. ABI of the resulting vector is deduced via `simd_abi::deduce_t<T, sizeof...(Is), Abi>`. */
+		template<std::size_t I, std::size_t... Is, typename T, typename Abi>
+		[[nodiscard]] inline DPM_SAFE_ARRAY simd<T, simd_abi::deduce_t<T, sizeof...(Is) + 1, Abi>> shuffle(const simd<T, Abi> &x)
+		{
+			using result_t = simd<T, simd_abi::deduce_t<T, sizeof...(Is) + 1, Abi>>;
+			if constexpr (detail::is_sequential<0, I, Is...>::value && result_t::size() == simd<T, Abi>::size())
+				return result_t{x};
+			else if constexpr (sizeof...(Is) == 0 || ((Is == I) && ...))
+				return result_t{x[I]};
+			else
+			{
+				result_t result;
+				detail::shuffle_impl<I, Is...>(x, result);
+				return result;
+			}
 		}
 
 		template<detail::vectorizable T>
