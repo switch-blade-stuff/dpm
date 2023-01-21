@@ -303,11 +303,11 @@ namespace dpm::detail
 		};
 		return sincos_disp(x, abs_x, nan_mask, zero_mask);
 #elif defined(DPM_HAS_FMA)
-		return SINCOS_FUNC_CALL(sincos_fma<Mask>);
+		return sincos_fma<Mask>(x, abs_x, nan_mask, zero_mask);
 #elif defined(DPM_HAS_SSE4_1)
-		return SINCOS_FUNC_CALL(sincos_sse4_1<Mask>);
+		return sincos_sse4_1<Mask>(x, abs_x, nan_mask, zero_mask);
 #else
-		return SINCOS_FUNC_CALL(sincos_sse2<Mask>);
+		return sincos_sse2<Mask>(x, abs_x, nan_mask, zero_mask);
 #endif
 	}
 

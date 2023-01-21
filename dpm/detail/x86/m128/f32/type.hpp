@@ -473,8 +473,7 @@ namespace dpm
 			{
 				simd_mask<float, detail::avec<M, A>> result;
 				const auto src_data = reinterpret_cast<const __m128 *>(to_native_data(x).data());
-				const auto dst_data = to_native_data(result).data();
-				detail::x86_shuffle_f32<Is...>(dst_data, src_data);
+				detail::x86_shuffle_f32<Is...>(to_native_data(result).data(), src_data);
 				return result;
 			}
 		}
@@ -1144,8 +1143,7 @@ namespace dpm
 			{
 				simd<float, detail::avec<M, A>> result;
 				const auto src_data = reinterpret_cast<const __m128 *>(to_native_data(x).data());
-				const auto dst_data = to_native_data(result).data();
-				detail::x86_shuffle_f32<Is...>(dst_data, src_data);
+				detail::x86_shuffle_f32<Is...>(to_native_data(result).data(), src_data);
 				return result;
 			}
 		}
