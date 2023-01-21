@@ -167,7 +167,7 @@ namespace dpm
 		template<typename U, std::size_t OtherAlign>
 		simd_mask(const simd_mask<U, detail::avec<size(), OtherAlign>> &other) noexcept
 		{
-			if constexpr (std::same_as<U, value_type> && (OtherAlign == 0 || OtherAlign >= alignment))
+			if constexpr (std::same_as<U, value_type> && alignof(decltype(other)) >= alignment)
 				std::copy_n(reinterpret_cast<const __m128 *>(ext::to_native_data(other).data()), data_size, m_data);
 			else
 				for (std::size_t i = 0; i < size(); ++i) operator[](i) = other[i];
@@ -453,10 +453,10 @@ namespace dpm
 			constexpr auto data_size = native_data_size_v<simd_mask<float, detail::avec<N, A>>>;
 
 			simd_mask<float, detail::avec<N, A>> result;
-			auto result_data = to_native_data(result)();
-			const auto a_data = to_native_data(a)();
-			const auto b_data = to_native_data(b)();
-			const auto m_data = to_native_data(m)();
+			auto result_data = to_native_data(result);
+			const auto a_data = to_native_data(a);
+			const auto b_data = to_native_data(b);
+			const auto m_data = to_native_data(m);
 
 			for (std::size_t i = 0; i < data_size; ++i) result_data[i] = _mm_blendv_ps(a_data[i], b_data[i], m_data[i]);
 			return result;
@@ -696,10 +696,10 @@ namespace dpm
 		template<typename U, std::size_t OtherAlign>
 		simd(const simd<U, detail::avec<size(), OtherAlign>> &other) noexcept
 		{
-			if constexpr (OtherAlign == 0 || OtherAlign >= alignment)
+			if constexpr (constexpr auto other_alignment = alignof(decltype(other)); other_alignment >= alignment)
 				copy_from(reinterpret_cast<const U *>(ext::to_native_data(other).data()), vector_aligned);
-			else if constexpr (OtherAlign != alignof(value_type))
-				copy_from(reinterpret_cast<const U *>(ext::to_native_data(other).data()), overaligned<OtherAlign>);
+			else if constexpr (other_alignment != alignof(value_type))
+				copy_from(reinterpret_cast<const U *>(ext::to_native_data(other).data()), overaligned<other_alignment>);
 			else
 				copy_from(reinterpret_cast<const U *>(ext::to_native_data(other).data()), element_aligned);
 		}
@@ -1123,10 +1123,10 @@ namespace dpm
 			constexpr auto data_size = native_data_size_v<simd<float, detail::avec<N, A>>>;
 
 			simd<float, detail::avec<N, A>> result;
-			auto result_data = to_native_data(result)();
-			const auto a_data = to_native_data(a)();
-			const auto b_data = to_native_data(b)();
-			const auto m_data = to_native_data(m)();
+			auto result_data = to_native_data(result);
+			const auto a_data = to_native_data(a);
+			const auto b_data = to_native_data(b);
+			const auto m_data = to_native_data(m);
 
 			for (std::size_t i = 0; i < data_size; ++i) result_data[i] = _mm_blendv_ps(a_data[i], b_data[i], m_data[i]);
 			return result;
@@ -1259,8 +1259,8 @@ namespace dpm
 
 		for (std::size_t i = 0; i < data_size; ++i)
 		{
-			max_data[i] = _mm_min_ps(a[i], b[i]);
-			max_data[i] = _mm_max_ps(a[i], b[i]);
+			min_data[i] = _mm_min_ps(a_data[i], b_data[i]);
+			max_data[i] = _mm_max_ps(a_data[i], b_data[i]);
 		}
 		return result;
 	}
