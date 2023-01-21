@@ -463,7 +463,7 @@ namespace dpm
 		}
 #endif
 
-		/** Shuffles elements of mask \a x into a new mask according to the specified indices. ABI of the resulting mask is deduced via `simd_abi::deduce_t<T, sizeof...(Is), Abi>`. */
+		/** Shuffles elements of mask \a x into a new mask according to the specified indices. */
 		template<std::size_t... Is, std::size_t N, std::size_t A, std::size_t M = sizeof...(Is)>
 		[[nodiscard]] inline DPM_SAFE_ARRAY simd_mask<float, detail::avec<M, A>> shuffle(const simd_mask<float, detail::avec<N, A>> &x) noexcept requires detail::x86_overload_any<float, N, A> && detail::x86_overload_m128<float, M, A>
 		{
@@ -1134,7 +1134,7 @@ namespace dpm
 		}
 #endif
 
-		/** Shuffles elements of vector \a x into a new vector according to the specified indices. ABI of the resulting vector is deduced via `simd_abi::deduce_t<T, sizeof...(Is), Abi>`. */
+		/** Shuffles elements of vector \a x into a new vector according to the specified indices. */
 		template<std::size_t... Is, std::size_t N, std::size_t A, std::size_t M = sizeof...(Is)>
 		[[nodiscard]] inline DPM_SAFE_ARRAY simd<float, detail::avec<M, A>> shuffle(const simd<float, detail::avec<N, A>> &x) noexcept requires detail::x86_overload_any<float, N, A> && detail::x86_overload_m128<float, M, A>
 		{

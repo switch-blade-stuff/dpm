@@ -163,6 +163,9 @@ namespace dpm
 		/** Equivalent to `m ? b : a`. */
 		template<typename T>
 		[[nodiscard]] inline T blend(const T &a, const T &b, detail::bool_wrapper m) { return m ? b : a; }
+		/** Equivalent to `shuffle<Is...>(fixed_size_simd<T, 1>(x))`. */
+		template<std::size_t... Is, typename T>
+		[[nodiscard]] inline fixed_size_simd<T, sizeof...(Is)> shuffle(const T &x) { return shuffle<Is...>(fixed_size_simd<T, 1>{x}); }
 	}
 
 	/** @brief Type representing a data-parallel mask vector type.

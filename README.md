@@ -123,6 +123,10 @@ DPM provides the following extensions to the standard API:
     * `simd_mask blend(const simd_mask &, const const_where_expression &)`
     * `T blend(const T &, const T &, /* bool-wrapper */)`
     * `T blend(const T &, const const_where_expression &)`
+* Shuffle functions
+    * `simd shuffle<Is...>(const simd &)`
+    * `simd_mask shuffle<Is...>(const simd_mask &)`
+    * `simd_mask shuffle<Is...>(const T &)`
 * Other utilities
     * `cpuid`
 
