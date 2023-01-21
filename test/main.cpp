@@ -204,8 +204,29 @@ int main()
 		TEST_ASSERT(dpm::all_of(dpm::min(d, b) == b));
 		TEST_ASSERT(dpm::all_of(dpm::max(d, a) == a));
 		TEST_ASSERT(dpm::all_of(dpm::clamp(d, decltype(d){.5f}, decltype(d){.5f}) == decltype(b){0.5f}));
-	}
 
+		const auto e = dpm::ext::shuffle<1, 0, 3, 2>(d);
+		where(mask, a).copy_to(d_vals.data(), dpm::vector_aligned);
+		where(!mask, b).copy_to(d_vals.data(), dpm::vector_aligned);
+		d.copy_from(d_vals.data(), dpm::vector_aligned);
+
+		TEST_ASSERT(dpm::all_of(d == e));
+		TEST_ASSERT(dpm::all_of(dpm::ext::shuffle<0, 0, 0, 0>(d) == b));
+		TEST_ASSERT(dpm::all_of(dpm::ext::shuffle<1, 1, 1, 1>(d) == a));
+		TEST_ASSERT(dpm::all_of(dpm::ext::shuffle<0, 0, 0, 0>(d) == dpm::ext::shuffle<0, 0, 0, 0>(d)));
+		TEST_ASSERT(dpm::all_of(dpm::ext::shuffle<1, 1, 1, 1>(d) == dpm::ext::shuffle<3, 3, 3, 3>(d)));
+
+		const auto f = dpm::concat(dpm::ext::shuffle<0>(b), dpm::ext::shuffle<1>(a));
+		TEST_ASSERT(dpm::all_of(dpm::ext::shuffle<0, 1>(d) == f));
+	}
+	{
+		std::array<float, 3> data = {-1, 2, -3};
+		dpm::fixed_size_simd<float, 3> a;
+		a.copy_from(data.data(), dpm::element_aligned);
+
+		TEST_ASSERT(dpm::reduce(a, std::plus<>{}) == (-1 + 2 - 3));
+		TEST_ASSERT(dpm::reduce(a, std::multiplies<>{}) == (-1 * 2 * -3));
+	}
 	{
 		dpm::simd<std::int64_t, dpm::simd_abi::fixed_size<2>> a = {1}, b = {2}, c = {4}, d = {~4ll};
 

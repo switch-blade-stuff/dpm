@@ -130,18 +130,3 @@ import std;
 #else
 #define DPM_DECLARE_EXT_NAMESPACE namespace ext
 #endif
-
-#ifdef DPM_HANDLE_ERRORS
-#define DPM_HANDLE_ERRORS_OPT_OR(a, b) a
-#define DPM_HANDLE_ERRORS_OPT(x) x
-#else
-#define DPM_HANDLE_ERRORS_OPT_OR(a, b) b
-#define DPM_HANDLE_ERRORS_OPT(x)
-#endif
-#ifdef DPM_PROPAGATE_NAN
-#define DPM_PROPAGATE_NAN_OPT_OR(a, b) a
-#define DPM_PROPAGATE_NAN_OPT(x) x
-#else
-#define DPM_PROPAGATE_NAN_OPT_OR(a, b) b
-#define DPM_PROPAGATE_NAN_OPT(x)
-#endif

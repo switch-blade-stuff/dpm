@@ -15,7 +15,7 @@ namespace dpm
 	namespace detail
 	{
 		template<std::size_t N>
-		[[nodiscard]] static __m128i x86_maskzero_vector_i64(__m128i v, std::size_t i) noexcept
+		[[nodiscard]] static __m128i x86_maskzero_i64(__m128i v, std::size_t i) noexcept
 		{
 			if (N - i == 1)
 			{
@@ -174,7 +174,7 @@ namespace dpm
 				auto result = _mm_setzero_si128();
 				for (std::size_t i = 0; i < M; ++i)
 				{
-					const auto vm = x86_maskzero_vector_i64<N>(mask[i], i * 2);
+					const auto vm = x86_maskzero_i64<N>(mask[i], i * 2);
 					result = _mm_or_si128(result, vm);
 				}
 #ifdef DPM_HAS_SSE4_1
@@ -191,7 +191,7 @@ namespace dpm
 				for (std::size_t i = 0; i < M; ++i)
 				{
 					const auto vm = mask[i];
-					const auto vmz = x86_maskzero_vector_i64<N>(vm, i * 2);
+					const auto vmz = x86_maskzero_i64<N>(vm, i * 2);
 					const auto vmo = x86_maskone_vector_i64<N>(vm, i * 2);
 
 					all_mask = __mm_or_si128(all_mask, vmo);
@@ -203,7 +203,7 @@ namespace dpm
 				for (std::size_t i = 0; i < M; ++i)
 				{
 					const auto vm = mask[i];
-					const auto vmz = x86_maskzero_vector_i64<N>(vm, i * 2);
+					const auto vmz = x86_maskzero_i64<N>(vm, i * 2);
 					const auto vmo = x86_maskone_vector_i64<N>(vm, i * 2);
 
 					all_mask = _mm_and_ps(all_mask, std::bit_cast<__m128>(vmo));
@@ -219,7 +219,7 @@ namespace dpm
 				std::size_t result = 0;
 				for (std::size_t i = 0; i < M; ++i)
 				{
-					const auto vm = x86_maskzero_vector_i64<N>(mask[i], i * 2);
+					const auto vm = x86_maskzero_i64<N>(mask[i], i * 2);
 					result += std::popcount(static_cast<std::uint32_t>(_mm_movemask_pd(std::bit_cast<__m128d>(vm))));
 				}
 				return result;
@@ -338,13 +338,13 @@ namespace dpm
 				if constexpr (std::same_as<U, I> && aligned_tag<F, alignof(__m128i)>)
 					for (std::size_t i = 0; i < N; i += 2)
 					{
-						const auto mi = std::bit_cast<__m128i>(x86_maskzero_vector_i64<N>(mask[i / 2], i));
+						const auto mi = std::bit_cast<__m128i>(x86_maskzero_i64<N>(mask[i / 2], i));
 						dst[i / 2] = std::bit_cast<__m128i>(_mm_maskload_pd(src + i, mi));
 					}
 				else if constexpr (std::same_as<std::remove_cvref_t<U>, double> && aligned_tag<F, alignof(__m128i)>)
 					for (std::size_t i = 0; i < N; i += 2)
 					{
-						const auto mi = std::bit_cast<__m128i>(x86_maskzero_vector_i64<N>(mask[i / 2], i));
+						const auto mi = std::bit_cast<__m128i>(x86_maskzero_i64<N>(mask[i / 2], i));
 						if constexpr (std::is_signed_v<I>)
 							dst[i / 2] = x86_cvt_f64_i64(_mm_maskload_pd(src + i, mi));
 						else
@@ -361,13 +361,13 @@ namespace dpm
 				if constexpr (std::same_as<U, I> && aligned_tag<F, alignof(__m128i)>)
 					for (std::size_t i = 0; i < N; i += 2)
 					{
-						const auto mi = std::bit_cast<__m128i>(x86_maskzero_vector_i64<N>(mask[i / 2], i));
+						const auto mi = std::bit_cast<__m128i>(x86_maskzero_i64<N>(mask[i / 2], i));
 						_mm_maskstore_pd(dst + i, mi, std::bit_cast<__m128d>(src[i / 2]));
 					}
 				else if constexpr (std::same_as<std::remove_cvref_t<U>, double> && aligned_tag<F, alignof(__m128i)>)
 					for (std::size_t i = 0; i < N; i += 2)
 					{
-						const auto mi = std::bit_cast<__m128i>(x86_maskzero_vector_i64<N>(mask[i / 2], i));
+						const auto mi = std::bit_cast<__m128i>(x86_maskzero_i64<N>(mask[i / 2], i));
 						if constexpr (std::is_signed_v<I>)
 							_mm_maskstore_pd(dst + i, mi, x86_cvt_i64_f64(src[i / 2]));
 						else
@@ -379,13 +379,13 @@ namespace dpm
 					if constexpr (std::same_as<U, I>)
 						for (std::size_t i = 0; i < N; i += 2)
 						{
-							const auto mi = x86_maskzero_vector_i64<N>(mask[i / 2], i);
+							const auto mi = x86_maskzero_i64<N>(mask[i / 2], i);
 							_mm_maskmoveu_si128(src[i / 2], mi, reinterpret_cast<char *>(dst + i));
 						}
 					else if constexpr (std::same_as<std::remove_cvref_t<U>, double>)
 						for (std::size_t i = 0; i < N; i += 2)
 						{
-							const auto mi = x86_maskzero_vector_i64<N>(mask[i / 2], i);
+							const auto mi = x86_maskzero_i64<N>(mask[i / 2], i);
 							if constexpr (std::is_signed_v<I>)
 								_mm_maskmoveu_si128(std::bit_cast<__m128i>(x86_cvt_i64_f64(src[i / 2])), mi, reinterpret_cast<char *>(dst + i));
 							else

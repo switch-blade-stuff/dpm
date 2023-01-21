@@ -37,7 +37,7 @@ namespace dpm
 			if constexpr (sizeof...(Abis) != 0) concat_impl<I + simd<double, XAbi>::size()>(out, rest...);
 		}
 
-		[[nodiscard]] inline __m128d x86_maskzero_vector_f64(std::size_t n, __m128d v) noexcept
+		[[nodiscard]] inline __m128d x86_maskzero_f64(std::size_t n, __m128d v) noexcept
 		{
 			if (n == 1)
 			{
@@ -440,7 +440,7 @@ namespace dpm
 		auto result = _mm_setzero_pd();
 		for (std::size_t i = 0; i < mask_t::size(); i += 2)
 		{
-			const auto vm = x86_maskzero_vector_f64(mask_t::size() - i, mask_data[i / 2]);
+			const auto vm = x86_maskzero_f64(mask_t::size() - i, mask_data[i / 2]);
 			result = _mm_or_pd(result, vm);
 		}
 #ifdef DPM_HAS_SSE4_1
@@ -461,7 +461,7 @@ namespace dpm
 		for (std::size_t i = 0; i < mask_t::size(); i += 2)
 		{
 			const auto vm = mask_data[i / 2];
-			const auto vmz = x86_maskzero_vector_f64(mask_t::size() - i, vm);
+			const auto vmz = x86_maskzero_f64(mask_t::size() - i, vm);
 			const auto vmo = x86_maskone_vector_f64(mask_t::size() - i, vm);
 
 			all_mask = _mm_and_pd(all_mask, vmo);
@@ -486,7 +486,7 @@ namespace dpm
 		std::size_t result = 0;
 		for (std::size_t i = 0; i < mask_t::size(); i += 2)
 		{
-			const auto vm = detail::x86_maskzero_vector_f64(mask_t::size() - i, mask_data[i / 2]);
+			const auto vm = detail::x86_maskzero_f64(mask_t::size() - i, mask_data[i / 2]);
 			result += std::popcount(static_cast<std::uint32_t>(_mm_movemask_pd(vm)));
 		}
 		return result;
@@ -923,13 +923,13 @@ namespace dpm
 #ifdef DPM_HAS_AVX
 					if constexpr (detail::aligned_tag<Flags, alignof(__m128d)>)
 					{
-						const auto mi = std::bit_cast<__m128i>(detail::x86_maskzero_vector_f64(mask_i::size() - i, v_mask[i / 2]));
+						const auto mi = std::bit_cast<__m128i>(detail::x86_maskzero_f64(mask_t::size() - i, v_mask[i / 2]));
 						_mm_maskstore_pd(mem, mi, v_data[i / 2]);
 					}
 					else
 #endif
 					{
-						const auto mi = std::bit_cast<__m128i>(detail::x86_maskzero_vector_f64(mask_t::size() - i, v_mask[i / 2]));
+						const auto mi = std::bit_cast<__m128i>(detail::x86_maskzero_f64(mask_t::size() - i, v_mask[i / 2]));
 						const auto vi = std::bit_cast<__m128i>(v_data[i / 2]);
 						_mm_maskmoveu_si128(vi, mi, reinterpret_cast<char *>(mem));
 					}
@@ -940,13 +940,13 @@ namespace dpm
 #ifdef DPM_HAS_AVX
 					if constexpr (detail::aligned_tag<Flags, alignof(__m128d)>)
 					{
-						const auto mi = std::bit_cast<__m128i>(detail::x86_maskzero_vector_f64(mask_i::size() - i, v_mask[i / 2]));
+						const auto mi = std::bit_cast<__m128i>(detail::x86_maskzero_f64(mask_t::size() - i, v_mask[i / 2]));
 						_mm_maskstore_pd(mem, mi, std::bit_cast<__m128d>(detail::x86_cvt_f64_i64(v_data[i / 2])));
 					}
 					else
 #endif
 					{
-						const auto mi = std::bit_cast<__m128i>(detail::x86_maskzero_vector_f64(mask_t::size() - i, v_mask[i / 2]));
+						const auto mi = std::bit_cast<__m128i>(detail::x86_maskzero_f64(mask_t::size() - i, v_mask[i / 2]));
 						const auto vi = detail::x86_cvt_f64_i64(v_data[i / 2]);
 						_mm_maskmoveu_si128(vi, mi, reinterpret_cast<char *>(mem));
 					}
@@ -957,13 +957,13 @@ namespace dpm
 #ifdef DPM_HAS_AVX
 					if constexpr (detail::aligned_tag<Flags, alignof(__m128d)>)
 					{
-						const auto mi = std::bit_cast<__m128i>(detail::x86_maskzero_vector_f64(mask_i::size() - i, v_mask[i / 2]));
+						const auto mi = std::bit_cast<__m128i>(detail::x86_maskzero_f64(mask_t::size() - i, v_mask[i / 2]));
 						_mm_maskstore_pd(mem, mi, std::bit_cast<__m128d>(detail::x86_cvt_f64_u64(v_data[i / 2])));
 					}
 					else
 #endif
 					{
-						const auto mi = std::bit_cast<__m128i>(detail::x86_maskzero_vector_f64(mask_t::size() - i, v_mask[i / 2]));
+						const auto mi = std::bit_cast<__m128i>(detail::x86_maskzero_f64(mask_t::size() - i, v_mask[i / 2]));
 						const auto vi = detail::x86_cvt_f64_u64(v_data[i / 2]);
 						_mm_maskmoveu_si128(vi, mi, reinterpret_cast<char *>(mem));
 					}
@@ -1053,15 +1053,15 @@ namespace dpm
 				for (std::size_t i = 0; i < mask_t::size(); i += 2)
 				{
 #ifdef DPM_HAS_AVX
-					if constexpr (detail::aligned_tag<F, alignof(__m128d)>)
+					if constexpr (detail::aligned_tag<Flags, alignof(__m128d)>)
 					{
-						const auto mi = std::bit_cast<__m128i>(detail::x86_maskzero_vector_f64(mask_t::size() - i, v_mask[i / 2]));
+						const auto mi = std::bit_cast<__m128i>(detail::x86_maskzero_f64(mask_t::size() - i, v_mask[i / 2]));
 						v_data[i / 2] = _mm_maskload_pd(mem + i, mi);
 					}
 					else
 #endif
 					{
-						const auto mi = std::bit_cast<__m128i>(detail::x86_maskzero_vector_f64(mask_t::size() - i, v_mask[i / 2]));
+						const auto mi = std::bit_cast<__m128i>(detail::x86_maskzero_f64(mask_t::size() - i, v_mask[i / 2]));
 						const auto vi = std::bit_cast<__m128i>(v_data[i / 2]);
 						_mm_maskmoveu_si128(vi, mi, reinterpret_cast<char *>(mem + i));
 					}
@@ -1070,15 +1070,15 @@ namespace dpm
 				for (std::size_t i = 0; i < mask_t::size(); i += 2)
 				{
 #ifdef DPM_HAS_AVX
-					if constexpr (detail::aligned_tag<F, alignof(__m128d)>)
+					if constexpr (detail::aligned_tag<Flags, alignof(__m128d)>)
 					{
-						const auto mi = std::bit_cast<__m128i>(detail::x86_maskzero_vector_f64(mask_t::size() - i, v_mask[i / 2]));
+						const auto mi = std::bit_cast<__m128i>(detail::x86_maskzero_f64(mask_t::size() - i, v_mask[i / 2]));
 						v_data[i / 2] = detail::x86_cvt_i64_f64(_mm_maskload_pd(mem + i, mi));
 					}
 					else
 #endif
 					{
-						const auto mi = std::bit_cast<__m128i>(detail::x86_maskzero_vector_f64(mask_t::size() - i, v_mask[i / 2]));
+						const auto mi = std::bit_cast<__m128i>(detail::x86_maskzero_f64(mask_t::size() - i, v_mask[i / 2]));
 						const auto vi = detail::x86_cvt_i64_f64(v_data[i / 2]);
 						_mm_maskmoveu_si128(vi, mi, reinterpret_cast<char *>(mem + i));
 					}
@@ -1087,15 +1087,15 @@ namespace dpm
 				for (std::size_t i = 0; i < mask_t::size(); i += 2)
 				{
 #ifdef DPM_HAS_AVX
-					if constexpr (detail::aligned_tag<F, alignof(__m128d)>)
+					if constexpr (detail::aligned_tag<Flags, alignof(__m128d)>)
 					{
-						const auto mi = std::bit_cast<__m128i>(detail::x86_maskzero_vector_f64(mask_t::size() - i, v_mask[i / 2]));
+						const auto mi = std::bit_cast<__m128i>(detail::x86_maskzero_f64(mask_t::size() - i, v_mask[i / 2]));
 						v_data[i / 2] = detail::x86_cvt_u64_f64(_mm_maskload_pd(mem + i, mi));
 					}
 					else
 #endif
 					{
-						const auto mi = std::bit_cast<__m128i>(detail::x86_maskzero_vector_f64(mask_t::size() - i, v_mask[i / 2]));
+						const auto mi = std::bit_cast<__m128i>(detail::x86_maskzero_f64(mask_t::size() - i, v_mask[i / 2]));
 						const auto vi = detail::x86_cvt_u64_f64(v_data[i / 2]);
 						_mm_maskmoveu_si128(vi, mi, reinterpret_cast<char *>(mem + i));
 					}
@@ -1163,7 +1163,7 @@ namespace dpm
 	          detail::x86_overload_m128<double, N, A> &&
 	          detail::x86_overload_any<To, N, A>)
 	{
-		typename detail::cast_return<T, double, detail::avec<N, A>, simd<double, detail::avec<N, A>>::size()>::type result;
+		detail::cast_return_t<T, double, detail::avec<N, A>, simd<double, detail::avec<N, A>>::size()> result;
 		x.copy_to(reinterpret_cast<To *>(ext::to_native_data(result).data()), vector_aligned);
 		return result;
 	}

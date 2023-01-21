@@ -64,6 +64,8 @@ namespace dpm
 		struct deduce<T, 1> { using type = scalar; };
 		template<typename T, std::size_t N>
 		struct deduce<T, N> { using type = fixed_size<N>; };
+		template<typename T, std::size_t N, std::size_t M, std::size_t A>
+		struct deduce<T, N, ext::aligned_vector<M, A>> { using type = ext::aligned_vector<N, A>; };
 
 		namespace detail
 		{

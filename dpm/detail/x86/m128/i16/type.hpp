@@ -13,7 +13,7 @@ namespace dpm
 	namespace detail
 	{
 		template<std::size_t N>
-		[[nodiscard]] static __m128i x86_maskzero_vector_i16(__m128i v, std::size_t i) noexcept
+		[[nodiscard]] static __m128i x86_maskzero_i16(__m128i v, std::size_t i) noexcept
 		{
 			switch ([[maybe_unused]] const auto mask = std::bit_cast<float>(0xffff'ffff); N - i)
 			{
@@ -199,7 +199,7 @@ namespace dpm
 			[[nodiscard]] static DPM_SAFE_ARRAY bool any_of(const __m128i *mask) noexcept
 			{
 				auto result = _mm_setzero_si128();
-				for (std::size_t i = 0; i < M; ++i) result = _mm_or_si128(result, x86_maskzero_vector_i16<N>(mask[i], i * 8));
+				for (std::size_t i = 0; i < M; ++i) result = _mm_or_si128(result, x86_maskzero_i16<N>(mask[i], i * 8));
 #ifdef DPM_HAS_SSE4_1
 				return !_mm_testz_si128(result, result);
 #else
@@ -210,7 +210,7 @@ namespace dpm
 			[[nodiscard]] static DPM_SAFE_ARRAY bool none_of(const __m128i *mask) noexcept
 			{
 				auto result = _mm_setzero_si128();
-				for (std::size_t i = 0; i < M; ++i) result = _mm_or_si128(result, x86_maskzero_vector_i16<N>(mask[i], i * 8));
+				for (std::size_t i = 0; i < M; ++i) result = _mm_or_si128(result, x86_maskzero_i16<N>(mask[i], i * 8));
 #ifdef DPM_HAS_SSE4_1
 				return _mm_testz_si128(result, result);
 #else
@@ -223,7 +223,7 @@ namespace dpm
 				auto any_mask = _mm_setzero_si128(), all_mask = _mm_set1_epi16(static_cast<std::int16_t>(0xffff));
 				for (std::size_t i = 0; i < M; ++i)
 				{
-					all_mask = _mm_and_si128(all_mask, x86_maskzero_vector_i16<N>(mask[i], i * 8));
+					all_mask = _mm_and_si128(all_mask, x86_maskzero_i16<N>(mask[i], i * 8));
 					any_mask = _mm_or_si128(any_mask, x86_maskone_vector_i16<N>(mask[i], i * 8));
 				}
 #ifdef DPM_HAS_SSE4_1
@@ -239,7 +239,7 @@ namespace dpm
 				std::size_t result = 0;
 				for (std::size_t i = 0; i < M; ++i)
 				{
-					const auto vm = x86_maskzero_vector_i16<N>(mask[i], i * 8);
+					const auto vm = x86_maskzero_i16<N>(mask[i], i * 8);
 					result += std::popcount(static_cast<std::uint32_t>(_mm_movemask_epi8(vm)));
 				}
 				return result;

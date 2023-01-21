@@ -14,30 +14,34 @@ namespace dpm
 {
 	namespace detail
 	{
-		template<std::size_t I, typename OutAbi, typename XAbi, typename... Abis>
-		[[nodiscard]] inline DPM_SAFE_ARRAY auto concat_impl(simd_mask<float, OutAbi> &out, const simd_mask<float, XAbi> &x, const simd_mask<float, Abis> &...rest) noexcept
+		/* When `n` is < 4, mix `4 - n` elements of `b` at the end of `a`. */
+		inline __m128 DPM_FORCEINLINE x86_maskblend_f32(std::size_t n, __m128 a, __m128 b) noexcept
 		{
-			auto *data = reinterpret_cast<float *>(ext::to_native_data(out).data());
-			if constexpr (I % sizeof(__m128) != 0)
-				x.copy_to(data + I, element_aligned);
-			else
-				x.copy_to(data + I, vector_aligned);
-
-			if constexpr (sizeof...(Abis) != 0) concat_impl<I + simd_mask<float, XAbi>::size()>(out, rest...);
+#ifdef DPM_HAS_SSE4_1
+			switch (n)
+			{
+				case 3: return _mm_blend_ps(a, b, 0b1000);
+				case 2: return _mm_blend_ps(a, b, 0b1100);
+				case 1: return _mm_blend_ps(a, b, 0b1110);
+				default: return a;
+			}
+#else
+			auto vm = _mm_undefined_ps();
+			switch (const auto mask = std::bit_cast<float>(0xffff'ffff); n)
+			{
+				case 3: vm = _mm_set_ps(mask, 0.0f, 0.0f, 0.0f);
+					break;
+				case 2: vm = _mm_set_ps(mask, mask, 0.0f, 0.0f);
+					break;
+				case 1: vm = _mm_set_ps(mask, mask, mask, 0.0f);
+					break;
+				default: return a;
+			}
+			return _mm_or_ps(_mm_andnot_ps(vm, a), _mm_and_ps(vm, b));
+#endif
 		}
-		template<std::size_t I, typename OutAbi, typename XAbi, typename... Abis>
-		[[nodiscard]] inline DPM_SAFE_ARRAY auto concat_impl(simd<float, OutAbi> &out, const simd<float, XAbi> &x, const simd<float, Abis> &...rest) noexcept
-		{
-			auto *data = reinterpret_cast<float *>(ext::to_native_data(out).data());
-			if constexpr (I % sizeof(__m128) != 0)
-				x.copy_to(data + I, element_aligned);
-			else
-				x.copy_to(data + I, vector_aligned);
-
-			if constexpr (sizeof...(Abis) != 0) concat_impl<I + simd<float, XAbi>::size()>(out, rest...);
-		}
-
-		[[nodiscard]] inline __m128 x86_maskzero_vector_f32(std::size_t n, __m128 v) noexcept
+		/* When `n` is < 4, mix `4 - n` zeros at the end of `a`. */
+		inline __m128 DPM_FORCEINLINE x86_maskzero_f32(std::size_t n, __m128 v) noexcept
 		{
 			switch ([[maybe_unused]] const auto mask = std::bit_cast<float>(0xffff'ffff); n)
 			{
@@ -53,7 +57,8 @@ namespace dpm
 				default: return v;
 			}
 		}
-		[[nodiscard]] inline __m128 x86_maskone_vector_f32(std::size_t n, __m128 v) noexcept
+		/* When `n` is < 4, mix `4 - n` ones at the end of `a`. */
+		inline __m128 DPM_FORCEINLINE x86_maskone_f32(std::size_t n, __m128 v) noexcept
 		{
 			switch (const auto mask = std::bit_cast<float>(0xffff'ffff); n)
 			{
@@ -68,6 +73,40 @@ namespace dpm
 #endif
 				default: return v;
 			}
+		}
+
+		template<std::size_t I>
+		inline void DPM_SAFE_INLINE x86_shuffle_f32(__m128 *to, const __m128 *from) noexcept
+		{
+			*to = _mm_shuffle_ps(from[I / 4], from[I / 4], _MM_SHUFFLE(I, I, I, I));
+		}
+		template<std::size_t I0, std::size_t I1>
+		inline void DPM_SAFE_INLINE x86_shuffle_f32(__m128 *to, const __m128 *from) noexcept
+		{
+			constexpr auto P0 = I0 / 4, P1 = I1 / 4;
+			if constexpr (P0 != P1)
+				copy_positions<I0, I1>(reinterpret_cast<float *>(to), reinterpret_cast<const float *>(from));
+			else
+				*to = _mm_shuffle_ps(from[P0], from[P0], _MM_SHUFFLE(3, 2, I1, I0));
+		}
+		template<std::size_t I0, std::size_t I1, std::size_t I2>
+		inline void DPM_SAFE_INLINE x86_shuffle_f32(__m128 *to, const __m128 *from) noexcept
+		{
+			constexpr auto P0 = I0 / 4, P1 = I1 / 4, P2 = I2 / 4;
+			if constexpr (P0 != P1)
+				copy_positions<I0, I1, I2>(reinterpret_cast<float *>(to), reinterpret_cast<const float *>(from));
+			else
+				*to = _mm_shuffle_ps(from[P0], from[P2], _MM_SHUFFLE(3, I2, I1, I0));
+		}
+		template<std::size_t I0, std::size_t I1, std::size_t I2, std::size_t I3, std::size_t... Is>
+		inline void DPM_SAFE_INLINE x86_shuffle_f32(__m128 *to, const __m128 *from) noexcept
+		{
+			constexpr auto P0 = I0 / 4, P1 = I1 / 4, P2 = I2 / 4, P3 = I3 / 4;
+			if constexpr (P0 != P1 || P2 != P3)
+				copy_positions<I0, I1, I2, I3>(reinterpret_cast<float *>(to), reinterpret_cast<const float *>(from));
+			else
+				*to = _mm_shuffle_ps(from[P0], from[P2], _MM_SHUFFLE(I3, I2, I1, I0));
+			if constexpr (sizeof...(Is) != 0) x86_shuffle_f32<Is...>(to + 1, from);
 		}
 	}
 
@@ -382,8 +421,8 @@ namespace dpm
 		{
 			using mask_t = simd_mask<float, avec<N, A>>;
 
-			[[nodiscard]] static std::span<__m128, mask_t::data_size> to_native_data(mask_t &x) noexcept { return {x.m_data}; }
-			[[nodiscard]] static std::span<const __m128, mask_t::data_size> to_native_data(const mask_t &x) noexcept { return {x.m_data}; }
+			static std::span<__m128, mask_t::data_size> to_native_data(mask_t &x) noexcept { return {x.m_data}; }
+			static std::span<const __m128, mask_t::data_size> to_native_data(const mask_t &x) noexcept { return {x.m_data}; }
 		};
 	}
 
@@ -423,6 +462,22 @@ namespace dpm
 			return result;
 		}
 #endif
+
+		/** Shuffles elements of mask \a x into a new mask according to the specified indices. ABI of the resulting mask is deduced via `simd_abi::deduce_t<T, sizeof...(Is), Abi>`. */
+		template<std::size_t... Is, std::size_t N, std::size_t A, std::size_t M = sizeof...(Is)>
+		[[nodiscard]] inline DPM_SAFE_ARRAY simd_mask<float, detail::avec<M, A>> shuffle(const simd_mask<float, detail::avec<N, A>> &x) noexcept requires detail::x86_overload_any<float, N, A> && detail::x86_overload_m128<float, M, A>
+		{
+			if constexpr (detail::is_sequential<0, Is...>::value && M == N)
+				return simd_mask<float, detail::avec<M, A>>{x};
+			else
+			{
+				simd_mask<float, detail::avec<M, A>> result;
+				const auto src_data = reinterpret_cast<const __m128 *>(to_native_data(x).data());
+				const auto dst_data = to_native_data(result).data();
+				detail::x86_shuffle_f32<Is...>(dst_data, src_data);
+				return result;
+			}
+		}
 	}
 
 #pragma region "simd_mask reductions"
@@ -436,14 +491,14 @@ namespace dpm
 #ifdef DPM_HAS_SSE4_1
 		if constexpr (ext::native_data_size_v<mask_t> == 1)
 		{
-			const auto vm = detail::x86_maskone_vector_f32(mask_t::size(), mask_data[0]);
+			const auto vm = detail::x86_maskone_f32(mask_t::size(), mask_data[0]);
 			return _mm_test_all_ones(std::bit_cast<__m128i>(vm));
 		}
 #endif
 		auto result = _mm_set1_ps(std::bit_cast<float>(0xffff'ffff));
 		for (std::size_t i = 0; i < mask_t::size(); i += 4)
 		{
-			const auto vm = detail::x86_maskone_vector_f32(mask_t::size() - i, mask_data[i / 4]);
+			const auto vm = detail::x86_maskone_f32(mask_t::size() - i, mask_data[i / 4]);
 			result = _mm_and_ps(result, vm);
 		}
 		return _mm_movemask_ps(result) == 0b1111;
@@ -458,7 +513,7 @@ namespace dpm
 		auto result = _mm_setzero_ps();
 		for (std::size_t i = 0; i < mask_t::size(); i += 4)
 		{
-			const auto vm = detail::x86_maskone_vector_f32(mask_t::size() - i, mask_data[i / 4]);
+			const auto vm = detail::x86_maskone_f32(mask_t::size() - i, mask_data[i / 4]);
 			result = _mm_or_ps(result, vm);
 		}
 #ifdef DPM_HAS_SSE4_1
@@ -478,7 +533,7 @@ namespace dpm
 		auto result = _mm_setzero_ps();
 		for (std::size_t i = 0; i < mask_t::size(); i += 4)
 		{
-			const auto vm = detail::x86_maskone_vector_f32(mask_t::size() - i, mask_data[i / 4]);
+			const auto vm = detail::x86_maskone_f32(mask_t::size() - i, mask_data[i / 4]);
 			result = _mm_or_ps(result, vm);
 		}
 #ifdef DPM_HAS_SSE4_1
@@ -499,8 +554,8 @@ namespace dpm
 		for (std::size_t i = 0; i < mask_t::size(); i += 4)
 		{
 			const auto vm = mask_data[i / 4];
-			const auto vmz = detail::x86_maskzero_vector_f32(mask_t::size() - i, vm);
-			const auto vmo = detail::x86_maskone_vector_f32(mask_t::size() - i, vm);
+			const auto vmz = detail::x86_maskzero_f32(mask_t::size() - i, vm);
+			const auto vmo = detail::x86_maskone_f32(mask_t::size() - i, vm);
 
 			all_mask = _mm_and_ps(all_mask, vmo);
 			any_mask = _mm_or_ps(any_mask, vmz);
@@ -524,7 +579,7 @@ namespace dpm
 		std::size_t result = 0;
 		for (std::size_t i = 0; i < mask_t::size(); i += 4)
 		{
-			const auto vm = detail::x86_maskone_vector_f32(mask_t::size() - i, mask_data[i / 4]);
+			const auto vm = detail::x86_maskone_f32(mask_t::size() - i, mask_data[i / 4]);
 			result += std::popcount(static_cast<std::uint32_t>(_mm_movemask_ps(vm)));
 		}
 		return result;
@@ -563,61 +618,6 @@ namespace dpm
 			if (bits) return (k * 4 - 1) - std::countl_zero(bits);
 		}
 		DPM_UNREACHABLE();
-	}
-#pragma endregion
-
-#pragma region "simd casts"
-	/** Converts SIMD mask \a x to it's fixed-size equivalent for value type `T`. */
-	template<std::size_t N, std::size_t A>
-	[[nodiscard]] inline DPM_SAFE_ARRAY simd_mask<float, simd_abi::fixed_size<N>> to_fixed_size(const simd_mask<float, detail::avec<N, A>> &x) noexcept requires detail::x86_overload_m128<float, N, A>
-	{
-		return simd_mask<float, simd_abi::fixed_size<N>>{x};
-	}
-	/** Converts SIMD mask \a x to it's native ABI equivalent for value type `T`. */
-	template<std::size_t N, std::size_t A>
-	[[nodiscard]] inline DPM_SAFE_ARRAY native_simd_mask<float> to_native(const simd_mask<float, detail::avec<N, A>> &x) noexcept requires detail::x86_overload_m128<float, N, A>
-	{
-		return native_simd_mask<float>{x};
-	}
-	/** Converts SIMD mask \a x to it's compatible ABI equivalent for value type `T`. */
-	template<std::size_t N, std::size_t A>
-	[[nodiscard]] inline DPM_SAFE_ARRAY simd_mask<float> to_compatible(const simd_mask<float, detail::avec<N, A>> &x) noexcept requires detail::x86_overload_m128<float, N, A>
-	{
-		return simd_mask<float>{x};
-	}
-
-	/** Concatenates elements of \a values into a single SIMD mask. */
-	template<detail::x86_simd_abi_m128<float>... Abis>
-	[[nodiscard]] inline DPM_SAFE_ARRAY auto concat(const simd_mask<float, Abis> &...values) noexcept
-	{
-		if constexpr (sizeof...(values) == 1)
-			return (values, ...);
-		else
-		{
-			simd_mask<float, simd_abi::deduce_t<float, (simd_size_v<float, Abis> + ...)>> result;
-			detail::concat_impl<0>(result, values...);
-			return result;
-		}
-	}
-	/** Concatenates elements of \a values into a single SIMD mask. */
-	template<std::size_t N, std::size_t A, std::size_t M>
-	[[nodiscard]] inline DPM_SAFE_ARRAY auto concat(const std::array<simd_mask<float, detail::avec<N, A>>, M> &values) noexcept requires detail::x86_overload_m128<float, N, A>
-	{
-		if constexpr (M == 1)
-			return values[0];
-		else
-		{
-			simd_mask<float, detail::avec<N * M, A>> result;
-			auto *data = reinterpret_cast<float *>(ext::to_native_data(result).data());
-			for (std::size_t i = 0; i < M; ++i)
-			{
-				if ((i * N) % sizeof(__m128) != 0)
-					values[i].copy_to(data + i * N, element_aligned);
-				else
-					values[i].copy_to(data + i * N, vector_aligned);
-			}
-			return result;
-		}
 	}
 #pragma endregion
 
@@ -948,7 +948,7 @@ namespace dpm
 		DPM_SAFE_ARRAY void copy_to(U *mem, Flags) const && noexcept requires is_simd_flag_type_v<Flags>
 		{
 #ifdef DPM_HAS_AVX
-			if constexpr (aligned_tag<Flags, alignof(__m128)>)
+			if constexpr (detail::aligned_tag<Flags, alignof(__m128)>)
 			{
 				const auto v_mask = ext::to_native_data(m_data);
 				const auto v_data = ext::to_native_data(m_data);
@@ -956,7 +956,7 @@ namespace dpm
 				{
 					for (std::size_t i = 0; i < mask_t::size(); i += 4)
 					{
-						const auto mi = std::bit_cast<__m128i>(detail::x86_maskzero_vector_f32(mask_t::size() - i, v_mask[i / 4]));
+						const auto mi = std::bit_cast<__m128i>(detail::x86_maskzero_f32(mask_t::size() - i, v_mask[i / 4]));
 						_mm_maskstore_ps(mem + i, mi, v_data[i / 4]);
 					}
 					return;
@@ -966,7 +966,7 @@ namespace dpm
 				{
 					for (std::size_t i = 0; i < mask_t::size(); i += 4)
 					{
-						const auto mi = std::bit_cast<__m128i>(detail::x86_maskzero_vector_f32(mask_t::size() - i, v_mask[i / 4]));
+						const auto mi = std::bit_cast<__m128i>(detail::x86_maskzero_f32(mask_t::size() - i, v_mask[i / 4]));
 						_mm_maskstore_epi32(mem + i, mi, _mm_cvtps_epi32(v_data[i / 4]));
 					}
 					return;
@@ -1054,7 +1054,7 @@ namespace dpm
 		DPM_SAFE_ARRAY void copy_from(const U *mem, Flags) && noexcept requires is_simd_flag_type_v<Flags>
 		{
 #ifdef DPM_HAS_AVX
-			if constexpr (aligned_tag<Flags, alignof(__m128)>)
+			if constexpr (detail::aligned_tag<Flags, alignof(__m128)>)
 			{
 				const auto v_mask = ext::to_native_data(m_data);
 				const auto v_data = ext::to_native_data(m_data);
@@ -1062,7 +1062,7 @@ namespace dpm
 				{
 					for (std::size_t i = 0; i < mask_t::size(); i += 4)
 					{
-						const auto mi = std::bit_cast<__m128i>(detail::x86_maskzero_vector_f32(mask_t::size() - i, v_mask[i / 4]));
+						const auto mi = std::bit_cast<__m128i>(detail::x86_maskzero_f32(mask_t::size() - i, v_mask[i / 4]));
 						v_data[i / 4] = _mm_maskload_ps(mem + i, mi);
 					}
 					return;
@@ -1072,7 +1072,7 @@ namespace dpm
 				{
 					for (std::size_t i = 0; i < mask_t::size(); i += 4)
 					{
-						const auto mi = std::bit_cast<__m128i>(detail::x86_maskzero_vector_f32(mask_t::size() - i, v_mask[i / 4]));
+						const auto mi = std::bit_cast<__m128i>(detail::x86_maskzero_f32(mask_t::size() - i, v_mask[i / 4]));
 						v_data[i / 4] = _mm_cvtepi32_ps(_mm_maskload_epi32(mem + i, mi));
 					}
 					return;
@@ -1092,8 +1092,8 @@ namespace dpm
 		{
 			using simd_t = simd<float, avec<N, A>>;
 
-			[[nodiscard]] static std::span<__m128, simd_t::data_size> to_native_data(simd_t &x) noexcept { return {x.m_data}; }
-			[[nodiscard]] static std::span<const __m128, simd_t::data_size> to_native_data(const simd_t &x) noexcept { return {x.m_data}; }
+			static std::span<__m128, simd_t::data_size> to_native_data(simd_t &x) noexcept { return {x.m_data}; }
+			static std::span<const __m128, simd_t::data_size> to_native_data(const simd_t &x) noexcept { return {x.m_data}; }
 		};
 	}
 
@@ -1133,64 +1133,79 @@ namespace dpm
 			return result;
 		}
 #endif
-	}
 
-#pragma region "simd casts"
-	/** Implicitly converts elements of SIMD vector \a x to the `To` type, where `To` is either `typename T::value_type` or `T` if `T` is a scalar. */
-	template<typename T, std::size_t N, std::size_t A, typename To = typename detail::deduce_cast<T>::type>
-	[[nodiscard]] inline DPM_SAFE_ARRAY auto simd_cast(const simd<float, detail::avec<N, A>> &x) noexcept
-	requires (detail::valid_simd_cast<T, float, detail::avec<N, A>> &&
-	          detail::x86_overload_m128<float, N, A> &&
-	          detail::x86_overload_any<To, N, A>)
-	{
-		typename detail::cast_return<T, float, detail::avec<N, A>, simd<float, detail::avec<N, A>>::size()>::type result;
-		x.copy_to(reinterpret_cast<To *>(ext::to_native_data(result).data()), vector_aligned);
-		return result;
-	}
-	/** Explicitly converts elements of SIMD vector \a x to the `To` type, where `To` is either `typename T::value_type` or `T` if `T` is a scalar. */
-	template<typename T, std::size_t N, std::size_t A, typename To = typename detail::deduce_cast<T>::type>
-	[[nodiscard]] inline DPM_SAFE_ARRAY auto static_simd_cast(const simd<float, detail::avec<N, A>> &x) noexcept
-	requires (detail::valid_simd_static_cast<T, float, detail::avec<N, A>> &&
-	          detail::x86_overload_m128<float, N, A> &&
-	          detail::x86_overload_any<To, N, A>)
-	{
-		typename detail::static_cast_return<T, float, detail::avec<N, A>, simd<float, detail::avec<N, A>>::size()>::type result;
-		x.copy_to(reinterpret_cast<To *>(ext::to_native_data(result).data()), vector_aligned);
-		return result;
-	}
-
-	/** Concatenates elements of \a values into a single SIMD vector. */
-	template<detail::x86_simd_abi_m128<float>... Abis>
-	[[nodiscard]] inline DPM_SAFE_ARRAY auto concat(const simd<float, Abis> &...values) noexcept
-	{
-		if constexpr (sizeof...(values) == 1)
-			return (values, ...);
-		else
+		/** Shuffles elements of vector \a x into a new vector according to the specified indices. ABI of the resulting vector is deduced via `simd_abi::deduce_t<T, sizeof...(Is), Abi>`. */
+		template<std::size_t... Is, std::size_t N, std::size_t A, std::size_t M = sizeof...(Is)>
+		[[nodiscard]] inline DPM_SAFE_ARRAY simd<float, detail::avec<M, A>> shuffle(const simd<float, detail::avec<N, A>> &x) noexcept requires detail::x86_overload_any<float, N, A> && detail::x86_overload_m128<float, M, A>
 		{
-			simd<float, simd_abi::deduce_t<float, (simd_size_v<float, Abis> + ...)>> result;
-			detail::concat_impl<0>(result, values...);
-			return result;
-		}
-	}
-	/** Concatenates elements of \a values into a single SIMD vector. */
-	template<std::size_t N, std::size_t A, std::size_t M>
-	[[nodiscard]] inline DPM_SAFE_ARRAY auto concat(const std::array<simd<float, detail::avec<N, A>>, M> &values) noexcept requires detail::x86_overload_m128<float, N, A>
-	{
-		if constexpr (M == 1)
-			return values[0];
-		else
-		{
-			simd<float, detail::avec<N * M, A>> result;
-			auto *data = reinterpret_cast<float *>(ext::to_native_data(result).data());
-			for (std::size_t i = 0; i < M; ++i)
+			if constexpr (detail::is_sequential<0, Is...>::value && M == N)
+				return simd<float, detail::avec<M, A>>{x};
+			else
 			{
-				if ((i * N) % sizeof(__m128) != 0)
-					values[i].copy_to(data + i * N, element_aligned);
-				else
-					values[i].copy_to(data + i * N, vector_aligned);
+				simd<float, detail::avec<M, A>> result;
+				const auto src_data = reinterpret_cast<const __m128 *>(to_native_data(x).data());
+				const auto dst_data = to_native_data(result).data();
+				detail::x86_shuffle_f32<Is...>(dst_data, src_data);
+				return result;
 			}
-			return result;
 		}
+	}
+
+#pragma region "simd reductions"
+	namespace detail
+	{
+		template<std::size_t N, std::size_t A, typename Op>
+		inline __m128 DPM_SAFE_INLINE x86_reduce_lanes_f32(const simd<float, detail::avec<N, A>> &x, __m128 idt, Op op) noexcept
+		{
+			auto res = _mm_undefined_ps();
+			for (std::size_t i = 0; i < x.size(); i += 4)
+			{
+				if (const auto v = x86_maskblend_f32(x.size() - i, ext::to_native_data(x)[i / 4], idt); i != 0)
+					res = op(res, v);
+				else
+					res = v;
+			}
+			return res;
+		}
+		template<std::size_t N, std::size_t A, typename Op>
+		inline float DPM_FORCEINLINE x86_reduce_f32(const simd<float, detail::avec<N, A>> &x, __m128 idt, Op op) noexcept
+		{
+			const auto a = x86_reduce_lanes_f32(x, idt, op);
+#ifndef DPM_HAS_SSE3
+			const auto b = _mm_shuffle_ps(a, a, _MM_SHUFFLE(3, 3, 1, 1));
+#else
+			const auto b = _mm_movehdup_ps(a);
+#endif
+			const auto c = op(a, b);
+			return _mm_cvtss_f32(op(c, _mm_movehl_ps(b, c)));
+		}
+	}
+
+	/** Horizontally reduced elements of \a x using operation `Op`. */
+	template<std::size_t N, std::size_t A, typename Op = std::plus<>>
+	[[nodiscard]] inline float reduce(const simd<float, detail::avec<N, A>> &x, Op op = {}) noexcept requires detail::x86_overload_m128<float, N, A>
+	{
+		if constexpr (std::same_as<Op, std::plus<>> || std::same_as<Op, std::plus<float>>)
+			return detail::x86_reduce_f32(x, _mm_setzero_ps(), [](auto a, auto b) { return _mm_add_ps(a, b); });
+		else if constexpr (std::same_as<Op, std::multiplies<>> || std::same_as<Op, std::multiplies<float>>)
+			return detail::x86_reduce_f32(x, _mm_set1_ps(1.0), [](auto a, auto b) { return _mm_mul_ps(a, b); });
+		else
+			return detail::reduce_impl<simd<float, detail::avec<N, A>>::size()>(x, op);
+	}
+
+	/** Calculates horizontal minimum of elements of \a x. */
+	template<std::size_t N, std::size_t A>
+	[[nodiscard]] inline float hmin(const simd<float, detail::avec<N, A>> &x) noexcept requires detail::x86_overload_m128<float, N, A>
+	{
+		const auto max = std::numeric_limits<float>::max();
+		return detail::x86_reduce_f32(x, _mm_set1_ps(max), [](auto a, auto b) { return _mm_min_ps(a, b); });
+	}
+	/** Calculates horizontal maximum of elements of \a x. */
+	template<std::size_t N, std::size_t A>
+	[[nodiscard]] inline float hmax(const simd<float, detail::avec<N, A>> &x) noexcept requires detail::x86_overload_m128<float, N, A>
+	{
+		const auto min = std::numeric_limits<float>::min();
+		return detail::x86_reduce_f32(x, _mm_set1_ps(min), [](auto a, auto b) { return _mm_max_ps(a, b); });
 	}
 #pragma endregion
 

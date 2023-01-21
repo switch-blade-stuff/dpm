@@ -22,9 +22,6 @@
 #pragma STDC FENV_ACCESS ON
 #endif
 
-#define SINCOS_FUNC_CALL(f) f(x, abs_x, DPM_PROPAGATE_NAN_OPT_OR(nan_mask, __m128d{}), DPM_HANDLE_ERRORS_OPT_OR(zero_mask, __m128d{}))
-#define SINCOS_FUNC_SIGN(f) f(__m128d x, __m128d abs_x, [[maybe_unused]] __m128d nan_mask, [[maybe_unused]] __m128d zero_mask)
-
 #define FMA_FUNC DPM_SAFE_ARRAY DPM_VECTORCALL DPM_TARGET("fma")
 #define SSE4_1_FUNC DPM_SAFE_ARRAY DPM_VECTORCALL DPM_TARGET("sse4.1")
 #define SSE2_FUNC DPM_SAFE_ARRAY DPM_VECTORCALL DPM_TARGET("sse2")
@@ -82,7 +79,7 @@ namespace dpm::detail
 
 #if defined(DPM_HAS_FMA) || defined(DPM_DYNAMIC_DISPATCH)
 	template<sincos_op Mask>
-	inline static sincos_ret_t<Mask> FMA_FUNC SINCOS_FUNC_SIGN(sincos_fma) noexcept
+	inline static sincos_ret_t<Mask> FMA_FUNC sincos_fma(__m128d x, __m128d abs_x, [[maybe_unused]] __m128d nan_mask, [[maybe_unused]] __m128d zero_mask) noexcept
 	{
 		const auto [y, sign, p_mask] = prepare_sincos(x, abs_x);
 
@@ -143,7 +140,7 @@ namespace dpm::detail
 
 #if defined(DPM_HAS_SSE4_1) || defined(DPM_DYNAMIC_DISPATCH)
 	template<sincos_op Mask>
-	inline static sincos_ret_t<Mask> SSE4_1_FUNC SINCOS_FUNC_SIGN(sincos_sse4_1) noexcept
+	inline static sincos_ret_t<Mask> SSE4_1_FUNC sincos_sse4_1(__m128d x, __m128d abs_x, [[maybe_unused]] __m128d nan_mask, [[maybe_unused]] __m128d zero_mask) noexcept
 	{
 		const auto [y, sign, p_mask] = prepare_sincos(x, abs_x);
 
@@ -202,7 +199,7 @@ namespace dpm::detail
 #endif
 
 	template<sincos_op Mask>
-	inline static sincos_ret_t<Mask> SSE2_FUNC SINCOS_FUNC_SIGN(sincos_sse2) noexcept
+	inline static sincos_ret_t<Mask> SSE2_FUNC sincos_sse2(__m128d x, __m128d abs_x, [[maybe_unused]] __m128d nan_mask, [[maybe_unused]] __m128d zero_mask) noexcept
 	{
 		const auto [y, sign, p_mask] = prepare_sincos(x, abs_x);
 
@@ -282,11 +279,15 @@ namespace dpm::detail
 #endif
 		if (_mm_movemask_pd(nan_mask) == 0b11) [[unlikely]]
 			return return_sincos<Mask>(nan, nan);
+#else
+		const auto nan_mask = _mm_undefined_pd();
 #endif
 #ifdef DPM_HANDLE_ERRORS
 		const auto zero_mask = _mm_cmpeq_pd(abs_x, _mm_setzero_pd());
 		if (_mm_movemask_pd(zero_mask) == 0b11) [[unlikely]]
 			return return_sincos<Mask>(x, _mm_set1_pd(1.0));
+#else
+		const auto zero_mask = _mm_undefined_pd();
 #endif
 
 #if !defined(DPM_HAS_FMA) && defined(DPM_DYNAMIC_DISPATCH)
@@ -300,7 +301,7 @@ namespace dpm::detail
 #endif
 			return sincos_sse4_1<Mask>;
 		};
-		return SINCOS_FUNC_CALL(sincos_disp);
+		return sincos_disp(x, abs_x, nan_mask, zero_mask);
 #elif defined(DPM_HAS_FMA)
 		return SINCOS_FUNC_CALL(sincos_fma<Mask>);
 #elif defined(DPM_HAS_SSE4_1)

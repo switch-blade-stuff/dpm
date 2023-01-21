@@ -36,9 +36,9 @@ namespace dpm
 	class simd;
 
 	template<typename T>
-	using native_simd = simd_mask<T, simd_abi::native<T>>;
+	using native_simd = simd<T, simd_abi::native<T>>;
 	template<typename T, std::size_t N>
-	using fixed_size_simd = simd_mask<T, simd_abi::fixed_size<N>>;
+	using fixed_size_simd = simd<T, simd_abi::fixed_size<N>>;
 
 	template<typename T, typename U, typename Abi>
 	struct rebind_simd<T, simd<U, Abi>> { using type = simd<T, simd_abi::deduce_t<T, simd_size_v<U, Abi>, Abi>>; };
@@ -117,28 +117,28 @@ namespace dpm
 		inline void DPM_SAFE_INLINE concat_impl(std::array<bool, N> &buff, const simd_mask<T, Abi> &src, const simd_mask<T, Abis> &...other) noexcept
 		{
 			src.copy_to(buff.data() + I, vector_aligned);
-			if constexpr (sizeof...(other) != 0) concat_impl<simd_mask<T, Abi>::size()>(buff, other...);
+			if constexpr (sizeof...(other) != 0) concat_impl<I + simd_mask<T, Abi>::size()>(buff, other...);
 		}
 		template<std::size_t I = 0, std::size_t N, typename T, typename Abi, typename... Abis>
 		inline void DPM_SAFE_INLINE concat_impl(std::array<T, N> &buff, const simd<T, Abi> &src, const simd<T, Abis> &...other) noexcept
 		{
 			src.copy_to(buff.data() + I, vector_aligned);
-			if constexpr (sizeof...(other) != 0) concat_impl<simd_mask<T, Abi>::size()>(buff, other...);
+			if constexpr (sizeof...(other) != 0) concat_impl<I + simd_mask<T, Abi>::size()>(buff, other...);
 		}
 
-		template<std::size_t I, std::size_t... Is, typename T, typename FromAbi, typename ToAbi>
+		template<std::size_t J, std::size_t I, std::size_t... Is, typename T, typename FromAbi, typename ToAbi>
 		inline void DPM_SAFE_INLINE shuffle_impl(const simd_mask<T, FromAbi> &from, simd_mask<T, ToAbi> &to) noexcept
 		{
-			to[I] = from[I];
+			to[J] = from[I];
 			if constexpr (sizeof...(Is) != 0)
-				shuffle_impl<Is...>(from, to);
+				shuffle_impl<J + 1, Is...>(from, to);
 		}
-		template<std::size_t I, std::size_t... Is, typename T, typename FromAbi, typename ToAbi>
+		template<std::size_t J, std::size_t I, std::size_t... Is, typename T, typename FromAbi, typename ToAbi>
 		inline void DPM_SAFE_INLINE shuffle_impl(const simd<T, FromAbi> &from, simd<T, ToAbi> &to) noexcept
 		{
-			to[I] = from[I];
+			to[J] = from[I];
 			if constexpr (sizeof...(Is) != 0)
-				shuffle_impl<Is...>(from, to);
+				shuffle_impl<J + 1, Is...>(from, to);
 		}
 	}
 
@@ -344,33 +344,18 @@ namespace dpm
 #pragma region "simd_mask casts"
 	/** Converts SIMD mask \a x to it's fixed-size equivalent for value type `T`. */
 	template<typename T, typename Abi>
-	[[nodiscard]] inline DPM_SAFE_ARRAY fixed_size_simd_mask<T, simd_size_v<T, Abi>> to_fixed_size(const simd_mask<T, Abi> &x) noexcept
-	{
-		fixed_size_simd_mask<T, simd_size_v<T, Abi>> result;
-		detail::copy_cast(x, result);
-		return result;
-	}
+	[[nodiscard]] inline DPM_SAFE_ARRAY fixed_size_simd_mask<T, simd_size_v<T, Abi>> to_fixed_size(const simd_mask<T, Abi> &x) noexcept{ return {x}; }
 	/** Converts SIMD mask \a x to it's native ABI equivalent for value type `T`. */
 	template<typename T, typename Abi>
-	[[nodiscard]] inline DPM_SAFE_ARRAY native_simd_mask<T> to_native(const simd_mask<T, Abi> &x) noexcept
-	{
-		native_simd_mask<T> result;
-		detail::copy_cast(x, result);
-		return result;
-	}
+	[[nodiscard]] inline DPM_SAFE_ARRAY native_simd_mask<T> to_native(const simd_mask<T, Abi> &x) noexcept{ return {x}; }
 	/** Converts SIMD mask \a x to it's compatible ABI equivalent for value type `T`. */
 	template<typename T, typename Abi>
-	[[nodiscard]] inline DPM_SAFE_ARRAY simd_mask<T> to_compatible(const simd_mask<T, Abi> &x) noexcept
-	{
-		simd_mask<T> result;
-		detail::copy_cast(x, result);
-		return result;
-	}
+	[[nodiscard]] inline DPM_SAFE_ARRAY simd_mask<T> to_compatible(const simd_mask<T, Abi> &x) noexcept{ return {x}; }
 
 	/** Returns an array of SIMD masks where every `i`th element of the `j`th mask a copy of the `i + j * V::size()`th element from \a x.
 	 * @note Size of \a x must be a multiple of `V::size()`. */
 	template<typename V, typename Abi, typename U = typename V::simd_type::value_type>
-	[[nodiscard]] inline DPM_SAFE_ARRAY auto split(const simd_mask<typename V::simd_type::value_type, Abi> &x) noexcept requires detail::can_split_mask<V, Abi>
+	[[nodiscard]] inline DPM_SAFE_ARRAY auto split(const simd_mask<U, Abi> &x) noexcept requires detail::can_split_mask<V, Abi>
 	{
 		std::array<V, simd_size_v<U, Abi> / V::size()> result;
 		for (std::size_t j = 0; j < result.size(); ++j)
@@ -403,11 +388,11 @@ namespace dpm
 			return (values, ...);
 		else
 		{
-			using result_t = simd_mask<T, simd_abi::deduce_t<T, (simd_size_v<T, Abis> + ...)>>;
+			using result_t = simd_mask<T, simd_abi::deduce_t<T, (simd_size_v<T, Abis> + ...), Abis...>>;
 			alignas(std::max({alignof(result_t), alignof(simd_mask<T, Abis>)...})) std::array<bool, result_t::size()> tmp_buff;
 			result_t result;
 
-			detail::concat_impl(tmp_buff, result, values...);
+			detail::concat_impl(tmp_buff, values...);
 			result.copy_from(tmp_buff.data(), vector_aligned);
 			return result;
 		}
@@ -465,7 +450,7 @@ namespace dpm
 			else
 			{
 				result_t result;
-				detail::shuffle_impl<I, Is...>(x, result);
+				detail::shuffle_impl<0, I, Is...>(x, result);
 				return result;
 			}
 		}
@@ -1014,11 +999,17 @@ namespace dpm
 		struct cast_return<T, U, Abi, N> { using type = T; };
 
 		template<typename T, typename U, typename Abi, std::size_t N>
+		using cast_return_t = typename cast_return<T, U, Abi, N>::type;
+
+		template<typename T, typename U, typename Abi, std::size_t N>
 		struct static_cast_return { using type = std::conditional_t<std::same_as<T, U>, simd<T, Abi>, simd<T, simd_abi::deduce_t<T, N, Abi, simd_abi::fixed_size<N>>>>; };
 		template<std::integral T, std::integral U, typename Abi, std::size_t N>
 		struct static_cast_return<T, U, Abi, N> { using type = std::conditional_t<std::same_as<T, U> || std::same_as<std::make_signed_t<T>, std::make_signed_t<U>>, simd<T, Abi>, simd<T, simd_abi::deduce_t<T, N, Abi, simd_abi::fixed_size<N>>>>; };
 		template<typename T, typename U, typename Abi, std::size_t N> requires is_simd_v<T>
 		struct static_cast_return<T, U, Abi, N> { using type = T; };
+
+		template<typename T, typename U, typename Abi, std::size_t N>
+		using static_cast_return_t = typename static_cast_return<T, U, Abi, N>::type;
 
 		template<typename T, typename U, typename Abi>
 		struct equal_cast_size : std::bool_constant<simd<U, Abi>::size() == T::size()> {};
@@ -1036,7 +1027,7 @@ namespace dpm
 	template<typename T, typename U, typename Abi>
 	[[nodiscard]] inline DPM_SAFE_ARRAY auto simd_cast(const simd<U, Abi> &x) noexcept requires detail::valid_simd_cast<T, U, Abi>
 	{
-		typename detail::cast_return<T, U, Abi, simd<U, Abi>::size()>::type result;
+		detail::cast_return_t<T, U, Abi, simd<U, Abi>::size()>result;
 		detail::copy_cast(x, result);
 		return result;
 	}
@@ -1051,13 +1042,13 @@ namespace dpm
 
 	/** Converts SIMD vector \a x to it's fixed-size ABI equivalent for value type `T`. */
 	template<typename T, typename Abi>
-	[[nodiscard]] inline DPM_SAFE_ARRAY fixed_size_simd<T, simd_size_v<T, Abi>> to_fixed_size(const simd<T, Abi> &x) noexcept { return simd_cast<fixed_size_simd<T, simd_size_v<T, Abi>>>(x); }
+	[[nodiscard]] inline DPM_SAFE_ARRAY fixed_size_simd<T, simd_size_v<T, Abi>> to_fixed_size(const simd<T, Abi> &x) noexcept { return {x}; }
 	/** Converts SIMD vector \a x to it's native ABI equivalent for value type `T`. */
 	template<typename T, typename Abi>
-	[[nodiscard]] inline DPM_SAFE_ARRAY native_simd<T> to_native(const simd<T, Abi> &x) noexcept { return simd_cast<native_simd<T>>(x); }
+	[[nodiscard]] inline DPM_SAFE_ARRAY native_simd<T> to_native(const simd<T, Abi> &x) noexcept { return {x}; }
 	/** Converts SIMD vector \a x to it's compatible ABI equivalent for value type `T`. */
 	template<typename T, typename Abi>
-	[[nodiscard]] inline DPM_SAFE_ARRAY simd<T> to_compatible(const simd<T, Abi> &x) noexcept { return simd_cast<simd<T>>(x); }
+	[[nodiscard]] inline DPM_SAFE_ARRAY simd<T> to_compatible(const simd<T, Abi> &x) noexcept { return {x}; }
 
 	/** Returns an array of SIMD vectors where every `i`th element of the `j`th vector is a copy of the `i + j * V::size()`th element from \a x.
 	 * @note Size of \a x must be a multiple of `V::size()`. */
@@ -1069,7 +1060,7 @@ namespace dpm
 
 		x.copy_to(tmp_buff.data(), vector_aligned);
 		for (std::size_t i = 0, j = 0; i < result.size(); ++i, j += V::size())
-			result[j].copy_from(tmp_buff.data() + j, vector_aligned);
+			result[i].copy_from(tmp_buff.data() + j, vector_aligned);
 		return result;
 	}
 	/** Returns an array of SIMD vectors where every `i`th element of the `j`th vector is a copy of the `i + j * (simd_size_v<T, Abi> / N)`th element from \a x.
@@ -1097,11 +1088,11 @@ namespace dpm
 			return (values, ...);
 		else
 		{
-			using result_t = simd<T, simd_abi::deduce_t<T, (simd_size_v<T, Abis> + ...)>>;
+			using result_t = simd<T, simd_abi::deduce_t<T, (simd_size_v<T, Abis> + ...), Abis...>>;
 			alignas(std::max({alignof(result_t), alignof(simd<T, Abis>)...})) std::array<T, result_t::size()> tmp_buff;
 			result_t result;
 
-			detail::concat_impl(tmp_buff, result, values...);
+			detail::concat_impl(tmp_buff, values...);
 			result.copy_from(tmp_buff.data(), vector_aligned);
 			return result;
 		}
@@ -1202,7 +1193,7 @@ namespace dpm
 			else
 			{
 				result_t result;
-				detail::shuffle_impl<I, Is...>(x, result);
+				detail::shuffle_impl<0, I, Is...>(x, result);
 				return result;
 			}
 		}

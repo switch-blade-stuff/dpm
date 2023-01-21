@@ -59,4 +59,12 @@ namespace dpm::detail
 		const auto size_mult = VSize / sizeof(T);
 		return N / size_mult + !!(N % size_mult);
 	}
+
+	template<std::size_t I, std::size_t... Is>
+	constexpr void copy_positions(auto *dst, const auto *src) noexcept
+	{
+		*dst = src[I];
+		if constexpr (sizeof...(Is) != 0)
+			copy_positions<Is...>(dst + 1, src);
+	}
 }
