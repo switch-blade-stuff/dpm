@@ -72,7 +72,7 @@ namespace dpm
 			static std::add_const_t<U> &data_at(const __m128i *data, std::size_t i) noexcept { return reinterpret_cast<std::add_const_t<U> *>(data)[i]; }
 
 			template<std::size_t M, typename F>
-			static void DPM_SAFE_INLINE copy_from(const bool *src, __m128i *dst, F) noexcept
+			static void DPM_FORCEINLINE copy_from(const bool *src, __m128i *dst, F) noexcept
 			{
 				for (std::size_t i = 0; i < N; i += 8)
 				{
@@ -92,7 +92,7 @@ namespace dpm
 				}
 			}
 			template<std::size_t M, typename F>
-			static void DPM_SAFE_INLINE copy_to(bool *dst, const __m128i *src, F) noexcept
+			static void DPM_FORCEINLINE copy_to(bool *dst, const __m128i *src, F) noexcept
 			{
 				for (std::size_t i = 0; i < N; i += 8)
 				{
@@ -111,7 +111,7 @@ namespace dpm
 			}
 
 			template<std::size_t M, typename F>
-			static void DPM_SAFE_INLINE copy_from(const bool *src, __m128i *dst, const __m128i *mask, F) noexcept
+			static void DPM_FORCEINLINE copy_from(const bool *src, __m128i *dst, const __m128i *mask, F) noexcept
 			{
 				for (std::size_t i = 0; i < N; i += 8)
 				{
@@ -131,7 +131,7 @@ namespace dpm
 				}
 			}
 			template<std::size_t M, typename F>
-			static void DPM_SAFE_INLINE copy_to(bool *dst, const __m128i *src, const __m128i *mask, F) noexcept
+			static void DPM_FORCEINLINE copy_to(bool *dst, const __m128i *src, const __m128i *mask, F) noexcept
 			{
 				for (std::size_t i = 0; i < N; i += 8)
 				{
@@ -151,42 +151,42 @@ namespace dpm
 			}
 
 			template<std::size_t M>
-			static void DPM_SAFE_INLINE invert(__m128i *dst, const __m128i *src) noexcept
+			static void DPM_FORCEINLINE invert(__m128i *dst, const __m128i *src) noexcept
 			{
 				const auto mask = _mm_set1_epi16(static_cast<std::int16_t>(0xffff));
 				for (std::size_t i = 0; i < M; ++i) dst[i] = _mm_xor_si128(src[i], mask);
 			}
 
 			template<std::size_t M>
-			static void DPM_SAFE_INLINE bit_and(__m128i *out, const __m128i *a, const __m128i *b) noexcept
+			static void DPM_FORCEINLINE bit_and(__m128i *out, const __m128i *a, const __m128i *b) noexcept
 			{
 				for (std::size_t i = 0; i < M; ++i) out[i] = _mm_and_si128(a[i], b[i]);
 			}
 			template<std::size_t M>
-			static void DPM_SAFE_INLINE bit_or(__m128i *out, const __m128i *a, const __m128i *b) noexcept
+			static void DPM_FORCEINLINE bit_or(__m128i *out, const __m128i *a, const __m128i *b) noexcept
 			{
 				for (std::size_t i = 0; i < M; ++i) out[i] = _mm_or_si128(a[i], b[i]);
 			}
 			template<std::size_t M>
-			static void DPM_SAFE_INLINE bit_xor(__m128i *out, const __m128i *a, const __m128i *b) noexcept
+			static void DPM_FORCEINLINE bit_xor(__m128i *out, const __m128i *a, const __m128i *b) noexcept
 			{
 				for (std::size_t i = 0; i < M; ++i) out[i] = _mm_xor_si128(a[i], b[i]);
 			}
 
 			template<std::size_t M>
-			static void DPM_SAFE_INLINE cmp_eq(__m128i *out, const __m128i *a, const __m128i *b) noexcept
+			static void DPM_FORCEINLINE cmp_eq(__m128i *out, const __m128i *a, const __m128i *b) noexcept
 			{
 				for (std::size_t i = 0; i < M; ++i) out[i] = _mm_cmpeq_epi16(a[i], b[i]);
 			}
 			template<std::size_t M>
-			static void DPM_SAFE_INLINE cmp_ne(__m128i *out, const __m128i *a, const __m128i *b) noexcept
+			static void DPM_FORCEINLINE cmp_ne(__m128i *out, const __m128i *a, const __m128i *b) noexcept
 			{
 				const auto inv_mask = _mm_set1_epi16(static_cast<std::int16_t>(0xffff));
 				for (std::size_t i = 0; i < M; ++i) out[i] = _mm_xor_si128(_mm_cmpeq_epi16(a[i], b[i]), inv_mask);
 			}
 
 			template<std::size_t M>
-			[[nodiscard]] static DPM_SAFE_ARRAY bool all_of(const __m128i *mask) noexcept
+			[[nodiscard]] static bool all_of(const __m128i *mask) noexcept
 			{
 #ifdef DPM_HAS_SSE4_1
 				if constexpr (M == 1) return _mm_test_all_ones(x86_maskone_vector_i16<N>(mask[0], 0));
@@ -196,7 +196,7 @@ namespace dpm
 				return _mm_movemask_epi8(result) == 0xffff;
 			}
 			template<std::size_t M>
-			[[nodiscard]] static DPM_SAFE_ARRAY bool any_of(const __m128i *mask) noexcept
+			[[nodiscard]] static bool any_of(const __m128i *mask) noexcept
 			{
 				auto result = _mm_setzero_si128();
 				for (std::size_t i = 0; i < M; ++i) result = _mm_or_si128(result, x86_maskzero_i16<N>(mask[i], i * 8));
@@ -207,7 +207,7 @@ namespace dpm
 #endif
 			}
 			template<std::size_t M>
-			[[nodiscard]] static DPM_SAFE_ARRAY bool none_of(const __m128i *mask) noexcept
+			[[nodiscard]] static bool none_of(const __m128i *mask) noexcept
 			{
 				auto result = _mm_setzero_si128();
 				for (std::size_t i = 0; i < M; ++i) result = _mm_or_si128(result, x86_maskzero_i16<N>(mask[i], i * 8));
@@ -218,7 +218,7 @@ namespace dpm
 #endif
 			}
 			template<std::size_t M>
-			[[nodiscard]] static DPM_SAFE_ARRAY bool some_of(const __m128i *mask) noexcept
+			[[nodiscard]] static bool some_of(const __m128i *mask) noexcept
 			{
 				auto any_mask = _mm_setzero_si128(), all_mask = _mm_set1_epi16(static_cast<std::int16_t>(0xffff));
 				for (std::size_t i = 0; i < M; ++i)
@@ -234,7 +234,7 @@ namespace dpm
 			}
 
 			template<std::size_t M>
-			[[nodiscard]] static DPM_SAFE_ARRAY std::size_t popcount(const __m128i *mask) noexcept
+			[[nodiscard]] static std::size_t popcount(const __m128i *mask) noexcept
 			{
 				std::size_t result = 0;
 				for (std::size_t i = 0; i < M; ++i)
@@ -245,7 +245,7 @@ namespace dpm
 				return result;
 			}
 			template<std::size_t M>
-			[[nodiscard]] static DPM_SAFE_ARRAY std::size_t find_first_set(const __m128i *mask) noexcept
+			[[nodiscard]] static std::size_t find_first_set(const __m128i *mask) noexcept
 			{
 				for (std::size_t i = 0; i < M; ++i)
 				{
@@ -255,7 +255,7 @@ namespace dpm
 				DPM_UNREACHABLE();
 			}
 			template<std::size_t M>
-			[[nodiscard]] static DPM_SAFE_ARRAY std::size_t find_last_set(const __m128i *mask) noexcept
+			[[nodiscard]] static std::size_t find_last_set(const __m128i *mask) noexcept
 			{
 				for (std::size_t i = M, k; (k = i--) != 0;)
 				{
@@ -278,7 +278,7 @@ namespace dpm
 
 #ifdef DPM_HAS_SSE4_1
 			template<std::size_t M>
-			static void DPM_SAFE_INLINE blend(__m128i *out, const __m128i *a, const __m128i *b, const __m128i *m) noexcept
+			static void DPM_FORCEINLINE blend(__m128i *out, const __m128i *a, const __m128i *b, const __m128i *m) noexcept
 			{
 				for (std::size_t i = 0; i < M; ++i) out[i] = _mm_blendv_epi8(a[i], b[i], m[i]);
 			}

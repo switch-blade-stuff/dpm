@@ -65,8 +65,6 @@ import std;
 #define DPM_FORCEINLINE __forceinline
 #define DPM_NEVER_INLINE __declspec(noinline)
 
-/* MSVC inserts security cookies into fixed-size arrays even if the index is known at compile-time. Stop it. */
-#define DPM_SAFE_ARRAY __declspec(safebuffers)
 /* Windows calling convention will never use vector registers for function arguments. Force it. */
 #define DPM_VECTORCALL __vectorcall
 
@@ -76,7 +74,6 @@ import std;
 #define DPM_TARGET(t) __attribute__((target(t)))
 #define DPM_FORCEINLINE __attribute__((always_inline))
 #define DPM_NEVER_INLINE __attribute__((noinline))
-#define DPM_SAFE_ARRAY
 #define DPM_VECTORCALL
 
 #else
@@ -85,12 +82,9 @@ import std;
 #define DPM_TARGET(t)
 #define DPM_FORCEINLINE
 #define DPM_NEVER_INLINE
-#define DPM_SAFE_ARRAY
 #define DPM_VECTORCALL
 
 #endif
-
-#define DPM_SAFE_INLINE DPM_SAFE_ARRAY DPM_FORCEINLINE
 
 #if defined(_WIN32) || defined(_WIN64) || defined(__CYGWIN__)
 

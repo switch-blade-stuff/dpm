@@ -103,6 +103,8 @@ DPM provides the following extensions to the standard API:
 
 * ABI tags
     * `aligned_vector`
+    * `packed_buffer`
+    * `common`
     * x86
         * `sse`
         * `avx`

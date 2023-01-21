@@ -73,7 +73,7 @@ namespace dpm
 		};
 
 		template<std::size_t N, std::size_t I = 0, typename G>
-		inline void DPM_SAFE_INLINE generate_n(auto &data, G &&gen) noexcept
+		inline void DPM_FORCEINLINE generate_n(auto &data, G &&gen) noexcept
 		{
 			if constexpr (I != N)
 			{
@@ -83,7 +83,7 @@ namespace dpm
 		}
 
 		template<typename From, typename To, typename FromAbi, typename ToAbi>
-		inline void DPM_SAFE_INLINE copy_cast(const simd_mask<From, FromAbi> &from, simd_mask<To, ToAbi> &to) noexcept
+		inline void DPM_FORCEINLINE copy_cast(const simd_mask<From, FromAbi> &from, simd_mask<To, ToAbi> &to) noexcept
 		{
 			if constexpr (!std::same_as<simd_mask<From, FromAbi>, simd_mask<To, ToAbi>>)
 			{
@@ -98,7 +98,7 @@ namespace dpm
 				to = from;
 		}
 		template<typename From, typename To, typename FromAbi, typename ToAbi>
-		inline void DPM_SAFE_INLINE copy_cast(const simd<From, FromAbi> &from, simd<To, ToAbi> &to) noexcept
+		inline void DPM_FORCEINLINE copy_cast(const simd<From, FromAbi> &from, simd<To, ToAbi> &to) noexcept
 		{
 			if constexpr (!std::same_as<simd<From, FromAbi>, simd<To, ToAbi>>)
 			{
@@ -114,27 +114,27 @@ namespace dpm
 		}
 
 		template<std::size_t I = 0, std::size_t N, typename T, typename Abi, typename... Abis>
-		inline void DPM_SAFE_INLINE concat_impl(std::array<bool, N> &buff, const simd_mask<T, Abi> &src, const simd_mask<T, Abis> &...other) noexcept
+		inline void DPM_FORCEINLINE concat_impl(std::array<bool, N> &buff, const simd_mask<T, Abi> &src, const simd_mask<T, Abis> &...other) noexcept
 		{
 			src.copy_to(buff.data() + I, vector_aligned);
 			if constexpr (sizeof...(other) != 0) concat_impl<I + simd_mask<T, Abi>::size()>(buff, other...);
 		}
 		template<std::size_t I = 0, std::size_t N, typename T, typename Abi, typename... Abis>
-		inline void DPM_SAFE_INLINE concat_impl(std::array<T, N> &buff, const simd<T, Abi> &src, const simd<T, Abis> &...other) noexcept
+		inline void DPM_FORCEINLINE concat_impl(std::array<T, N> &buff, const simd<T, Abi> &src, const simd<T, Abis> &...other) noexcept
 		{
 			src.copy_to(buff.data() + I, vector_aligned);
 			if constexpr (sizeof...(other) != 0) concat_impl<I + simd_mask<T, Abi>::size()>(buff, other...);
 		}
 
 		template<std::size_t J, std::size_t I, std::size_t... Is, typename T, typename FromAbi, typename ToAbi>
-		inline void DPM_SAFE_INLINE shuffle_impl(const simd_mask<T, FromAbi> &from, simd_mask<T, ToAbi> &to) noexcept
+		inline void DPM_FORCEINLINE shuffle_impl(const simd_mask<T, FromAbi> &from, simd_mask<T, ToAbi> &to) noexcept
 		{
 			to[J] = from[I];
 			if constexpr (sizeof...(Is) != 0)
 				shuffle_impl<J + 1, Is...>(from, to);
 		}
 		template<std::size_t J, std::size_t I, std::size_t... Is, typename T, typename FromAbi, typename ToAbi>
-		inline void DPM_SAFE_INLINE shuffle_impl(const simd<T, FromAbi> &from, simd<T, ToAbi> &to) noexcept
+		inline void DPM_FORCEINLINE shuffle_impl(const simd<T, FromAbi> &from, simd<T, ToAbi> &to) noexcept
 		{
 			to[J] = from[I];
 			if constexpr (sizeof...(Is) != 0)
@@ -193,7 +193,7 @@ namespace dpm
 #pragma region "simd_mask operators"
 	/** Preforms a bitwise AND on the elements of the masks \a a and \a b, and returns the resulting mask. */
 	template<typename T, typename Abi>
-	[[nodiscard]] inline DPM_SAFE_ARRAY simd_mask<T, Abi> operator&(const simd_mask<T, Abi> &a, const simd_mask<T, Abi> &b) noexcept
+	[[nodiscard]] inline simd_mask<T, Abi> operator&(const simd_mask<T, Abi> &a, const simd_mask<T, Abi> &b) noexcept
 	{
 		simd_mask<T, Abi> result;
 		for (std::size_t i = 0; i < simd_mask<T, Abi>::size(); ++i)
@@ -202,7 +202,7 @@ namespace dpm
 	}
 	/** Preforms a bitwise OR on the elements of the masks \a a and \a b, and returns the resulting mask. */
 	template<typename T, typename Abi>
-	[[nodiscard]] inline DPM_SAFE_ARRAY simd_mask<T, Abi> operator|(const simd_mask<T, Abi> &a, const simd_mask<T, Abi> &b) noexcept
+	[[nodiscard]] inline simd_mask<T, Abi> operator|(const simd_mask<T, Abi> &a, const simd_mask<T, Abi> &b) noexcept
 	{
 		simd_mask<T, Abi> result;
 		for (std::size_t i = 0; i < simd_mask<T, Abi>::size(); ++i)
@@ -211,7 +211,7 @@ namespace dpm
 	}
 	/** Preforms a bitwise XOR on the elements of the masks \a a and \a b, and returns the resulting mask. */
 	template<typename T, typename Abi>
-	[[nodiscard]] inline DPM_SAFE_ARRAY simd_mask<T, Abi> operator^(const simd_mask<T, Abi> &a, const simd_mask<T, Abi> &b) noexcept
+	[[nodiscard]] inline simd_mask<T, Abi> operator^(const simd_mask<T, Abi> &a, const simd_mask<T, Abi> &b) noexcept
 	{
 		simd_mask<T, Abi> result;
 		for (std::size_t i = 0; i < simd_mask<T, Abi>::size(); ++i)
@@ -221,17 +221,17 @@ namespace dpm
 
 	/** Preforms a bitwise AND on the elements of the masks \a a and \a b, and assigns the result to mask \a a. */
 	template<typename T, typename Abi>
-	inline DPM_SAFE_ARRAY simd_mask<T, Abi> &operator&=(simd_mask<T, Abi> &a, const simd_mask<T, Abi> &b) noexcept { return a = a & b; }
+	inline simd_mask<T, Abi> &operator&=(simd_mask<T, Abi> &a, const simd_mask<T, Abi> &b) noexcept { return a = a & b; }
 	/** Preforms a bitwise OR on the elements of the masks \a a and \a b, and assigns the result to mask \a a. */
 	template<typename T, typename Abi>
-	inline DPM_SAFE_ARRAY simd_mask<T, Abi> &operator|=(simd_mask<T, Abi> &a, const simd_mask<T, Abi> &b) noexcept { return a = a | b; }
+	inline simd_mask<T, Abi> &operator|=(simd_mask<T, Abi> &a, const simd_mask<T, Abi> &b) noexcept { return a = a | b; }
 	/** Preforms a bitwise XOR on the elements of the masks \a a and \a b, and assigns the result to mask \a a. */
 	template<typename T, typename Abi>
-	inline DPM_SAFE_ARRAY simd_mask<T, Abi> &operator^=(simd_mask<T, Abi> &a, const simd_mask<T, Abi> &b) noexcept { return a = a ^ b; }
+	inline simd_mask<T, Abi> &operator^=(simd_mask<T, Abi> &a, const simd_mask<T, Abi> &b) noexcept { return a = a ^ b; }
 
 	/** Preforms a logical AND on the elements of the masks \a a and \a b, and returns the resulting mask. */
 	template<typename T, typename Abi>
-	[[nodiscard]] inline DPM_SAFE_ARRAY simd_mask<T, Abi> operator&&(const simd_mask<T, Abi> &a, const simd_mask<T, Abi> &b) noexcept
+	[[nodiscard]] inline simd_mask<T, Abi> operator&&(const simd_mask<T, Abi> &a, const simd_mask<T, Abi> &b) noexcept
 	{
 		simd_mask<T, Abi> result;
 		for (std::size_t i = 0; i < simd_mask<T, Abi>::size(); ++i)
@@ -240,7 +240,7 @@ namespace dpm
 	}
 	/** Preforms a logical OR on the elements of the masks \a a and \a b, and returns the resulting mask. */
 	template<typename T, typename Abi>
-	[[nodiscard]] inline DPM_SAFE_ARRAY simd_mask<T, Abi> operator||(const simd_mask<T, Abi> &a, const simd_mask<T, Abi> &b) noexcept
+	[[nodiscard]] inline simd_mask<T, Abi> operator||(const simd_mask<T, Abi> &a, const simd_mask<T, Abi> &b) noexcept
 	{
 		simd_mask<T, Abi> result;
 		for (std::size_t i = 0; i < simd_mask<T, Abi>::size(); ++i)
@@ -250,7 +250,7 @@ namespace dpm
 
 	/** Compares elements of masks \a a and \a b for equality, and returns the resulting mask. */
 	template<typename T, typename Abi>
-	[[nodiscard]] inline DPM_SAFE_ARRAY simd_mask<T, Abi> operator==(const simd_mask<T, Abi> &a, const simd_mask<T, Abi> &b) noexcept
+	[[nodiscard]] inline simd_mask<T, Abi> operator==(const simd_mask<T, Abi> &a, const simd_mask<T, Abi> &b) noexcept
 	{
 		simd_mask<T, Abi> result;
 		for (std::size_t i = 0; i < simd_mask<T, Abi>::size(); ++i)
@@ -259,7 +259,7 @@ namespace dpm
 	}
 	/** Compares elements of masks \a a and \a b for inequality, and returns the resulting mask. */
 	template<typename T, typename Abi>
-	[[nodiscard]] inline DPM_SAFE_ARRAY simd_mask<T, Abi> operator!=(const simd_mask<T, Abi> &a, const simd_mask<T, Abi> &b) noexcept
+	[[nodiscard]] inline simd_mask<T, Abi> operator!=(const simd_mask<T, Abi> &a, const simd_mask<T, Abi> &b) noexcept
 	{
 		simd_mask<T, Abi> result;
 		for (std::size_t i = 0; i < simd_mask<T, Abi>::size(); ++i)
@@ -271,7 +271,7 @@ namespace dpm
 #pragma region "simd_mask reductions"
 	/** Returns `true` if all of the elements of the \a mask are `true`. Otherwise returns `false`. */
 	template<typename T, typename Abi>
-	[[nodiscard]] inline DPM_SAFE_ARRAY bool all_of(const simd_mask<T, Abi> &mask) noexcept
+	[[nodiscard]] inline bool all_of(const simd_mask<T, Abi> &mask) noexcept
 	{
 		bool result = true;
 		for (std::size_t i = 0; i < simd_mask<T, Abi>::size(); ++i)
@@ -280,7 +280,7 @@ namespace dpm
 	}
 	/** Returns `true` if at least one of the elements of the \a mask are `true`. Otherwise returns `false`. */
 	template<typename T, typename Abi>
-	[[nodiscard]] inline DPM_SAFE_ARRAY bool any_of(const simd_mask<T, Abi> &mask) noexcept
+	[[nodiscard]] inline bool any_of(const simd_mask<T, Abi> &mask) noexcept
 	{
 		bool result = false;
 		for (std::size_t i = 0; i < simd_mask<T, Abi>::size(); ++i)
@@ -289,10 +289,10 @@ namespace dpm
 	}
 	/** Returns `true` if at none of the elements of the \a mask is `true`. Otherwise returns `false`. */
 	template<typename T, typename Abi>
-	[[nodiscard]] inline DPM_SAFE_ARRAY bool none_of(const simd_mask<T, Abi> &mask) noexcept { return !any_of(mask); }
+	[[nodiscard]] inline bool none_of(const simd_mask<T, Abi> &mask) noexcept { return !any_of(mask); }
 	/** Returns `true` if at least one of the elements of the \a mask is `true` and at least one is `false`. Otherwise returns `false`. */
 	template<typename T, typename Abi>
-	[[nodiscard]] inline DPM_SAFE_ARRAY bool some_of(const simd_mask<T, Abi> &mask) noexcept
+	[[nodiscard]] inline bool some_of(const simd_mask<T, Abi> &mask) noexcept
 	{
 		bool any_true = false, all_true = true;
 		for (std::size_t i = 0; i < simd_mask<T, Abi>::size(); ++i)
@@ -306,7 +306,7 @@ namespace dpm
 
 	/** Returns the number of `true` elements of \a mask. */
 	template<typename T, typename Abi>
-	[[nodiscard]] inline DPM_SAFE_ARRAY std::size_t popcount(const simd_mask<T, Abi> &mask) noexcept
+	[[nodiscard]] inline std::size_t popcount(const simd_mask<T, Abi> &mask) noexcept
 	{
 		std::size_t result = 0;
 		for (std::size_t i = 0; i < simd_mask<T, Abi>::size(); ++i)
@@ -315,14 +315,14 @@ namespace dpm
 	}
 	/** Returns the index of the first `true` element of \a mask. */
 	template<typename T, typename Abi>
-	[[nodiscard]] inline DPM_SAFE_ARRAY std::size_t find_first_set(const simd_mask<T, Abi> &mask) noexcept
+	[[nodiscard]] inline std::size_t find_first_set(const simd_mask<T, Abi> &mask) noexcept
 	{
 		for (std::size_t i = 0; i < simd_mask<T, Abi>::size(); ++i) if (mask[i]) return i;
 		return simd_mask<T, Abi>::size();
 	}
 	/** Returns the index of the last `true` element of \a mask. */
 	template<typename T, typename Abi>
-	[[nodiscard]] inline DPM_SAFE_ARRAY std::size_t find_last_set(const simd_mask<T, Abi> &mask) noexcept
+	[[nodiscard]] inline std::size_t find_last_set(const simd_mask<T, Abi> &mask) noexcept
 	{
 		for (std::size_t i = simd_mask<T, Abi>::size(); i-- > 0;) if (mask[i]) return i;
 		return simd_mask<T, Abi>::size();
@@ -347,18 +347,18 @@ namespace dpm
 #pragma region "simd_mask casts"
 	/** Converts SIMD mask \a x to it's fixed-size equivalent for value type `T`. */
 	template<typename T, typename Abi>
-	[[nodiscard]] inline DPM_SAFE_ARRAY fixed_size_simd_mask<T, simd_size_v<T, Abi>> to_fixed_size(const simd_mask<T, Abi> &x) noexcept{ return {x}; }
+	[[nodiscard]] inline fixed_size_simd_mask<T, simd_size_v<T, Abi>> to_fixed_size(const simd_mask<T, Abi> &x) noexcept { return {x}; }
 	/** Converts SIMD mask \a x to it's native ABI equivalent for value type `T`. */
 	template<typename T, typename Abi>
-	[[nodiscard]] inline DPM_SAFE_ARRAY native_simd_mask<T> to_native(const simd_mask<T, Abi> &x) noexcept{ return {x}; }
+	[[nodiscard]] inline native_simd_mask<T> to_native(const simd_mask<T, Abi> &x) noexcept { return {x}; }
 	/** Converts SIMD mask \a x to it's compatible ABI equivalent for value type `T`. */
 	template<typename T, typename Abi>
-	[[nodiscard]] inline DPM_SAFE_ARRAY simd_mask<T> to_compatible(const simd_mask<T, Abi> &x) noexcept{ return {x}; }
+	[[nodiscard]] inline simd_mask<T> to_compatible(const simd_mask<T, Abi> &x) noexcept { return {x}; }
 
 	/** Returns an array of SIMD masks where every `i`th element of the `j`th mask a copy of the `i + j * V::size()`th element from \a x.
 	 * @note Size of \a x must be a multiple of `V::size()`. */
 	template<typename V, typename Abi, typename U = typename V::simd_type::value_type>
-	[[nodiscard]] inline DPM_SAFE_ARRAY auto split(const simd_mask<U, Abi> &x) noexcept requires detail::can_split_mask<V, Abi>
+	[[nodiscard]] inline auto split(const simd_mask<U, Abi> &x) noexcept requires detail::can_split_mask<V, Abi>
 	{
 		std::array<V, simd_size_v<U, Abi> / V::size()> result;
 		for (std::size_t j = 0; j < result.size(); ++j)
@@ -371,7 +371,7 @@ namespace dpm
 	/** Returns an array of SIMD masks where every `i`th element of the `j`th mask is a copy of the `i + j * (simd_size_v<T, Abi> / N)`th element from \a x.
 	 * @note `N` must be a multiple of `simd_size_v<T, Abi>::size()`. */
 	template<std::size_t N, typename T, typename Abi>
-	[[nodiscard]] inline DPM_SAFE_ARRAY auto split_by(const simd_mask<T, Abi> &x) noexcept requires (simd_size_v<T, Abi> % N == 0)
+	[[nodiscard]] inline auto split_by(const simd_mask<T, Abi> &x) noexcept requires (simd_size_v<T, Abi> % N == 0)
 	{
 		constexpr auto split_size = simd_size_v<T, Abi> / N;
 		std::array<resize_simd_t<split_size, simd_mask<T, Abi>>, N> result;
@@ -385,7 +385,7 @@ namespace dpm
 
 	/** Concatenates elements of \a values into a single SIMD mask. */
 	template<typename T, typename... Abis>
-	[[nodiscard]] inline DPM_SAFE_ARRAY auto concat(const simd_mask<T, Abis> &...values) noexcept
+	[[nodiscard]] inline auto concat(const simd_mask<T, Abis> &...values) noexcept
 	{
 		if constexpr (sizeof...(values) == 1)
 			return (values, ...);
@@ -402,7 +402,7 @@ namespace dpm
 	}
 	/** Concatenates elements of \a values into a single SIMD mask. */
 	template<typename T, typename Abi, std::size_t N>
-	[[nodiscard]] inline DPM_SAFE_ARRAY auto concat(const std::array<simd_mask<T, Abi>, N> &values) noexcept
+	[[nodiscard]] inline auto concat(const std::array<simd_mask<T, Abi>, N> &values) noexcept
 	{
 		if constexpr (N == 1)
 			return values[0];
@@ -434,7 +434,7 @@ namespace dpm
 
 		/** Replaces elements of mask \a a with elements of mask \a b using mask \a m. Elements of \a b are selected if the corresponding element of \a m evaluates to `true`. */
 		template<typename T, typename Abi, typename M>
-		[[nodiscard]] inline DPM_SAFE_ARRAY simd_mask<T, Abi> blend(const simd_mask<T, Abi> &a, const simd_mask<T, Abi> &b, const simd_mask<T, Abi> &m)
+		[[nodiscard]] inline simd_mask<T, Abi> blend(const simd_mask<T, Abi> &a, const simd_mask<T, Abi> &b, const simd_mask<T, Abi> &m)
 		{
 			simd_mask<T, Abi> result = a;
 			for (std::size_t i = 0; i < m.size(); ++i) result[i] = m[i] ? b[i] : a[i];
@@ -443,7 +443,7 @@ namespace dpm
 
 		/** Shuffles elements of mask \a x into a new vector according to the specified indices. ABI of the resulting mask is deduced via `simd_abi::deduce_t<T, sizeof...(Is), Abi>`. */
 		template<std::size_t I, std::size_t... Is, typename T, typename Abi>
-		[[nodiscard]] inline DPM_SAFE_ARRAY simd_mask<T, simd_abi::deduce_t<T, sizeof...(Is) + 1, Abi>> shuffle(const simd_mask<T, Abi> &x)
+		[[nodiscard]] inline simd_mask<T, simd_abi::deduce_t<T, sizeof...(Is) + 1, Abi>> shuffle(const simd_mask<T, Abi> &x)
 		{
 			using result_t = simd_mask<T, simd_abi::deduce_t<T, sizeof...(Is) + 1, Abi>>;
 			if constexpr (detail::is_sequential<0, I, Is...>::value && result_t::size() == simd_mask<T, Abi>::size())
@@ -537,7 +537,7 @@ namespace dpm
 		static constexpr std::size_t size() noexcept { return abi_type::size; }
 
 	private:
-		constexpr static std::size_t alignment = std::max(Align, alignof(bool[N]));
+		constexpr static auto alignment = std::max(Align == SIZE_MAX ? 0 : Align, alignof(bool[N]));
 
 	public:
 		constexpr simd_mask() noexcept = default;
@@ -547,10 +547,10 @@ namespace dpm
 		constexpr simd_mask &operator=(simd_mask &&) noexcept = default;
 
 		/** Initializes the underlying elements with \a value. */
-		constexpr DPM_SAFE_ARRAY simd_mask(value_type value) noexcept { std::fill_n(m_data, size(), value); }
+		constexpr simd_mask(value_type value) noexcept { std::fill_n(m_data, size(), value); }
 		/** Copies elements from \a other. */
 		template<typename U, std::size_t OtherAlign>
-		DPM_SAFE_ARRAY simd_mask(const simd_mask<U, detail::avec<size(), OtherAlign>> &other) noexcept
+		simd_mask(const simd_mask<U, detail::avec<size(), OtherAlign>> &other) noexcept
 		{
 			if constexpr (alignment != alignof(value_type))
 				other.copy_to(m_data, overaligned<alignment>);
@@ -559,14 +559,14 @@ namespace dpm
 		}
 		/** Initializes the underlying elements from \a mem. */
 		template<typename Flags>
-		DPM_SAFE_ARRAY simd_mask(const value_type *mem, Flags) noexcept requires is_simd_flag_type_v<Flags> { copy_from(mem, Flags{}); }
+		simd_mask(const value_type *mem, Flags) noexcept requires is_simd_flag_type_v<Flags> { copy_from(mem, Flags{}); }
 
 		/** Copies the underlying elements from \a mem. */
 		template<typename Flags>
-		DPM_SAFE_ARRAY void copy_from(const value_type *mem, Flags) noexcept requires is_simd_flag_type_v<Flags> { std::copy_n(mem, size(), m_data); }
+		void copy_from(const value_type *mem, Flags) noexcept requires is_simd_flag_type_v<Flags> { std::copy_n(mem, size(), m_data); }
 		/** Copies the underlying elements to \a mem. */
 		template<typename Flags>
-		DPM_SAFE_ARRAY void copy_to(value_type *mem, Flags) const noexcept requires is_simd_flag_type_v<Flags> { std::copy_n(m_data, size(), mem); }
+		void copy_to(value_type *mem, Flags) const noexcept requires is_simd_flag_type_v<Flags> { std::copy_n(m_data, size(), mem); }
 
 		[[nodiscard]] reference operator[](std::size_t i) noexcept
 		{
@@ -579,7 +579,7 @@ namespace dpm
 			return m_data[i];
 		}
 
-		[[nodiscard]] simd_mask DPM_SAFE_ARRAY operator!() const noexcept
+		[[nodiscard]] simd_mask operator!() const noexcept
 		{
 			simd_mask result;
 			for (std::size_t i = 0; i < size(); ++i)
@@ -665,7 +665,7 @@ namespace dpm
 #pragma region "simd operators"
 	/** Adds elements of vector \a b to elements of vector \a a, and returns the resulting vector. */
 	template<typename T, typename Abi>
-	[[nodiscard]] inline DPM_SAFE_ARRAY simd<T, Abi> operator+(const simd<T, Abi> &a, const simd<T, Abi> &b) noexcept requires (requires(T l, T r){ l + r; })
+	[[nodiscard]] inline simd<T, Abi> operator+(const simd<T, Abi> &a, const simd<T, Abi> &b) noexcept requires (requires(T l, T r){ l + r; })
 	{
 		simd<T, Abi> result;
 		for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i)
@@ -674,7 +674,7 @@ namespace dpm
 	}
 	/** Subtracts elements of vector \a b from elements of vector \a a, and returns the resulting vector. */
 	template<typename T, typename Abi>
-	[[nodiscard]] inline DPM_SAFE_ARRAY simd<T, Abi> operator-(const simd<T, Abi> &a, const simd<T, Abi> &b) noexcept requires (requires(T l, T r){ l - r; })
+	[[nodiscard]] inline simd<T, Abi> operator-(const simd<T, Abi> &a, const simd<T, Abi> &b) noexcept requires (requires(T l, T r){ l - r; })
 	{
 		simd<T, Abi> result;
 		for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i)
@@ -684,14 +684,14 @@ namespace dpm
 
 	/** Adds elements of vector \a b to elements of vector \a a, and returns reference to \a. */
 	template<typename T, typename Abi>
-	inline DPM_SAFE_ARRAY simd<T, Abi> &operator+=(simd<T, Abi> &a, const simd<T, Abi> &b) noexcept requires (requires(T l, T r){ l += r; })
+	inline simd<T, Abi> &operator+=(simd<T, Abi> &a, const simd<T, Abi> &b) noexcept requires (requires(T l, T r){ l += r; })
 	{
 		for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i) a[i] += b[i];
 		return a;
 	}
 	/** Subtracts elements of vector \a b from elements of vector \a a, and returns reference to \a. */
 	template<typename T, typename Abi>
-	inline DPM_SAFE_ARRAY simd<T, Abi> &operator-=(simd<T, Abi> &a, const simd<T, Abi> &b) noexcept requires (requires(T l, T r){ l -= r; })
+	inline simd<T, Abi> &operator-=(simd<T, Abi> &a, const simd<T, Abi> &b) noexcept requires (requires(T l, T r){ l -= r; })
 	{
 		for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i) a[i] -= b[i];
 		return a;
@@ -699,7 +699,7 @@ namespace dpm
 
 	/** Multiplies elements of vector \a a by elements of vector \a b, and returns the resulting vector. */
 	template<typename T, typename Abi>
-	[[nodiscard]] inline DPM_SAFE_ARRAY simd<T, Abi> operator*(const simd<T, Abi> &a, const simd<T, Abi> &b) noexcept requires (requires(T l, T r){ l * r; })
+	[[nodiscard]] inline simd<T, Abi> operator*(const simd<T, Abi> &a, const simd<T, Abi> &b) noexcept requires (requires(T l, T r){ l * r; })
 	{
 		simd<T, Abi> result;
 		for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i)
@@ -708,7 +708,7 @@ namespace dpm
 	}
 	/** Divides elements of vector \a a by elements of vector \a b, and returns the resulting vector. */
 	template<typename T, typename Abi>
-	[[nodiscard]] inline DPM_SAFE_ARRAY simd<T, Abi> operator/(const simd<T, Abi> &a, const simd<T, Abi> &b) noexcept requires (requires(T l, T r){ l / r; })
+	[[nodiscard]] inline simd<T, Abi> operator/(const simd<T, Abi> &a, const simd<T, Abi> &b) noexcept requires (requires(T l, T r){ l / r; })
 	{
 		simd<T, Abi> result;
 		for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i)
@@ -717,7 +717,7 @@ namespace dpm
 	}
 	/** Preforms a modulo operation of elements of vector \a a by elements of vector \a b, and returns the resulting vector. */
 	template<typename T, typename Abi>
-	[[nodiscard]] inline DPM_SAFE_ARRAY simd<T, Abi> operator%(const simd<T, Abi> &a, const simd<T, Abi> &b) noexcept requires (requires(T l, T r){ l % r; })
+	[[nodiscard]] inline simd<T, Abi> operator%(const simd<T, Abi> &a, const simd<T, Abi> &b) noexcept requires (requires(T l, T r){ l % r; })
 	{
 		simd<T, Abi> result;
 		for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i)
@@ -727,21 +727,21 @@ namespace dpm
 
 	/** Multiplies elements of vector \a a by elements of vector \a b, and returns reference to \a. */
 	template<typename T, typename Abi>
-	inline DPM_SAFE_ARRAY simd<T, Abi> &operator*=(simd<T, Abi> &a, const simd<T, Abi> &b) noexcept requires (requires(T l, T r){ l *= r; })
+	inline simd<T, Abi> &operator*=(simd<T, Abi> &a, const simd<T, Abi> &b) noexcept requires (requires(T l, T r){ l *= r; })
 	{
 		for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i) a[i] *= b[i];
 		return a;
 	}
 	/** Divides elements of vector \a a by elements of vector \a b, and returns reference to \a. */
 	template<typename T, typename Abi>
-	inline DPM_SAFE_ARRAY simd<T, Abi> &operator/=(simd<T, Abi> &a, const simd<T, Abi> &b) noexcept requires (requires(T l, T r){ l /= r; })
+	inline simd<T, Abi> &operator/=(simd<T, Abi> &a, const simd<T, Abi> &b) noexcept requires (requires(T l, T r){ l /= r; })
 	{
 		for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i) a[i] /= b[i];
 		return a;
 	}
 	/** Preforms a modulo operation of elements of vector \a a by elements of vector \a b, and returns reference to \a. */
 	template<typename T, typename Abi>
-	inline DPM_SAFE_ARRAY simd<T, Abi> &operator%=(simd<T, Abi> &a, const simd<T, Abi> &b) noexcept requires (requires(T l, T r){ l %= r; })
+	inline simd<T, Abi> &operator%=(simd<T, Abi> &a, const simd<T, Abi> &b) noexcept requires (requires(T l, T r){ l %= r; })
 	{
 		for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i) a[i] %= b[i];
 		return a;
@@ -749,7 +749,7 @@ namespace dpm
 
 	/** Preforms a bitwise AND between elements of vector \a a and elements of vector \a b, and returns the resulting vector. */
 	template<typename T, typename Abi>
-	[[nodiscard]] inline DPM_SAFE_ARRAY simd<T, Abi> operator&(const simd<T, Abi> &a, const simd<T, Abi> &b) noexcept requires (requires(T l, T r){ l & r; })
+	[[nodiscard]] inline simd<T, Abi> operator&(const simd<T, Abi> &a, const simd<T, Abi> &b) noexcept requires (requires(T l, T r){ l & r; })
 	{
 		simd<T, Abi> result;
 		for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i)
@@ -758,7 +758,7 @@ namespace dpm
 	}
 	/** Preforms a bitwise OR between elements of vector \a a and elements of vector \a b, and returns the resulting vector. */
 	template<typename T, typename Abi>
-	[[nodiscard]] inline DPM_SAFE_ARRAY simd<T, Abi> operator|(const simd<T, Abi> &a, const simd<T, Abi> &b) noexcept requires (requires(T l, T r){ l | r; })
+	[[nodiscard]] inline simd<T, Abi> operator|(const simd<T, Abi> &a, const simd<T, Abi> &b) noexcept requires (requires(T l, T r){ l | r; })
 	{
 		simd<T, Abi> result;
 		for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i)
@@ -767,7 +767,7 @@ namespace dpm
 	}
 	/** Preforms a bitwise XOR between elements of vector \a a and elements of vector \a b, and returns the resulting vector. */
 	template<typename T, typename Abi>
-	[[nodiscard]] inline DPM_SAFE_ARRAY simd<T, Abi> operator^(const simd<T, Abi> &a, const simd<T, Abi> &b) noexcept requires (requires(T l, T r){ l ^ r; })
+	[[nodiscard]] inline simd<T, Abi> operator^(const simd<T, Abi> &a, const simd<T, Abi> &b) noexcept requires (requires(T l, T r){ l ^ r; })
 	{
 		simd<T, Abi> result;
 		for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i)
@@ -777,21 +777,21 @@ namespace dpm
 
 	/** Preforms a bitwise AND between elements of vector \a a and elements of vector \a b, and returns reference to \a. */
 	template<typename T, typename Abi>
-	inline DPM_SAFE_ARRAY simd<T, Abi> &operator&=(simd<T, Abi> &a, const simd<T, Abi> &b) noexcept requires (requires(T l, T r){ l &= r; })
+	inline simd<T, Abi> &operator&=(simd<T, Abi> &a, const simd<T, Abi> &b) noexcept requires (requires(T l, T r){ l &= r; })
 	{
 		for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i) a[i] &= b[i];
 		return a;
 	}
 	/** Preforms a bitwise OR between elements of vector \a a and elements of vector \a b, and returns reference to \a. */
 	template<typename T, typename Abi>
-	inline DPM_SAFE_ARRAY simd<T, Abi> &operator|=(simd<T, Abi> &a, const simd<T, Abi> &b) noexcept requires (requires(T l, T r){ l |= r; })
+	inline simd<T, Abi> &operator|=(simd<T, Abi> &a, const simd<T, Abi> &b) noexcept requires (requires(T l, T r){ l |= r; })
 	{
 		for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i) a[i] |= b[i];
 		return a;
 	}
 	/** Preforms a bitwise XOR between elements of vector \a a and elements of vector \a b, and returns reference to \a. */
 	template<typename T, typename Abi>
-	inline DPM_SAFE_ARRAY simd<T, Abi> &operator^=(simd<T, Abi> &a, const simd<T, Abi> &b) noexcept requires (requires(T l, T r){ l ^= r; })
+	inline simd<T, Abi> &operator^=(simd<T, Abi> &a, const simd<T, Abi> &b) noexcept requires (requires(T l, T r){ l ^= r; })
 	{
 		for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i) a[i] ^= b[i];
 		return a;
@@ -799,7 +799,7 @@ namespace dpm
 
 	/** Shifts elements of vector \a a left by the amount specified by elements of vector \a b, and returns the resulting vector. */
 	template<typename T, typename Abi>
-	[[nodiscard]] inline DPM_SAFE_ARRAY simd<T, Abi> operator<<(const simd<T, Abi> &a, const simd<T, Abi> &b) noexcept requires (requires(T l, T r){ l << r; })
+	[[nodiscard]] inline simd<T, Abi> operator<<(const simd<T, Abi> &a, const simd<T, Abi> &b) noexcept requires (requires(T l, T r){ l << r; })
 	{
 		simd<T, Abi> result;
 		for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i)
@@ -808,7 +808,7 @@ namespace dpm
 	}
 	/** Shifts elements of vector \a a right by the amount specified by elements of vector \a b, and returns the resulting vector. */
 	template<typename T, typename Abi>
-	[[nodiscard]] inline DPM_SAFE_ARRAY simd<T, Abi> operator>>(const simd<T, Abi> &a, const simd<T, Abi> &b) noexcept requires (requires(T l, T r){ l >> r; })
+	[[nodiscard]] inline simd<T, Abi> operator>>(const simd<T, Abi> &a, const simd<T, Abi> &b) noexcept requires (requires(T l, T r){ l >> r; })
 	{
 		simd<T, Abi> result;
 		for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i)
@@ -818,14 +818,14 @@ namespace dpm
 
 	/** Shifts elements of vector \a a left by the amount specified by elements of vector \a b, and returns reference to \a. */
 	template<typename T, typename Abi>
-	inline DPM_SAFE_ARRAY simd<T, Abi> &operator<<=(simd<T, Abi> &a, const simd<T, Abi> &b) noexcept requires (requires(T l, T r){ l <<= r; })
+	inline simd<T, Abi> &operator<<=(simd<T, Abi> &a, const simd<T, Abi> &b) noexcept requires (requires(T l, T r){ l <<= r; })
 	{
 		for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i) a[i] <<= b[i];
 		return a;
 	}
 	/** Shifts elements of vector \a a right by the amount specified by elements of vector \a b, and returns reference to \a. */
 	template<typename T, typename Abi>
-	inline DPM_SAFE_ARRAY simd<T, Abi> &operator>>=(simd<T, Abi> &a, const simd<T, Abi> &b) noexcept requires (requires(T l, T r){ l >>= r; })
+	inline simd<T, Abi> &operator>>=(simd<T, Abi> &a, const simd<T, Abi> &b) noexcept requires (requires(T l, T r){ l >>= r; })
 	{
 		for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i) a[i] >>= b[i];
 		return a;
@@ -833,7 +833,7 @@ namespace dpm
 
 	/** Shifts elements of vector \a a left by \a n, and returns the resulting vector. */
 	template<typename T, typename Abi>
-	[[nodiscard]] inline DPM_SAFE_ARRAY simd<T, Abi> operator<<(const simd<T, Abi> &a, int n) noexcept requires (requires(T l, int r){ l << r; })
+	[[nodiscard]] inline simd<T, Abi> operator<<(const simd<T, Abi> &a, int n) noexcept requires (requires(T l, int r){ l << r; })
 	{
 		simd<T, Abi> result;
 		for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i)
@@ -842,7 +842,7 @@ namespace dpm
 	}
 	/** Shifts elements of vector \a a rught by \a n, and returns the resulting vector. */
 	template<typename T, typename Abi>
-	[[nodiscard]] inline DPM_SAFE_ARRAY simd<T, Abi> operator>>(const simd<T, Abi> &a, int n) noexcept requires (requires(T l, int r){ l >> r; })
+	[[nodiscard]] inline simd<T, Abi> operator>>(const simd<T, Abi> &a, int n) noexcept requires (requires(T l, int r){ l >> r; })
 	{
 		simd<T, Abi> result;
 		for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i)
@@ -852,14 +852,14 @@ namespace dpm
 
 	/** Shifts elements of vector \a a left by \a n, and returns reference to \a. */
 	template<typename T, typename Abi>
-	inline DPM_SAFE_ARRAY simd<T, Abi> &operator<<=(simd<T, Abi> &a, int n) noexcept requires (requires(T l, int r){ l <<= r; })
+	inline simd<T, Abi> &operator<<=(simd<T, Abi> &a, int n) noexcept requires (requires(T l, int r){ l <<= r; })
 	{
 		for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i) a[i] <<= n;
 		return a;
 	}
 	/** Shifts elements of vector \a a right by \a n, and returns reference to \a. */
 	template<typename T, typename Abi>
-	inline DPM_SAFE_ARRAY simd<T, Abi> &operator>>=(simd<T, Abi> &a, int n) noexcept requires (requires(T l, int r){ l >>= r; })
+	inline simd<T, Abi> &operator>>=(simd<T, Abi> &a, int n) noexcept requires (requires(T l, int r){ l >>= r; })
 	{
 		for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i) a[i] >>= n;
 		return a;
@@ -867,7 +867,7 @@ namespace dpm
 
 	/** Compares elements of vectors \a a and \a b for equality, and returns the resulting mask. */
 	template<typename T, typename Abi>
-	[[nodiscard]] inline DPM_SAFE_ARRAY simd_mask<T, Abi> operator==(const simd<T, Abi> &a, const simd<T, Abi> &b) noexcept
+	[[nodiscard]] inline simd_mask<T, Abi> operator==(const simd<T, Abi> &a, const simd<T, Abi> &b) noexcept
 	{
 		simd_mask<T, Abi> result;
 		for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i)
@@ -876,7 +876,7 @@ namespace dpm
 	}
 	/** Compares elements of vectors \a a and \a b for less-than or equal, and returns the resulting mask. */
 	template<typename T, typename Abi>
-	[[nodiscard]] inline DPM_SAFE_ARRAY simd_mask<T, Abi> operator<=(const simd<T, Abi> &a, const simd<T, Abi> &b) noexcept
+	[[nodiscard]] inline simd_mask<T, Abi> operator<=(const simd<T, Abi> &a, const simd<T, Abi> &b) noexcept
 	{
 		simd_mask<T, Abi> result;
 		for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i)
@@ -885,7 +885,7 @@ namespace dpm
 	}
 	/** Compares elements of vectors \a a and \a b for greater-than or equal, and returns the resulting mask. */
 	template<typename T, typename Abi>
-	[[nodiscard]] inline DPM_SAFE_ARRAY simd_mask<T, Abi> operator>=(const simd<T, Abi> &a, const simd<T, Abi> &b) noexcept
+	[[nodiscard]] inline simd_mask<T, Abi> operator>=(const simd<T, Abi> &a, const simd<T, Abi> &b) noexcept
 	{
 		simd_mask<T, Abi> result;
 		for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i)
@@ -894,7 +894,7 @@ namespace dpm
 	}
 	/** Compares elements of vectors \a a and \a b for less-than, and returns the resulting mask. */
 	template<typename T, typename Abi>
-	[[nodiscard]] inline DPM_SAFE_ARRAY simd_mask<T, Abi> operator<(const simd<T, Abi> &a, const simd<T, Abi> &b) noexcept
+	[[nodiscard]] inline simd_mask<T, Abi> operator<(const simd<T, Abi> &a, const simd<T, Abi> &b) noexcept
 	{
 		simd_mask<T, Abi> result;
 		for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i)
@@ -903,7 +903,7 @@ namespace dpm
 	}
 	/** Compares elements of vectors \a a and \a b for greater-than, and returns the resulting mask. */
 	template<typename T, typename Abi>
-	[[nodiscard]] inline DPM_SAFE_ARRAY simd_mask<T, Abi> operator>(const simd<T, Abi> &a, const simd<T, Abi> &b) noexcept
+	[[nodiscard]] inline simd_mask<T, Abi> operator>(const simd<T, Abi> &a, const simd<T, Abi> &b) noexcept
 	{
 		simd_mask<T, Abi> result;
 		for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i)
@@ -912,7 +912,7 @@ namespace dpm
 	}
 	/** Compares elements of vectors \a a and \a b for equality, and returns the resulting mask. */
 	template<typename T, typename Abi>
-	[[nodiscard]] inline DPM_SAFE_ARRAY simd_mask<T, Abi> operator!=(const simd<T, Abi> &a, const simd<T, Abi> &b) noexcept
+	[[nodiscard]] inline simd_mask<T, Abi> operator!=(const simd<T, Abi> &a, const simd<T, Abi> &b) noexcept
 	{
 		simd_mask<T, Abi> result;
 		for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i)
@@ -932,7 +932,7 @@ namespace dpm
 				return std::invoke(binary_op, a, b);
 		}
 		template<typename T, std::size_t N, typename Op>
-		[[nodiscard]] inline DPM_SAFE_ARRAY T reduce_array(const std::array<T, N> &data, Op binary_op)
+		[[nodiscard]] inline T reduce_array(const std::array<T, N> &data, Op binary_op)
 		{
 			if constexpr (N == 1)
 				return data[0];
@@ -953,7 +953,7 @@ namespace dpm
 			}
 		}
 		template<std::size_t N, typename T, typename Abi, typename Op>
-		[[nodiscard]] inline DPM_SAFE_ARRAY T reduce_impl(const simd<T, Abi> &x, Op binary_op)
+		[[nodiscard]] inline T reduce_impl(const simd<T, Abi> &x, Op binary_op)
 		{
 			alignas(simd<T, Abi>) std::array<T, simd<T, Abi>::size()> buff;
 			x.copy_to(buff.data(), vector_aligned);
@@ -1028,15 +1028,15 @@ namespace dpm
 #pragma region "simd casts"
 	/** Implicitly converts elements of SIMD vector \a x to `T` or `T::value_type` if `T` is an instance of `simd`. */
 	template<typename T, typename U, typename Abi>
-	[[nodiscard]] inline DPM_SAFE_ARRAY auto simd_cast(const simd<U, Abi> &x) noexcept requires detail::valid_simd_cast<T, U, Abi>
+	[[nodiscard]] inline auto simd_cast(const simd<U, Abi> &x) noexcept requires detail::valid_simd_cast<T, U, Abi>
 	{
-		detail::cast_return_t<T, U, Abi, simd<U, Abi>::size()>result;
+		detail::cast_return_t<T, U, Abi, simd<U, Abi>::size()> result;
 		detail::copy_cast(x, result);
 		return result;
 	}
 	/** Explicitly converts elements of SIMD vector \a x to `T` or `T::value_type` if `T` is an instance of `simd`. */
 	template<typename T, typename U, typename Abi>
-	[[nodiscard]] inline DPM_SAFE_ARRAY auto static_simd_cast(const simd<U, Abi> &x) noexcept requires detail::valid_simd_static_cast<T, U, Abi>
+	[[nodiscard]] inline auto static_simd_cast(const simd<U, Abi> &x) noexcept requires detail::valid_simd_static_cast<T, U, Abi>
 	{
 		typename detail::static_cast_return<T, U, Abi, simd<U, Abi>::size()>::type result;
 		detail::copy_cast(x, result);
@@ -1045,18 +1045,18 @@ namespace dpm
 
 	/** Converts SIMD vector \a x to it's fixed-size ABI equivalent for value type `T`. */
 	template<typename T, typename Abi>
-	[[nodiscard]] inline DPM_SAFE_ARRAY fixed_size_simd<T, simd_size_v<T, Abi>> to_fixed_size(const simd<T, Abi> &x) noexcept { return {x}; }
+	[[nodiscard]] inline fixed_size_simd<T, simd_size_v<T, Abi>> to_fixed_size(const simd<T, Abi> &x) noexcept { return {x}; }
 	/** Converts SIMD vector \a x to it's native ABI equivalent for value type `T`. */
 	template<typename T, typename Abi>
-	[[nodiscard]] inline DPM_SAFE_ARRAY native_simd<T> to_native(const simd<T, Abi> &x) noexcept { return {x}; }
+	[[nodiscard]] inline native_simd<T> to_native(const simd<T, Abi> &x) noexcept { return {x}; }
 	/** Converts SIMD vector \a x to it's compatible ABI equivalent for value type `T`. */
 	template<typename T, typename Abi>
-	[[nodiscard]] inline DPM_SAFE_ARRAY simd<T> to_compatible(const simd<T, Abi> &x) noexcept { return {x}; }
+	[[nodiscard]] inline simd<T> to_compatible(const simd<T, Abi> &x) noexcept { return {x}; }
 
 	/** Returns an array of SIMD vectors where every `i`th element of the `j`th vector is a copy of the `i + j * V::size()`th element from \a x.
 	 * @note Size of \a x must be a multiple of `V::size()`. */
 	template<typename V, typename Abi, typename U = typename V::value_type>
-	[[nodiscard]] inline DPM_SAFE_ARRAY auto split(const simd<U, Abi> &x) noexcept requires detail::can_split_simd<V, Abi>
+	[[nodiscard]] inline auto split(const simd<U, Abi> &x) noexcept requires detail::can_split_simd<V, Abi>
 	{
 		alignas(std::max(alignof(V), alignof(simd<U, Abi>))) std::array<U, simd<U, Abi>::size()> tmp_buff;
 		std::array<V, simd_size_v<U, Abi> / V::size()> result;
@@ -1069,7 +1069,7 @@ namespace dpm
 	/** Returns an array of SIMD vectors where every `i`th element of the `j`th vector is a copy of the `i + j * (simd_size_v<T, Abi> / N)`th element from \a x.
 	 * @note `N` must be a multiple of `simd_size_v<T, Abi>::size()`. */
 	template<std::size_t N, typename T, typename Abi>
-	[[nodiscard]] inline DPM_SAFE_ARRAY auto split_by(const simd<T, Abi> &x) noexcept requires (simd_size_v<T, Abi> % N == 0)
+	[[nodiscard]] inline auto split_by(const simd<T, Abi> &x) noexcept requires (simd_size_v<T, Abi> % N == 0)
 	{
 		constexpr auto split_size = simd_size_v<T, Abi> / N;
 		using split_type = resize_simd_t<split_size, simd<T, Abi>>;
@@ -1085,7 +1085,7 @@ namespace dpm
 
 	/** Concatenates elements of \a values into a single SIMD vector. */
 	template<typename T, typename... Abis>
-	[[nodiscard]] inline DPM_SAFE_ARRAY auto concat(const simd<T, Abis> &...values) noexcept
+	[[nodiscard]] inline auto concat(const simd<T, Abis> &...values) noexcept
 	{
 		if constexpr (sizeof...(values) == 1)
 			return (values, ...);
@@ -1102,7 +1102,7 @@ namespace dpm
 	}
 	/** Concatenates elements of \a values into a single SIMD vector. */
 	template<typename T, typename Abi, std::size_t N>
-	[[nodiscard]] inline DPM_SAFE_ARRAY auto concat(const std::array<simd<T, Abi>, N> &values) noexcept
+	[[nodiscard]] inline auto concat(const std::array<simd<T, Abi>, N> &values) noexcept
 	{
 		if constexpr (N == 1)
 			return values[0];
@@ -1123,7 +1123,7 @@ namespace dpm
 #pragma region "simd algorithms"
 	/** Returns an SIMD vector of minimum elements of \a a and \a b. */
 	template<typename T, typename Abi>
-	[[nodiscard]] inline DPM_SAFE_ARRAY simd<T, Abi> min(const simd<T, Abi> &a, const simd<T, Abi> &b) noexcept
+	[[nodiscard]] inline simd<T, Abi> min(const simd<T, Abi> &a, const simd<T, Abi> &b) noexcept
 	{
 		simd<T, Abi> result;
 		for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i)
@@ -1132,7 +1132,7 @@ namespace dpm
 	}
 	/** Returns an SIMD vector of maximum elements of \a a and \a b. */
 	template<typename T, typename Abi>
-	[[nodiscard]] inline DPM_SAFE_ARRAY simd<T, Abi> max(const simd<T, Abi> &a, const simd<T, Abi> &b) noexcept
+	[[nodiscard]] inline simd<T, Abi> max(const simd<T, Abi> &a, const simd<T, Abi> &b) noexcept
 	{
 		simd<T, Abi> result;
 		for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i)
@@ -1141,7 +1141,7 @@ namespace dpm
 	}
 	/** Returns a pair of SIMD vectors of minimum and maximum elements of \a a and \a b. */
 	template<typename T, typename Abi>
-	[[nodiscard]] inline DPM_SAFE_ARRAY std::pair<simd<T, Abi>, simd<T, Abi>> minmax(const simd<T, Abi> &a, const simd<T, Abi> &b) noexcept
+	[[nodiscard]] inline std::pair<simd<T, Abi>, simd<T, Abi>> minmax(const simd<T, Abi> &a, const simd<T, Abi> &b) noexcept
 	{
 		std::pair<simd<T, Abi>, simd<T, Abi>> result;
 		for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i)
@@ -1154,7 +1154,7 @@ namespace dpm
 	}
 	/** Clamps elements of \a x between corresponding elements of \a ming and \a max. */
 	template<typename T, typename Abi>
-	[[nodiscard]] inline DPM_SAFE_ARRAY simd<T, Abi> clamp(const simd<T, Abi> &x, const simd<T, Abi> &min, const simd<T, Abi> &max) noexcept
+	[[nodiscard]] inline simd<T, Abi> clamp(const simd<T, Abi> &x, const simd<T, Abi> &min, const simd<T, Abi> &max) noexcept
 	{
 		simd<T, Abi> result;
 		for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i)
@@ -1177,7 +1177,7 @@ namespace dpm
 
 		/** Replaces elements of vector \a a with elements of vector \a b using mask \a m. Elements of \a b are selected if the corresponding element of \a m evaluates to `true`. */
 		template<typename T, typename Abi>
-		[[nodiscard]] inline DPM_SAFE_ARRAY simd<T, Abi> blend(const simd<T, Abi> &a, const simd<T, Abi> &b, const simd_mask<T, Abi> &m)
+		[[nodiscard]] inline simd<T, Abi> blend(const simd<T, Abi> &a, const simd<T, Abi> &b, const simd_mask<T, Abi> &m)
 		{
 			simd<T, Abi> result = a;
 			for (std::size_t i = 0; i < m.size(); ++i) result[i] = m[i] ? b[i] : a[i];
@@ -1186,7 +1186,7 @@ namespace dpm
 
 		/** Shuffles elements of vector \a x into a new vector according to the specified indices. ABI of the resulting vector is deduced via `simd_abi::deduce_t<T, sizeof...(Is), Abi>`. */
 		template<std::size_t I, std::size_t... Is, typename T, typename Abi>
-		[[nodiscard]] inline DPM_SAFE_ARRAY simd<T, simd_abi::deduce_t<T, sizeof...(Is) + 1, Abi>> shuffle(const simd<T, Abi> &x)
+		[[nodiscard]] inline simd<T, simd_abi::deduce_t<T, sizeof...(Is) + 1, Abi>> shuffle(const simd<T, Abi> &x)
 		{
 			using result_t = simd<T, simd_abi::deduce_t<T, sizeof...(Is) + 1, Abi>>;
 			if constexpr (detail::is_sequential<0, I, Is...>::value && result_t::size() == simd<T, Abi>::size())
@@ -1300,7 +1300,7 @@ namespace dpm
 		static constexpr std::size_t size() noexcept { return abi_type::size; }
 
 	private:
-		constexpr static std::size_t alignment = std::max(Align, alignof(value_type[N]));
+		constexpr static auto alignment = std::max(Align == SIZE_MAX ? 0 : Align, alignof(value_type[N]));
 
 	public:
 		constexpr simd() noexcept = default;
@@ -1311,27 +1311,27 @@ namespace dpm
 
 		/** Initializes the underlying elements with \a value. */
 		template<detail::compatible_element<value_type> U>
-		constexpr DPM_SAFE_ARRAY simd(U &&value) noexcept { std::fill_n(m_data, size(), static_cast<value_type>(std::forward<U>(value))); }
+		constexpr simd(U &&value) noexcept { std::fill_n(m_data, size(), static_cast<value_type>(std::forward<U>(value))); }
 		/** Initializes the underlying elements with values provided by the generator \a gen. */
 		template<detail::element_generator<value_type, size()> G>
-		DPM_SAFE_ARRAY simd(G &&gen) noexcept { detail::generate_n<size()>(m_data, std::forward<G>(gen)); }
+		simd(G &&gen) noexcept { detail::generate_n<size()>(m_data, std::forward<G>(gen)); }
 
 		/** Copies elements from \a other. */
 		template<typename U, std::size_t OtherAlign>
-		DPM_SAFE_ARRAY simd(const simd<U, detail::avec<size(), OtherAlign>> &other) noexcept
+		simd(const simd<U, detail::avec<size(), OtherAlign>> &other) noexcept
 		{
 			for (std::size_t i = 0; i < size(); ++i) operator[](i) = other[i];
 		}
 		/** Initializes the underlying elements from \a mem. */
 		template<typename U, typename Flags>
-		DPM_SAFE_ARRAY simd(const U *mem, Flags) noexcept requires is_simd_flag_type_v<Flags> { copy_from(mem, Flags{}); }
+		simd(const U *mem, Flags) noexcept requires is_simd_flag_type_v<Flags> { copy_from(mem, Flags{}); }
 
 		/** Copies the underlying elements from \a mem. */
 		template<typename U, typename Flags>
-		DPM_SAFE_ARRAY void copy_from(const U *mem, Flags) noexcept requires is_simd_flag_type_v<Flags> { std::copy_n(mem, size(), m_data); }
+		void copy_from(const U *mem, Flags) noexcept requires is_simd_flag_type_v<Flags> { std::copy_n(mem, size(), m_data); }
 		/** Copies the underlying elements to \a mem. */
 		template<typename U, typename Flags>
-		DPM_SAFE_ARRAY void copy_to(U *mem, Flags) const noexcept requires is_simd_flag_type_v<Flags> { std::copy_n(m_data, size(), mem); }
+		void copy_to(U *mem, Flags) const noexcept requires is_simd_flag_type_v<Flags> { std::copy_n(m_data, size(), mem); }
 
 		[[nodiscard]] reference operator[](std::size_t i) noexcept
 		{
@@ -1344,43 +1344,43 @@ namespace dpm
 			return m_data[i];
 		}
 
-		simd DPM_SAFE_ARRAY operator++(int) noexcept requires (requires { std::declval<value_type &>()++; })
+		simd operator++(int) noexcept requires (requires { std::declval<value_type &>()++; })
 		{
 			simd result;
 			for (std::size_t i = 0; i < size(); ++i) result[i] = m_data[i]++;
 			return result;
 		}
-		simd DPM_SAFE_ARRAY operator--(int) noexcept requires (requires { std::declval<value_type &>()--; })
+		simd operator--(int) noexcept requires (requires { std::declval<value_type &>()--; })
 		{
 			simd result;
 			for (std::size_t i = 0; i < size(); ++i) result[i] = m_data[i]--;
 			return result;
 		}
-		DPM_SAFE_ARRAY simd &operator++() noexcept requires (requires { ++std::declval<value_type &>(); })
+		simd &operator++() noexcept requires (requires { ++std::declval<value_type &>(); })
 		{
 			for (std::size_t i = 0; i < size(); ++i) ++m_data[i];
 			return *this;
 		}
-		DPM_SAFE_ARRAY simd &operator--() noexcept requires (requires { --std::declval<value_type &>(); })
+		simd &operator--() noexcept requires (requires { --std::declval<value_type &>(); })
 		{
 			for (std::size_t i = 0; i < size(); ++i) --m_data[i];
 			return *this;
 		}
 
-		[[nodiscard]] DPM_SAFE_ARRAY mask_type operator!() const noexcept requires (requires { !std::declval<value_type &>(); })
+		[[nodiscard]] mask_type operator!() const noexcept requires (requires { !std::declval<value_type &>(); })
 		{
 			mask_type result;
 			for (std::size_t i = 0; i < size(); ++i) result[i] = !m_data[i];
 			return result;
 		}
-		[[nodiscard]] DPM_SAFE_ARRAY simd operator~() const noexcept requires (requires { ~std::declval<value_type &>(); })
+		[[nodiscard]] simd operator~() const noexcept requires (requires { ~std::declval<value_type &>(); })
 		{
 			simd result;
 			for (std::size_t i = 0; i < size(); ++i) result[i] = ~m_data[i];
 			return result;
 		}
-		[[nodiscard]] DPM_SAFE_ARRAY simd operator+() const noexcept requires (requires { +std::declval<value_type &>(); }) { return *this; }
-		[[nodiscard]] DPM_SAFE_ARRAY simd operator-() const noexcept requires (requires { -std::declval<value_type &>(); })
+		[[nodiscard]] simd operator+() const noexcept requires (requires { +std::declval<value_type &>(); }) { return *this; }
+		[[nodiscard]] simd operator-() const noexcept requires (requires { -std::declval<value_type &>(); })
 		{
 			simd result;
 			for (std::size_t i = 0; i < size(); ++i) result[i] = -m_data[i];

@@ -4,8 +4,9 @@
 
 #pragma once
 
-#include "f64/sincos.hpp"
 #include "f32/sincos.hpp"
+#include "f64/sincos.hpp"
+#include "f32/fmadd.hpp"
 #include "f64/fmadd.hpp"
 #include "f32/class.hpp"
 #include "f64/class.hpp"

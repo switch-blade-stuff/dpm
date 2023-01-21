@@ -50,7 +50,7 @@ namespace dpm
 		struct x86_mask_impl<I, __m128i, N>
 		{
 			template<std::size_t M, typename F>
-			static void DPM_SAFE_INLINE copy_from(const bool *src, __m128i *dst, F) noexcept
+			static void DPM_FORCEINLINE copy_from(const bool *src, __m128i *dst, F) noexcept
 			{
 				for (std::size_t i = 0; i < N; i += 2)
 				{
@@ -64,7 +64,7 @@ namespace dpm
 				}
 			}
 			template<std::size_t M, typename F>
-			static void DPM_SAFE_INLINE copy_to(bool *dst, const __m128i *src, F) noexcept
+			static void DPM_FORCEINLINE copy_to(bool *dst, const __m128i *src, F) noexcept
 			{
 				for (std::size_t i = 0; i < N; i += 2)
 				{
@@ -77,7 +77,7 @@ namespace dpm
 			}
 
 			template<std::size_t M, typename F>
-			static void DPM_SAFE_INLINE copy_from(const bool *src, __m128i *dst, const __m128i *mask, F) noexcept
+			static void DPM_FORCEINLINE copy_from(const bool *src, __m128i *dst, const __m128i *mask, F) noexcept
 			{
 				for (std::size_t i = 0; i < N; i += 2)
 				{
@@ -91,7 +91,7 @@ namespace dpm
 				}
 			}
 			template<std::size_t M, typename F>
-			static void DPM_SAFE_INLINE copy_to(bool *dst, const __m128i *src, const __m128i *mask, F) noexcept
+			static void DPM_FORCEINLINE copy_to(bool *dst, const __m128i *src, const __m128i *mask, F) noexcept
 			{
 				for (std::size_t i = 0; i < N; i += 2)
 				{
@@ -105,42 +105,42 @@ namespace dpm
 			}
 
 			template<std::size_t M>
-			static void DPM_SAFE_INLINE invert(__m128i *dst, const __m128i *src) noexcept
+			static void DPM_FORCEINLINE invert(__m128i *dst, const __m128i *src) noexcept
 			{
 				const auto mask = _mm_set1_epi64x(static_cast<std::int64_t>(0xffff'ffff'ffff'ffff));
 				for (std::size_t i = 0; i < M; ++i) dst[i] = _mm_xor_si128(src[i], mask);
 			}
 
 			template<std::size_t M>
-			static void DPM_SAFE_INLINE bit_and(__m128i *out, const __m128i *a, const __m128i *b) noexcept
+			static void DPM_FORCEINLINE bit_and(__m128i *out, const __m128i *a, const __m128i *b) noexcept
 			{
 				for (std::size_t i = 0; i < M; ++i) out[i] = _mm_and_si128(a[i], b[i]);
 			}
 			template<std::size_t M>
-			static void DPM_SAFE_INLINE bit_or(__m128i *out, const __m128i *a, const __m128i *b) noexcept
+			static void DPM_FORCEINLINE bit_or(__m128i *out, const __m128i *a, const __m128i *b) noexcept
 			{
 				for (std::size_t i = 0; i < M; ++i) out[i] = _mm_or_si128(a[i], b[i]);
 			}
 			template<std::size_t M>
-			static void DPM_SAFE_INLINE bit_xor(__m128i *out, const __m128i *a, const __m128i *b) noexcept
+			static void DPM_FORCEINLINE bit_xor(__m128i *out, const __m128i *a, const __m128i *b) noexcept
 			{
 				for (std::size_t i = 0; i < M; ++i) out[i] = _mm_xor_si128(a[i], b[i]);
 			}
 
 			template<std::size_t M>
-			static void DPM_SAFE_INLINE cmp_eq(__m128i *out, const __m128i *a, const __m128i *b) noexcept
+			static void DPM_FORCEINLINE cmp_eq(__m128i *out, const __m128i *a, const __m128i *b) noexcept
 			{
 				for (std::size_t i = 0; i < M; ++i) out[i] = _mm_cmpeq_epi32(a[i], b[i]);
 			}
 			template<std::size_t M>
-			static void DPM_SAFE_INLINE cmp_ne(__m128i *out, const __m128i *a, const __m128i *b) noexcept
+			static void DPM_FORCEINLINE cmp_ne(__m128i *out, const __m128i *a, const __m128i *b) noexcept
 			{
 				const auto inv_mask = _mm_set1_epi64x(static_cast<std::int64_t>(0xffff'ffff'ffff'ffff));
 				for (std::size_t i = 0; i < M; ++i) out[i] = _mm_xor_si128(_mm_cmpeq_epi32(a[i], b[i]), inv_mask);
 			}
 
 			template<std::size_t M>
-			[[nodiscard]] static DPM_SAFE_ARRAY bool all_of(const __m128i *mask) noexcept
+			[[nodiscard]] static bool all_of(const __m128i *mask) noexcept
 			{
 #ifdef DPM_HAS_SSE4_1
 				if constexpr (M == 1) return _mm_test_all_ones(x86_maskone_vector_i64<N>(mask[0], 0));
@@ -154,7 +154,7 @@ namespace dpm
 				return _mm_movemask_ps(result) == 0b1111;
 			}
 			template<std::size_t M>
-			[[nodiscard]] static DPM_SAFE_ARRAY bool any_of(const __m128i *mask) noexcept
+			[[nodiscard]] static bool any_of(const __m128i *mask) noexcept
 			{
 				auto result = _mm_setzero_si128();
 				for (std::size_t i = 0; i < M; ++i)
@@ -169,7 +169,7 @@ namespace dpm
 #endif
 			}
 			template<std::size_t M>
-			[[nodiscard]] static DPM_SAFE_ARRAY bool none_of(const __m128i *mask) noexcept
+			[[nodiscard]] static bool none_of(const __m128i *mask) noexcept
 			{
 				auto result = _mm_setzero_si128();
 				for (std::size_t i = 0; i < M; ++i)
@@ -184,7 +184,7 @@ namespace dpm
 #endif
 			}
 			template<std::size_t M>
-			[[nodiscard]] static DPM_SAFE_ARRAY bool some_of(const __m128i *mask) noexcept
+			[[nodiscard]] static bool some_of(const __m128i *mask) noexcept
 			{
 #ifdef DPM_HAS_SSE4_1
 				auto any_mask = _mm_setzero_si128(), all_mask = _mm_set1_epi64x(static_cast<std::int64_t>(0xffff'ffff'ffff'ffff));
@@ -214,7 +214,7 @@ namespace dpm
 			}
 
 			template<std::size_t M>
-			[[nodiscard]] static DPM_SAFE_ARRAY std::size_t popcount(const __m128i *mask) noexcept
+			[[nodiscard]] static std::size_t popcount(const __m128i *mask) noexcept
 			{
 				std::size_t result = 0;
 				for (std::size_t i = 0; i < M; ++i)
@@ -225,7 +225,7 @@ namespace dpm
 				return result;
 			}
 			template<std::size_t M>
-			[[nodiscard]] static DPM_SAFE_ARRAY std::size_t find_first_set(const __m128i *mask) noexcept
+			[[nodiscard]] static std::size_t find_first_set(const __m128i *mask) noexcept
 			{
 				for (std::size_t i = 0; i < M; ++i)
 				{
@@ -235,7 +235,7 @@ namespace dpm
 				DPM_UNREACHABLE();
 			}
 			template<std::size_t M>
-			[[nodiscard]] static DPM_SAFE_ARRAY std::size_t find_last_set(const __m128i *mask) noexcept
+			[[nodiscard]] static std::size_t find_last_set(const __m128i *mask) noexcept
 			{
 				for (std::size_t i = M, k; (k = i--) != 0;)
 				{
@@ -252,7 +252,7 @@ namespace dpm
 
 #ifdef DPM_HAS_SSE4_1
 			template<std::size_t M>
-			static void DPM_SAFE_INLINE blend(__m128i *out, const __m128i *a, const __m128i *b, const __m128i *m) noexcept
+			static void DPM_FORCEINLINE blend(__m128i *out, const __m128i *a, const __m128i *b, const __m128i *m) noexcept
 			{
 				for (std::size_t i = 0; i < M; ++i) out[i] = _mm_blendv_epi8(a[i], b[i], m[i]);
 			}
@@ -277,7 +277,7 @@ namespace dpm
 			static std::add_const_t<U> &data_at(const __m128i *data, std::size_t i) noexcept { return reinterpret_cast<std::add_const_t<U> *>(data)[i]; }
 
 			template<std::size_t M, typename U, typename F>
-			static void DPM_SAFE_INLINE copy_from(const U *src, __m128i *dst, F) noexcept
+			static void DPM_FORCEINLINE copy_from(const U *src, __m128i *dst, F) noexcept
 			{
 				if constexpr (std::same_as<U, I> && aligned_tag<F, alignof(__m128i)>)
 					for (std::size_t i = 0; i < N; i += 2)
@@ -304,7 +304,7 @@ namespace dpm
 					for (std::size_t i = 0; i < N; ++i) data_at<I>(dst, i) = static_cast<I>(src[i]);
 			}
 			template<std::size_t M, typename U, typename F>
-			static void DPM_SAFE_INLINE copy_to(U *dst, const __m128i *src, F) noexcept
+			static void DPM_FORCEINLINE copy_to(U *dst, const __m128i *src, F) noexcept
 			{
 				if constexpr (std::same_as<U, I> && aligned_tag<F, alignof(__m128i)>)
 					for (std::size_t i = 0; i < N; i += 2)
@@ -332,7 +332,7 @@ namespace dpm
 			}
 
 			template<std::size_t M, typename U, typename F>
-			static void DPM_SAFE_INLINE copy_from(const U *src, __m128i *dst, const __m128i *mask, F) noexcept
+			static void DPM_FORCEINLINE copy_from(const U *src, __m128i *dst, const __m128i *mask, F) noexcept
 			{
 #ifdef DPM_HAS_AVX
 				if constexpr (std::same_as<U, I> && aligned_tag<F, alignof(__m128i)>)
@@ -355,7 +355,7 @@ namespace dpm
 				for (std::size_t i = 0; i < N; ++i) if (data_at<std::int64_t>(mask, i)) data_at<I>(dst, i) = static_cast<I>(src[i]);
 			}
 			template<std::size_t M, typename U, typename F>
-			static void DPM_SAFE_INLINE copy_to(U *dst, const __m128i *src, const __m128i *mask, F) noexcept
+			static void DPM_FORCEINLINE copy_to(U *dst, const __m128i *src, const __m128i *mask, F) noexcept
 			{
 #ifdef DPM_HAS_AVX
 				if constexpr (std::same_as<U, I> && aligned_tag<F, alignof(__m128i)>)
@@ -397,55 +397,55 @@ namespace dpm
 			}
 
 			template<std::size_t M>
-			static void DPM_SAFE_INLINE inc(__m128i *data) noexcept
+			static void DPM_FORCEINLINE inc(__m128i *data) noexcept
 			{
 				const auto one = _mm_set1_epi64x(1);
 				for (std::size_t i = 0; i < M; ++i) data[i] = _mm_add_epi64(data[i], one);
 			}
 			template<std::size_t M>
-			static void DPM_SAFE_INLINE dec(__m128i *data) noexcept
+			static void DPM_FORCEINLINE dec(__m128i *data) noexcept
 			{
 				const auto one = _mm_set1_epi64x(1);
 				for (std::size_t i = 0; i < M; ++i) data[i] = _mm_sub_epi64(data[i], one);
 			}
 
 			template<std::size_t M>
-			static void DPM_SAFE_INLINE negate(__m128i *dst, const __m128i *src) noexcept
+			static void DPM_FORCEINLINE negate(__m128i *dst, const __m128i *src) noexcept
 			{
 				const auto zero = _mm_setzero_si128();
 				for (std::size_t i = 0; i < M; ++i) dst[i] = _mm_sub_epi64(zero, src[i]);
 			}
 
 			template<std::size_t M>
-			static void DPM_SAFE_INLINE add(__m128i *out, const __m128i *a, const __m128i *b) noexcept
+			static void DPM_FORCEINLINE add(__m128i *out, const __m128i *a, const __m128i *b) noexcept
 			{
 				for (std::size_t i = 0; i < M; ++i) out[i] = _mm_add_epi64(a[i], b[i]);
 			}
 			template<std::size_t M>
-			static void DPM_SAFE_INLINE sub(__m128i *out, const __m128i *a, const __m128i *b) noexcept
+			static void DPM_FORCEINLINE sub(__m128i *out, const __m128i *a, const __m128i *b) noexcept
 			{
 				for (std::size_t i = 0; i < M; ++i) out[i] = _mm_sub_epi64(a[i], b[i]);
 			}
 
 			template<std::size_t M>
-			static void DPM_SAFE_INLINE lshift(__m128i *out, const __m128i *a, const __m128i *b) noexcept
+			static void DPM_FORCEINLINE lshift(__m128i *out, const __m128i *a, const __m128i *b) noexcept
 			{
 				for (std::size_t i = 0; i < M; ++i) out[i] = _mm_sll_epi64(a[i], b[i]);
 			}
 			template<std::size_t M>
-			static void DPM_SAFE_INLINE rshift(__m128i *out, const __m128i *a, const __m128i *b) noexcept
+			static void DPM_FORCEINLINE rshift(__m128i *out, const __m128i *a, const __m128i *b) noexcept
 			{
 				for (std::size_t i = 0; i < M; ++i) out[i] = _mm_srl_epi64(a[i], b[i]);
 			}
 
 #ifdef DPM_HAS_SSE4_1
 			template<std::size_t M>
-			static void DPM_SAFE_INLINE cmp_eq(__m128i *out, const __m128i *a, const __m128i *b) noexcept
+			static void DPM_FORCEINLINE cmp_eq(__m128i *out, const __m128i *a, const __m128i *b) noexcept
 			{
 				for (std::size_t i = 0; i < M; ++i) out[i] = _mm_cmpeq_epi64(a[i], b[i]);
 			}
 			template<std::size_t M>
-			static void DPM_SAFE_INLINE cmp_ne(__m128i *out, const __m128i *a, const __m128i *b) noexcept
+			static void DPM_FORCEINLINE cmp_ne(__m128i *out, const __m128i *a, const __m128i *b) noexcept
 			{
 				const auto inv_mask = _mm_set1_epi64x(static_cast<std::int64_t>(0xffff'ffff'ffff'ffff));
 				for (std::size_t i = 0; i < M; ++i) out[i] = _mm_xor_si128(_mm_cmpeq_epi64(a[i], b[i]), inv_mask);
@@ -454,23 +454,23 @@ namespace dpm
 
 #ifdef DPM_HAS_AVX512VL
 			template<std::size_t M>
-			static void DPM_SAFE_INLINE mul(__m128i *out, const __m128i *a, const __m128i *b) noexcept
+			static void DPM_FORCEINLINE mul(__m128i *out, const __m128i *a, const __m128i *b) noexcept
 			{
 				for (std::size_t i = 0; i < M; ++i) out[i] = _mm_mullo_epi64(a[i], b[i]);
 			}
 
 			template<std::size_t M>
-			static void DPM_SAFE_INLINE min(__m128i *out, const __m128i *a, const __m128i *b) noexcept requires std::signed_integral<I>
+			static void DPM_FORCEINLINE min(__m128i *out, const __m128i *a, const __m128i *b) noexcept requires std::signed_integral<I>
 			{
 				for (std::size_t i = 0; i < M; ++i) out[i] = _mm_min_epi64(a[i], b[i]);
 			}
 			template<std::size_t M>
-			static void DPM_SAFE_INLINE max(__m128i *out, const __m128i *a, const __m128i *b) noexcept requires std::signed_integral<I>
+			static void DPM_FORCEINLINE max(__m128i *out, const __m128i *a, const __m128i *b) noexcept requires std::signed_integral<I>
 			{
 				for (std::size_t i = 0; i < M; ++i) out[i] = _mm_max_epi64(a[i], b[i]);
 			}
 			template<std::size_t M>
-			static void DPM_SAFE_INLINE minmax(__m128i *out_min, __m128i *out_max, const __m128i *a, const __m128i *b) noexcept requires std::signed_integral<I>
+			static void DPM_FORCEINLINE minmax(__m128i *out_min, __m128i *out_max, const __m128i *a, const __m128i *b) noexcept requires std::signed_integral<I>
 			{
 				for (std::size_t i = 0; i < M; ++i)
 				{
@@ -479,23 +479,23 @@ namespace dpm
 				}
 			}
 			template<std::size_t M>
-			static void DPM_SAFE_INLINE clamp(__m128i *out, const __m128i *value, const __m128i *min, const __m128i *max) noexcept requires std::signed_integral<I>
+			static void DPM_FORCEINLINE clamp(__m128i *out, const __m128i *value, const __m128i *min, const __m128i *max) noexcept requires std::signed_integral<I>
 			{
 				for (std::size_t i = 0; i < M; ++i) out[i] = _mm_min_epi64(_mm_max_epi64(value[i], min[i]), max[i]);
 			}
 
 			template<std::size_t M>
-			static void DPM_SAFE_INLINE min(__m128i *out, const __m128i *a, const __m128i *b) noexcept requires std::unsigned_integral<I>
+			static void DPM_FORCEINLINE min(__m128i *out, const __m128i *a, const __m128i *b) noexcept requires std::unsigned_integral<I>
 			{
 				for (std::size_t i = 0; i < M; ++i) out[i] = _mm_min_epu64(a[i], b[i]);
 			}
 			template<std::size_t M>
-			static void DPM_SAFE_INLINE max(__m128i *out, const __m128i *a, const __m128i *b) noexcept requires std::unsigned_integral<I>
+			static void DPM_FORCEINLINE max(__m128i *out, const __m128i *a, const __m128i *b) noexcept requires std::unsigned_integral<I>
 			{
 				for (std::size_t i = 0; i < M; ++i) out[i] = _mm_max_epu64(a[i], b[i]);
 			}
 			template<std::size_t M>
-			static void DPM_SAFE_INLINE minmax(__m128i *out_min, __m128i *out_max, const __m128i *a, const __m128i *b) noexcept requires std::unsigned_integral<I>
+			static void DPM_FORCEINLINE minmax(__m128i *out_min, __m128i *out_max, const __m128i *a, const __m128i *b) noexcept requires std::unsigned_integral<I>
 			{
 				for (std::size_t i = 0; i < M; ++i)
 				{
@@ -504,7 +504,7 @@ namespace dpm
 				}
 			}
 			template<std::size_t M>
-			static void DPM_SAFE_INLINE clamp(__m128i *out, const __m128i *value, const __m128i *min, const __m128i *max) noexcept requires std::unsigned_integral<I>
+			static void DPM_FORCEINLINE clamp(__m128i *out, const __m128i *value, const __m128i *min, const __m128i *max) noexcept requires std::unsigned_integral<I>
 			{
 				for (std::size_t i = 0; i < M; ++i) out[i] = _mm_min_epu64(_mm_max_epu64(value[i], min[i]), max[i]);
 			}
@@ -557,20 +557,20 @@ namespace dpm
 
 		/** Initializes the SIMD mask object with a native SSE mask vector.
 		 * @note This constructor is available for overload resolution only when the SIMD mask contains a single SSE vector. */
-		constexpr DPM_SAFE_ARRAY simd_mask(__m128i native) noexcept requires (data_size == 1) { m_data[0] = native; }
+		constexpr simd_mask(__m128i native) noexcept requires (data_size == 1) { m_data[0] = native; }
 		/** Initializes the SIMD mask object with an array of native SSE mask vectors.
 		 * @note Size of the native vector array must be the same as `sizeof(simd_mask) / sizeof(__m128i)`. */
-		constexpr DPM_SAFE_ARRAY simd_mask(const __m128i (&native)[data_size]) noexcept { std::copy_n(native, data_size, m_data); }
+		constexpr simd_mask(const __m128i (&native)[data_size]) noexcept { std::copy_n(native, data_size, m_data); }
 
 		/** Initializes the underlying elements with \a value. */
-		DPM_SAFE_ARRAY simd_mask(value_type value) noexcept
+		simd_mask(value_type value) noexcept
 		{
 			const auto v = value ? _mm_set1_epi64x(static_cast<std::int64_t>(0xffff'ffff'ffff'ffff)) : _mm_setzero_si128();
 			std::fill_n(m_data, data_size, v);
 		}
 		/** Copies elements from \a other. */
 		template<typename U, std::size_t OtherAlign>
-		DPM_SAFE_ARRAY simd_mask(const simd_mask<U, detail::avec<size(), OtherAlign>> &other) noexcept
+		simd_mask(const simd_mask<U, detail::avec<size(), OtherAlign>> &other) noexcept
 		{
 			if constexpr (std::same_as<U, value_type> && (OtherAlign == 0 || OtherAlign >= alignment))
 				std::copy_n(reinterpret_cast<const vector_type *>(ext::to_native_data(other).data()), data_size, m_data);
@@ -599,68 +599,68 @@ namespace dpm
 			return reinterpret_cast<const std::int64_t *>(m_data)[i];
 		}
 
-		[[nodiscard]] DPM_SAFE_ARRAY simd_mask operator!() const noexcept
+		[[nodiscard]] simd_mask operator!() const noexcept
 		{
 			simd_mask result;
 			impl_t::template invert<data_size>(result.m_data, m_data);
 			return result;
 		}
 
-		[[nodiscard]] friend DPM_SAFE_ARRAY simd_mask operator&(const simd_mask &a, const simd_mask &b) noexcept
+		[[nodiscard]] friend simd_mask operator&(const simd_mask &a, const simd_mask &b) noexcept
 		{
 			simd_mask result;
 			impl_t::template bit_and<data_size>(result.m_data, a.m_data, b.m_data);
 			return result;
 		}
-		[[nodiscard]] friend DPM_SAFE_ARRAY simd_mask operator|(const simd_mask &a, const simd_mask &b) noexcept
+		[[nodiscard]] friend simd_mask operator|(const simd_mask &a, const simd_mask &b) noexcept
 		{
 			simd_mask result;
 			impl_t::template bit_or<data_size>(result.m_data, a.m_data, b.m_data);
 			return result;
 		}
-		[[nodiscard]] friend DPM_SAFE_ARRAY simd_mask operator^(const simd_mask &a, const simd_mask &b) noexcept
+		[[nodiscard]] friend simd_mask operator^(const simd_mask &a, const simd_mask &b) noexcept
 		{
 			simd_mask result;
 			impl_t::template bit_xor<data_size>(result.m_data, a.m_data, b.m_data);
 			return result;
 		}
 
-		friend DPM_SAFE_ARRAY simd_mask &operator&=(simd_mask &a, const simd_mask &b) noexcept
+		friend simd_mask &operator&=(simd_mask &a, const simd_mask &b) noexcept
 		{
 			impl_t::template bit_and<data_size>(a.m_data, a.m_data, b.m_data);
 			return a;
 		}
-		friend DPM_SAFE_ARRAY simd_mask &operator|=(simd_mask &a, const simd_mask &b) noexcept
+		friend simd_mask &operator|=(simd_mask &a, const simd_mask &b) noexcept
 		{
 			impl_t::template bit_or<data_size>(a.m_data, a.m_data, b.m_data);
 			return a;
 		}
-		friend DPM_SAFE_ARRAY simd_mask &operator^=(simd_mask &a, const simd_mask &b) noexcept
+		friend simd_mask &operator^=(simd_mask &a, const simd_mask &b) noexcept
 		{
 			impl_t::template bit_xor<data_size>(a.m_data, a.m_data, b.m_data);
 			return a;
 		}
 
-		[[nodiscard]] friend DPM_SAFE_ARRAY simd_mask operator&&(const simd_mask &a, const simd_mask &b) noexcept
+		[[nodiscard]] friend simd_mask operator&&(const simd_mask &a, const simd_mask &b) noexcept
 		{
 			simd_mask result;
 			impl_t::template bit_and<data_size>(result.m_data, a.m_data, b.m_data);
 			return result;
 		}
-		[[nodiscard]] friend DPM_SAFE_ARRAY simd_mask operator||(const simd_mask &a, const simd_mask &b) noexcept
+		[[nodiscard]] friend simd_mask operator||(const simd_mask &a, const simd_mask &b) noexcept
 		{
 			simd_mask result;
 			impl_t::template bit_or<data_size>(result.m_data, a.m_data, b.m_data);
 			return result;
 		}
 
-		[[nodiscard]] friend DPM_SAFE_ARRAY simd_mask operator==(const simd_mask &a, const simd_mask &b) noexcept
+		[[nodiscard]] friend simd_mask operator==(const simd_mask &a, const simd_mask &b) noexcept
 		{
 			simd_mask result;
 			impl_t::template cmp_eq<data_size>(result.m_data, a.m_data, b.m_data);
 			return result;
 		}
-		[[nodiscard]] friend DPM_SAFE_ARRAY simd_mask operator!=(const simd_mask &a, const simd_mask &b) noexcept
+		[[nodiscard]] friend simd_mask operator!=(const simd_mask &a, const simd_mask &b) noexcept
 		{
 			simd_mask result;
 			impl_t::template cmp_ne<data_size>(result.m_data, a.m_data, b.m_data);
@@ -819,21 +819,21 @@ namespace dpm
 
 		/** Initializes the SIMD vector with a native SSE vector.
 		 * @note This constructor is available for overload resolution only when the SIMD vector contains a single SSE vector. */
-		constexpr DPM_SAFE_ARRAY simd(__m128i native) noexcept requires (data_size == 1) { m_data[0] = native; }
+		constexpr simd(__m128i native) noexcept requires (data_size == 1) { m_data[0] = native; }
 		/** Initializes the SIMD vector with an array of native SSE vectors.
 		 * @note Size of the native vector array must be the same as `sizeof(simd) / sizeof(__m128i)`. */
-		constexpr DPM_SAFE_ARRAY simd(const __m128i (&native)[data_size]) noexcept { std::copy_n(native, data_size, m_data); }
+		constexpr simd(const __m128i (&native)[data_size]) noexcept { std::copy_n(native, data_size, m_data); }
 
 		/** Initializes the underlying elements with \a value. */
 		template<detail::compatible_element<value_type> U>
-		DPM_SAFE_ARRAY simd(U &&value) noexcept
+		simd(U &&value) noexcept
 		{
 			const auto vec = _mm_set1_epi64x(std::bit_cast<std::int64_t>(static_cast<I>(value)));
 			std::fill_n(m_data, data_size, vec);
 		}
 		/** Initializes the underlying elements with values provided by the generator \a gen. */
 		template<detail::element_generator<value_type, size()> G>
-		DPM_SAFE_ARRAY simd(G &&gen) noexcept
+		simd(G &&gen) noexcept
 		{
 			detail::generate_n<data_size>(m_data, [&gen]<std::size_t J>(std::integral_constant<std::size_t, J>)
 			{
@@ -849,7 +849,7 @@ namespace dpm
 
 		/** Copies elements from \a other. */
 		template<typename U, std::size_t OtherAlign>
-		DPM_SAFE_ARRAY simd(const simd<U, detail::avec<size(), OtherAlign>> &other) noexcept
+		simd(const simd<U, detail::avec<size(), OtherAlign>> &other) noexcept
 		{
 			if constexpr (OtherAlign == 0 || OtherAlign >= alignment)
 				copy_from(reinterpret_cast<const U *>(ext::to_native_data(other).data()), vector_aligned);
@@ -864,10 +864,10 @@ namespace dpm
 
 		/** Copies the underlying elements from \a mem. */
 		template<typename U, typename Flags>
-		DPM_SAFE_ARRAY void copy_from(const U *mem, Flags) noexcept requires is_simd_flag_type_v<Flags> { impl_t::template copy_from<data_size>(mem, m_data, Flags{}); }
+		void copy_from(const U *mem, Flags) noexcept requires is_simd_flag_type_v<Flags> { impl_t::template copy_from<data_size>(mem, m_data, Flags{}); }
 		/** Copies the underlying elements to \a mem. */
 		template<typename U, typename Flags>
-		DPM_SAFE_ARRAY void copy_to(U *mem, Flags) const noexcept requires is_simd_flag_type_v<Flags> { impl_t::template copy_to<data_size>(mem, m_data, Flags{}); }
+		void copy_to(U *mem, Flags) const noexcept requires is_simd_flag_type_v<Flags> { impl_t::template copy_to<data_size>(mem, m_data, Flags{}); }
 
 		[[nodiscard]] reference operator[](std::size_t i) noexcept
 		{
@@ -880,140 +880,140 @@ namespace dpm
 			return reinterpret_cast<const I *>(m_data)[i];
 		}
 
-		DPM_SAFE_ARRAY simd operator++(int) noexcept
+		simd operator++(int) noexcept
 		{
 			auto tmp = *this;
 			operator++();
 			return tmp;
 		}
-		DPM_SAFE_ARRAY simd operator--(int) noexcept
+		simd operator--(int) noexcept
 		{
 			auto tmp = *this;
 			operator--();
 			return tmp;
 		}
-		DPM_SAFE_ARRAY simd &operator++() noexcept
+		simd &operator++() noexcept
 		{
 			impl_t::template inc<data_size>(m_data);
 			return *this;
 		}
-		DPM_SAFE_ARRAY simd &operator--() noexcept
+		simd &operator--() noexcept
 		{
 			impl_t::template inc<data_size>(m_data);
 			return *this;
 		}
 
-		[[nodiscard]] mask_type DPM_SAFE_ARRAY operator!() const noexcept
+		[[nodiscard]] mask_type operator!() const noexcept
 		{
 			mask_type result;
 			for (std::size_t i = 0; i < size(); ++i) result[i] = !static_cast<bool>(operator[](i));
 			return result;
 		}
-		[[nodiscard]] simd DPM_SAFE_ARRAY operator~() const noexcept
+		[[nodiscard]] simd operator~() const noexcept
 		{
 			simd result;
 			impl_t::template invert<data_size>(result.m_data, m_data);
 			return result;
 		}
-		[[nodiscard]] simd DPM_SAFE_ARRAY operator+() const noexcept { return *this; }
-		[[nodiscard]] simd DPM_SAFE_ARRAY operator-() const noexcept requires std::is_signed_v<I>
+		[[nodiscard]] simd operator+() const noexcept { return *this; }
+		[[nodiscard]] simd operator-() const noexcept requires std::is_signed_v<I>
 		{
 			simd result;
 			impl_t::template negate<data_size>(result.m_data, m_data);
 			return result;
 		}
 
-		[[nodiscard]] friend DPM_SAFE_ARRAY simd operator&(const simd &a, const simd &b) noexcept
+		[[nodiscard]] friend simd operator&(const simd &a, const simd &b) noexcept
 		{
 			simd result;
 			impl_t::template bit_and<data_size>(result.m_data, a.m_data, b.m_data);
 			return result;
 		}
-		[[nodiscard]] friend DPM_SAFE_ARRAY simd operator|(const simd &a, const simd &b) noexcept
+		[[nodiscard]] friend simd operator|(const simd &a, const simd &b) noexcept
 		{
 			simd result;
 			impl_t::template bit_or<data_size>(result.m_data, a.m_data, b.m_data);
 			return result;
 		}
-		[[nodiscard]] friend DPM_SAFE_ARRAY simd operator^(const simd &a, const simd &b) noexcept
+		[[nodiscard]] friend simd operator^(const simd &a, const simd &b) noexcept
 		{
 			simd result;
 			impl_t::template bit_xor<data_size>(result.m_data, a.m_data, b.m_data);
 			return result;
 		}
 
-		friend DPM_SAFE_ARRAY simd &operator&=(simd &a, const simd &b) noexcept
+		friend simd &operator&=(simd &a, const simd &b) noexcept
 		{
 			impl_t::template bit_and<data_size>(a.m_data, a.m_data, b.m_data);
 			return a;
 		}
-		friend DPM_SAFE_ARRAY simd &operator|=(simd &a, const simd &b) noexcept
+		friend simd &operator|=(simd &a, const simd &b) noexcept
 		{
 			impl_t::template bit_or<data_size>(a.m_data, a.m_data, b.m_data);
 			return a;
 		}
-		friend DPM_SAFE_ARRAY simd &operator^=(simd &a, const simd &b) noexcept
+		friend simd &operator^=(simd &a, const simd &b) noexcept
 		{
 			impl_t::template bit_xor<data_size>(a.m_data, a.m_data, b.m_data);
 			return a;
 		}
 
-		[[nodiscard]] friend DPM_SAFE_ARRAY simd operator+(const simd &a, const simd &b) noexcept
+		[[nodiscard]] friend simd operator+(const simd &a, const simd &b) noexcept
 		{
 			simd result;
 			impl_t::template add<data_size>(result.m_data, a.m_data, b.m_data);
 			return result;
 		}
-		[[nodiscard]] friend DPM_SAFE_ARRAY simd operator-(const simd &a, const simd &b) noexcept
+		[[nodiscard]] friend simd operator-(const simd &a, const simd &b) noexcept
 		{
 			simd result;
 			impl_t::template sub<data_size>(result.m_data, a.m_data, b.m_data);
 			return result;
 		}
 
-		friend DPM_SAFE_ARRAY simd &operator+=(simd &a, const simd &b) noexcept
+		friend simd &operator+=(simd &a, const simd &b) noexcept
 		{
 			impl_t::template add<data_size>(a.m_data, a.m_data, b.m_data);
 			return a;
 		}
-		friend DPM_SAFE_ARRAY simd &operator-=(simd &a, const simd &b) noexcept
+		friend simd &operator-=(simd &a, const simd &b) noexcept
 		{
 			impl_t::template sub<data_size>(a.m_data, a.m_data, b.m_data);
 			return a;
 		}
 
-		[[nodiscard]] friend DPM_SAFE_ARRAY simd operator<<(const simd &a, const simd &b) noexcept
+		[[nodiscard]] friend simd operator<<(const simd &a, const simd &b) noexcept
 		{
 			simd result;
 			impl_t::template lshift<data_size>(result.m_data, a.m_data, b.m_data);
 			return result;
 		}
-		[[nodiscard]] friend DPM_SAFE_ARRAY simd operator>>(const simd &a, const simd &b) noexcept
+		[[nodiscard]] friend simd operator>>(const simd &a, const simd &b) noexcept
 		{
 			simd result;
 			impl_t::template rshift<data_size>(result.m_data, a.m_data, b.m_data);
 			return result;
 		}
 
-		friend DPM_SAFE_ARRAY simd &operator<<=(simd &a, const simd &b) noexcept
+		friend simd &operator<<=(simd &a, const simd &b) noexcept
 		{
 			impl_t::template lshift<data_size>(a.m_data, a.m_data, b.m_data);
 			return a;
 		}
-		friend DPM_SAFE_ARRAY simd &operator>>=(simd &a, const simd &b) noexcept
+		friend simd &operator>>=(simd &a, const simd &b) noexcept
 		{
 			impl_t::template rshift<data_size>(a.m_data, a.m_data, b.m_data);
 			return a;
 		}
 
 #ifdef DPM_HAS_AVX512VL
-		[[nodiscard]] friend DPM_SAFE_ARRAY simd operator*(const simd &a, const simd &b) noexcept
+		[[nodiscard]] friend simd operator*(const simd &a, const simd &b) noexcept
 		{
 			simd result;
 			impl_t::template mul<data_size>(result.m_data, a.m_data, b.m_data);
 			return result;
 		}
-		friend DPM_SAFE_ARRAY simd &operator*=(simd &a, const simd &b) noexcept
+		friend simd &operator*=(simd &a, const simd &b) noexcept
 		{
 			impl_t::template mul<data_size>(a.m_data, a.m_data, b.m_data);
 			return a;
@@ -1021,13 +1021,13 @@ namespace dpm
 #endif
 
 #ifdef DPM_HAS_SSE4_1
-		[[nodiscard]] friend DPM_SAFE_ARRAY mask_type operator==(const simd &a, const simd &b) noexcept
+		[[nodiscard]] friend mask_type operator==(const simd &a, const simd &b) noexcept
 		{
 			data_type mask_data;
 			impl_t::template cmp_eq<data_size>(mask_data, a.m_data, b.m_data);
 			return {mask_data};
 		}
-		[[nodiscard]] friend DPM_SAFE_ARRAY mask_type operator!=(const simd &a, const simd &b) noexcept
+		[[nodiscard]] friend mask_type operator!=(const simd &a, const simd &b) noexcept
 		{
 			data_type mask_data;
 			impl_t::template cmp_ne<data_size>(mask_data, a.m_data, b.m_data);

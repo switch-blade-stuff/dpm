@@ -68,33 +68,38 @@ namespace dpm
 			template<typename T, std::size_t N, std::size_t A, std::size_t VAlign, std::size_t MaxAlign>
 			concept x86_overload_simd = vectorizable<T> && (A == VAlign || (MaxAlign > A && has_x86_default<T, N> && default_x86_align<T, N>::value == VAlign));
 
-			template<typename T, typename Abi, std::size_t VAlign, std::size_t MaxAlign>
-			struct is_x86_simd_abi : std::false_type {};
-			template<typename T, std::size_t N, std::size_t A, std::size_t VAlign, std::size_t MaxAlign> requires x86_overload_simd<T, N, A, VAlign, MaxAlign>
-			struct is_x86_simd_abi<T, ext::aligned_vector<N, A>, VAlign, MaxAlign> : std::true_type {};
-
-			template<typename T, std::size_t N, std::size_t A = 0>
-			concept x86_overload_m512 = x86_overload_simd<T, N, A, alignof(__m512), std::numeric_limits<std::size_t>::max()>;
-			template<typename Abi, typename T>
-			concept x86_simd_abi_m512 = is_x86_simd_abi<T, Abi, alignof(__m512), std::numeric_limits<std::size_t>::max()>::value;
 #ifdef DPM_NATIVE_AVX512
 			template<typename T, std::size_t N, std::size_t A = 0>
-			concept x86_overload_m256 = x86_overload_simd<T, N, A, alignof(__m256), alignof(__m512)>;
-			template<typename Abi, typename T>
-			concept x86_simd_abi_m256 = is_x86_simd<T, Abi, alignof(__m256), alignof(__m512)>::value;
-#else
+			concept x86_overload_m512 = x86_overload_simd<T, N, A, alignof(__m512), SIZE_MAX>;
 			template<typename T, std::size_t N, std::size_t A = 0>
-			concept x86_overload_m256 = x86_overload_simd<T, N, A, alignof(__m256), std::numeric_limits<std::size_t>::max()>;
-			template<typename Abi, typename T>
-			concept x86_simd_abi_m256 = is_x86_simd_abi<T, Abi, alignof(__m256), std::numeric_limits<std::size_t>::max()>::value;
+			concept x86_overload_m256 = x86_overload_simd<T, N, A, alignof(__m256), alignof(__m512)>;
+#else
+			template<typename T, std::size_t N, std::size_t A>
+			concept x86_overload_m512 = vectorizable<T> && A >= alignof(__m512);
+			template<typename T, std::size_t N, std::size_t A = 0>
+			concept x86_overload_m256 = x86_overload_simd<T, N, A, alignof(__m256), SIZE_MAX>;
 #endif
 			template<typename T, std::size_t N, std::size_t A = 0>
 			concept x86_overload_m128 = x86_overload_simd<T, N, A, alignof(__m128), alignof(__m256)>;
-			template<typename Abi, typename T>
-			concept x86_simd_abi_m128 = is_x86_simd_abi<T, Abi, alignof(__m128), alignof(__m256)>::value;
 
-			template<typename T, std::size_t N, std::size_t A = 0>
+			template<typename T, std::size_t N, std::size_t A>
 			concept x86_overload_any = x86_overload_m128<T, N, A> || x86_overload_m256<T, N, A> || x86_overload_m512<T, N, A>;
+
+			template<typename T, typename Abi, std::size_t A>
+			struct is_x86_simd_abi : std::false_type {};
+			template<typename T, std::size_t N, std::size_t A> requires x86_overload_m128<T, N, A>
+			struct is_x86_simd_abi<T, ext::aligned_vector<N, A>, alignof(__m128)> : std::true_type {};
+			template<typename T, std::size_t N, std::size_t A> requires x86_overload_m256<T, N, A>
+			struct is_x86_simd_abi<T, ext::aligned_vector<N, A>, alignof(__m256)> : std::true_type {};
+			template<typename T, std::size_t N, std::size_t A> requires x86_overload_m512<T, N, A>
+			struct is_x86_simd_abi<T, ext::aligned_vector<N, A>, alignof(__m512)> : std::true_type {};
+
+			template<typename Abi, typename T>
+			concept x86_simd_abi_m128 = is_x86_simd_abi<Abi, T, alignof(__m128)>::value;
+			template<typename Abi, typename T>
+			concept x86_simd_abi_m256 = is_x86_simd_abi<Abi, T, alignof(__m256)>::value;
+			template<typename Abi, typename T>
+			concept x86_simd_abi_m512 = is_x86_simd_abi<Abi, T, alignof(__m512)>::value;
 			template<typename Abi, typename T>
 			concept x86_simd_abi_any = x86_simd_abi_m128<Abi, T> || x86_simd_abi_m256<Abi, T> || x86_simd_abi_m512<Abi, T>;
 
@@ -139,13 +144,11 @@ namespace dpm
 		template<typename T, std::size_t N> requires detail::x86_overload_m256<T, N>
 		struct deduce<T, N> { using type = ext::aligned_vector<N, alignof(__m256)>; };
 #endif
-#if defined(DPM_HAS_AVX512) || defined(DPM_DYNAMIC_DISPATCH)
+
+#if (defined(DPM_HAS_AVX512) || defined(DPM_DYNAMIC_DISPATCH)) && defined(DPM_NATIVE_AVX512)
 		template<typename T, std::size_t N> requires detail::x86_overload_m512<T, N>
 		struct deduce<T, N> { using type = ext::aligned_vector<N, alignof(__m512)>; };
-#endif
 
-		/* If AVX512 is required, use 64 bytes for max_fixed_size. Otherwise, fall back to the default 32. */
-#if (defined(DPM_HAS_AVX512) || defined(DPM_DYNAMIC_DISPATCH)) && defined(DPM_NATIVE_AVX512)
 		template<typename I> requires(std::integral<I> && sizeof(I) == 1)
 		inline constexpr int max_fixed_size<I> = 64;
 #endif

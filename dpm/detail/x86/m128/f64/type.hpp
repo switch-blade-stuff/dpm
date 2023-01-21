@@ -15,7 +15,7 @@ namespace dpm
 	namespace detail
 	{
 		template<std::size_t I, typename OutAbi, typename XAbi, typename... Abis>
-		[[nodiscard]] inline DPM_SAFE_ARRAY auto concat_impl(simd_mask<double, OutAbi> &out, const simd_mask<double, XAbi> &x, const simd_mask<double, Abis> &...rest) noexcept
+		[[nodiscard]] inline auto concat_impl(simd_mask<double, OutAbi> &out, const simd_mask<double, XAbi> &x, const simd_mask<double, Abis> &...rest) noexcept
 		{
 			auto *data = reinterpret_cast<double *>(ext::to_native_data(out).data());
 			if constexpr (I % sizeof(__m128d) != 0)
@@ -26,7 +26,7 @@ namespace dpm
 			if constexpr (sizeof...(Abis) != 0) concat_impl<I + simd_mask<double, XAbi>::size()>(out, rest...);
 		}
 		template<std::size_t I, typename OutAbi, typename XAbi, typename... Abis>
-		[[nodiscard]] inline DPM_SAFE_ARRAY auto concat_impl(simd<double, OutAbi> &out, const simd<double, XAbi> &x, const simd<double, Abis> &...rest) noexcept
+		[[nodiscard]] inline auto concat_impl(simd<double, OutAbi> &out, const simd<double, XAbi> &x, const simd<double, Abis> &...rest) noexcept
 		{
 			auto *data = reinterpret_cast<double *>(ext::to_native_data(out).data());
 			if constexpr (I % sizeof(__m128d) != 0)
@@ -110,20 +110,20 @@ namespace dpm
 
 		/** Initializes the SIMD mask object with a native SSE mask vector.
 		 * @note This constructor is available for overload resolution only when the SIMD mask contains a single SSE vector. */
-		constexpr DPM_SAFE_ARRAY simd_mask(__m128d native) noexcept requires (data_size == 1) { m_data[0] = native; }
+		constexpr simd_mask(__m128d native) noexcept requires (data_size == 1) { m_data[0] = native; }
 		/** Initializes the SIMD mask object with an array of native SSE mask vectors.
 		 * @note Size of the native vector array must be the same as `sizeof(simd_mask) / sizeof(__m128d)`. */
-		constexpr DPM_SAFE_ARRAY simd_mask(const __m128d (&native)[data_size]) noexcept { std::copy_n(native, data_size, m_data); }
+		constexpr simd_mask(const __m128d (&native)[data_size]) noexcept { std::copy_n(native, data_size, m_data); }
 
 		/** Initializes the underlying elements with \a value. */
-		DPM_SAFE_ARRAY simd_mask(value_type value) noexcept
+		simd_mask(value_type value) noexcept
 		{
 			const auto v = value ? _mm_set1_pd(std::bit_cast<double>(0xffff'ffff'ffff'ffff)) : _mm_setzero_pd();
 			std::fill_n(m_data, data_size, v);
 		}
 		/** Copies elements from \a other. */
 		template<typename U, std::size_t OtherAlign>
-		DPM_SAFE_ARRAY simd_mask(const simd_mask<U, detail::avec<size(), OtherAlign>> &other) noexcept
+		simd_mask(const simd_mask<U, detail::avec<size(), OtherAlign>> &other) noexcept
 		{
 			if constexpr (std::same_as<U, value_type> && (OtherAlign == 0 || OtherAlign >= alignment))
 				std::copy_n(reinterpret_cast<const __m128d *>(ext::to_native_data(other).data()), data_size, m_data);
@@ -136,7 +136,7 @@ namespace dpm
 
 		/** Copies the underlying elements from \a mem. */
 		template<typename Flags>
-		DPM_SAFE_ARRAY void copy_from(const value_type *mem, Flags) noexcept requires is_simd_flag_type_v<Flags>
+		void copy_from(const value_type *mem, Flags) noexcept requires is_simd_flag_type_v<Flags>
 		{
 			for (std::size_t i = 0; i < size(); i += 2)
 			{
@@ -151,7 +151,7 @@ namespace dpm
 		}
 		/** Copies the underlying elements to \a mem. */
 		template<typename Flags>
-		DPM_SAFE_ARRAY void copy_to(value_type *mem, Flags) const noexcept requires is_simd_flag_type_v<Flags>
+		void copy_to(value_type *mem, Flags) const noexcept requires is_simd_flag_type_v<Flags>
 		{
 			for (std::size_t i = 0; i < size(); i += 2)
 				switch (const auto bits = _mm_movemask_pd(m_data[i / 2]); size() - i)
@@ -172,7 +172,7 @@ namespace dpm
 			return reinterpret_cast<const std::int64_t *>(m_data)[i];
 		}
 
-		[[nodiscard]] DPM_SAFE_ARRAY simd_mask operator!() const noexcept
+		[[nodiscard]] simd_mask operator!() const noexcept
 		{
 			simd_mask result;
 			const auto mask = _mm_set1_pd(std::bit_cast<double>(0xffff'ffff'ffff'ffff));
@@ -180,45 +180,45 @@ namespace dpm
 			return result;
 		}
 
-		[[nodiscard]] friend DPM_SAFE_ARRAY simd_mask operator&(const simd_mask &a, const simd_mask &b) noexcept
+		[[nodiscard]] friend simd_mask operator&(const simd_mask &a, const simd_mask &b) noexcept
 		{
 			simd_mask result;
 			for (std::size_t i = 0; i < data_size; ++i) result.m_data[i] = _mm_and_pd(a.m_data[i], b.m_data[i]);
 			return result;
 		}
-		[[nodiscard]] friend DPM_SAFE_ARRAY simd_mask operator|(const simd_mask &a, const simd_mask &b) noexcept
+		[[nodiscard]] friend simd_mask operator|(const simd_mask &a, const simd_mask &b) noexcept
 		{
 			simd_mask result;
 			for (std::size_t i = 0; i < data_size; ++i) result.m_data[i] = _mm_or_pd(a.m_data[i], b.m_data[i]);
 			return result;
 		}
-		[[nodiscard]] friend DPM_SAFE_ARRAY simd_mask operator^(const simd_mask &a, const simd_mask &b) noexcept
+		[[nodiscard]] friend simd_mask operator^(const simd_mask &a, const simd_mask &b) noexcept
 		{
 			simd_mask result;
 			for (std::size_t i = 0; i < data_size; ++i) result.m_data[i] = _mm_xor_pd(a.m_data[i], b.m_data[i]);
 			return result;
 		}
 
-		friend DPM_SAFE_ARRAY simd_mask &operator&=(simd_mask &a, const simd_mask &b) noexcept
+		friend simd_mask &operator&=(simd_mask &a, const simd_mask &b) noexcept
 		{
 			for (std::size_t i = 0; i < data_size; ++i) a.m_data[i] = _mm_and_pd(a.m_data[i], b.m_data[i]);
 			return a;
 		}
-		friend DPM_SAFE_ARRAY simd_mask &operator|=(simd_mask &a, const simd_mask &b) noexcept
+		friend simd_mask &operator|=(simd_mask &a, const simd_mask &b) noexcept
 		{
 			for (std::size_t i = 0; i < data_size; ++i) a.m_data[i] = _mm_or_pd(a.m_data[i], b.m_data[i]);
 			return a;
 		}
-		friend DPM_SAFE_ARRAY simd_mask &operator^=(simd_mask &a, const simd_mask &b) noexcept
+		friend simd_mask &operator^=(simd_mask &a, const simd_mask &b) noexcept
 		{
 			for (std::size_t i = 0; i < data_size; ++i) a.m_data[i] = _mm_xor_pd(a.m_data[i], b.m_data[i]);
 			return a;
 		}
 
-		[[nodiscard]] friend DPM_SAFE_ARRAY simd_mask operator&&(const simd_mask &a, const simd_mask &b) noexcept { return a & b; }
-		[[nodiscard]] friend DPM_SAFE_ARRAY simd_mask operator||(const simd_mask &a, const simd_mask &b) noexcept { return a | b; }
+		[[nodiscard]] friend simd_mask operator&&(const simd_mask &a, const simd_mask &b) noexcept { return a & b; }
+		[[nodiscard]] friend simd_mask operator||(const simd_mask &a, const simd_mask &b) noexcept { return a | b; }
 
-		[[nodiscard]] friend DPM_SAFE_ARRAY simd_mask operator==(const simd_mask &a, const simd_mask &b) noexcept
+		[[nodiscard]] friend simd_mask operator==(const simd_mask &a, const simd_mask &b) noexcept
 		{
 			simd_mask result;
 			for (std::size_t i = 0; i < data_size; ++i)
@@ -229,7 +229,7 @@ namespace dpm
 			}
 			return result;
 		}
-		[[nodiscard]] friend DPM_SAFE_ARRAY simd_mask operator!=(const simd_mask &a, const simd_mask &b) noexcept
+		[[nodiscard]] friend simd_mask operator!=(const simd_mask &a, const simd_mask &b) noexcept
 		{
 			return !(a == b);
 		}
@@ -262,7 +262,7 @@ namespace dpm
 
 		/** Copies selected elements to \a mem. */
 		template<typename Flags>
-		DPM_SAFE_ARRAY void copy_to(bool *mem, Flags) const && noexcept requires is_simd_flag_type_v<Flags>
+		void copy_to(bool *mem, Flags) const && noexcept requires is_simd_flag_type_v<Flags>
 		{
 			const auto v_mask = ext::to_native_data(m_data);
 			const auto v_data = ext::to_native_data(m_data);
@@ -319,7 +319,7 @@ namespace dpm
 
 		/** Copies selected elements from \a mem. */
 		template<typename Flags>
-		DPM_SAFE_ARRAY void copy_from(const bool *mem, Flags) const && noexcept requires is_simd_flag_type_v<Flags>
+		void copy_from(const bool *mem, Flags) const && noexcept requires is_simd_flag_type_v<Flags>
 		{
 			const auto v_mask = ext::to_native_data(m_data);
 			const auto v_data = ext::to_native_data(m_data);
@@ -366,7 +366,7 @@ namespace dpm
 #ifdef DPM_HAS_SSE4_1
 		/** Replaces elements of mask \a a with elements of mask \a b using mask \a m. Elements of \a b are selected if the corresponding element of \a m evaluates to `true`. */
 		template<std::size_t N, std::size_t A>
-		[[nodiscard]] inline DPM_SAFE_ARRAY simd_mask<double, detail::avec<N, A>> blend(
+		[[nodiscard]] inline simd_mask<double, detail::avec<N, A>> blend(
 				const simd_mask<double, detail::avec<N, A>> &a,
 				const simd_mask<double, detail::avec<N, A>> &b,
 				const simd_mask<double, detail::avec<N, A>> &m)
@@ -389,7 +389,7 @@ namespace dpm
 #pragma region "simd_mask reductions"
 	/** Returns `true` if all of the elements of the \a mask are `true`. Otherwise returns `false`. */
 	template<std::size_t N, std::size_t A>
-	[[nodiscard]] inline DPM_SAFE_ARRAY bool all_of(const simd_mask<double, detail::avec<N, A>> &mask) noexcept requires detail::x86_overload_m128<double, N, A>
+	[[nodiscard]] inline bool all_of(const simd_mask<double, detail::avec<N, A>> &mask) noexcept requires detail::x86_overload_m128<double, N, A>
 	{
 		using mask_t = simd_mask<double, detail::avec<N, A>>;
 		const auto mask_data = ext::to_native_data(mask);
@@ -412,7 +412,7 @@ namespace dpm
 	}
 	/** Returns `true` if at least one of the elements of the \a mask are `true`. Otherwise returns `false`. */
 	template<std::size_t N, std::size_t A>
-	[[nodiscard]] inline DPM_SAFE_ARRAY bool any_of(const simd_mask<double, detail::avec<N, A>> &mask) noexcept requires detail::x86_overload_m128<double, N, A>
+	[[nodiscard]] inline bool any_of(const simd_mask<double, detail::avec<N, A>> &mask) noexcept requires detail::x86_overload_m128<double, N, A>
 	{
 		using mask_t = simd_mask<double, detail::avec<N, A>>;
 		const auto mask_data = ext::to_native_data(mask);
@@ -432,7 +432,7 @@ namespace dpm
 	}
 	/** Returns `true` if at none of the elements of the \a mask is `true`. Otherwise returns `false`. */
 	template<std::size_t N, std::size_t A>
-	[[nodiscard]] inline DPM_SAFE_ARRAY bool none_of(const simd_mask<double, detail::avec<N, A>> &mask) noexcept requires detail::x86_overload_m128<double, N, A>
+	[[nodiscard]] inline bool none_of(const simd_mask<double, detail::avec<N, A>> &mask) noexcept requires detail::x86_overload_m128<double, N, A>
 	{
 		using mask_t = simd_mask<double, detail::avec<N, A>>;
 		const auto mask_data = ext::to_native_data(mask);
@@ -452,7 +452,7 @@ namespace dpm
 	}
 	/** Returns `true` if at least one of the elements of the \a mask is `true` and at least one is `false`. Otherwise returns `false`. */
 	template<std::size_t N, std::size_t A>
-	[[nodiscard]] inline DPM_SAFE_ARRAY bool some_of(const simd_mask<double, detail::avec<N, A>> &mask) noexcept requires detail::x86_overload_m128<double, N, A>
+	[[nodiscard]] inline bool some_of(const simd_mask<double, detail::avec<N, A>> &mask) noexcept requires detail::x86_overload_m128<double, N, A>
 	{
 		using mask_t = simd_mask<double, detail::avec<N, A>>;
 		const auto mask_data = ext::to_native_data(mask);
@@ -478,7 +478,7 @@ namespace dpm
 
 	/** Returns the number of `true` elements of \a mask. */
 	template<std::size_t N, std::size_t A>
-	[[nodiscard]] inline DPM_SAFE_ARRAY std::size_t popcount(const simd_mask<double, detail::avec<N, A>> &mask) noexcept requires detail::x86_overload_m128<double, N, A>
+	[[nodiscard]] inline std::size_t popcount(const simd_mask<double, detail::avec<N, A>> &mask) noexcept requires detail::x86_overload_m128<double, N, A>
 	{
 		using mask_t = simd_mask<double, detail::avec<N, A>>;
 		const auto mask_data = ext::to_native_data(mask);
@@ -493,7 +493,7 @@ namespace dpm
 	}
 	/** Returns the index of the first `true` element of \a mask. */
 	template<std::size_t N, std::size_t A>
-	[[nodiscard]] inline DPM_SAFE_ARRAY std::size_t find_first_set(const simd_mask<double, detail::avec<N, A>> &mask) noexcept requires detail::x86_overload_m128<double, N, A>
+	[[nodiscard]] inline std::size_t find_first_set(const simd_mask<double, detail::avec<N, A>> &mask) noexcept requires detail::x86_overload_m128<double, N, A>
 	{
 		using mask_t = simd_mask<double, detail::avec<N, A>>;
 		const auto mask_data = ext::to_native_data(mask);
@@ -507,7 +507,7 @@ namespace dpm
 	}
 	/** Returns the index of the last `true` element of \a mask. */
 	template<std::size_t N, std::size_t A>
-	[[nodiscard]] inline DPM_SAFE_ARRAY std::size_t find_last_set(const simd_mask<double, detail::avec<N, A>> &mask) noexcept requires detail::x86_overload_m128<double, N, A>
+	[[nodiscard]] inline std::size_t find_last_set(const simd_mask<double, detail::avec<N, A>> &mask) noexcept requires detail::x86_overload_m128<double, N, A>
 	{
 		using mask_t = simd_mask<double, detail::avec<N, A>>;
 		const auto mask_data = ext::to_native_data(mask);
@@ -529,26 +529,26 @@ namespace dpm
 #pragma region "simd_mask casts"
 	/** Converts SIMD mask \a x to it's fixed-size equivalent for value type `T`. */
 	template<std::size_t N, std::size_t A>
-	[[nodiscard]] inline DPM_SAFE_ARRAY simd_mask<double, simd_abi::fixed_size<N>> to_fixed_size(const simd_mask<double, detail::avec<N, A>> &x) noexcept requires detail::x86_overload_m128<double, N, A>
+	[[nodiscard]] inline simd_mask<double, simd_abi::fixed_size<N>> to_fixed_size(const simd_mask<double, detail::avec<N, A>> &x) noexcept requires detail::x86_overload_m128<double, N, A>
 	{
 		return simd_mask<double, simd_abi::fixed_size<N>>{x};
 	}
 	/** Converts SIMD mask \a x to it's native ABI equivalent for value type `T`. */
 	template<std::size_t N, std::size_t A>
-	[[nodiscard]] inline DPM_SAFE_ARRAY native_simd_mask<double> to_native(const simd_mask<double, detail::avec<N, A>> &x) noexcept requires detail::x86_overload_m128<double, N, A>
+	[[nodiscard]] inline native_simd_mask<double> to_native(const simd_mask<double, detail::avec<N, A>> &x) noexcept requires detail::x86_overload_m128<double, N, A>
 	{
 		return native_simd_mask<double>{x};
 	}
 	/** Converts SIMD mask \a x to it's compatible ABI equivalent for value type `T`. */
 	template<std::size_t N, std::size_t A>
-	[[nodiscard]] inline DPM_SAFE_ARRAY simd_mask<double> to_compatible(const simd_mask<double, detail::avec<N, A>> &x) noexcept requires detail::x86_overload_m128<double, N, A>
+	[[nodiscard]] inline simd_mask<double> to_compatible(const simd_mask<double, detail::avec<N, A>> &x) noexcept requires detail::x86_overload_m128<double, N, A>
 	{
 		return simd_mask<double>{x};
 	}
 
 	/** Concatenates elements of \a values into a single SIMD mask. */
 	template<detail::x86_simd_abi_m128<double>... Abis>
-	[[nodiscard]] inline DPM_SAFE_ARRAY auto concat(const simd_mask<double, Abis> &...values) noexcept
+	[[nodiscard]] inline auto concat(const simd_mask<double, Abis> &...values) noexcept
 	{
 		if constexpr (sizeof...(values) == 1)
 			return (values, ...);
@@ -561,7 +561,7 @@ namespace dpm
 	}
 	/** Concatenates elements of \a values into a single SIMD mask. */
 	template<std::size_t N, std::size_t A, std::size_t M>
-	[[nodiscard]] inline DPM_SAFE_ARRAY auto concat(const std::array<simd_mask<double, detail::avec<N, A>>, M> &values) noexcept requires detail::x86_overload_m128<double, N, A>
+	[[nodiscard]] inline auto concat(const std::array<simd_mask<double, detail::avec<N, A>>, M> &values) noexcept requires detail::x86_overload_m128<double, N, A>
 	{
 		if constexpr (M == 1)
 			return values[0];
@@ -623,21 +623,21 @@ namespace dpm
 
 		/** Initializes the SIMD vector with a native SSE vector.
 		 * @note This constructor is available for overload resolution only when the SIMD vector contains a single SSE vector. */
-		constexpr DPM_SAFE_ARRAY simd(__m128d native) noexcept requires (data_size == 1) { m_data[0] = native; }
+		constexpr simd(__m128d native) noexcept requires (data_size == 1) { m_data[0] = native; }
 		/** Initializes the SIMD vector with an array of native SSE vectors.
 		 * @note Size of the native vector array must be the same as `sizeof(simd) / sizeof(__m128d)`. */
-		constexpr DPM_SAFE_ARRAY simd(const __m128d (&native)[data_size]) noexcept { std::copy_n(native, data_size, m_data); }
+		constexpr simd(const __m128d (&native)[data_size]) noexcept { std::copy_n(native, data_size, m_data); }
 
 		/** Initializes the underlying elements with \a value. */
 		template<detail::compatible_element<value_type> U>
-		DPM_SAFE_ARRAY simd(U &&value) noexcept
+		simd(U &&value) noexcept
 		{
 			const auto vec = _mm_set1_pd(static_cast<double>(value));
 			std::fill_n(m_data, data_size, vec);
 		}
 		/** Initializes the underlying elements with values provided by the generator \a gen. */
 		template<detail::element_generator<value_type, size()> G>
-		DPM_SAFE_ARRAY simd(G &&gen) noexcept
+		simd(G &&gen) noexcept
 		{
 			detail::generate_n<data_size>(m_data, [&gen]<std::size_t I>(std::integral_constant<std::size_t, I>)
 			{
@@ -653,7 +653,7 @@ namespace dpm
 
 		/** Copies elements from \a other. */
 		template<typename U, std::size_t OtherAlign>
-		DPM_SAFE_ARRAY simd(const simd<U, detail::avec<size(), OtherAlign>> &other) noexcept
+		simd(const simd<U, detail::avec<size(), OtherAlign>> &other) noexcept
 		{
 			if constexpr (OtherAlign == 0 || OtherAlign >= alignment)
 				copy_from(reinterpret_cast<const U *>(ext::to_native_data(other).data()), vector_aligned);
@@ -668,7 +668,7 @@ namespace dpm
 
 		/** Copies the underlying elements from \a mem. */
 		template<typename U, typename Flags>
-		DPM_SAFE_ARRAY void copy_from(const U *mem, Flags) noexcept requires is_simd_flag_type_v<Flags>
+		void copy_from(const U *mem, Flags) noexcept requires is_simd_flag_type_v<Flags>
 		{
 			if constexpr (detail::aligned_tag<Flags, alignof(__m128d)>)
 			{
@@ -710,7 +710,7 @@ namespace dpm
 		}
 		/** Copies the underlying elements to \a mem. */
 		template<typename U, typename Flags>
-		DPM_SAFE_ARRAY void copy_to(U *mem, Flags) const noexcept requires is_simd_flag_type_v<Flags>
+		void copy_to(U *mem, Flags) const noexcept requires is_simd_flag_type_v<Flags>
 		{
 			if constexpr (detail::aligned_tag<Flags, alignof(__m128d)>)
 			{
@@ -762,33 +762,33 @@ namespace dpm
 			return reinterpret_cast<const double *>(m_data)[i];
 		}
 
-		DPM_SAFE_ARRAY simd operator++(int) noexcept
+		simd operator++(int) noexcept
 		{
 			auto tmp = *this;
 			operator++();
 			return tmp;
 		}
-		DPM_SAFE_ARRAY simd operator--(int) noexcept
+		simd operator--(int) noexcept
 		{
 			auto tmp = *this;
 			operator--();
 			return tmp;
 		}
-		DPM_SAFE_ARRAY simd &operator++() noexcept
+		simd &operator++() noexcept
 		{
 			const auto one = _mm_set1_pd(1.0);
 			for (std::size_t i = 0; i < data_size; ++i) m_data[i] = _mm_add_pd(m_data[i], one);
 			return *this;
 		}
-		DPM_SAFE_ARRAY simd &operator--() noexcept
+		simd &operator--() noexcept
 		{
 			const auto one = _mm_set1_pd(1.0);
 			for (std::size_t i = 0; i < data_size; ++i) m_data[i] = _mm_sub_pd(m_data[i], one);
 			return *this;
 		}
 
-		[[nodiscard]] simd DPM_SAFE_ARRAY operator+() const noexcept { return *this; }
-		[[nodiscard]] simd DPM_SAFE_ARRAY operator-() const noexcept
+		[[nodiscard]] simd operator+() const noexcept { return *this; }
+		[[nodiscard]] simd operator-() const noexcept
 		{
 			simd result;
 			const auto mask = _mm_set1_pd(-0.0);
@@ -796,85 +796,85 @@ namespace dpm
 			return result;
 		}
 
-		[[nodiscard]] friend DPM_SAFE_ARRAY simd operator+(const simd &a, const simd &b) noexcept
+		[[nodiscard]] friend simd operator+(const simd &a, const simd &b) noexcept
 		{
 			simd result;
 			for (std::size_t i = 0; i < data_size; ++i) result.m_data[i] = _mm_add_pd(a.m_data[i], b.m_data[i]);
 			return result;
 		}
-		[[nodiscard]] friend DPM_SAFE_ARRAY simd operator-(const simd &a, const simd &b) noexcept
+		[[nodiscard]] friend simd operator-(const simd &a, const simd &b) noexcept
 		{
 			simd result;
 			for (std::size_t i = 0; i < data_size; ++i) result.m_data[i] = _mm_sub_pd(a.m_data[i], b.m_data[i]);
 			return result;
 		}
 
-		friend DPM_SAFE_ARRAY simd &operator+=(simd &a, const simd &b) noexcept
+		friend simd &operator+=(simd &a, const simd &b) noexcept
 		{
 			for (std::size_t i = 0; i < data_size; ++i) a.m_data[i] = _mm_add_pd(a.m_data[i], b.m_data[i]);
 			return a;
 		}
-		friend DPM_SAFE_ARRAY simd &operator-=(simd &a, const simd &b) noexcept
+		friend simd &operator-=(simd &a, const simd &b) noexcept
 		{
 			for (std::size_t i = 0; i < data_size; ++i) a.m_data[i] = _mm_sub_pd(a.m_data[i], b.m_data[i]);
 			return a;
 		}
 
-		[[nodiscard]] friend DPM_SAFE_ARRAY simd operator*(const simd &a, const simd &b) noexcept
+		[[nodiscard]] friend simd operator*(const simd &a, const simd &b) noexcept
 		{
 			simd result;
 			for (std::size_t i = 0; i < data_size; ++i) result.m_data[i] = _mm_mul_pd(a.m_data[i], b.m_data[i]);
 			return result;
 		}
-		[[nodiscard]] friend DPM_SAFE_ARRAY simd operator/(const simd &a, const simd &b) noexcept
+		[[nodiscard]] friend simd operator/(const simd &a, const simd &b) noexcept
 		{
 			simd result;
 			for (std::size_t i = 0; i < data_size; ++i) result.m_data[i] = _mm_div_pd(a.m_data[i], b.m_data[i]);
 			return result;
 		}
 
-		friend DPM_SAFE_ARRAY simd &operator*=(simd &a, const simd &b) noexcept
+		friend simd &operator*=(simd &a, const simd &b) noexcept
 		{
 			for (std::size_t i = 0; i < data_size; ++i) a.m_data[i] = _mm_mul_pd(a.m_data[i], b.m_data[i]);
 			return a;
 		}
-		friend DPM_SAFE_ARRAY simd &operator/=(simd &a, const simd &b) noexcept
+		friend simd &operator/=(simd &a, const simd &b) noexcept
 		{
 			for (std::size_t i = 0; i < data_size; ++i) a.m_data[i] = _mm_div_pd(a.m_data[i], b.m_data[i]);
 			return a;
 		}
 
-		[[nodiscard]] friend DPM_SAFE_ARRAY mask_type operator==(const simd &a, const simd &b) noexcept
+		[[nodiscard]] friend mask_type operator==(const simd &a, const simd &b) noexcept
 		{
 			data_type mask_data;
 			for (std::size_t i = 0; i < data_size; ++i) mask_data[i] = _mm_cmpeq_pd(a.m_data[i], b.m_data[i]);
 			return {mask_data};
 		}
-		[[nodiscard]] friend DPM_SAFE_ARRAY mask_type operator<=(const simd &a, const simd &b) noexcept
+		[[nodiscard]] friend mask_type operator<=(const simd &a, const simd &b) noexcept
 		{
 			data_type mask_data;
 			for (std::size_t i = 0; i < data_size; ++i) mask_data[i] = _mm_cmple_pd(a.m_data[i], b.m_data[i]);
 			return {mask_data};
 		}
-		[[nodiscard]] friend DPM_SAFE_ARRAY mask_type operator>=(const simd &a, const simd &b) noexcept
+		[[nodiscard]] friend mask_type operator>=(const simd &a, const simd &b) noexcept
 		{
 			data_type mask_data;
 			for (std::size_t i = 0; i < data_size; ++i) mask_data[i] = _mm_cmpge_pd(a.m_data[i], b.m_data[i]);
 			return {mask_data};
 		}
-		[[nodiscard]] friend DPM_SAFE_ARRAY mask_type operator<(const simd &a, const simd &b) noexcept
+		[[nodiscard]] friend mask_type operator<(const simd &a, const simd &b) noexcept
 		{
 			data_type mask_data;
 			for (std::size_t i = 0; i < data_size; ++i) mask_data[i] = _mm_cmplt_pd(a.m_data[i], b.m_data[i]);
 			return {mask_data};
 		}
-		[[nodiscard]] friend DPM_SAFE_ARRAY mask_type operator>(const simd &a, const simd &b) noexcept
+		[[nodiscard]] friend mask_type operator>(const simd &a, const simd &b) noexcept
 		{
 			data_type mask_data;
 			for (std::size_t i = 0; i < data_size; ++i) mask_data[i] = _mm_cmpgt_pd(a.m_data[i], b.m_data[i]);
 			return {mask_data};
 		}
-		[[nodiscard]] friend DPM_SAFE_ARRAY mask_type operator!=(const simd &a, const simd &b) noexcept
+		[[nodiscard]] friend mask_type operator!=(const simd &a, const simd &b) noexcept
 		{
 			data_type mask_data;
 			for (std::size_t i = 0; i < data_size; ++i) mask_data[i] = _mm_cmpneq_pd(a.m_data[i], b.m_data[i]);
@@ -913,7 +913,7 @@ namespace dpm
 
 		/** Copies selected elements to \a mem. */
 		template<typename U, typename Flags>
-		DPM_SAFE_ARRAY void copy_to(U *mem, Flags) const && noexcept requires is_simd_flag_type_v<Flags>
+		void copy_to(U *mem, Flags) const && noexcept requires is_simd_flag_type_v<Flags>
 		{
 			const auto v_mask = ext::to_native_data(m_data);
 			const auto v_data = ext::to_native_data(m_data);
@@ -1045,7 +1045,7 @@ namespace dpm
 
 		/** Copies selected elements from \a mem. */
 		template<typename U, typename Flags>
-		DPM_SAFE_ARRAY void copy_from(const U *mem, Flags) && noexcept requires is_simd_flag_type_v<Flags>
+		void copy_from(const U *mem, Flags) && noexcept requires is_simd_flag_type_v<Flags>
 		{
 			const auto v_mask = ext::to_native_data(m_data);
 			const auto v_data = ext::to_native_data(m_data);
@@ -1135,7 +1135,7 @@ namespace dpm
 #ifdef DPM_HAS_SSE4_1
 		/** Replaces elements of vector \a a with elements of vector \a b using mask \a m. Elements of \a b are selected if the corresponding element of \a m evaluates to `true`. */
 		template<std::size_t N, std::size_t A>
-		[[nodiscard]] inline DPM_SAFE_ARRAY simd<double, detail::avec<N, A>> blend(
+		[[nodiscard]] inline simd<double, detail::avec<N, A>> blend(
 				const simd<double, detail::avec<N, A>> &a,
 				const simd<double, detail::avec<N, A>> &b,
 				const simd_mask<double, detail::avec<N, A>> &m)
@@ -1158,7 +1158,7 @@ namespace dpm
 #pragma region "simd casts"
 	/** Implicitly converts elements of SIMD vector \a x to the `To` type, where `To` is either `typename T::value_type` or `T` if `T` is a scalar. */
 	template<typename T, std::size_t N, std::size_t A, typename To = typename detail::deduce_cast<T>::type>
-	[[nodiscard]] inline DPM_SAFE_ARRAY auto simd_cast(const simd<double, detail::avec<N, A>> &x) noexcept
+	[[nodiscard]] inline auto simd_cast(const simd<double, detail::avec<N, A>> &x) noexcept
 	requires (detail::valid_simd_cast<T, double, detail::avec<N, A>> &&
 	          detail::x86_overload_m128<double, N, A> &&
 	          detail::x86_overload_any<To, N, A>)
@@ -1169,7 +1169,7 @@ namespace dpm
 	}
 	/** Explicitly converts elements of SIMD vector \a x to the `To` type, where `To` is either `typename T::value_type` or `T` if `T` is a scalar. */
 	template<typename T, std::size_t N, std::size_t A, typename To = typename detail::deduce_cast<T>::type>
-	[[nodiscard]] inline DPM_SAFE_ARRAY auto static_simd_cast(const simd<double, detail::avec<N, A>> &x) noexcept
+	[[nodiscard]] inline auto static_simd_cast(const simd<double, detail::avec<N, A>> &x) noexcept
 	requires (detail::valid_simd_static_cast<T, double, detail::avec<N, A>> &&
 	          detail::x86_overload_m128<double, N, A> &&
 	          detail::x86_overload_any<To, N, A>)
@@ -1181,7 +1181,7 @@ namespace dpm
 
 	/** Concatenates elements of \a values into a single SIMD vector. */
 	template<detail::x86_simd_abi_m128<double>... Abis>
-	[[nodiscard]] inline DPM_SAFE_ARRAY auto concat(const simd<double, Abis> &...values) noexcept
+	[[nodiscard]] inline auto concat(const simd<double, Abis> &...values) noexcept
 	{
 		if constexpr (sizeof...(values) == 1)
 			return (values, ...);
@@ -1194,7 +1194,7 @@ namespace dpm
 	}
 	/** Concatenates elements of \a values into a single SIMD vector. */
 	template<std::size_t N, std::size_t A, std::size_t M>
-	[[nodiscard]] inline DPM_SAFE_ARRAY auto concat(const std::array<simd<double, detail::avec<N, A>>, M> &values) noexcept requires detail::x86_overload_m128<double, N, A>
+	[[nodiscard]] inline auto concat(const std::array<simd<double, detail::avec<N, A>>, M> &values) noexcept requires detail::x86_overload_m128<double, N, A>
 	{
 		if constexpr (M == 1)
 			return values[0];
@@ -1217,7 +1217,7 @@ namespace dpm
 #pragma region "simd algorithms"
 	/** Returns an SIMD vector of minimum elements of \a a and \a b. */
 	template<std::size_t N, std::size_t A>
-	[[nodiscard]] inline DPM_SAFE_ARRAY simd<double, detail::avec<N, A>> min(
+	[[nodiscard]] inline simd<double, detail::avec<N, A>> min(
 			const simd<double, detail::avec<N, A>> &a,
 			const simd<double, detail::avec<N, A>> &b)
 	noexcept requires detail::x86_overload_m128<double, N, A>
@@ -1234,7 +1234,7 @@ namespace dpm
 	}
 	/** Returns an SIMD vector of maximum elements of \a a and \a b. */
 	template<std::size_t N, std::size_t A>
-	[[nodiscard]] inline DPM_SAFE_ARRAY simd<double, detail::avec<N, A>> max(
+	[[nodiscard]] inline simd<double, detail::avec<N, A>> max(
 			const simd<double, detail::avec<N, A>> &a,
 			const simd<double, detail::avec<N, A>> &b)
 	noexcept requires detail::x86_overload_m128<double, N, A>
@@ -1252,7 +1252,7 @@ namespace dpm
 
 	/** Returns a pair of SIMD vectors of minimum and maximum elements of \a a and \a b. */
 	template<std::size_t N, std::size_t A>
-	[[nodiscard]] inline DPM_SAFE_ARRAY std::pair<simd<double, detail::avec<N, A>>, simd<double, detail::avec<N, A>>> minmax(
+	[[nodiscard]] inline std::pair<simd<double, detail::avec<N, A>>, simd<double, detail::avec<N, A>>> minmax(
 			const simd<double, detail::avec<N, A>> &a,
 			const simd<double, detail::avec<N, A>> &b)
 	noexcept requires detail::x86_overload_m128<double, N, A>
@@ -1274,7 +1274,7 @@ namespace dpm
 
 	/** Clamps elements of \a x between corresponding elements of \a ming and \a max. */
 	template<std::size_t N, std::size_t A>
-	[[nodiscard]] inline DPM_SAFE_ARRAY simd<double, detail::avec<N, A>> clamp(
+	[[nodiscard]] inline simd<double, detail::avec<N, A>> clamp(
 			const simd<double, detail::avec<N, A>> &x,
 			const simd<double, detail::avec<N, A>> &min,
 			const simd<double, detail::avec<N, A>> &max)

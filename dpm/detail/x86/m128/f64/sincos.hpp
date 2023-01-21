@@ -21,7 +21,7 @@ namespace dpm
 
 #ifdef DPM_HAS_SSE2
 	template<std::size_t N, std::size_t A>
-	[[nodiscard]] inline DPM_SAFE_ARRAY simd<double, detail::avec<N, A>> sin(const simd<double, detail::avec<N, A>> &x) noexcept requires detail::x86_overload_m128<double, N, A>
+	[[nodiscard]] inline simd<double, detail::avec<N, A>> sin(const simd<double, detail::avec<N, A>> &x) noexcept requires detail::x86_overload_m128<double, N, A>
 	{
 		simd<double, detail::avec<N, A>> result;
 		for (std::size_t i = 0; i < ext::native_data_size_v<simd<double, detail::avec<N, A>>>; ++i)
@@ -29,7 +29,7 @@ namespace dpm
 		return result;
 	}
 	template<std::size_t N, std::size_t A>
-	[[nodiscard]] inline DPM_SAFE_ARRAY simd<double, detail::avec<N, A>> cos(const simd<double, detail::avec<N, A>> &x) noexcept requires detail::x86_overload_m128<double, N, A>
+	[[nodiscard]] inline simd<double, detail::avec<N, A>> cos(const simd<double, detail::avec<N, A>> &x) noexcept requires detail::x86_overload_m128<double, N, A>
 	{
 		simd<double, detail::avec<N, A>> result;
 		for (std::size_t i = 0; i < ext::native_data_size_v<simd<double, detail::avec<N, A>>>; ++i)
@@ -40,7 +40,7 @@ namespace dpm
 	DPM_DECLARE_EXT_NAMESPACE
 	{
 		template<std::size_t N, std::size_t A>
-		[[nodiscard]] inline DPM_SAFE_ARRAY void sincos(const simd<double, detail::avec<N, A>> &x, simd<double, detail::avec<N, A>> &out_sin, simd<double, detail::avec<N, A>> &out_cos) noexcept requires detail::x86_overload_m128<double, N, A>
+		[[nodiscard]] inline void sincos(const simd<double, detail::avec<N, A>> &x, simd<double, detail::avec<N, A>> &out_sin, simd<double, detail::avec<N, A>> &out_cos) noexcept requires detail::x86_overload_m128<double, N, A>
 		{
 			for (std::size_t i = 0; i < ext::native_data_size_v<simd<double, detail::avec<N, A>>>; ++i)
 			{

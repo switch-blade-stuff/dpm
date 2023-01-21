@@ -38,6 +38,12 @@ namespace dpm
 				constexpr static int alignment = Align;
 				constexpr static int size = N;
 			};
+
+			/** @brief Extension ABI tag used to force use of a packed element-aligned buffer for SIMD storage.
+			 * @tparam N Amount of elements stored by the buffer.
+			 * @note Packed ABI will prevent the use of platform-specific optimizations and will leave vectorization to the compiler. */
+			template<std::size_t N>
+			using packed_buffer = aligned_vector<N, SIZE_MAX>;
 		}
 
 		/** @brief ABI tag used to select an implementation-defined SIMD vector type with the given fixed width.
@@ -81,6 +87,41 @@ namespace dpm
 		/** @brief Alias for `typename deduce<T, N, Abis...>::type`. */
 		template<typename T, std::size_t N, typename... Abis>
 		using deduce_t = typename deduce<T, N, Abis...>::type;
+
+		namespace detail
+		{
+			template<typename...>
+			struct tag_sequence {};
+
+			template<typename... Ts>
+			struct common_impl : common_impl<tag_sequence<>, Ts...> {};
+
+			template<std::size_t... Ns, std::size_t... As>
+			struct common_impl<tag_sequence<aligned_vector<Ns, As>...>> { using type = aligned_vector<std::max({Ns...}), std::max({As...})>; };
+
+			template<typename... Ts, typename U, typename... Us>
+			struct common_impl<tag_sequence<Ts...>, U, Us...> : common_impl<tag_sequence<U, Ts...>, Us...> {};
+			template<typename... Ts, typename... Us>
+			struct common_impl<tag_sequence<Ts...>, scalar, Us...> : common_impl<tag_sequence<Ts...>, Us...> {};
+
+			template<std::same_as<scalar>... Ts>
+			struct common_impl<tag_sequence<>, Ts...> { using type = scalar; };
+		}
+
+		DPM_DECLARE_EXT_NAMESPACE
+		{
+			/** @brief Produces a common ABI tag from the specified tags.
+			 *
+			 * If the specified tags are the same, the member `type` is an alias for the specified abi tag.
+			 * Otherwise, if the tags are of the same size but different alignment, `type` is an alias for the tag with the greatest alignment.
+			 * Otherwise, `type` is an alias for the widest and most-aligned tag. */
+			template<typename... Abis>
+			struct common : detail::common_impl<Abis...> {};
+
+			/** @brief Alias for `typename common<Abis...>::type`. */
+			template<typename... Abis>
+			using common_t = typename common<Abis...>::type;
+		}
 	}
 
 	template<>

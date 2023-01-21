@@ -68,7 +68,7 @@ namespace dpm
 	{
 		/** Returns a result of fused multiply-add operation on elements of \a a, \a b, and \a c. Equivalent to `a * b + c`. */
 		template<std::size_t N, std::size_t A>
-		[[nodiscard]] inline DPM_SAFE_ARRAY simd<double, detail::avec<N, A>> fmadd(
+		[[nodiscard]] inline simd<double, detail::avec<N, A>> fmadd(
 				const simd<double, detail::avec<N, A>> &a,
 				const simd<double, detail::avec<N, A>> &b,
 				const simd<double, detail::avec<N, A>> &c)
@@ -86,7 +86,7 @@ namespace dpm
 		}
 		/** Returns a result of fused multiply-sub operation on elements of \a a, \a b, and \a c. Equivalent to `a * b - c`. */
 		template<std::size_t N, std::size_t A>
-		[[nodiscard]] inline DPM_SAFE_ARRAY simd<double, detail::avec<N, A>> fmsub(
+		[[nodiscard]] inline simd<double, detail::avec<N, A>> fmsub(
 				const simd<double, detail::avec<N, A>> &a,
 				const simd<double, detail::avec<N, A>> &b,
 				const simd<double, detail::avec<N, A>> &c)
@@ -104,7 +104,7 @@ namespace dpm
 		}
 		/** Returns a result of fused negate-multiply-add operation on elements of \a a, \a b, and \a c. Equivalent to `-(a * b) + c`. */
 		template<std::size_t N, std::size_t A>
-		[[nodiscard]] inline DPM_SAFE_ARRAY simd<double, detail::avec<N, A>> fnmadd(
+		[[nodiscard]] inline simd<double, detail::avec<N, A>> fnmadd(
 				const simd<double, detail::avec<N, A>> &a,
 				const simd<double, detail::avec<N, A>> &b,
 				const simd<double, detail::avec<N, A>> &c)
@@ -122,7 +122,7 @@ namespace dpm
 		}
 		/** Returns a result of fused negate-multiply-sub operation on elements of \a a, \a b, and \a c. Equivalent to `-(a * b) - c`. */
 		template<std::size_t N, std::size_t A>
-		[[nodiscard]] inline DPM_SAFE_ARRAY simd<double, detail::avec<N, A>> fnmsub(
+		[[nodiscard]] inline simd<double, detail::avec<N, A>> fnmsub(
 				const simd<double, detail::avec<N, A>> &a,
 				const simd<double, detail::avec<N, A>> &b,
 				const simd<double, detail::avec<N, A>> &c)
@@ -142,7 +142,7 @@ namespace dpm
 
 	/** Returns a result of fused multiply-add operation on elements of \a a, \a b, and \a c. Equivalent to `a * b + c`. */
 	template<std::size_t N, std::size_t A>
-	[[nodiscard]] inline DPM_SAFE_ARRAY simd<double, detail::avec<N, A>> fma(
+	[[nodiscard]] inline simd<double, detail::avec<N, A>> fma(
 			const simd<double, detail::avec<N, A>> &a,
 			const simd<double, detail::avec<N, A>> &b,
 			const simd<double, detail::avec<N, A>> &c)
