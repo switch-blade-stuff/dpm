@@ -537,10 +537,11 @@ namespace dpm
 		constexpr static auto alignment = std::max(Align, alignof(vector_type));
 
 		using data_type = vector_type[data_size];
+		using value_proxy = detail::mask_element<std::int64_t>;
 
 	public:
 		using value_type = bool;
-		using reference = detail::mask_reference<std::int64_t>;
+		using reference = detail::mask_element<std::int64_t> &;
 
 		using abi_type = detail::avec<N, Align>;
 		using simd_type = simd<I, abi_type>;
@@ -591,7 +592,7 @@ namespace dpm
 		[[nodiscard]] reference operator[](std::size_t i) noexcept
 		{
 			DPM_ASSERT(i < size());
-			return reference{reinterpret_cast<std::int64_t *>(m_data)[i]};
+			return reinterpret_cast<value_proxy *>(m_data)[i];
 		}
 		[[nodiscard]] value_type operator[](std::size_t i) const noexcept
 		{
@@ -802,7 +803,7 @@ namespace dpm
 
 	public:
 		using value_type = I;
-		using reference = detail::simd_reference<value_type>;
+		using reference = value_type &;
 
 		using abi_type = detail::avec<N, Align>;
 		using mask_type = simd_mask<I, abi_type>;
@@ -872,7 +873,7 @@ namespace dpm
 		[[nodiscard]] reference operator[](std::size_t i) noexcept
 		{
 			DPM_ASSERT(i < size());
-			return reference{reinterpret_cast<I *>(m_data)[i]};
+			return reinterpret_cast<I *>(m_data)[i];
 		}
 		[[nodiscard]] value_type operator[](std::size_t i) const noexcept
 		{

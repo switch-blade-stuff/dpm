@@ -50,9 +50,9 @@ namespace dpm::detail
 		if constexpr (Mask == sincos_op::OP_SINCOS)
 			return {sin, cos};
 		else if constexpr (Mask == sincos_op::OP_SIN)
-			return {sin};
+			return sin;
 		else
-			return {cos};
+			return cos;
 	}
 
 	inline static std::tuple<__m128d, __m128d, __m128d> DPM_FORCEINLINE prepare_sincos(__m128d x, __m128d abs_x) noexcept

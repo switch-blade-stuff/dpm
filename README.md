@@ -177,3 +177,17 @@ inefficiency of AVX512 operations on certain CPUs. See the following articles fo
 
 In order to take advantage of AVX512 SIMD operations, use the `avx512<T>` extension ABI tag.
 To enable AVX512 operations globally, use the `DPM_NATIVE_AVX512` option.
+
+### simd_mask references
+
+Vectorized overloads of `simd_mask` use a wrapper type to reference mask elements, this is required due to internal
+representation of a vectorized mask not being aligned or equal-size to `bool`, and as such requires conversion to and
+from `bool`. In particular, on x86 platforms, `simd_mask` elements have the same width and alignment as the `simd`
+vector, where an element of all `1`s (signaling NaN in case of `float` value type) equals to `true` and all `0`s equals
+to `false`.
+
+**Be careful when returning references to mask elements as `auto` or `decltype(auto)`.** Due to the reference wrapper
+being an object type, it will always deduce to `simd_mask::reference`, rather than `bool`. This may cause unintentional
+memory bugs if a reference to a stack local is thus returned. When assigning elements of `simd_mask` to variables or
+returning from a function, always use the `bool` type, unless the mask is `const`-qualified or the intention is to
+return a reference.

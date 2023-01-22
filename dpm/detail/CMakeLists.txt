@@ -11,6 +11,6 @@ list(APPEND DPM_INTERFACE_SOURCES
         ${CMAKE_CURRENT_LIST_DIR}/utility.hpp
         ${CMAKE_CURRENT_LIST_DIR}/dispatch.hpp
 
-        ${CMAKE_CURRENT_LIST_DIR}/reference.hpp
+        ${CMAKE_CURRENT_LIST_DIR}/mask_element.hpp
         ${CMAKE_CURRENT_LIST_DIR}/where_expr.hpp)
 

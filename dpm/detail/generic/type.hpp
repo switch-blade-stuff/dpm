@@ -6,7 +6,7 @@
 
 #include "../../flags.hpp"
 #include "../where_expr.hpp"
-#include "../reference.hpp"
+#include "../mask_element.hpp"
 #include "../assert.hpp"
 
 #include "abi.hpp"
@@ -176,7 +176,7 @@ namespace dpm
 	{
 	public:
 		using value_type = bool;
-		using reference = detail::simd_reference<value_type>;
+		using reference = value_type &;
 
 		using abi_type = simd_abi::scalar;
 		using simd_type = simd<T, abi_type>;
@@ -476,7 +476,7 @@ namespace dpm
 
 	public:
 		using value_type = bool;
-		using reference = detail::simd_reference<value_type>;
+		using reference = value_type &;
 
 		using abi_type = simd_abi::scalar;
 		using simd_type = simd<T, abi_type>;
@@ -507,7 +507,7 @@ namespace dpm
 		[[nodiscard]] reference operator[]([[maybe_unused]] std::size_t i) noexcept
 		{
 			DPM_ASSERT(i < size());
-			return reference{m_value};
+			return m_value;
 		}
 		[[nodiscard]] value_type operator[]([[maybe_unused]] std::size_t i) const noexcept
 		{
@@ -528,7 +528,7 @@ namespace dpm
 
 	public:
 		using value_type = bool;
-		using reference = detail::simd_reference<value_type>;
+		using reference = value_type &;
 
 		using abi_type = detail::avec<N, Align>;
 		using simd_type = simd<T, abi_type>;
@@ -571,7 +571,7 @@ namespace dpm
 		[[nodiscard]] reference operator[](std::size_t i) noexcept
 		{
 			DPM_ASSERT(i < size());
-			return reference{m_data[i]};
+			return m_data[i];
 		}
 		[[nodiscard]] value_type operator[](std::size_t i) const noexcept
 		{
@@ -648,7 +648,7 @@ namespace dpm
 	{
 	public:
 		using value_type = T;
-		using reference = detail::simd_reference<value_type>;
+		using reference = value_type &;
 
 		using abi_type = Abi;
 		using mask_type = simd_mask<T, abi_type>;
@@ -1219,7 +1219,7 @@ namespace dpm
 
 	public:
 		using value_type = T;
-		using reference = detail::simd_reference<value_type>;
+		using reference = value_type &;
 
 		using abi_type = simd_abi::scalar;
 		using mask_type = simd_mask<T, abi_type>;
@@ -1254,7 +1254,7 @@ namespace dpm
 		[[nodiscard]] reference operator[]([[maybe_unused]] std::size_t i) noexcept
 		{
 			DPM_ASSERT(i < size());
-			return reference{m_value};
+			return m_value;
 		}
 		[[nodiscard]] value_type operator[]([[maybe_unused]] std::size_t i) const noexcept
 		{
@@ -1291,7 +1291,7 @@ namespace dpm
 
 	public:
 		using value_type = T;
-		using reference = detail::simd_reference<value_type>;
+		using reference = value_type &;
 
 		using abi_type = detail::avec<N, Align>;
 		using mask_type = simd_mask<T, abi_type>;
@@ -1336,7 +1336,7 @@ namespace dpm
 		[[nodiscard]] reference operator[](std::size_t i) noexcept
 		{
 			DPM_ASSERT(i < size());
-			return reference{m_data[i]};
+			return m_data[i];
 		}
 		[[nodiscard]] value_type operator[](std::size_t i) const noexcept
 		{

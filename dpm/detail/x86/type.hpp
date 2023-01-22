@@ -4,7 +4,6 @@
 
 #pragma once
 
-/* GCC does not like using vector types as template parameters, which is used for `to_native_data`. */
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wignored-attributes"
 

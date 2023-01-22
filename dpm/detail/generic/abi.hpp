@@ -41,7 +41,7 @@ namespace dpm
 
 			/** @brief Extension ABI tag used to force use of a packed element-aligned buffer for SIMD storage.
 			 * @tparam N Amount of elements stored by the buffer.
-			 * @note Packed ABI will prevent the use of platform-specific optimizations and will leave vectorization to the compiler. */
+			 * @note Packed ABI will prevent the use of platform-specific optimizations and will leave any vectorization up to the compiler. */
 			template<std::size_t N>
 			using packed_buffer = aligned_vector<N, SIZE_MAX>;
 		}

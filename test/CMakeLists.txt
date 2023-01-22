@@ -12,7 +12,7 @@ target_link_libraries(${PROJECT_NAME} PRIVATE dpm)
 if (MSVC)
     target_compile_options(${PROJECT_NAME} PUBLIC /W3 /WX)
 else ()
-    target_compile_options(${PROJECT_NAME} PUBLIC -Wall -Wextra -Wpedantic -Werror)
+    target_compile_options(${PROJECT_NAME} PUBLIC -Wall -Wextra -Wpedantic -Werror -Wno-unknown-pragmas -Wno-logical-not-parentheses)
 endif ()
 
 # On MSVC, use c++latest instead of c++20 for experimental module support

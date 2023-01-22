@@ -62,6 +62,7 @@ import std;
 
 #define DPM_PURE
 #define DPM_TARGET(t)
+#define DPM_MAY_ALIAS
 #define DPM_FORCEINLINE __forceinline
 #define DPM_NEVER_INLINE __declspec(noinline)
 
@@ -72,6 +73,7 @@ import std;
 
 #define DPM_PURE __attribute__((pure))
 #define DPM_TARGET(t) __attribute__((target(t)))
+#define DPM_MAY_ALIAS __attribute__((__may_alias__))
 #define DPM_FORCEINLINE __attribute__((always_inline))
 #define DPM_NEVER_INLINE __attribute__((noinline))
 #define DPM_VECTORCALL
@@ -80,6 +82,7 @@ import std;
 
 #define DPM_PURE
 #define DPM_TARGET(t)
+#define DPM_MAY_ALIAS
 #define DPM_FORCEINLINE
 #define DPM_NEVER_INLINE
 #define DPM_VECTORCALL
