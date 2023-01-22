@@ -12,8 +12,8 @@ namespace dpm
 {
 	namespace detail
 	{
-		[[nodiscard]] inline __m128d DPM_FORCEINLINE x86_isnan(__m128d x) noexcept { return _mm_cmpunord_pd(x, x); }
-		[[nodiscard]] inline __m128d DPM_FORCEINLINE x86_isinf(__m128d x) noexcept
+		[[nodiscard]] inline DPM_FORCEINLINE __m128d x86_isnan(__m128d x) noexcept { return _mm_cmpunord_pd(x, x); }
+		[[nodiscard]] inline DPM_FORCEINLINE __m128d x86_isinf(__m128d x) noexcept
 		{
 			const auto inf = _mm_set1_pd(std::numeric_limits<double>::infinity());
 			return _mm_cmpeq_pd(x86_abs(x), inf);

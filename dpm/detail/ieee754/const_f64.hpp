@@ -6,8 +6,6 @@
 
 #include "../define.hpp"
 
-#ifdef DPM_HAS_IEEE754
-
 #ifndef DPM_USE_IMPORT
 
 #include <numbers>
@@ -37,5 +35,3 @@ namespace dpm::detail
 	static constexpr double dp_sincos_f64[3] = {7.85398125648498535156E-1, 3.77489470793079817668E-8, 2.69515142907905952645E-15};
 	static constexpr double fopi_f64 = 4.0 / std::numbers::pi_v<double>; /* 4 / Pi */
 }
-
-#endif

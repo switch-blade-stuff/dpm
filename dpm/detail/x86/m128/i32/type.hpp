@@ -15,19 +15,23 @@ namespace dpm
 		template<std::size_t N>
 		[[nodiscard]] static __m128i x86_maskzero_i32(__m128i v, std::size_t i) noexcept
 		{
-			switch ([[maybe_unused]] const auto mask = std::bit_cast<float>(0xffff'ffff); N - i)
-			{
 #ifdef DPM_HAS_SSE4_1
+			switch (N - i)
+			{
 				case 3: return std::bit_cast<__m128i>(_mm_blend_ps(std::bit_cast<__m128>(v), _mm_setzero_ps(), 0b1000));
 				case 2: return std::bit_cast<__m128i>(_mm_blend_ps(std::bit_cast<__m128>(v), _mm_setzero_ps(), 0b1100));
 				case 1: return std::bit_cast<__m128i>(_mm_blend_ps(std::bit_cast<__m128>(v), _mm_setzero_ps(), 0b1110));
+				default: return v;
+			}
 #else
+			switch (const auto mask = std::bit_cast<float>(0xffff'ffff); N - i)
+			{
 				case 3: return std::bit_cast<__m128i>(_mm_and_ps(std::bit_cast<__m128>(v), _mm_set_ps(0.0f, mask, mask, mask)));
 				case 2: return std::bit_cast<__m128i>(_mm_and_ps(std::bit_cast<__m128>(v), _mm_set_ps(0.0f, 0.0f, mask, mask)));
 				case 1: return std::bit_cast<__m128i>(_mm_and_ps(std::bit_cast<__m128>(v), _mm_set_ps(0.0f, 0.0f, 0.0f, mask)));
-#endif
 				default: return v;
 			}
+#endif
 		}
 		template<std::size_t N>
 		[[nodiscard]] static __m128i x86_maskone_vector_i32(__m128i v, std::size_t i) noexcept
@@ -54,7 +58,7 @@ namespace dpm
 		struct x86_mask_impl<I, __m128i, N>
 		{
 			template<std::size_t M, typename F>
-			static void DPM_FORCEINLINE copy_from(const bool *src, __m128i *dst, F) noexcept
+			static DPM_FORCEINLINE void copy_from(const bool *src, __m128i *dst, F) noexcept
 			{
 				for (std::size_t i = 0; i < N; i += 4)
 				{
@@ -70,7 +74,7 @@ namespace dpm
 				}
 			}
 			template<std::size_t M, typename F>
-			static void DPM_FORCEINLINE copy_to(bool *dst, const __m128i *src, F) noexcept
+			static DPM_FORCEINLINE void copy_to(bool *dst, const __m128i *src, F) noexcept
 			{
 				for (std::size_t i = 0; i < N; i += 4)
 					switch (const auto bits = _mm_movemask_ps(std::bit_cast<__m128>(src[i / 4])); N - i)
@@ -83,7 +87,7 @@ namespace dpm
 			}
 
 			template<std::size_t M, typename F>
-			static void DPM_FORCEINLINE copy_from(const bool *src, __m128i *dst, const __m128i *mask, F) noexcept
+			static DPM_FORCEINLINE void copy_from(const bool *src, __m128i *dst, const __m128i *mask, F) noexcept
 			{
 				for (std::size_t i = 0; i < N; i += 4)
 				{
@@ -99,7 +103,7 @@ namespace dpm
 				}
 			}
 			template<std::size_t M, typename F>
-			static void DPM_FORCEINLINE copy_to(bool *dst, const __m128i *src, const __m128i *mask, F) noexcept
+			static DPM_FORCEINLINE void copy_to(bool *dst, const __m128i *src, const __m128i *mask, F) noexcept
 			{
 				for (std::size_t i = 0; i < N; i += 4)
 				{
@@ -115,35 +119,35 @@ namespace dpm
 			}
 
 			template<std::size_t M>
-			static void DPM_FORCEINLINE invert(__m128i *dst, const __m128i *src) noexcept
+			static DPM_FORCEINLINE void invert(__m128i *dst, const __m128i *src) noexcept
 			{
 				const auto mask = _mm_set1_epi32(static_cast<std::int32_t>(0xffff'ffff));
 				for (std::size_t i = 0; i < M; ++i) dst[i] = _mm_xor_si128(src[i], mask);
 			}
 
 			template<std::size_t M>
-			static void DPM_FORCEINLINE bit_and(__m128i *out, const __m128i *a, const __m128i *b) noexcept
+			static DPM_FORCEINLINE void bit_and(__m128i *out, const __m128i *a, const __m128i *b) noexcept
 			{
 				for (std::size_t i = 0; i < M; ++i) out[i] = _mm_and_si128(a[i], b[i]);
 			}
 			template<std::size_t M>
-			static void DPM_FORCEINLINE bit_or(__m128i *out, const __m128i *a, const __m128i *b) noexcept
+			static DPM_FORCEINLINE void bit_or(__m128i *out, const __m128i *a, const __m128i *b) noexcept
 			{
 				for (std::size_t i = 0; i < M; ++i) out[i] = _mm_or_si128(a[i], b[i]);
 			}
 			template<std::size_t M>
-			static void DPM_FORCEINLINE bit_xor(__m128i *out, const __m128i *a, const __m128i *b) noexcept
+			static DPM_FORCEINLINE void bit_xor(__m128i *out, const __m128i *a, const __m128i *b) noexcept
 			{
 				for (std::size_t i = 0; i < M; ++i) out[i] = _mm_xor_si128(a[i], b[i]);
 			}
 
 			template<std::size_t M>
-			static void DPM_FORCEINLINE cmp_eq(__m128i *out, const __m128i *a, const __m128i *b) noexcept
+			static DPM_FORCEINLINE void cmp_eq(__m128i *out, const __m128i *a, const __m128i *b) noexcept
 			{
 				for (std::size_t i = 0; i < M; ++i) out[i] = _mm_cmpeq_epi32(a[i], b[i]);
 			}
 			template<std::size_t M>
-			static void DPM_FORCEINLINE cmp_ne(__m128i *out, const __m128i *a, const __m128i *b) noexcept
+			static DPM_FORCEINLINE void cmp_ne(__m128i *out, const __m128i *a, const __m128i *b) noexcept
 			{
 				const auto inv_mask = _mm_set1_epi32(static_cast<std::int32_t>(0xffff'ffff));
 				for (std::size_t i = 0; i < M; ++i) out[i] = _mm_xor_si128(_mm_cmpeq_epi32(a[i], b[i]), inv_mask);
@@ -479,9 +483,11 @@ namespace dpm
 		struct native_data_size<simd_mask<I, detail::avec<N, Align>>> : std::integral_constant<std::size_t, detail::align_data<I, N, 16>()> {};
 
 		template<detail::integral_of_size<4> I, std::size_t N, std::size_t A>
-		[[nodiscard]] inline std::span<__m128i, detail::align_data<I, N, 16>()> to_native_data(simd_mask<I, detail::avec<N, A>> &) noexcept requires detail::x86_overload_m128<I, N, A>;
+		[[nodiscard]] inline std::span<__m128i, detail::align_data<I, N, 16>()>
+		to_native_data(simd_mask<I, detail::avec<N, A>> &) noexcept requires detail::x86_overload_m128<I, N, A>;
 		template<detail::integral_of_size<4> I, std::size_t N, std::size_t A>
-		[[nodiscard]] inline std::span<const __m128i, detail::align_data<I, N, 16>()> to_native_data(const simd_mask<I, detail::avec<N, A>> &) noexcept requires detail::x86_overload_m128<I, N, A>;
+		[[nodiscard]] inline std::span<const __m128i, detail::align_data<I, N, 16>()>
+		to_native_data(const simd_mask<I, detail::avec<N, A>> &) noexcept requires detail::x86_overload_m128<I, N, A>;
 	}
 
 	template<detail::integral_of_size<4> I, std::size_t N, std::size_t Align> requires detail::x86_overload_m128<I, N, Align>
@@ -543,7 +549,10 @@ namespace dpm
 
 		/** Copies the underlying elements from \a mem. */
 		template<typename Flags>
-		void copy_from(const value_type *mem, Flags) noexcept requires is_simd_flag_type_v<Flags> { impl_t::template copy_from<data_size>(mem, m_data, Flags{}); }
+		void copy_from(const value_type *mem, Flags) noexcept requires is_simd_flag_type_v<Flags>
+		{
+			impl_t::template copy_from<data_size>(mem, m_data, Flags{});
+		}
 		/** Copies the underlying elements to \a mem. */
 		template<typename Flags>
 		void copy_to(value_type *mem, Flags) const noexcept requires is_simd_flag_type_v<Flags> { impl_t::template copy_to<data_size>(mem, m_data, Flags{}); }
@@ -647,13 +656,15 @@ namespace dpm
 	{
 		/** Returns a span of the underlying SSE vectors for \a x. */
 		template<detail::integral_of_size<4> I, std::size_t N, std::size_t A>
-		[[nodiscard]] inline std::span<__m128i, detail::align_data<I, N, 16>()> to_native_data(simd_mask<I, detail::avec<N, A>> &x) noexcept requires detail::x86_overload_m128<I, N, A>
+		[[nodiscard]] inline std::span<__m128i, detail::align_data<I, N, 16>()>
+		to_native_data(simd_mask<I, detail::avec<N, A>> &x) noexcept requires detail::x86_overload_m128<I, N, A>
 		{
 			return detail::native_access<simd_mask<I, detail::avec<N, A>>>::to_native_data(x);
 		}
 		/** Returns a constant span of the underlying SSE vectors for \a x. */
 		template<detail::integral_of_size<4> I, std::size_t N, std::size_t A>
-		[[nodiscard]] inline std::span<const __m128i, detail::align_data<I, N, 16>()> to_native_data(const simd_mask<I, detail::avec<N, A>> &x) noexcept requires detail::x86_overload_m128<I, N, A>
+		[[nodiscard]] inline std::span<const __m128i, detail::align_data<I, N, 16>()>
+		to_native_data(const simd_mask<I, detail::avec<N, A>> &x) noexcept requires detail::x86_overload_m128<I, N, A>
 		{
 			return detail::native_access<simd_mask<I, detail::avec<N, A>>>::to_native_data(x);
 		}
@@ -742,9 +753,11 @@ namespace dpm
 		struct native_data_size<simd<I, detail::avec<N, Align>>> : std::integral_constant<std::size_t, detail::align_data<I, N, 16>()> {};
 
 		template<detail::integral_of_size<4> I, std::size_t N, std::size_t A>
-		[[nodiscard]] inline std::span<__m128i, detail::align_data<I, N, 16>()> to_native_data(simd<I, detail::avec<N, A>> &) noexcept requires detail::x86_overload_m128<I, N, A>;
+		[[nodiscard]] inline std::span<__m128i, detail::align_data<I, N, 16>()>
+		to_native_data(simd<I, detail::avec<N, A>> &) noexcept requires detail::x86_overload_m128<I, N, A>;
 		template<detail::integral_of_size<4> I, std::size_t N, std::size_t A>
-		[[nodiscard]] inline std::span<const __m128i, detail::align_data<I, N, 16>()> to_native_data(const simd<I, detail::avec<N, A>> &) noexcept requires detail::x86_overload_m128<I, N, A>;
+		[[nodiscard]] inline std::span<const __m128i, detail::align_data<I, N, 16>()>
+		to_native_data(const simd<I, detail::avec<N, A>> &) noexcept requires detail::x86_overload_m128<I, N, A>;
 	}
 
 	template<detail::integral_of_size<4> I, std::size_t N, std::size_t Align> requires detail::x86_overload_m128<I, N, Align>
@@ -806,7 +819,8 @@ namespace dpm
 					case 1: i0 = std::invoke(gen, std::integral_constant<std::size_t, value_idx>());
 				}
 
-				return _mm_set_epi32(std::bit_cast<std::int32_t>(i3), std::bit_cast<std::int32_t>(i2), std::bit_cast<std::int32_t>(i1), std::bit_cast<std::int32_t>(i0));
+				return _mm_set_epi32(std::bit_cast<std::int32_t>(i3), std::bit_cast<std::int32_t>(i2), std::bit_cast<std::int32_t>(i1),
+				                     std::bit_cast<std::int32_t>(i0));
 			});
 		}
 
@@ -1016,13 +1030,15 @@ namespace dpm
 	{
 		/** Returns a span of the underlying SSE vectors for \a x. */
 		template<detail::integral_of_size<4> I, std::size_t N, std::size_t A>
-		[[nodiscard]] inline std::span<__m128i, detail::align_data<I, N, 16>()> to_native_data(simd<I, detail::avec<N, A>> &x) noexcept requires detail::x86_overload_m128<I, N, A>
+		[[nodiscard]] inline std::span<__m128i, detail::align_data<I, N, 16>()>
+		to_native_data(simd<I, detail::avec<N, A>> &x) noexcept requires detail::x86_overload_m128<I, N, A>
 		{
 			return detail::native_access<simd<I, detail::avec<N, A>>>::to_native_data(x);
 		}
 		/** Returns a constant span of the underlying SSE vectors for \a x. */
 		template<detail::integral_of_size<4> I, std::size_t N, std::size_t A>
-		[[nodiscard]] inline std::span<const __m128i, detail::align_data<I, N, 16>()> to_native_data(const simd<I, detail::avec<N, A>> &x) noexcept requires detail::x86_overload_m128<I, N, A>
+		[[nodiscard]] inline std::span<const __m128i, detail::align_data<I, N, 16>()>
+		to_native_data(const simd<I, detail::avec<N, A>> &x) noexcept requires detail::x86_overload_m128<I, N, A>
 		{
 			return detail::native_access<simd<I, detail::avec<N, A>>>::to_native_data(x);
 		}

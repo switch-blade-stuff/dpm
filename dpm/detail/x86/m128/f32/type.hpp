@@ -15,7 +15,7 @@ namespace dpm
 	namespace detail
 	{
 		/* When `n` is < 4, mix `4 - n` elements of `b` at the end of `a`. */
-		inline __m128 DPM_FORCEINLINE x86_maskblend_f32(std::size_t n, __m128 a, __m128 b) noexcept
+		inline DPM_FORCEINLINE __m128 x86_maskblend_f32(std::size_t n, __m128 a, __m128 b) noexcept
 		{
 #ifdef DPM_HAS_SSE4_1
 			switch (n)
@@ -41,7 +41,7 @@ namespace dpm
 #endif
 		}
 		/* When `n` is < 4, mix `4 - n` zeros at the end of `a`. */
-		inline __m128 DPM_FORCEINLINE x86_maskzero_f32(std::size_t n, __m128 v) noexcept
+		inline DPM_FORCEINLINE __m128 x86_maskzero_f32(std::size_t n, __m128 v) noexcept
 		{
 			switch ([[maybe_unused]] const auto mask = std::bit_cast<float>(0xffff'ffff); n)
 			{
@@ -58,7 +58,7 @@ namespace dpm
 			}
 		}
 		/* When `n` is < 4, mix `4 - n` ones at the end of `a`. */
-		inline __m128 DPM_FORCEINLINE x86_maskone_f32(std::size_t n, __m128 v) noexcept
+		inline DPM_FORCEINLINE __m128 x86_maskone_f32(std::size_t n, __m128 v) noexcept
 		{
 			switch (const auto mask = std::bit_cast<float>(0xffff'ffff); n)
 			{
@@ -76,12 +76,12 @@ namespace dpm
 		}
 
 		template<std::size_t I>
-		inline void DPM_FORCEINLINE x86_shuffle_f32(__m128 *to, const __m128 *from) noexcept
+		inline DPM_FORCEINLINE void x86_shuffle_f32(__m128 *to, const __m128 *from) noexcept
 		{
 			*to = _mm_shuffle_ps(from[I / 4], from[I / 4], _MM_SHUFFLE(I % 4, I % 4, I % 4, I % 4));
 		}
 		template<std::size_t I0, std::size_t I1>
-		inline void DPM_FORCEINLINE x86_shuffle_f32(__m128 *to, const __m128 *from) noexcept
+		inline DPM_FORCEINLINE void x86_shuffle_f32(__m128 *to, const __m128 *from) noexcept
 		{
 			constexpr auto P0 = I0 / 4, P1 = I1 / 4;
 			if constexpr (P0 != P1)
@@ -90,7 +90,7 @@ namespace dpm
 				*to = _mm_shuffle_ps(from[P0], from[P0], _MM_SHUFFLE(3, 2, I1 % 4, I0 % 4));
 		}
 		template<std::size_t I0, std::size_t I1, std::size_t I2>
-		inline void DPM_FORCEINLINE x86_shuffle_f32(__m128 *to, const __m128 *from) noexcept
+		inline DPM_FORCEINLINE void x86_shuffle_f32(__m128 *to, const __m128 *from) noexcept
 		{
 			constexpr auto P0 = I0 / 4, P1 = I1 / 4, P2 = I2 / 4;
 			if constexpr (P0 != P1)
@@ -99,7 +99,7 @@ namespace dpm
 				*to = _mm_shuffle_ps(from[P0], from[P2], _MM_SHUFFLE(3, I2 % 4, I1 % 4, I0 % 4));
 		}
 		template<std::size_t I0, std::size_t I1, std::size_t I2, std::size_t I3, std::size_t... Is>
-		inline void DPM_FORCEINLINE x86_shuffle_f32(__m128 *to, const __m128 *from) noexcept
+		inline DPM_FORCEINLINE void x86_shuffle_f32(__m128 *to, const __m128 *from) noexcept
 		{
 			constexpr auto P0 = I0 / 4, P1 = I1 / 4, P2 = I2 / 4, P3 = I3 / 4;
 			if constexpr (P0 != P1 || P2 != P3)

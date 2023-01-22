@@ -4,8 +4,10 @@
 
 #pragma once
 
+#ifdef __GNUC__
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wignored-attributes"
+#endif
 
 #include "m128/type.hpp"
 #include "m256/type.hpp"
@@ -188,4 +190,6 @@ namespace dpm
 	}
 }
 
+#ifdef __GNUC__
 #pragma GCC diagnostic pop
+#endif

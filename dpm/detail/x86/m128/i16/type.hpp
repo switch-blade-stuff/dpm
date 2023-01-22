@@ -15,9 +15,9 @@ namespace dpm
 		template<std::size_t N>
 		[[nodiscard]] static __m128i x86_maskzero_i16(__m128i v, std::size_t i) noexcept
 		{
-			switch ([[maybe_unused]] const auto mask = std::bit_cast<float>(0xffff'ffff); N - i)
-			{
 #ifdef DPM_HAS_SSE4_1
+			switch (N - i)
+			{
 				case 7: return _mm_blend_epi16(v, _mm_setzero_si128(), 0b1000'0000);
 				case 6: return _mm_blend_epi16(v, _mm_setzero_si128(), 0b1100'0000);
 				case 5: return _mm_blend_epi16(v, _mm_setzero_si128(), 0b1110'0000);
@@ -25,17 +25,21 @@ namespace dpm
 				case 3: return _mm_blend_epi16(v, _mm_setzero_si128(), 0b1111'1000);
 				case 2: return _mm_blend_epi16(v, _mm_setzero_si128(), 0b1111'1100);
 				case 1: return _mm_blend_epi16(v, _mm_setzero_si128(), 0b1111'1110);
-#else
-					case 7: return _mm_and_si128(v, _mm_set_epi16(0, mask, mask, mask, mask, mask, mask, mask));
-					case 6: return _mm_and_si128(v, _mm_set_epi16(0, 0, mask, mask, mask, mask, mask, mask));
-					case 5: return _mm_and_si128(v, _mm_set_epi16(0, 0, 0, mask, mask, mask, mask, mask));
-					case 4: return _mm_and_si128(v, _mm_set_epi16(0, 0, 0, 0, mask, mask, mask, mask));
-					case 3: return _mm_and_si128(v, _mm_set_epi16(0, 0, 0, 0, 0, mask, mask, mask));
-					case 2: return _mm_and_si128(v, _mm_set_epi16(0, 0, 0, 0, 0, 0, mask, mask));
-					case 1: return _mm_and_si128(v, _mm_set_epi16(0, 0, 0, 0, 0, 0, 0, mask));
-#endif
 				default: return v;
 			}
+#else
+			switch (const auto mask = std::bit_cast<float>(0xffff'ffff); N - i)
+			{
+				case 7: return _mm_and_si128(v, _mm_set_epi16(0, mask, mask, mask, mask, mask, mask, mask));
+				case 6: return _mm_and_si128(v, _mm_set_epi16(0, 0, mask, mask, mask, mask, mask, mask));
+				case 5: return _mm_and_si128(v, _mm_set_epi16(0, 0, 0, mask, mask, mask, mask, mask));
+				case 4: return _mm_and_si128(v, _mm_set_epi16(0, 0, 0, 0, mask, mask, mask, mask));
+				case 3: return _mm_and_si128(v, _mm_set_epi16(0, 0, 0, 0, 0, mask, mask, mask));
+				case 2: return _mm_and_si128(v, _mm_set_epi16(0, 0, 0, 0, 0, 0, mask, mask));
+				case 1: return _mm_and_si128(v, _mm_set_epi16(0, 0, 0, 0, 0, 0, 0, mask));
+				default: return v;
+			}
+#endif
 		}
 		template<std::size_t N>
 		[[nodiscard]] static __m128i x86_maskone_vector_i16(__m128i v, std::size_t i) noexcept
@@ -51,13 +55,13 @@ namespace dpm
 				case 2: return _mm_blend_epi16(v, _mm_set1_epi32(mask), 0b1111'1100);
 				case 1: return _mm_blend_epi16(v, _mm_set1_epi32(mask), 0b1111'1110);
 #else
-					case 7: return _mm_or_si128(v, _mm_set_epi16(mask, 0, 0, 0, 0, 0, 0, 0));
-					case 6: return _mm_or_si128(v, _mm_set_epi16(mask, mask, 0, 0, 0, 0, 0, 0));
-					case 5: return _mm_or_si128(v, _mm_set_epi16(mask, mask, mask, 0, 0, 0, 0, 0));
-					case 4: return _mm_or_si128(v, _mm_set_epi16(mask, mask, mask, mask, 0, 0, 0, 0));
-					case 3: return _mm_or_si128(v, _mm_set_epi16(mask, mask, mask, mask, mask, 0, 0, 0));
-					case 2: return _mm_or_si128(v, _mm_set_epi16(mask, mask, mask, mask, mask, mask, 0, 0));
-					case 1: return _mm_or_si128(v, _mm_set_epi16(mask, mask, mask, mask, mask, mask, mask, 0));
+				case 7: return _mm_or_si128(v, _mm_set_epi16(mask, 0, 0, 0, 0, 0, 0, 0));
+				case 6: return _mm_or_si128(v, _mm_set_epi16(mask, mask, 0, 0, 0, 0, 0, 0));
+				case 5: return _mm_or_si128(v, _mm_set_epi16(mask, mask, mask, 0, 0, 0, 0, 0));
+				case 4: return _mm_or_si128(v, _mm_set_epi16(mask, mask, mask, mask, 0, 0, 0, 0));
+				case 3: return _mm_or_si128(v, _mm_set_epi16(mask, mask, mask, mask, mask, 0, 0, 0));
+				case 2: return _mm_or_si128(v, _mm_set_epi16(mask, mask, mask, mask, mask, mask, 0, 0));
+				case 1: return _mm_or_si128(v, _mm_set_epi16(mask, mask, mask, mask, mask, mask, mask, 0));
 #endif
 				default: return v;
 			}

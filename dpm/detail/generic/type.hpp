@@ -13,6 +13,8 @@
 
 #ifndef DPM_USE_IMPORT
 
+#include <algorithm>
+#include <array>
 #include <span>
 
 #endif
@@ -73,7 +75,7 @@ namespace dpm
 		};
 
 		template<std::size_t N, std::size_t I = 0, typename G>
-		inline void DPM_FORCEINLINE generate_n(auto &data, G &&gen) noexcept
+		inline DPM_FORCEINLINE void generate_n(auto &data, G &&gen) noexcept
 		{
 			if constexpr (I != N)
 			{
@@ -83,7 +85,7 @@ namespace dpm
 		}
 
 		template<typename From, typename To, typename FromAbi, typename ToAbi>
-		inline void DPM_FORCEINLINE copy_cast(const simd_mask<From, FromAbi> &from, simd_mask<To, ToAbi> &to) noexcept
+		inline DPM_FORCEINLINE void copy_cast(const simd_mask<From, FromAbi> &from, simd_mask<To, ToAbi> &to) noexcept
 		{
 			if constexpr (!std::same_as<simd_mask<From, FromAbi>, simd_mask<To, ToAbi>>)
 			{
@@ -98,7 +100,7 @@ namespace dpm
 				to = from;
 		}
 		template<typename From, typename To, typename FromAbi, typename ToAbi>
-		inline void DPM_FORCEINLINE copy_cast(const simd<From, FromAbi> &from, simd<To, ToAbi> &to) noexcept
+		inline DPM_FORCEINLINE void copy_cast(const simd<From, FromAbi> &from, simd<To, ToAbi> &to) noexcept
 		{
 			if constexpr (!std::same_as<simd<From, FromAbi>, simd<To, ToAbi>>)
 			{
@@ -114,27 +116,27 @@ namespace dpm
 		}
 
 		template<std::size_t I = 0, std::size_t N, typename T, typename Abi, typename... Abis>
-		inline void DPM_FORCEINLINE concat_impl(std::array<bool, N> &buff, const simd_mask<T, Abi> &src, const simd_mask<T, Abis> &...other) noexcept
+		inline DPM_FORCEINLINE void concat_impl(std::array<bool, N> &buff, const simd_mask<T, Abi> &src, const simd_mask<T, Abis> &...other) noexcept
 		{
 			src.copy_to(buff.data() + I, vector_aligned);
 			if constexpr (sizeof...(other) != 0) concat_impl<I + simd_mask<T, Abi>::size()>(buff, other...);
 		}
 		template<std::size_t I = 0, std::size_t N, typename T, typename Abi, typename... Abis>
-		inline void DPM_FORCEINLINE concat_impl(std::array<T, N> &buff, const simd<T, Abi> &src, const simd<T, Abis> &...other) noexcept
+		inline DPM_FORCEINLINE void concat_impl(std::array<T, N> &buff, const simd<T, Abi> &src, const simd<T, Abis> &...other) noexcept
 		{
 			src.copy_to(buff.data() + I, vector_aligned);
 			if constexpr (sizeof...(other) != 0) concat_impl<I + simd_mask<T, Abi>::size()>(buff, other...);
 		}
 
 		template<std::size_t J, std::size_t I, std::size_t... Is, typename T, typename FromAbi, typename ToAbi>
-		inline void DPM_FORCEINLINE shuffle_impl(const simd_mask<T, FromAbi> &from, simd_mask<T, ToAbi> &to) noexcept
+		inline DPM_FORCEINLINE void shuffle_impl(const simd_mask<T, FromAbi> &from, simd_mask<T, ToAbi> &to) noexcept
 		{
 			to[J] = from[I];
 			if constexpr (sizeof...(Is) != 0)
 				shuffle_impl<J + 1, Is...>(from, to);
 		}
 		template<std::size_t J, std::size_t I, std::size_t... Is, typename T, typename FromAbi, typename ToAbi>
-		inline void DPM_FORCEINLINE shuffle_impl(const simd<T, FromAbi> &from, simd<T, ToAbi> &to) noexcept
+		inline DPM_FORCEINLINE void shuffle_impl(const simd<T, FromAbi> &from, simd<T, ToAbi> &to) noexcept
 		{
 			to[J] = from[I];
 			if constexpr (sizeof...(Is) != 0)

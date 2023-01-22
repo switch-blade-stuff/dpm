@@ -12,9 +12,9 @@ namespace dpm
 {
 	namespace detail
 	{
-		[[nodiscard]] inline __m128 DPM_FORCEINLINE x86_abs(__m128 x) noexcept { return _mm_and_ps(x, _mm_set1_ps(std::bit_cast<float>(0x7fff'ffff))); }
-		[[nodiscard]] inline __m128 DPM_FORCEINLINE x86_masksign(__m128 x) noexcept { return _mm_and_ps(x, _mm_set1_ps(-0.0f)); }
-		[[nodiscard]] inline __m128 DPM_FORCEINLINE x86_copysign(__m128 x, __m128 m) noexcept { return _mm_or_ps(x86_abs(x), m); }
+		[[nodiscard]] inline DPM_FORCEINLINE __m128 x86_abs(__m128 x) noexcept { return _mm_and_ps(x, _mm_set1_ps(std::bit_cast<float>(0x7fff'ffff))); }
+		[[nodiscard]] inline DPM_FORCEINLINE __m128 x86_masksign(__m128 x) noexcept { return _mm_and_ps(x, _mm_set1_ps(-0.0f)); }
+		[[nodiscard]] inline DPM_FORCEINLINE __m128 x86_copysign(__m128 x, __m128 m) noexcept { return _mm_or_ps(x86_abs(x), m); }
 	}
 
 #ifdef DPM_HAS_SSE

@@ -10,7 +10,7 @@
 
 namespace dpm::detail
 {
-	[[maybe_unused]] [[nodiscard]] inline __m128d DPM_FORCEINLINE x86_cvt_u64_f64_sse2(__m128i x) noexcept
+	[[maybe_unused]] [[nodiscard]] inline DPM_FORCEINLINE __m128d x86_cvt_u64_f64_sse2(__m128i x) noexcept
 	{
 		const auto exp84 = std::bit_cast<__m128i>(_mm_set1_pd(19342813113834066795298816.));  /* 2^84 */
 		const auto exp52 = std::bit_cast<__m128i>(_mm_set1_pd(0x0010'0000'0000'0000));        /* 2^52 */
@@ -22,7 +22,7 @@ namespace dpm::detail
 
 		return _mm_add_pd(_mm_sub_pd(std::bit_cast<__m128d>(a), adjust), std::bit_cast<__m128d>(b));
 	}
-	[[maybe_unused]] [[nodiscard]] inline __m128d DPM_FORCEINLINE x86_cvt_i64_f64_sse2(__m128i x) noexcept
+	[[maybe_unused]] [[nodiscard]] inline DPM_FORCEINLINE __m128d x86_cvt_i64_f64_sse2(__m128i x) noexcept
 	{
 		const auto exp67m3 = std::bit_cast<__m128i>(_mm_set1_pd(442721857769029238784.)); /* 2^67 * 3 */
 		const auto exp52 = std::bit_cast<__m128i>(_mm_set1_pd(0x0010'0000'0000'0000));    /* 2^52 */
@@ -34,18 +34,18 @@ namespace dpm::detail
 
 		return _mm_add_pd(_mm_sub_pd(std::bit_cast<__m128d>(_mm_add_epi64(a, exp67m3)), adjust), std::bit_cast<__m128d>(b));
 	}
-	[[maybe_unused]] [[nodiscard]] inline __m128i DPM_FORCEINLINE x86_cvt_f64_u64_sse2(__m128d x) noexcept
+	[[maybe_unused]] [[nodiscard]] inline DPM_FORCEINLINE __m128i x86_cvt_f64_u64_sse2(__m128d x) noexcept
 	{
 		const auto offset = _mm_set1_pd(0x0010'0000'0000'0000);
 		return _mm_xor_si128(std::bit_cast<__m128i>(_mm_add_pd(x, offset)), std::bit_cast<__m128i>(offset));
 	}
-	[[maybe_unused]] [[nodiscard]] inline __m128i DPM_FORCEINLINE x86_cvt_f64_i64_sse2(__m128d x) noexcept
+	[[maybe_unused]] [[nodiscard]] inline DPM_FORCEINLINE __m128i x86_cvt_f64_i64_sse2(__m128d x) noexcept
 	{
 		const auto offset = _mm_set1_pd(0x0018'0000'0000'0000);
 		return _mm_sub_epi64(std::bit_cast<__m128i>(_mm_add_pd(x, offset)), std::bit_cast<__m128i>(offset));
 	}
 
-	[[nodiscard]] inline __m128d DPM_FORCEINLINE x86_cvt_u64_f64(__m128i x) noexcept
+	[[nodiscard]] inline DPM_FORCEINLINE __m128d x86_cvt_u64_f64(__m128i x) noexcept
 	{
 #if defined(DPM_HAS_AVX512DQ)
 		return _mm_cvtepu64_pd(x);
@@ -53,7 +53,7 @@ namespace dpm::detail
 		return x86_cvt_u64_f64_sse2(x);
 #endif
 	}
-	[[nodiscard]] inline __m128d DPM_FORCEINLINE x86_cvt_i64_f64(__m128i x) noexcept
+	[[nodiscard]] inline DPM_FORCEINLINE __m128d x86_cvt_i64_f64(__m128i x) noexcept
 	{
 #if defined(DPM_HAS_AVX512DQ)
 		return _mm_cvtepi64_pd(x);
@@ -61,7 +61,7 @@ namespace dpm::detail
 		return x86_cvt_i64_f64_sse2(x);
 #endif
 	}
-	[[nodiscard]] inline __m128i DPM_FORCEINLINE x86_cvt_f64_u64(__m128d x) noexcept
+	[[nodiscard]] inline DPM_FORCEINLINE __m128i x86_cvt_f64_u64(__m128d x) noexcept
 	{
 #ifdef DPM_HAS_AVX512DQ
 		return _mm_cvtpd_epu64(x);
@@ -69,7 +69,7 @@ namespace dpm::detail
 		return x86_cvt_f64_u64_sse2(x);
 #endif
 	}
-	[[nodiscard]] inline __m128i DPM_FORCEINLINE x86_cvt_f64_i64(__m128d x) noexcept
+	[[nodiscard]] inline DPM_FORCEINLINE __m128i x86_cvt_f64_i64(__m128d x) noexcept
 	{
 #ifdef DPM_HAS_AVX512DQ
 		return _mm_cvtpd_epi64(x);
@@ -78,7 +78,7 @@ namespace dpm::detail
 #endif
 	}
 
-	[[maybe_unused]] [[nodiscard]] inline __m128d DPM_FORCEINLINE x86_floor_f64_sse2(__m128d x) noexcept
+	[[maybe_unused]] [[nodiscard]] inline DPM_FORCEINLINE __m128d x86_floor_f64_sse2(__m128d x) noexcept
 	{
 		const auto exp52 = _mm_set1_pd(0x0010'0000'0000'0000);
 		const auto mask = _mm_cmpnlt_pd(x, exp52);
@@ -91,7 +91,7 @@ namespace dpm::detail
 		return _mm_or_pd(_mm_and_pd(mask, x), _mm_andnot_pd(mask, result));
 	}
 
-	[[nodiscard]] inline __m128d DPM_FORCEINLINE x86_floor_f64(__m128d x) noexcept
+	[[nodiscard]] inline DPM_FORCEINLINE __m128d x86_floor_f64(__m128d x) noexcept
 	{
 #ifdef DPM_HAS_SSE4_1
 		return _mm_floor_pd(x);
@@ -100,7 +100,7 @@ namespace dpm::detail
 #endif
 	}
 
-	[[nodiscard]] inline __m128d DPM_FORCEINLINE x86_frexp_pd(__m128d v, __m128d &e) noexcept
+	[[nodiscard]] inline DPM_FORCEINLINE __m128d x86_frexp_pd(__m128d v, __m128d &e) noexcept
 	{
 		const auto mant_mask = _mm_set1_pd(std::bit_cast<double>(0x800f'ffff'ffff'ffff));
 		const auto a = _mm_srli_epi64(_mm_castpd_si128(v), 52);

@@ -42,11 +42,11 @@ namespace dpm
 		using cpuid_regs = std::uint32_t[4];
 
 #if defined(_MSC_VER) || defined(__CYGWIN__)
-		static void DPM_FORCEINLINE platform_cpuid(std::uint32_t leaf, cpuid_regs &regs) noexcept
+		static DPM_FORCEINLINE void platform_cpuid(std::uint32_t leaf, cpuid_regs &regs) noexcept
 		{
 			__cpuid(reinterpret_cast<int *>(regs), static_cast<int>(leaf));
 		}
-		static std::uint32_t DPM_FORCEINLINE platrofm_xcr0() noexcept
+		static DPM_FORCEINLINE std::uint32_t platrofm_xcr0() noexcept
 		{
 			return static_cast<std::uint32_t>(_xgetbv(0));
 		}

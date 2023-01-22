@@ -19,7 +19,10 @@
 #include <cfenv>
 
 #endif
+
+#ifndef _MSC_VER /* MSVC does not support STDC pragmas */
 #pragma STDC FENV_ACCESS ON
+#endif
 #endif
 
 #define FMA_FUNC DPM_VECTORCALL DPM_TARGET("fma")
@@ -45,7 +48,7 @@ namespace dpm::detail
 	using sincos_ret_t = typename sincos_ret<Mask>::type;
 
 	template<sincos_op Mask>
-	inline static sincos_ret_t<Mask> DPM_FORCEINLINE return_sincos(__m128d sin, __m128d cos) noexcept
+	inline static DPM_FORCEINLINE sincos_ret_t<Mask> return_sincos(__m128d sin, __m128d cos) noexcept
 	{
 		if constexpr (Mask == sincos_op::OP_SINCOS)
 			return {sin, cos};
@@ -55,7 +58,7 @@ namespace dpm::detail
 			return cos;
 	}
 
-	inline static std::tuple<__m128d, __m128d, __m128d> DPM_FORCEINLINE prepare_sincos(__m128d x, __m128d abs_x) noexcept
+	inline static DPM_FORCEINLINE std::tuple<__m128d, __m128d, __m128d> prepare_sincos(__m128d x, __m128d abs_x) noexcept
 	{
 		/* y = |x| * 4 / Pi */
 		auto y = _mm_mul_pd(abs_x, _mm_set1_pd(fopi_f64));
@@ -257,7 +260,7 @@ namespace dpm::detail
 	}
 
 	template<sincos_op Mask>
-	inline static sincos_ret_t<Mask> SSE2_FUNC DPM_FORCEINLINE impl_sincos(__m128d x) noexcept
+	inline static DPM_FORCEINLINE sincos_ret_t<Mask> SSE2_FUNC impl_sincos(__m128d x) noexcept
 	{
 		const auto abs_x = x86_abs(x);
 
@@ -311,13 +314,13 @@ namespace dpm::detail
 #endif
 	}
 
-	std::pair<__m128d, __m128d> x86_sincos(__m128d x) noexcept
+	std::pair<__m128d, __m128d> DPM_PUBLIC DPM_PURE DPM_VECTORCALL DPM_TARGET("sse2") x86_sincos(__m128d x) noexcept
 	{
 		const auto [sin, cos] = impl_sincos<sincos_op::OP_SINCOS>(x);
 		return {sin, cos};
 	}
-	__m128d x86_sin(__m128d x) noexcept { return impl_sincos<sincos_op::OP_SIN>(x); }
-	__m128d x86_cos(__m128d x) noexcept { return impl_sincos<sincos_op::OP_COS>(x); }
+	__m128d DPM_PUBLIC DPM_PURE DPM_VECTORCALL DPM_TARGET("sse2") x86_sin(__m128d x) noexcept { return impl_sincos<sincos_op::OP_SIN>(x); }
+	__m128d DPM_PUBLIC DPM_PURE DPM_VECTORCALL DPM_TARGET("sse2") x86_cos(__m128d x) noexcept { return impl_sincos<sincos_op::OP_COS>(x); }
 }
 
 #endif

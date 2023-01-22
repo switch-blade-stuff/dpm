@@ -4,8 +4,6 @@
 
 #pragma once
 
-#include "arch.hpp"
-
 #if !defined(NDEBUG) && !defined(DPM_DEBUG)
 #define DPM_DEBUG
 #endif
@@ -37,6 +35,8 @@ import std;
 #include <cstddef>
 
 #endif
+
+#include "arch.hpp"
 
 #if defined(__has_cpp_attribute) && __has_cpp_attribute(assume)
 #define DPM_ASSUME(x)
@@ -115,10 +115,10 @@ import std;
 #endif
 
 #ifdef DPM_EXPORT
-#define DPM_PUBLIC DPM_API_IMPORT
+#define DPM_PUBLIC DPM_API_EXPORT
 #define DPM_PRIVATE DPM_API_HIDDEN
 #else
-#define DPM_PUBLIC DPM_API_EXPORT
+#define DPM_PUBLIC DPM_API_IMPORT
 #define DPM_PRIVATE DPM_API_HIDDEN
 #endif
 
