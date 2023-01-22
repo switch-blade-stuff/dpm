@@ -28,7 +28,7 @@ On architectures without SIMD intrinsic support, vectorization is emulated via s
   <tr>
     <td>DPM_USE_MODULES</td>
     <td>-DDPM_USE_MODULES</td>
-    <td>ON</td>
+    <td>OFF</td>
     <td>Toggles support for C++20 modules</td>
   </tr>
   <tr>

@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.20)
 project(dpm)
 
 # Library options
-option(DPM_USE_MODULES "Toggles support for C++20 modules" ON)
+option(DPM_USE_MODULES "Toggles support for C++20 modules" OFF)
 if (${DPM_USE_MODULES})
     add_compile_definitions(DPM_USE_MODULES)
 endif ()
