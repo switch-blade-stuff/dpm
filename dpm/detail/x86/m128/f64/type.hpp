@@ -90,11 +90,11 @@ namespace dpm
 		constexpr static auto alignment = std::max(Align, alignof(__m128d));
 
 		using data_type = __m128d[data_size];
-		using value_proxy = detail::mask_element<std::int64_t>;
+		using value_alias = detail::mask_alias<std::int64_t>;
 
 	public:
 		using value_type = bool;
-		using reference = detail::mask_element<std::int64_t> &;
+		using reference = detail::mask_alias<std::int64_t> &;
 
 		using abi_type = detail::avec<N, Align>;
 		using simd_type = simd<double, abi_type>;
@@ -165,12 +165,12 @@ namespace dpm
 		[[nodiscard]] reference operator[](std::size_t i) noexcept
 		{
 			DPM_ASSERT(i < size());
-			return reinterpret_cast<value_proxy *>(m_data)[i];
+			return reinterpret_cast<value_alias *>(m_data)[i];
 		}
 		[[nodiscard]] value_type operator[](std::size_t i) const noexcept
 		{
 			DPM_ASSERT(i < size());
-			return reinterpret_cast<const value_proxy *>(m_data)[i];
+			return reinterpret_cast<const value_alias *>(m_data)[i];
 		}
 
 		[[nodiscard]] simd_mask operator!() const noexcept
@@ -604,11 +604,11 @@ namespace dpm
 		constexpr static auto alignment = std::max(Align, alignof(__m128d));
 
 		using data_type = __m128d[data_size];
-		using value_proxy = detail::simd_element<double>;
+		using value_alias = detail::simd_alias<double>;
 
 	public:
 		using value_type = double;
-		using reference = value_proxy &;
+		using reference = value_alias &;
 
 		using abi_type = detail::avec<N, Align>;
 		using mask_type = simd_mask<double, abi_type>;
@@ -756,12 +756,12 @@ namespace dpm
 		[[nodiscard]] reference operator[](std::size_t i) noexcept
 		{
 			DPM_ASSERT(i < size());
-			return reinterpret_cast<value_proxy *>(m_data)[i];
+			return reinterpret_cast<value_alias *>(m_data)[i];
 		}
 		[[nodiscard]] value_type operator[](std::size_t i) const noexcept
 		{
 			DPM_ASSERT(i < size());
-			return reinterpret_cast<const value_proxy *>(m_data)[i];
+			return reinterpret_cast<const value_alias *>(m_data)[i];
 		}
 
 		simd operator++(int) noexcept
