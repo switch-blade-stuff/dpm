@@ -58,7 +58,7 @@ namespace dpm
 
 	/** Implicitly converts elements of SIMD vector \a x to the `To` type, where `To` is either `typename T::value_type` or `T` if `T` is a scalar. */
 	template<typename T, typename U, std::size_t N, std::size_t A, typename To = typename detail::deduce_cast<T>::type>
-	[[nodiscard]] inline auto simd_cast(const simd<U, detail::avec<N, A>> &x) noexcept
+	[[nodiscard]] inline DPM_FORCEINLINE auto simd_cast(const simd<U, detail::avec<N, A>> &x) noexcept
 	requires (detail::valid_simd_cast<T, U, detail::avec<N, A>> &&
 	          detail::x86_overload_any<To, N, A> &&
 	          detail::x86_overload_any<U, N, A>)
@@ -69,7 +69,7 @@ namespace dpm
 	}
 	/** Explicitly converts elements of SIMD vector \a x to the `To` type, where `To` is either `typename T::value_type` or `T` if `T` is a scalar. */
 	template<typename T, typename U, std::size_t N, std::size_t A, typename To = typename detail::deduce_cast<T>::type>
-	[[nodiscard]] inline auto static_simd_cast(const simd<U, detail::avec<N, A>> &x) noexcept
+	[[nodiscard]] inline DPM_FORCEINLINE auto static_simd_cast(const simd<U, detail::avec<N, A>> &x) noexcept
 	requires (detail::valid_simd_cast<T, U, detail::avec<N, A>> &&
 	          detail::x86_overload_any<To, N, A> &&
 	          detail::x86_overload_any<U, N, A>)
@@ -81,7 +81,7 @@ namespace dpm
 
 	/** Concatenates elements of \a values into a single SIMD mask. */
 	template<typename T, typename... Abis>
-	[[nodiscard]] inline auto concat(const simd_mask<T, Abis> &...values) noexcept requires ((detail::x86_simd_abi_any<Abis, T> && ...))
+	[[nodiscard]] inline DPM_FORCEINLINE auto concat(const simd_mask<T, Abis> &...values) noexcept requires ((detail::x86_simd_abi_any<Abis, T> && ...))
 	{
 		if constexpr (sizeof...(values) == 1)
 			return (values, ...);
@@ -94,7 +94,7 @@ namespace dpm
 	}
 	/** Concatenates elements of \a values into a single SIMD vector. */
 	template<typename T, typename... Abis>
-	[[nodiscard]] inline auto concat(const simd<T, Abis> &...values) noexcept requires ((detail::x86_simd_abi_any<Abis, T> && ...))
+	[[nodiscard]] inline DPM_FORCEINLINE auto concat(const simd<T, Abis> &...values) noexcept requires ((detail::x86_simd_abi_any<Abis, T> && ...))
 	{
 		if constexpr (sizeof...(values) == 1)
 			return (values, ...);
@@ -108,7 +108,7 @@ namespace dpm
 
 	/** Concatenates elements of \a values into a single SIMD mask. */
 	template<typename T, std::size_t N, std::size_t A, std::size_t M>
-	[[nodiscard]] inline auto concat(const std::array<simd_mask<T, detail::avec<N, A>>, M> &values) noexcept requires detail::x86_overload_any<T, N, A> && detail::x86_overload_any<T, M, A>
+	[[nodiscard]] inline DPM_FORCEINLINE auto concat(const std::array<simd_mask<T, detail::avec<N, A>>, M> &values) noexcept requires detail::x86_overload_any<T, N, A> && detail::x86_overload_any<T, M, A>
 	{
 		using result_t = simd_mask<T, detail::avec<N * M, A>>;
 		if constexpr (M == 1)
@@ -129,7 +129,7 @@ namespace dpm
 	}
 	/** Concatenates elements of \a values into a single SIMD mask. */
 	template<typename T, std::size_t N, std::size_t A, std::size_t M>
-	[[nodiscard]] inline auto concat(const std::array<simd<T, detail::avec<N, A>>, M> &values) noexcept requires detail::x86_overload_any<T, N, A> && detail::x86_overload_any<T, M, A>
+	[[nodiscard]] inline DPM_FORCEINLINE auto concat(const std::array<simd<T, detail::avec<N, A>>, M> &values) noexcept requires detail::x86_overload_any<T, N, A> && detail::x86_overload_any<T, M, A>
 	{
 		using result_t = simd<T, detail::avec<N * M, A>>;
 		if constexpr (M == 1)
@@ -152,7 +152,7 @@ namespace dpm
 	/** Returns an array of SIMD masks where every `i`th element of the `j`th mask a copy of the `i + j * V::size()`th element from \a x.
 	 * @note Size of \a x must be a multiple of `V::size()`. */
 	template<typename V, std::size_t N, std::size_t A, typename U = typename V::simd_type::value_type>
-	[[nodiscard]] inline auto split(const simd_mask<U, detail::avec<N, A>> &x) noexcept requires detail::can_split_mask<V, detail::avec<N, A>> && detail::x86_overload_any<U, N, A>
+	[[nodiscard]] inline DPM_FORCEINLINE auto split(const simd_mask<U, detail::avec<N, A>> &x) noexcept requires detail::can_split_mask<V, detail::avec<N, A>> && detail::x86_overload_any<U, N, A>
 	{
 		std::array<V, simd_size_v<U, detail::avec<N, A>> / V::size()> result = {};
 		for (std::size_t j = 0; j < result.size(); ++j)
@@ -165,7 +165,7 @@ namespace dpm
 	/** Returns an array of SIMD vectors where every `i`th element of the `j`th vector is a copy of the `i + j * V::size()`th element from \a x.
 	 * @note Size of \a x must be a multiple of `V::size()`. */
 	template<typename V, std::size_t N, std::size_t A, typename U = typename V::simd_type::value_type>
-	[[nodiscard]] inline auto split(const simd<U, detail::avec<N, A>> &x) noexcept requires detail::can_split_mask<V, detail::avec<N, A>> && detail::x86_overload_any<U, N, A>
+	[[nodiscard]] inline DPM_FORCEINLINE auto split(const simd<U, detail::avec<N, A>> &x) noexcept requires detail::can_split_mask<V, detail::avec<N, A>> && detail::x86_overload_any<U, N, A>
 	{
 		std::array<V, simd_size_v<U, detail::avec<N, A>> / V::size()> result = {};
 		for (std::size_t j = 0; j < result.size(); ++j)
@@ -178,13 +178,13 @@ namespace dpm
 
 	/** Returns an array of SIMD masks where every `i`th element of the `j`th mask is a copy of the `i + j * (simd_size_v<T, Abi> / N)`th element from \a x. */
 	template<std::size_t N, typename T, std::size_t M, std::size_t A>
-	[[nodiscard]] inline auto split_by(const simd_mask<T, detail::avec<M, A>> &x) noexcept requires (M % N == 0 && detail::x86_overload_any<T, M, A>)
+	[[nodiscard]] inline DPM_FORCEINLINE auto split_by(const simd_mask<T, detail::avec<M, A>> &x) noexcept requires (M % N == 0 && detail::x86_overload_any<T, M, A>)
 	{
 		return split<resize_simd_t<M / N, simd_mask<T, detail::avec<M, A>>>>(x);
 	}
 	/** Returns an array of SIMD vectors where every `i`th element of the `j`th vector is a copy of the `i + j * (simd_size_v<T, Abi> / N)`th element from \a x. */
 	template<std::size_t N, typename T, std::size_t M, std::size_t A>
-	[[nodiscard]] inline auto split_by(const simd<T, detail::avec<M, A>> &x) noexcept requires (M % N == 0 && detail::x86_overload_any<T, M, A>)
+	[[nodiscard]] inline DPM_FORCEINLINE auto split_by(const simd<T, detail::avec<M, A>> &x) noexcept requires (M % N == 0 && detail::x86_overload_any<T, M, A>)
 	{
 		return split<resize_simd_t<M / N, simd<T, detail::avec<M, A>>>>(x);
 	}

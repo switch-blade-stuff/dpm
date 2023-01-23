@@ -536,7 +536,7 @@ namespace dpm
 		constexpr static auto data_size = ext::native_data_size_v<simd_mask>;
 		constexpr static auto alignment = std::max(Align, alignof(vector_type));
 
-		using data_type = vector_type[data_size];
+		using storage_type = vector_type[data_size];
 		using value_alias = detail::mask_alias<std::int64_t>;
 
 	public:
@@ -669,7 +669,7 @@ namespace dpm
 		}
 
 	private:
-		alignas(alignment) data_type m_data;
+		alignas(alignment) storage_type m_data;
 	};
 
 	namespace detail
@@ -799,7 +799,7 @@ namespace dpm
 		constexpr static auto data_size = ext::native_data_size_v<simd>;
 		constexpr static auto alignment = std::max(Align, alignof(vector_type));
 
-		using data_type = vector_type[data_size];
+		using storage_type = vector_type[data_size];
 		using value_alias = detail::simd_alias<I>;
 
 	public:
@@ -1025,20 +1025,20 @@ namespace dpm
 #ifdef DPM_HAS_SSE4_1
 		[[nodiscard]] friend mask_type operator==(const simd &a, const simd &b) noexcept
 		{
-			data_type mask_data = {};
+			storage_type mask_data = {};
 			impl_t::template cmp_eq<data_size>(mask_data, a.m_data, b.m_data);
 			return {mask_data};
 		}
 		[[nodiscard]] friend mask_type operator!=(const simd &a, const simd &b) noexcept
 		{
-			data_type mask_data = {};
+			storage_type mask_data = {};
 			impl_t::template cmp_ne<data_size>(mask_data, a.m_data, b.m_data);
 			return {mask_data};
 		}
 #endif
 
 	private:
-		alignas(alignment) data_type m_data;
+		alignas(alignment) storage_type m_data;
 	};
 
 	namespace detail
