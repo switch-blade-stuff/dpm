@@ -8,6 +8,8 @@
 
 #if defined(DPM_ARCH_X86) && defined(DPM_HAS_SSE2)
 
+#include "../f32/utility.hpp"
+
 namespace dpm
 {
 	namespace detail
@@ -25,7 +27,7 @@ namespace dpm
 			}
 #else
 			auto vm = _mm_undefined_si128();
-			switch (const auto mask = std::bit_cast<std::int32_t>(0xffff'ffff); n)
+			switch (const auto mask = static_cast<std::int32_t>(0xffff'ffff); n)
 			{
 				case 3: vm = _mm_set_epi32(mask, 0, 0, 0);
 					break;
@@ -41,7 +43,7 @@ namespace dpm
 		/* When `n` is < 4, mix `4 - n` zeros at the end of `a`. */
 		inline DPM_FORCEINLINE __m128i x86_maskzero_i32(std::size_t n, __m128i v) noexcept
 		{
-			switch (const auto mask = std::bit_cast<std::int32_t>(0xffff'ffff); n)
+			switch (const auto mask = static_cast<std::int32_t>(0xffff'ffff); n)
 			{
 				case 3: return _mm_and_si128(v, _mm_set_epi32(0, mask, mask, mask));
 				case 2: return _mm_and_si128(v, _mm_set_epi32(0, 0, mask, mask));
@@ -52,7 +54,7 @@ namespace dpm
 		/* When `n` is < 4, mix `4 - n` ones at the end of `a`. */
 		inline DPM_FORCEINLINE __m128i x86_maskone_i32(std::size_t n, __m128i v) noexcept
 		{
-			switch (const auto mask = std::bit_cast<std::int32_t>(0xffff'ffff); n)
+			switch (const auto mask = static_cast<std::int32_t>(0xffff'ffff); n)
 			{
 				case 3: return _mm_or_si128(v, _mm_set_epi32(mask, 0, 0, 0));
 				case 2: return _mm_or_si128(v, _mm_set_epi32(mask, mask, 0, 0));
@@ -220,7 +222,7 @@ namespace dpm
 		[[nodiscard]] DPM_FORCEINLINE simd_mask operator!() const noexcept
 		{
 			simd_mask result = {};
-			const auto mask = _mm_set1_epi32(std::bit_cast<std::int32_t>(0xffff'ffff));
+			const auto mask = _mm_set1_epi32(static_cast<std::int32_t>(0xffff'ffff));
 			for (std::size_t i = 0; i < data_size; ++i) result.m_data[i] = _mm_xor_si128(m_data[i], mask);
 			return result;
 		}
@@ -333,23 +335,23 @@ namespace dpm
 	public:
 		using base_expr::const_where_expression;
 
-		template<std::convertible_to<value_type> U>
-		DPM_FORCEINLINE void operator=(U &&value) && noexcept { m_data = ext::blend(m_data, mask_t{std::forward<U>(value)}, m_mask); }
+		template<typename U>
+		DPM_FORCEINLINE void operator=(U &&value) && noexcept requires std::is_convertible_v<U, value_type> { m_data = ext::blend(m_data, mask_t{std::forward<U>(value)}, m_mask); }
 
 		template<typename U>
-		DPM_FORCEINLINE void operator&=(U &&value) && noexcept requires std::convertible_to<U, value_type>
+		DPM_FORCEINLINE void operator&=(U &&value) && noexcept requires std::is_convertible_v<U, value_type>
 		{
 			const auto new_data = m_data & mask_t{std::forward<U>(value)};
 			m_data = ext::blend(m_data, new_data, m_mask);
 		}
 		template<typename U>
-		DPM_FORCEINLINE void operator|=(U &&value) && noexcept requires std::convertible_to<U, value_type>
+		DPM_FORCEINLINE void operator|=(U &&value) && noexcept requires std::is_convertible_v<U, value_type>
 		{
 			const auto new_data = m_data | mask_t{std::forward<U>(value)};
 			m_data = ext::blend(m_data, new_data, m_mask);
 		}
 		template<typename U>
-		DPM_FORCEINLINE void operator^=(U &&value) && noexcept requires std::convertible_to<U, value_type>
+		DPM_FORCEINLINE void operator^=(U &&value) && noexcept requires std::is_convertible_v<U, value_type>
 		{
 			const auto new_data = m_data ^ mask_t{std::forward<U>(value)};
 			m_data = ext::blend(m_data, new_data, m_mask);
@@ -403,28 +405,6 @@ namespace dpm
 			return detail::native_access<simd_mask<I, detail::avec<N, A>>>::to_native_data(x);
 		}
 
-#ifdef DPM_HAS_SSE4_1
-		/** Replaces elements of mask \a a with elements of mask \a b using mask \a m. Elements of \a b are selected if the corresponding element of \a m evaluates to `true`. */
-		template<detail::integral_of_size<4> I, std::size_t N, std::size_t A>
-		[[nodiscard]] inline DPM_FORCEINLINE simd_mask<I, detail::avec<N, A>> blend(
-				const simd_mask<I, detail::avec<N, A>> &a,
-				const simd_mask<I, detail::avec<N, A>> &b,
-				const simd_mask<I, detail::avec<N, A>> &m)
-		noexcept requires detail::x86_overload_m128<I, N, A>
-		{
-			constexpr auto data_size = native_data_size_v<simd_mask<I, detail::avec<N, A>>>;
-
-			simd_mask<I, detail::avec<N, A>> result = {};
-			auto result_data = to_native_data(result);
-			const auto a_data = to_native_data(a);
-			const auto b_data = to_native_data(b);
-			const auto m_data = to_native_data(m);
-
-			for (std::size_t i = 0; i < data_size; ++i) result_data[i] = _mm_blendv_epi8(a_data[i], b_data[i], m_data[i]);
-			return result;
-		}
-#endif
-
 		/** Shuffles elements of mask \a x into a new mask according to the specified indices. */
 		template<std::size_t... Is, detail::integral_of_size<4> I, std::size_t N, std::size_t A, std::size_t M = sizeof...(Is)>
 		[[nodiscard]] inline DPM_FORCEINLINE simd_mask<I, detail::avec<M, A>> shuffle(const simd_mask<I, detail::avec<N, A>> &x) noexcept requires detail::x86_overload_any<I, N, A> && detail::x86_overload_m128<I, M, A>
@@ -452,7 +432,7 @@ namespace dpm
 #ifdef DPM_HAS_SSE4_1
 		if constexpr (ext::native_data_size_v<mask_t> == 1) return _mm_test_all_ones(detail::x86_maskone_i32(mask_t::size(), mask_data[0]));
 #endif
-		auto result = _mm_set1_epi32(std::bit_cast<std::int32_t>(0xffff'ffff));
+		auto result = _mm_set1_epi32(static_cast<std::int32_t>(0xffff'ffff));
 		for (std::size_t i = 0; i < mask_t::size(); i += 4)
 		{
 			const auto vm = detail::x86_maskone_i32(mask_t::size() - i, mask_data[i / 4]);
@@ -499,7 +479,7 @@ namespace dpm
 		using mask_t = simd_mask<I, detail::avec<N, A>>;
 		const auto mask_data = ext::to_native_data(mask);
 
-		auto any_mask = _mm_setzero_si128(), all_mask = _mm_set1_epi32(std::bit_cast<std::int32_t>(0xffff'ffff));
+		auto any_mask = _mm_setzero_si128(), all_mask = _mm_set1_epi32(static_cast<std::int32_t>(0xffff'ffff));
 		for (std::size_t i = 0; i < mask_t::size(); i += 4)
 		{
 			const auto vm = mask_data[i / 4];
@@ -526,7 +506,7 @@ namespace dpm
 		std::size_t result = 0;
 		for (std::size_t i = 0; i < mask_t::size(); i += 4)
 		{
-			const auto vm = detail::x86_maskone_i32(mask_t::size() - i, mask_data[i / 4]);
+			const auto vm = detail::x86_maskzero_i32(mask_t::size() - i, mask_data[i / 4]);
 			result += std::popcount(_mm_movemask_ps(std::bit_cast<__m128>(vm)));
 		}
 		return result;
@@ -620,7 +600,7 @@ namespace dpm
 		template<detail::compatible_element<value_type> U>
 		simd(U &&value) noexcept
 		{
-			const auto vec = _mm_set1_epi32(std::bit_cast<std::int32_t>(static_cast<I>(value)));
+			const auto vec = _mm_set1_epi32(static_cast<std::int32_t>(static_cast<I>(value)));
 			std::fill_n(m_data, data_size, vec);
 		}
 		/** Initializes the underlying elements with values provided by the generator \a gen. */
@@ -637,7 +617,7 @@ namespace dpm
 					case 2: i1 = std::invoke(gen, std::integral_constant<std::size_t, value_idx + 1>());
 					case 1: i0 = std::invoke(gen, std::integral_constant<std::size_t, value_idx>());
 				}
-				return _mm_set_epi32(std::bit_cast<std::int32_t>(i3), std::bit_cast<std::int32_t>(i2), std::bit_cast<std::int32_t>(i1), std::bit_cast<std::int32_t>(i0));
+				return _mm_set_epi32(static_cast<std::int32_t>(i3), static_cast<std::int32_t>(i2), static_cast<std::int32_t>(i1), static_cast<std::int32_t>(i0));
 			});
 		}
 
@@ -646,11 +626,11 @@ namespace dpm
 		simd(const simd<U, detail::avec<size(), OtherAlign>> &other) noexcept
 		{
 			if constexpr (constexpr auto other_alignment = alignof(decltype(other)); other_alignment >= alignment)
-				copy_from(reinterpret_cast<const U *>(ext::to_native_data(other).data()), vector_aligned);
+				copy_from(reinterpret_cast<const detail::simd_alias<U> *>(ext::to_native_data(other).data()), vector_aligned);
 			else if constexpr (other_alignment != alignof(value_type))
-				copy_from(reinterpret_cast<const U *>(ext::to_native_data(other).data()), overaligned<other_alignment>);
+				copy_from(reinterpret_cast<const detail::simd_alias<U> *>(ext::to_native_data(other).data()), overaligned<other_alignment>);
 			else
-				copy_from(reinterpret_cast<const U *>(ext::to_native_data(other).data()), element_aligned);
+				copy_from(reinterpret_cast<const detail::simd_alias<U> *>(ext::to_native_data(other).data()), element_aligned);
 		}
 		/** Initializes the underlying elements from \a mem. */
 		template<typename U, typename Flags>
@@ -660,7 +640,7 @@ namespace dpm
 		template<typename U, typename Flags>
 		DPM_FORCEINLINE void copy_from(const U *mem, Flags) noexcept requires is_simd_flag_type_v<Flags>
 		{
-			if constexpr (detail::aligned_tag<Flags, 16> && detail::integral_of_size<std::remove_cvref_t<U>, 4>)
+			if constexpr (detail::aligned_tag<Flags, 16> && detail::integral_of_size<std::remove_volatile_t<U>, 4>)
 			{
 				for (std::size_t i = 0; i < size(); i += 4)
 					switch (size() - i)
@@ -672,13 +652,19 @@ namespace dpm
 						case 1: operator[](i) = static_cast<I>(mem[i]);
 					}
 			}
-			else if constexpr (detail::aligned_tag<Flags, 16> && std::same_as<std::remove_cvref_t<U>, float> && std::is_signed_v<I>)
+			else if constexpr (detail::aligned_tag<Flags, 16> && std::same_as<std::remove_volatile_t<U>, float>)
 			{
 				for (std::size_t i = 0; i < size(); i += 4)
 					switch (size() - i)
 					{
-						default: m_data[i / 4] = _mm_cvtps_epi32(reinterpret_cast<const __m128 *>(mem)[i / 4]);
+						default:
+						{
+							if constexpr (!std::is_signed_v<I>)
+								m_data[i / 4] = detail::x86_cvt_f32_u32(reinterpret_cast<const __m128 *>(mem)[i / 4]);
+							else
+								m_data[i / 4] = _mm_cvtps_epi32(reinterpret_cast<const __m128 *>(mem)[i / 4]);
 							break;
+						}
 						case 3: operator[](i + 2) = static_cast<I>(mem[i + 2]); [[fallthrough]];
 						case 2: operator[](i + 1) = static_cast<I>(mem[i + 1]); [[fallthrough]];
 						case 1: operator[](i) = static_cast<I>(mem[i]);
@@ -691,7 +677,7 @@ namespace dpm
 		template<typename U, typename Flags>
 		DPM_FORCEINLINE void copy_to(U *mem, Flags) const noexcept requires is_simd_flag_type_v<Flags>
 		{
-			if constexpr (detail::aligned_tag<Flags, 16> && detail::integral_of_size<std::remove_cvref_t<U>, 4>)
+			if constexpr (detail::aligned_tag<Flags, 16> && detail::integral_of_size<std::remove_volatile_t<U>, 4>)
 			{
 				for (std::size_t i = 0; i < size(); i += 4)
 					switch (size() - i)
@@ -702,20 +688,24 @@ namespace dpm
 						case 2: mem[i + 1] = static_cast<U>(operator[](i + 1)); [[fallthrough]];
 						case 1: mem[i] = static_cast<U>(operator[](i));
 					}
-				return;
 			}
-			else if constexpr (detail::aligned_tag<Flags, 16> && std::same_as<std::remove_cvref_t<U>, float> && std::is_signed_v<I>)
+			else if constexpr (detail::aligned_tag<Flags, 16> && std::same_as<std::remove_volatile_t<U>, float>)
 			{
 				for (std::size_t i = 0; i < size(); i += 4)
 					switch (size() - i)
 					{
-						default: reinterpret_cast<__m128 *>(mem)[i / 4] = _mm_cvtepi32_ps(m_data[i / 4]);
+						default:
+						{
+							if constexpr (!std::is_signed_v<I>)
+								reinterpret_cast<__m128 *>(mem)[i / 4] = detail::x86_cvt_u32_f32(m_data[i / 4]);
+							else
+								reinterpret_cast<__m128 *>(mem)[i / 4] = _mm_cvtepi32_ps(m_data[i / 4]);
+						}
 							break;
 						case 3: mem[i + 2] = static_cast<float>(operator[](i + 2)); [[fallthrough]];
 						case 2: mem[i + 1] = static_cast<float>(operator[](i + 1)); [[fallthrough]];
 						case 1: mem[i] = static_cast<float>(operator[](i));
 					}
-				return;
 			}
 			else
 				for (std::size_t i = 0; i < size(); ++i) mem[i] = static_cast<U>(operator[](i));
@@ -766,7 +756,7 @@ namespace dpm
 		[[nodiscard]] DPM_FORCEINLINE simd operator~() const noexcept
 		{
 			simd result = {};
-			const auto mask = _mm_set1_epi32(std::bit_cast<std::int32_t>(0xffff'ffff));
+			const auto mask = _mm_set1_epi32(static_cast<std::int32_t>(0xffff'ffff));
 			for (std::size_t i = 0; i < data_size; ++i) result.m_data[i] = _mm_xor_si128(m_data[i], mask);
 			return result;
 		}
@@ -920,35 +910,31 @@ namespace dpm
 		template<typename U, typename Flags>
 		DPM_FORCEINLINE void copy_to(U *mem, Flags) const && noexcept requires is_simd_flag_type_v<Flags>
 		{
-#ifdef DPM_HAS_AVX
-			if constexpr (detail::aligned_tag<Flags, 16>)
+			if constexpr (sizeof(U) == 4)
 			{
 				const auto v_mask = ext::to_native_data(m_mask);
 				const auto v_data = ext::to_native_data(m_data);
-				if constexpr (std::same_as<std::remove_cvref_t<U>, float>)
+				for (std::size_t i = 0; i < mask_t::size(); i += 4)
 				{
-					for (std::size_t i = 0; i < mask_t::size(); i += 4)
+					const auto mi = detail::x86_maskzero_i32(mask_t::size() - i, v_mask[i / 4]);
+					auto v = v_data[i / 4];
+					if constexpr (std::same_as<std::remove_volatile_t<U>, float>)
 					{
-						const auto mi = detail::x86_maskzero_i32(mask_t::size() - i, v_mask[i / 4]);
-						_mm_maskstore_ps(mem + i, mi, _mm_cvtepi32_ps(v_data[i / 4]));
+						if constexpr (!std::is_signed_v<I>)
+							v = std::bit_cast<__m128i>(detail::x86_cvt_u32_f32(v));
+						else
+							v = std::bit_cast<__m128i>(detail::x86_cvt_u32_f32(v));
 					}
-					return;
-				}
-#ifdef DPM_HAS_AVX2
-				else if constexpr (detail::signed_integral_of_size<std::remove_cvref_t<U>, 4>)
-				{
-					for (std::size_t i = 0; i < mask_t::size(); i += 4)
-					{
-						const auto mi = detail::x86_maskzero_i32(mask_t::size() - i, v_mask[i / 4]);
-						_mm_maskstore_epi32(mem + i, mi, v_data[i / 4]);
-					}
-					return;
-				}
+#ifdef DPM_HAS_AVX
+					if constexpr (detail::aligned_tag<Flags, 16>)
+						_mm_maskstore_ps(mem + i, mi, std::bit_cast<__m128>(v));
+					else
 #endif
+						_mm_maskmoveu_si128(v, mi, reinterpret_cast<char *>(mem + i));
+				}
 			}
 			else
-#endif
-			for (std::size_t i = 0; i < mask_t::size(); ++i) if (m_mask[i]) mem[i] = static_cast<U>(m_data[i]);
+				for (std::size_t i = 0; i < mask_t::size(); ++i) if (m_mask[i]) mem[i] = static_cast<U>(m_data[i]);
 		}
 
 	protected:
@@ -969,8 +955,8 @@ namespace dpm
 	public:
 		using base_expr::const_where_expression;
 
-		template<std::convertible_to<value_type> U>
-		DPM_FORCEINLINE void operator=(U &&value) && noexcept { m_data = ext::blend(m_data, simd_t{std::forward<U>(value)}, m_mask); }
+		template<typename U>
+		DPM_FORCEINLINE void operator=(U &&value) && noexcept requires std::is_convertible_v<U, value_type> { m_data = ext::blend(m_data, simd_t{std::forward<U>(value)}, m_mask); }
 
 		DPM_FORCEINLINE void operator++() && noexcept
 		{
@@ -996,26 +982,26 @@ namespace dpm
 		}
 
 		template<typename U>
-		DPM_FORCEINLINE void operator+=(U &&value) && noexcept requires std::convertible_to<U, value_type>
+		DPM_FORCEINLINE void operator+=(U &&value) && noexcept requires std::is_convertible_v<U, value_type>
 		{
 			const auto new_data = m_data + simd_t{std::forward<U>(value)};
 			m_data = ext::blend(m_data, new_data, m_mask);
 		}
 		template<typename U>
-		DPM_FORCEINLINE void operator-=(U &&value) && noexcept requires std::convertible_to<U, value_type>
+		DPM_FORCEINLINE void operator-=(U &&value) && noexcept requires std::is_convertible_v<U, value_type>
 		{
 			const auto new_data = m_data - simd_t{std::forward<U>(value)};
 			m_data = ext::blend(m_data, new_data, m_mask);
 		}
 
 		template<typename U>
-		DPM_FORCEINLINE void operator*=(U &&value) && noexcept requires std::convertible_to<U, value_type>
+		DPM_FORCEINLINE void operator*=(U &&value) && noexcept requires std::is_convertible_v<U, value_type>
 		{
 			const auto new_data = m_data * simd_t{std::forward<U>(value)};
 			m_data = ext::blend(m_data, new_data, m_mask);
 		}
 		template<typename U>
-		DPM_FORCEINLINE void operator/=(U &&value) && noexcept requires std::convertible_to<U, value_type>
+		DPM_FORCEINLINE void operator/=(U &&value) && noexcept requires std::is_convertible_v<U, value_type>
 		{
 			const auto new_data = m_data / simd_t{std::forward<U>(value)};
 			m_data = ext::blend(m_data, new_data, m_mask);
@@ -1026,34 +1012,27 @@ namespace dpm
 		DPM_FORCEINLINE void copy_from(const U *mem, Flags) && noexcept requires is_simd_flag_type_v<Flags>
 		{
 #ifdef DPM_HAS_AVX
-			if constexpr (detail::aligned_tag<Flags, 16>)
+			if constexpr (detail::aligned_tag<Flags, 16> && sizeof(U) == 4)
 			{
 				const auto v_mask = ext::to_native_data(m_mask);
 				const auto v_data = ext::to_native_data(m_data);
-				if constexpr (std::same_as<std::remove_cvref_t<U>, float>)
+				for (std::size_t i = 0; i < mask_t::size(); i += 4)
 				{
-					for (std::size_t i = 0; i < mask_t::size(); i += 4)
+					const auto mi = detail::x86_maskzero_i32(mask_t::size() - i, v_mask[i / 4]);
+					auto v = std::bit_cast<__m128i>(_mm_maskload_ps(mem + i, mi));
+					if constexpr (std::same_as<std::remove_volatile_t<U>, float>)
 					{
-						const auto mi = detail::x86_maskzero_i32(mask_t::size() - i, v_mask[i / 4]);
-						v_data[i / 4] = _mm_cvtps_epi32(_mm_maskload_ps(mem + i, mi));
+						if constexpr (!std::is_signed_v<I>)
+							v = detail::x86_cvt_f32_u32(std::bit_cast<__m128>(v));
+						else
+							v = _mm_cvtps_epi32(std::bit_cast<__m128>(v));
 					}
-					return;
+					v_data[i / 4] = v;
 				}
-#ifdef DPM_HAS_AVX2
-				else if constexpr (detail::signed_integral_of_size<std::remove_cvref_t<U>, 4>)
-				{
-					for (std::size_t i = 0; i < mask_t::size(); i += 4)
-					{
-						const auto mi = detail::x86_maskzero_i32(mask_t::size() - i, v_mask[i / 4]);
-						v_data[i / 4] = _mm_maskload_epi32(mem + i, mi);
-					}
-					return;
-				}
-#endif
 			}
 			else
 #endif
-			for (std::size_t i = 0; i < mask_t::size(); ++i) if (m_mask[i]) m_data[i] = static_cast<I>(mem[i]);
+				for (std::size_t i = 0; i < mask_t::size(); ++i) if (m_mask[i]) m_data[i] = static_cast<I>(mem[i]);
 		}
 	};
 
@@ -1083,28 +1062,6 @@ namespace dpm
 		{
 			return detail::native_access<simd<I, detail::avec<N, A>>>::to_native_data(x);
 		}
-
-#ifdef DPM_HAS_SSE4_1
-		/** Replaces elements of vector \a a with elements of vector \a b using mask \a m. Elements of \a b are selected if the corresponding element of \a m evaluates to `true`. */
-		template<detail::integral_of_size<4> I, std::size_t N, std::size_t A>
-		[[nodiscard]] inline DPM_FORCEINLINE simd<I, detail::avec<N, A>> blend(
-				const simd<I, detail::avec<N, A>> &a,
-				const simd<I, detail::avec<N, A>> &b,
-				const simd_mask<I, detail::avec<N, A>> &m)
-		noexcept requires detail::x86_overload_m128<I, N, A>
-		{
-			constexpr auto data_size = native_data_size_v<simd<I, detail::avec<N, A>>>;
-
-			simd<I, detail::avec<N, A>> result = {};
-			auto result_data = to_native_data(result);
-			const auto a_data = to_native_data(a);
-			const auto b_data = to_native_data(b);
-			const auto m_data = to_native_data(m);
-
-			for (std::size_t i = 0; i < data_size; ++i) result_data[i] = _mm_blendv_epi8(a_data[i], b_data[i], m_data[i]);
-			return result;
-		}
-#endif
 
 		/** Shuffles elements of vector \a x into a new vector according to the specified indices. */
 		template<std::size_t... Is, detail::integral_of_size<4> I, std::size_t N, std::size_t A, std::size_t M = sizeof...(Is)>

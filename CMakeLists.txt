@@ -27,11 +27,6 @@ if (${DPM_PROPAGATE_NAN})
     add_compile_definitions(DPM_PROPAGATE_NAN)
 endif ()
 
-option(DPM_NATIVE_AVX512 "Toggles global support for AVX512 instructions on x86 targets" OFF)
-if (${DPM_NATIVE_AVX512})
-    add_compile_definitions(DPM_NATIVE_AVX512)
-endif ()
-
 option(DPM_USE_IPO "Toggles support for inter-procedural optimization" ON)
 option(BUILD_SHARED_LIBS "Build DPM as a shared library" OFF)
 

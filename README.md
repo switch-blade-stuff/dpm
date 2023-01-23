@@ -56,12 +56,6 @@ On architectures without SIMD intrinsic support, vectorization is emulated via s
     <td>Toggles guaranteed propagation of NaN (see notes)</td>
   </tr>
   <tr>
-    <td>DPM_NATIVE_AVX512</td>
-    <td>-DDPM_NATIVE_AVX512</td>
-    <td>OFF</td>
-    <td>Toggles global support for AVX512 instructions on x86 targets (see notes)</td>
-  </tr>
-  <tr>
     <td>N/A</td>
     <td>-DDPM_USE_IPO</td>
     <td>ON</td>
@@ -108,7 +102,6 @@ DPM provides the following extensions to the standard API:
     * x86
         * `sse`
         * `avx`
-        * `avx512`
     * ARM
         * `neon`
 * Storage traits & accessors
@@ -168,12 +161,12 @@ with `NaN` as input will result in undefined behavior unless otherwise specified
 
 ### AVX512
 
-By default, the maximum SIMD level used by the library on x86 platforms is FMA. AVX512 is intentionally ignored, due to
-inefficiency of AVX512 operations on certain CPUs. See the following articles for details:
+While DPM does utilize AVX512 instructions for 128- and 256-bit operations, there is no support for 512-wide vector data
+types. The main reasons being the increased complexity of implementation due to both the fracturing of AVX512 standard,
+and complexity of most 512-bit wide instructions (ex. there is no 512 blend, and it must be emulated via more complex
+fused operations); as well as relative inefficiency of 512-bit wide registers (for general-purpose use cases) on certain
+CPUs. See the following articles for details:
 
 - [https://lemire.me/blog/2018/09/07/avx-512-when-and-how-to-use-these-new-instructions/](https://lemire.me/blog/2018/09/07/avx-512-when-and-how-to-use-these-new-instructions/)
 - [https://news.ycombinator.com/item?id=21031905](https://news.ycombinator.com/item?id=21031905)
 - [https://www.phoronix.com/news/Linus-Torvalds-On-AVX-512](https://www.phoronix.com/news/Linus-Torvalds-On-AVX-512)
-
-In order to take advantage of AVX512 SIMD operations, use the `avx512<T>` extension ABI tag.
-To enable AVX512 operations globally, use the `DPM_NATIVE_AVX512` option.

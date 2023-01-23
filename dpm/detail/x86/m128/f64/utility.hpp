@@ -77,38 +77,6 @@ namespace dpm::detail
 		return x86_cvt_f64_i64_sse2(x);
 #endif
 	}
-
-	[[maybe_unused]] [[nodiscard]] inline DPM_FORCEINLINE __m128d x86_floor_f64_sse2(__m128d x) noexcept
-	{
-		const auto exp52 = _mm_set1_pd(0x0010'0000'0000'0000);
-		const auto mask = _mm_cmpnlt_pd(x, exp52);
-
-		const auto magic = _mm_set1_pd(std::bit_cast<double>(0x4338'0000'0000'0000));
-		const auto a = _mm_sub_pd(_mm_add_pd(x, magic), magic);
-		const auto b = _mm_and_pd(_mm_cmplt_pd(x, a), _mm_set1_pd(1.0));
-		const auto result = _mm_sub_pd(a, b);
-
-		return _mm_or_pd(_mm_and_pd(mask, x), _mm_andnot_pd(mask, result));
-	}
-
-	[[nodiscard]] inline DPM_FORCEINLINE __m128d x86_floor_f64(__m128d x) noexcept
-	{
-#ifdef DPM_HAS_SSE4_1
-		return _mm_floor_pd(x);
-#else
-		return x86_floor_f64_sse2(x);
-#endif
-	}
-
-	[[nodiscard]] inline DPM_FORCEINLINE __m128d x86_frexp_pd(__m128d v, __m128d &e) noexcept
-	{
-		const auto mant_mask = _mm_set1_pd(std::bit_cast<double>(0x800f'ffff'ffff'ffff));
-		const auto a = _mm_srli_epi64(_mm_castpd_si128(v), 52);
-		v = _mm_and_pd(v, mant_mask);
-		v = _mm_or_pd(v, _mm_set1_pd(0.5));
-		e = _mm_add_pd(x86_cvt_i64_f64(_mm_sub_epi64(a, _mm_set1_epi64x(0x3ff))), _mm_set1_pd(1.0));
-		return v;
-	}
 }
 
 #endif

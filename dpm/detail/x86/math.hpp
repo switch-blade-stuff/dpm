@@ -11,7 +11,6 @@
 
 #include "m128/math.hpp"
 #include "m256/math.hpp"
-#include "m512/math.hpp"
 
 #ifdef __GNUC__
 #pragma GCC diagnostic pop

@@ -11,14 +11,13 @@
 
 #include "m128/type.hpp"
 #include "m256/type.hpp"
-#include "m512/type.hpp"
 
 namespace dpm
 {
 	namespace detail
 	{
 		template<typename To, typename ToAbi, typename From, typename FromAbi>
-		inline void DPM_FORCEINLINE cast_impl(simd<To, ToAbi> &to, const simd<From, FromAbi> &from) noexcept
+		inline DPM_FORCEINLINE void cast_impl(simd<To, ToAbi> &to, const simd<From, FromAbi> &from) noexcept
 		{
 			const auto from_data = reinterpret_cast<const From *>(ext::to_native_data(from).data());
 			constexpr auto from_align = alignof(decltype(from));
@@ -33,7 +32,7 @@ namespace dpm
 		}
 
 		template<std::size_t I, typename T, typename OutAbi, typename XAbi, typename... Abis>
-		inline void DPM_FORCEINLINE concat_impl(simd_mask<T, OutAbi> &out, const simd_mask<T, XAbi> &x, const simd_mask<T, Abis> &...rest) noexcept
+		inline DPM_FORCEINLINE void concat_impl(simd_mask<T, OutAbi> &out, const simd_mask<T, XAbi> &x, const simd_mask<T, Abis> &...rest) noexcept
 		{
 			auto *data = reinterpret_cast<T *>(ext::to_native_data(out).data());
 			if constexpr (I % sizeof(__m128) != 0)
@@ -44,7 +43,7 @@ namespace dpm
 			if constexpr (sizeof...(Abis) != 0) concat_impl<I + simd_mask<T, XAbi>::size()>(out, rest...);
 		}
 		template<std::size_t I, typename T, typename OutAbi, typename XAbi, typename... Abis>
-		inline void DPM_FORCEINLINE concat_impl(simd<T, OutAbi> &out, const simd<T, XAbi> &x, const simd<T, Abis> &...rest) noexcept
+		inline DPM_FORCEINLINE void concat_impl(simd<T, OutAbi> &out, const simd<T, XAbi> &x, const simd<T, Abis> &...rest) noexcept
 		{
 			auto *data = reinterpret_cast<T *>(ext::to_native_data(out).data());
 			if constexpr (I % sizeof(__m128) != 0)
@@ -187,6 +186,50 @@ namespace dpm
 	[[nodiscard]] inline DPM_FORCEINLINE auto split_by(const simd<T, detail::avec<M, A>> &x) noexcept requires (M % N == 0 && detail::x86_overload_any<T, M, A>)
 	{
 		return split<resize_simd_t<M / N, simd<T, detail::avec<M, A>>>>(x);
+	}
+
+	DPM_DECLARE_EXT_NAMESPACE
+	{
+#ifdef DPM_HAS_SSE4_1
+		/** Replaces elements of mask \a a with elements of mask \a b using mask \a m. Elements of \a b are selected if the corresponding element of \a m evaluates to `true`. */
+		template<std::integral I, std::size_t N, std::size_t A>
+		[[nodiscard]] inline DPM_FORCEINLINE simd_mask<I, detail::avec<N, A>> blend(
+				const simd_mask<I, detail::avec<N, A>> &a,
+				const simd_mask<I, detail::avec<N, A>> &b,
+				const simd_mask<I, detail::avec<N, A>> &m)
+		noexcept requires detail::x86_overload_m128<I, N, A>
+		{
+			constexpr auto data_size = native_data_size_v<simd_mask<I, detail::avec<N, A>>>;
+
+			simd_mask<I, detail::avec<N, A>> result = {};
+			auto result_data = to_native_data(result);
+			const auto a_data = to_native_data(a);
+			const auto b_data = to_native_data(b);
+			const auto m_data = to_native_data(m);
+
+			for (std::size_t i = 0; i < data_size; ++i) result_data[i] = _mm_blendv_epi8(a_data[i], b_data[i], m_data[i]);
+			return result;
+		}
+		/** Replaces elements of vector \a a with elements of vector \a b using mask \a m. Elements of \a b are selected if the corresponding element of \a m evaluates to `true`. */
+		template<std::integral I, std::size_t N, std::size_t A>
+		[[nodiscard]] inline DPM_FORCEINLINE simd<I, detail::avec<N, A>> blend(
+				const simd<I, detail::avec<N, A>> &a,
+				const simd<I, detail::avec<N, A>> &b,
+				const simd_mask<I, detail::avec<N, A>> &m)
+		noexcept requires detail::x86_overload_m128<I, N, A>
+		{
+			constexpr auto data_size = native_data_size_v<simd<I, detail::avec<N, A>>>;
+
+			simd<I, detail::avec<N, A>> result = {};
+			auto result_data = to_native_data(result);
+			const auto a_data = to_native_data(a);
+			const auto b_data = to_native_data(b);
+			const auto m_data = to_native_data(m);
+
+			for (std::size_t i = 0; i < data_size; ++i) result_data[i] = _mm_blendv_epi8(a_data[i], b_data[i], m_data[i]);
+			return result;
+		}
+#endif
 	}
 }
 

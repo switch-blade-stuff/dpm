@@ -2,7 +2,7 @@
  * Created by switchblade on 2023-01-10.
  */
 
-#include "../../../ieee754/const_f64.hpp"
+#include "../../../const_f64.hpp"
 #include "../../../dispatch.hpp"
 #include "../../cpuid.hpp"
 #include "utility.hpp"
@@ -25,9 +25,9 @@
 #endif
 #endif
 
-#define FMA_FUNC DPM_VECTORCALL DPM_TARGET("fma")
-#define SSE4_1_FUNC DPM_VECTORCALL DPM_TARGET("sse4.1")
-#define SSE2_FUNC DPM_VECTORCALL DPM_TARGET("sse2")
+#define FMA_FUNC DPM_PURE DPM_VECTORCALL DPM_TARGET("fma")
+#define SSE4_1_FUNC DPM_PURE DPM_VECTORCALL DPM_TARGET("sse4.1")
+#define SSE2_FUNC DPM_PURE DPM_VECTORCALL DPM_TARGET("sse2")
 
 namespace dpm::detail
 {
@@ -39,11 +39,9 @@ namespace dpm::detail
 	};
 
 	template<sincos_op Mask>
-	struct sincos_ret { using type = std::pair<__m128d, __m128d>; };
+	struct sincos_ret { using type = __m128d; };
 	template<>
-	struct sincos_ret<sincos_op::OP_SIN> { using type = __m128d; };
-	template<>
-	struct sincos_ret<sincos_op::OP_COS> { using type = __m128d; };
+	struct sincos_ret<sincos_op::OP_SINCOS> { using type = std::pair<__m128d, __m128d>; };
 	template<sincos_op Mask>
 	using sincos_ret_t = typename sincos_ret<Mask>::type;
 
@@ -314,13 +312,13 @@ namespace dpm::detail
 #endif
 	}
 
-	std::pair<__m128d, __m128d> DPM_PUBLIC DPM_PURE DPM_VECTORCALL DPM_TARGET("sse2") x86_sincos(__m128d x) noexcept
+	std::pair<__m128d, __m128d> DPM_PUBLIC SSE2_FUNC x86_sincos(__m128d x) noexcept
 	{
 		const auto [sin, cos] = impl_sincos<sincos_op::OP_SINCOS>(x);
 		return {sin, cos};
 	}
-	__m128d DPM_PUBLIC DPM_PURE DPM_VECTORCALL DPM_TARGET("sse2") x86_sin(__m128d x) noexcept { return impl_sincos<sincos_op::OP_SIN>(x); }
-	__m128d DPM_PUBLIC DPM_PURE DPM_VECTORCALL DPM_TARGET("sse2") x86_cos(__m128d x) noexcept { return impl_sincos<sincos_op::OP_COS>(x); }
+	__m128d DPM_PUBLIC SSE2_FUNC x86_sin(__m128d x) noexcept { return impl_sincos<sincos_op::OP_SIN>(x); }
+	__m128d DPM_PUBLIC SSE2_FUNC x86_cos(__m128d x) noexcept { return impl_sincos<sincos_op::OP_COS>(x); }
 }
 
 #endif

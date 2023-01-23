@@ -293,23 +293,23 @@ namespace dpm
 	public:
 		using base_expr::const_where_expression;
 
-		template<std::convertible_to<value_type> U>
-		DPM_FORCEINLINE void operator=(U &&value) && noexcept { m_data = ext::blend(m_data, mask_t{std::forward<U>(value)}, m_mask); }
+		template<typename U>
+		DPM_FORCEINLINE void operator=(U &&value) && noexcept requires std::is_convertible_v<U, value_type> { m_data = ext::blend(m_data, mask_t{std::forward<U>(value)}, m_mask); }
 
 		template<typename U>
-		DPM_FORCEINLINE void operator&=(U &&value) && noexcept requires std::convertible_to<U, value_type>
+		DPM_FORCEINLINE void operator&=(U &&value) && noexcept requires std::is_convertible_v<U, value_type>
 		{
 			const auto new_data = m_data & mask_t{std::forward<U>(value)};
 			m_data = ext::blend(m_data, new_data, m_mask);
 		}
 		template<typename U>
-		DPM_FORCEINLINE void operator|=(U &&value) && noexcept requires std::convertible_to<U, value_type>
+		DPM_FORCEINLINE void operator|=(U &&value) && noexcept requires std::is_convertible_v<U, value_type>
 		{
 			const auto new_data = m_data | mask_t{std::forward<U>(value)};
 			m_data = ext::blend(m_data, new_data, m_mask);
 		}
 		template<typename U>
-		DPM_FORCEINLINE void operator^=(U &&value) && noexcept requires std::convertible_to<U, value_type>
+		DPM_FORCEINLINE void operator^=(U &&value) && noexcept requires std::is_convertible_v<U, value_type>
 		{
 			const auto new_data = m_data ^ mask_t{std::forward<U>(value)};
 			m_data = ext::blend(m_data, new_data, m_mask);
@@ -625,7 +625,7 @@ namespace dpm
 		{
 			if constexpr (detail::aligned_tag<Flags, 16>)
 			{
-				if constexpr (std::same_as<std::remove_cvref_t<U>, double>)
+				if constexpr (std::same_as<std::remove_volatile_t<U>, double>)
 				{
 					for (std::size_t i = 0; i < size(); i += 2)
 					{
@@ -636,7 +636,7 @@ namespace dpm
 					}
 					return;
 				}
-				else if constexpr (detail::signed_integral_of_size<std::remove_cvref_t<U>, 8>)
+				else if constexpr (detail::signed_integral_of_size<std::remove_volatile_t<U>, 8>)
 				{
 					for (std::size_t i = 0; i < size(); i += 2)
 					{
@@ -647,7 +647,7 @@ namespace dpm
 					}
 					return;
 				}
-				else if constexpr (detail::unsigned_integral_of_size<std::remove_cvref_t<U>, 8>)
+				else if constexpr (detail::unsigned_integral_of_size<std::remove_volatile_t<U>, 8>)
 				{
 					for (std::size_t i = 0; i < size(); i += 2)
 					{
@@ -667,7 +667,7 @@ namespace dpm
 		{
 			if constexpr (detail::aligned_tag<Flags, 16>)
 			{
-				if constexpr (std::same_as<std::remove_cvref_t<U>, double>)
+				if constexpr (std::same_as<std::remove_volatile_t<U>, double>)
 				{
 					for (std::size_t i = 0; i < size(); i += 2)
 					{
@@ -678,7 +678,7 @@ namespace dpm
 					}
 					return;
 				}
-				else if constexpr (detail::signed_integral_of_size<std::remove_cvref_t<U>, 8>)
+				else if constexpr (detail::signed_integral_of_size<std::remove_volatile_t<U>, 8>)
 				{
 					for (std::size_t i = 0; i < size(); i += 2)
 					{
@@ -689,7 +689,7 @@ namespace dpm
 					}
 					return;
 				}
-				else if constexpr (detail::unsigned_integral_of_size<std::remove_cvref_t<U>, 8>)
+				else if constexpr (detail::unsigned_integral_of_size<std::remove_volatile_t<U>, 8>)
 				{
 					for (std::size_t i = 0; i < size(); i += 2)
 					{
@@ -910,8 +910,8 @@ namespace dpm
 	public:
 		using base_expr::const_where_expression;
 
-		template<std::convertible_to<value_type> U>
-		DPM_FORCEINLINE void operator=(U &&value) && noexcept { m_data = ext::blend(m_data, simd_t{std::forward<U>(value)}, m_mask); }
+		template<typename U>
+		DPM_FORCEINLINE void operator=(U &&value) && noexcept requires std::is_convertible_v<U, value_type> { m_data = ext::blend(m_data, simd_t{std::forward<U>(value)}, m_mask); }
 
 		DPM_FORCEINLINE void operator++() && noexcept
 		{
@@ -937,26 +937,26 @@ namespace dpm
 		}
 
 		template<typename U>
-		DPM_FORCEINLINE void operator+=(U &&value) && noexcept requires std::convertible_to<U, value_type>
+		DPM_FORCEINLINE void operator+=(U &&value) && noexcept requires std::is_convertible_v<U, value_type>
 		{
 			const auto new_data = m_data + simd_t{std::forward<U>(value)};
 			m_data = ext::blend(m_data, new_data, m_mask);
 		}
 		template<typename U>
-		DPM_FORCEINLINE void operator-=(U &&value) && noexcept requires std::convertible_to<U, value_type>
+		DPM_FORCEINLINE void operator-=(U &&value) && noexcept requires std::is_convertible_v<U, value_type>
 		{
 			const auto new_data = m_data - simd_t{std::forward<U>(value)};
 			m_data = ext::blend(m_data, new_data, m_mask);
 		}
 
 		template<typename U>
-		DPM_FORCEINLINE void operator*=(U &&value) && noexcept requires std::convertible_to<U, value_type>
+		DPM_FORCEINLINE void operator*=(U &&value) && noexcept requires std::is_convertible_v<U, value_type>
 		{
 			const auto new_data = m_data * simd_t{std::forward<U>(value)};
 			m_data = ext::blend(m_data, new_data, m_mask);
 		}
 		template<typename U>
-		DPM_FORCEINLINE void operator/=(U &&value) && noexcept requires std::convertible_to<U, value_type>
+		DPM_FORCEINLINE void operator/=(U &&value) && noexcept requires std::is_convertible_v<U, value_type>
 		{
 			const auto new_data = m_data / simd_t{std::forward<U>(value)};
 			m_data = ext::blend(m_data, new_data, m_mask);

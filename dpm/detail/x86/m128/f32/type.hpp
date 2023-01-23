@@ -359,23 +359,23 @@ namespace dpm
 	public:
 		using base_expr::const_where_expression;
 
-		template<std::convertible_to<value_type> U>
-		DPM_FORCEINLINE void operator=(U &&value) && noexcept { m_data = ext::blend(m_data, mask_t{std::forward<U>(value)}, m_mask); }
+		template<typename U>
+		DPM_FORCEINLINE void operator=(U &&value) && noexcept requires std::is_convertible_v<U, value_type> { m_data = ext::blend(m_data, mask_t{std::forward<U>(value)}, m_mask); }
 
 		template<typename U>
-		DPM_FORCEINLINE void operator&=(U &&value) && noexcept requires std::convertible_to<U, value_type>
+		DPM_FORCEINLINE void operator&=(U &&value) && noexcept requires std::is_convertible_v<U, value_type>
 		{
 			const auto new_data = m_data & mask_t{std::forward<U>(value)};
 			m_data = ext::blend(m_data, new_data, m_mask);
 		}
 		template<typename U>
-		DPM_FORCEINLINE void operator|=(U &&value) && noexcept requires std::convertible_to<U, value_type>
+		DPM_FORCEINLINE void operator|=(U &&value) && noexcept requires std::is_convertible_v<U, value_type>
 		{
 			const auto new_data = m_data | mask_t{std::forward<U>(value)};
 			m_data = ext::blend(m_data, new_data, m_mask);
 		}
 		template<typename U>
-		DPM_FORCEINLINE void operator^=(U &&value) && noexcept requires std::convertible_to<U, value_type>
+		DPM_FORCEINLINE void operator^=(U &&value) && noexcept requires std::is_convertible_v<U, value_type>
 		{
 			const auto new_data = m_data ^ mask_t{std::forward<U>(value)};
 			m_data = ext::blend(m_data, new_data, m_mask);
@@ -560,7 +560,7 @@ namespace dpm
 		std::size_t result = 0;
 		for (std::size_t i = 0; i < mask_t::size(); i += 4)
 		{
-			const auto vm = detail::x86_maskone_f32(mask_t::size() - i, mask_data[i / 4]);
+			const auto vm = detail::x86_maskzero_f32(mask_t::size() - i, mask_data[i / 4]);
 			result += std::popcount(static_cast<std::uint32_t>(_mm_movemask_ps(vm)));
 		}
 		return result;
@@ -694,75 +694,79 @@ namespace dpm
 		template<typename U, typename Flags>
 		DPM_FORCEINLINE void copy_from(const U *mem, Flags) noexcept requires std::convertible_to<U, float> && is_simd_flag_type_v<Flags>
 		{
-			if constexpr (detail::aligned_tag<Flags, 16>)
+			if constexpr (detail::aligned_tag<Flags, 16> && std::same_as<std::remove_volatile_t<U>, float>)
 			{
-				if constexpr (std::same_as<std::remove_cvref_t<U>, float>)
-				{
-					for (std::size_t i = 0; i < size(); i += 4)
-						switch (size() - i)
-						{
-							default: m_data[i / 4] = reinterpret_cast<const __m128 *>(mem)[i / 4];
-								break;
-							case 3: operator[](i + 2) = mem[i + 2]; [[fallthrough]];
-							case 2: operator[](i + 1) = mem[i + 1]; [[fallthrough]];
-							case 1: operator[](i) = mem[i];
-						}
-					return;
-				}
-#ifdef DPM_HAS_SSE2
-				else if constexpr (detail::signed_integral_of_size<std::remove_cvref_t<U>, 4>)
-				{
-					for (std::size_t i = 0; i < size(); i += 4)
-						switch (size() - i)
-						{
-							default: m_data[i / 4] = _mm_cvtepi32_ps(reinterpret_cast<const __m128i *>(mem)[i / 4]);
-								break;
-							case 3: operator[](i + 2) = static_cast<float>(mem[i + 2]); [[fallthrough]];
-							case 2: operator[](i + 1) = static_cast<float>(mem[i + 1]); [[fallthrough]];
-							case 1: operator[](i) = static_cast<float>(mem[i]);
-						}
-					return;
-				}
-#endif
+				for (std::size_t i = 0; i < size(); i += 4)
+					switch (size() - i)
+					{
+						default: m_data[i / 4] = reinterpret_cast<const __m128 *>(mem)[i / 4];
+							break;
+						case 3: operator[](i + 2) = mem[i + 2]; [[fallthrough]];
+						case 2: operator[](i + 1) = mem[i + 1]; [[fallthrough]];
+						case 1: operator[](i) = mem[i];
+					}
 			}
-			for (std::size_t i = 0; i < size(); ++i) operator[](i) = static_cast<float>(mem[i]);
+#ifdef DPM_HAS_SSE2
+			else if constexpr (detail::aligned_tag<Flags, 16> && detail::integral_of_size<std::remove_volatile_t<U>, 4>)
+			{
+				for (std::size_t i = 0; i < size(); i += 4)
+					switch (size() - i)
+					{
+						default:
+						{
+							if constexpr (!std::is_signed_v<std::remove_volatile_t<U>>)
+								m_data[i / 4] = detail::x86_cvt_u32_f32(reinterpret_cast<const __m128i *>(mem)[i / 4]);
+							else
+								m_data[i / 4] = _mm_cvtepi32_ps(reinterpret_cast<const __m128i *>(mem)[i / 4]);
+							break;
+						}
+						case 3: operator[](i + 2) = static_cast<float>(mem[i + 2]); [[fallthrough]];
+						case 2: operator[](i + 1) = static_cast<float>(mem[i + 1]); [[fallthrough]];
+						case 1: operator[](i) = static_cast<float>(mem[i]);
+					}
+			}
+			else
+#endif
+				for (std::size_t i = 0; i < size(); ++i) operator[](i) = static_cast<float>(mem[i]);
 		}
 		/** Copies the underlying elements to \a mem. */
 		template<typename U, typename Flags>
 		DPM_FORCEINLINE void copy_to(U *mem, Flags) const noexcept requires std::convertible_to<float, U> && is_simd_flag_type_v<Flags>
 		{
-			if constexpr (detail::aligned_tag<Flags, 16>)
+			if constexpr (detail::aligned_tag<Flags, 16> && std::same_as<std::remove_volatile_t<U>, float>)
 			{
-				if constexpr (std::same_as<std::remove_cvref_t<U>, float>)
-				{
-					for (std::size_t i = 0; i < size(); i += 4)
-						switch (size() - i)
-						{
-							default: reinterpret_cast<__m128 *>(mem)[i / 4] = m_data[i / 4];
-								break;
-							case 3: mem[i + 2] = operator[](i + 2); [[fallthrough]];
-							case 2: mem[i + 1] = operator[](i + 1); [[fallthrough]];
-							case 1: mem[i] = operator[](i);
-						}
-					return;
-				}
-#ifdef DPM_HAS_SSE2
-				if constexpr (detail::signed_integral_of_size<std::remove_cvref_t<U>, 4>)
-				{
-					for (std::size_t i = 0; i < size(); i += 4)
-						switch (size() - i)
-						{
-							default: reinterpret_cast<__m128i *>(mem)[i / 4] = _mm_cvtps_epi32(m_data[i / 4]);
-								break;
-							case 3: mem[i + 2] = static_cast<std::int32_t>(operator[](i + 2)); [[fallthrough]];
-							case 2: mem[i + 1] = static_cast<std::int32_t>(operator[](i + 1)); [[fallthrough]];
-							case 1: mem[i] = static_cast<std::int32_t>(operator[](i));
-						}
-					return;
-				}
-#endif
+				for (std::size_t i = 0; i < size(); i += 4)
+					switch (size() - i)
+					{
+						default: reinterpret_cast<__m128 *>(mem)[i / 4] = m_data[i / 4];
+							break;
+						case 3: mem[i + 2] = operator[](i + 2); [[fallthrough]];
+						case 2: mem[i + 1] = operator[](i + 1); [[fallthrough]];
+						case 1: mem[i] = operator[](i);
+					}
 			}
-			for (std::size_t i = 0; i < size(); ++i) mem[i] = static_cast<U>(operator[](i));
+#ifdef DPM_HAS_SSE2
+			else if constexpr (detail::aligned_tag<Flags, 16> && detail::integral_of_size<std::remove_volatile_t<U>, 4>)
+			{
+				for (std::size_t i = 0; i < size(); i += 4)
+					switch (size() - i)
+					{
+						default:
+						{
+							if constexpr (!std::is_signed_v<std::remove_volatile_t<U>>)
+								reinterpret_cast<__m128i *>(mem)[i / 4] = detail::x86_cvt_f32_u32(m_data[i / 4]);
+							else
+								reinterpret_cast<__m128i *>(mem)[i / 4] = _mm_cvtps_epi32(m_data[i / 4]);
+							break;
+						}
+						case 3: mem[i + 2] = static_cast<std::int32_t>(operator[](i + 2)); [[fallthrough]];
+						case 2: mem[i + 1] = static_cast<std::int32_t>(operator[](i + 1)); [[fallthrough]];
+						case 1: mem[i] = static_cast<std::int32_t>(operator[](i));
+					}
+			}
+			else
+#endif
+				for (std::size_t i = 0; i < size(); ++i) mem[i] = static_cast<U>(operator[](i));
 		}
 
 		[[nodiscard]] DPM_FORCEINLINE reference operator[](std::size_t i) noexcept
@@ -930,34 +934,24 @@ namespace dpm
 		DPM_FORCEINLINE void copy_to(U *mem, Flags) const && noexcept requires is_simd_flag_type_v<Flags>
 		{
 #ifdef DPM_HAS_AVX
-			if constexpr (detail::aligned_tag<Flags, 16>)
+			if constexpr (detail::aligned_tag<Flags, 16> && sizeof(U) == 4)
 			{
 				const auto v_mask = ext::to_native_data(m_mask);
 				const auto v_data = ext::to_native_data(m_data);
-				if constexpr (std::same_as<std::remove_cvref_t<U>, float>)
+				for (std::size_t i = 0; i < mask_t::size(); i += 4)
 				{
-					for (std::size_t i = 0; i < mask_t::size(); i += 4)
-					{
-						const auto mi = std::bit_cast<__m128i>(detail::x86_maskzero_f32(mask_t::size() - i, v_mask[i / 4]));
-						_mm_maskstore_ps(mem + i, mi, v_data[i / 4]);
-					}
-					return;
+					const auto mi = std::bit_cast<__m128i>(detail::x86_maskzero_f32(mask_t::size() - i, v_mask[i / 4]));
+					auto v = v_data[i / 4];
+					if constexpr (detail::unsigned_integral_of_size<std::remove_volatile_t<U>, 4>)
+						v = std::bit_cast<__m128>(detail::x86_cvt_f32_u32(v));
+					else if constexpr (detail::signed_integral_of_size<std::remove_volatile_t<U>, 4>)
+						v = std::bit_cast<__m128>(_mm_cvtps_epi32(v));
+					_mm_maskstore_ps(mem + i, mi, v);
 				}
-#ifdef DPM_HAS_AVX2
-				else if constexpr (detail::signed_integral_of_size<std::remove_cvref_t<U>, 4>)
-				{
-					for (std::size_t i = 0; i < mask_t::size(); i += 4)
-					{
-						const auto mi = std::bit_cast<__m128i>(detail::x86_maskzero_f32(mask_t::size() - i, v_mask[i / 4]));
-						_mm_maskstore_epi32(mem + i, mi, _mm_cvtps_epi32(v_data[i / 4]));
-					}
-					return;
-				}
-#endif
 			}
 			else
 #endif
-			for (std::size_t i = 0; i < mask_t::size(); ++i) if (m_mask[i]) mem[i] = static_cast<U>(m_data[i]);
+				for (std::size_t i = 0; i < mask_t::size(); ++i) if (m_mask[i]) mem[i] = static_cast<U>(m_data[i]);
 		}
 
 	protected:
@@ -978,8 +972,8 @@ namespace dpm
 	public:
 		using base_expr::const_where_expression;
 
-		template<std::convertible_to<value_type> U>
-		DPM_FORCEINLINE void operator=(U &&value) && noexcept { m_data = ext::blend(m_data, simd_t{std::forward<U>(value)}, m_mask); }
+		template<typename U>
+		DPM_FORCEINLINE void operator=(U &&value) && noexcept requires std::is_convertible_v<U, value_type> { m_data = ext::blend(m_data, simd_t{std::forward<U>(value)}, m_mask); }
 
 		DPM_FORCEINLINE void operator++() && noexcept
 		{
@@ -1005,26 +999,26 @@ namespace dpm
 		}
 
 		template<typename U>
-		DPM_FORCEINLINE void operator+=(U &&value) && noexcept requires std::convertible_to<U, value_type>
+		DPM_FORCEINLINE void operator+=(U &&value) && noexcept requires std::is_convertible_v<U, value_type>
 		{
 			const auto new_data = m_data + simd_t{std::forward<U>(value)};
 			m_data = ext::blend(m_data, new_data, m_mask);
 		}
 		template<typename U>
-		DPM_FORCEINLINE void operator-=(U &&value) && noexcept requires std::convertible_to<U, value_type>
+		DPM_FORCEINLINE void operator-=(U &&value) && noexcept requires std::is_convertible_v<U, value_type>
 		{
 			const auto new_data = m_data - simd_t{std::forward<U>(value)};
 			m_data = ext::blend(m_data, new_data, m_mask);
 		}
 
 		template<typename U>
-		DPM_FORCEINLINE void operator*=(U &&value) && noexcept requires std::convertible_to<U, value_type>
+		DPM_FORCEINLINE void operator*=(U &&value) && noexcept requires std::is_convertible_v<U, value_type>
 		{
 			const auto new_data = m_data * simd_t{std::forward<U>(value)};
 			m_data = ext::blend(m_data, new_data, m_mask);
 		}
 		template<typename U>
-		DPM_FORCEINLINE void operator/=(U &&value) && noexcept requires std::convertible_to<U, value_type>
+		DPM_FORCEINLINE void operator/=(U &&value) && noexcept requires std::is_convertible_v<U, value_type>
 		{
 			const auto new_data = m_data / simd_t{std::forward<U>(value)};
 			m_data = ext::blend(m_data, new_data, m_mask);
@@ -1035,34 +1029,25 @@ namespace dpm
 		DPM_FORCEINLINE void copy_from(const U *mem, Flags) && noexcept requires is_simd_flag_type_v<Flags>
 		{
 #ifdef DPM_HAS_AVX
-			if constexpr (detail::aligned_tag<Flags, 16>)
+			if constexpr (detail::aligned_tag<Flags, 16> && sizeof(U) == 4)
 			{
 				const auto v_mask = ext::to_native_data(m_mask);
 				const auto v_data = ext::to_native_data(m_data);
-				if constexpr (std::same_as<std::remove_cvref_t<U>, float>)
+				for (std::size_t i = 0; i < mask_t::size(); i += 4)
 				{
-					for (std::size_t i = 0; i < mask_t::size(); i += 4)
-					{
-						const auto mi = std::bit_cast<__m128i>(detail::x86_maskzero_f32(mask_t::size() - i, v_mask[i / 4]));
-						v_data[i / 4] = _mm_maskload_ps(mem + i, mi);
-					}
-					return;
+					const auto mi = std::bit_cast<__m128i>(detail::x86_maskzero_f32(mask_t::size() - i, v_mask[i / 4]));
+					auto v = _mm_maskload_ps(mem + i, mi);
+					if constexpr (detail::unsigned_integral_of_size<std::remove_volatile_t<U>, 4>)
+						v_data[i / 4] = detail::x86_cvt_u32_f32(std::bit_cast<__m128i>(v));
+					else if constexpr (detail::signed_integral_of_size<std::remove_volatile_t<U>, 4>)
+						v_data[i / 4] = _mm_cvtepi32_ps(std::bit_cast<__m128>(v));
+					else
+						v_data[i / 4] = v;
 				}
-#ifdef DPM_HAS_AVX2
-				else if constexpr (detail::signed_integral_of_size<std::remove_cvref_t<U>, 4>)
-				{
-					for (std::size_t i = 0; i < mask_t::size(); i += 4)
-					{
-						const auto mi = std::bit_cast<__m128i>(detail::x86_maskzero_f32(mask_t::size() - i, v_mask[i / 4]));
-						v_data[i / 4] = _mm_cvtepi32_ps(_mm_maskload_epi32(mem + i, mi));
-					}
-					return;
-				}
-#endif
 			}
 			else
 #endif
-			for (std::size_t i = 0; i < mask_t::size(); ++i) if (m_mask[i]) m_data[i] = static_cast<float>(mem[i]);
+				for (std::size_t i = 0; i < mask_t::size(); ++i) if (m_mask[i]) m_data[i] = static_cast<float>(mem[i]);
 		}
 	};
 
