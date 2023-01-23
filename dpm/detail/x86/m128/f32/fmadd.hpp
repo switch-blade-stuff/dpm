@@ -74,7 +74,7 @@ namespace dpm
 				const simd<float, detail::avec<N, A>> &c)
 		noexcept requires detail::x86_overload_m128<float, N, A>
 		{
-			simd<float, detail::avec<N, A>> result;
+			simd<float, detail::avec<N, A>> result = {};
 			for (std::size_t i = 0; i < ext::native_data_size_v<simd<float, detail::avec<N, A>>>; ++i)
 			{
 				ext::to_native_data(result)[i] = detail::x86_fmadd(
@@ -92,7 +92,7 @@ namespace dpm
 				const simd<float, detail::avec<N, A>> &c)
 		noexcept requires detail::x86_overload_m128<float, N, A>
 		{
-			simd<float, detail::avec<N, A>> result;
+			simd<float, detail::avec<N, A>> result = {};
 			for (std::size_t i = 0; i < ext::native_data_size_v<simd<float, detail::avec<N, A>>>; ++i)
 			{
 				ext::to_native_data(result)[i] = detail::x86_fmsub(
@@ -110,7 +110,7 @@ namespace dpm
 				const simd<float, detail::avec<N, A>> &c)
 		noexcept requires detail::x86_overload_m128<float, N, A>
 		{
-			simd<float, detail::avec<N, A>> result;
+			simd<float, detail::avec<N, A>> result = {};
 			for (std::size_t i = 0; i < ext::native_data_size_v<simd<float, detail::avec<N, A>>>; ++i)
 			{
 				ext::to_native_data(result)[i] = detail::x86_fnmadd(
@@ -128,7 +128,7 @@ namespace dpm
 				const simd<float, detail::avec<N, A>> &c)
 		noexcept requires detail::x86_overload_m128<float, N, A>
 		{
-			simd<float, detail::avec<N, A>> result;
+			simd<float, detail::avec<N, A>> result = {};
 			for (std::size_t i = 0; i < ext::native_data_size_v<simd<float, detail::avec<N, A>>>; ++i)
 			{
 				ext::to_native_data(result)[i] = detail::x86_fnmsub(

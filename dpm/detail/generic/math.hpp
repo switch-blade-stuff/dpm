@@ -17,7 +17,7 @@ namespace dpm
 	template<typename T, typename Abi>
 	[[nodiscard]] inline simd<T, Abi> sin(const simd<T, Abi> &x) noexcept
 	{
-		simd<T, Abi> result;
+		simd<T, Abi> result = {};
 		for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i)
 			result[i] = std::sin(x[i]);
 		return result;
@@ -25,7 +25,7 @@ namespace dpm
 	template<typename T, typename Abi>
 	[[nodiscard]] inline simd<T, Abi> cos(const simd<T, Abi> &x) noexcept
 	{
-		simd<T, Abi> result;
+		simd<T, Abi> result = {};
 		for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i)
 			result[i] = std::cos(x[i]);
 		return result;

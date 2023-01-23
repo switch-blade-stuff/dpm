@@ -541,7 +541,7 @@ namespace dpm
 
 	public:
 		using value_type = bool;
-		using reference = detail::mask_element<std::int64_t> &;
+		using reference = value_proxy &;
 
 		using abi_type = detail::avec<N, Align>;
 		using simd_type = simd<I, abi_type>;
@@ -597,31 +597,31 @@ namespace dpm
 		[[nodiscard]] value_type operator[](std::size_t i) const noexcept
 		{
 			DPM_ASSERT(i < size());
-			return reinterpret_cast<const std::int64_t *>(m_data)[i];
+			return reinterpret_cast<const value_proxy *>(m_data)[i];
 		}
 
 		[[nodiscard]] simd_mask operator!() const noexcept
 		{
-			simd_mask result;
+			simd_mask result = {};
 			impl_t::template invert<data_size>(result.m_data, m_data);
 			return result;
 		}
 
 		[[nodiscard]] friend simd_mask operator&(const simd_mask &a, const simd_mask &b) noexcept
 		{
-			simd_mask result;
+			simd_mask result = {};
 			impl_t::template bit_and<data_size>(result.m_data, a.m_data, b.m_data);
 			return result;
 		}
 		[[nodiscard]] friend simd_mask operator|(const simd_mask &a, const simd_mask &b) noexcept
 		{
-			simd_mask result;
+			simd_mask result = {};
 			impl_t::template bit_or<data_size>(result.m_data, a.m_data, b.m_data);
 			return result;
 		}
 		[[nodiscard]] friend simd_mask operator^(const simd_mask &a, const simd_mask &b) noexcept
 		{
-			simd_mask result;
+			simd_mask result = {};
 			impl_t::template bit_xor<data_size>(result.m_data, a.m_data, b.m_data);
 			return result;
 		}
@@ -644,26 +644,26 @@ namespace dpm
 
 		[[nodiscard]] friend simd_mask operator&&(const simd_mask &a, const simd_mask &b) noexcept
 		{
-			simd_mask result;
+			simd_mask result = {};
 			impl_t::template bit_and<data_size>(result.m_data, a.m_data, b.m_data);
 			return result;
 		}
 		[[nodiscard]] friend simd_mask operator||(const simd_mask &a, const simd_mask &b) noexcept
 		{
-			simd_mask result;
+			simd_mask result = {};
 			impl_t::template bit_or<data_size>(result.m_data, a.m_data, b.m_data);
 			return result;
 		}
 
 		[[nodiscard]] friend simd_mask operator==(const simd_mask &a, const simd_mask &b) noexcept
 		{
-			simd_mask result;
+			simd_mask result = {};
 			impl_t::template cmp_eq<data_size>(result.m_data, a.m_data, b.m_data);
 			return result;
 		}
 		[[nodiscard]] friend simd_mask operator!=(const simd_mask &a, const simd_mask &b) noexcept
 		{
-			simd_mask result;
+			simd_mask result = {};
 			impl_t::template cmp_ne<data_size>(result.m_data, a.m_data, b.m_data);
 			return result;
 		}
@@ -710,7 +710,7 @@ namespace dpm
 		{
 			constexpr auto data_size = native_data_size_v<simd_mask<I, detail::avec<N, A>>>;
 
-			simd_mask<I, detail::avec<N, A>> result;
+			simd_mask<I, detail::avec<N, A>> result = {};
 			detail::x86_mask_impl<I, __m128i, N>::template blend<data_size>(
 					to_native_data(result).data(),
 					to_native_data(a).data(),
@@ -800,10 +800,11 @@ namespace dpm
 		constexpr static auto alignment = std::max(Align, alignof(vector_type));
 
 		using data_type = vector_type[data_size];
+		using value_proxy = detail::simd_element<I>;
 
 	public:
 		using value_type = I;
-		using reference = value_type &;
+		using reference = value_proxy &;
 
 		using abi_type = detail::avec<N, Align>;
 		using mask_type = simd_mask<I, abi_type>;
@@ -873,12 +874,12 @@ namespace dpm
 		[[nodiscard]] reference operator[](std::size_t i) noexcept
 		{
 			DPM_ASSERT(i < size());
-			return reinterpret_cast<I *>(m_data)[i];
+			return reinterpret_cast<value_proxy *>(m_data)[i];
 		}
 		[[nodiscard]] value_type operator[](std::size_t i) const noexcept
 		{
 			DPM_ASSERT(i < size());
-			return reinterpret_cast<const I *>(m_data)[i];
+			return reinterpret_cast<const value_proxy *>(m_data)[i];
 		}
 
 		simd operator++(int) noexcept
@@ -906,39 +907,39 @@ namespace dpm
 
 		[[nodiscard]] mask_type operator!() const noexcept
 		{
-			mask_type result;
+			mask_type result = {};
 			for (std::size_t i = 0; i < size(); ++i) result[i] = !static_cast<bool>(operator[](i));
 			return result;
 		}
 		[[nodiscard]] simd operator~() const noexcept
 		{
-			simd result;
+			simd result = {};
 			impl_t::template invert<data_size>(result.m_data, m_data);
 			return result;
 		}
 		[[nodiscard]] simd operator+() const noexcept { return *this; }
 		[[nodiscard]] simd operator-() const noexcept requires std::is_signed_v<I>
 		{
-			simd result;
+			simd result = {};
 			impl_t::template negate<data_size>(result.m_data, m_data);
 			return result;
 		}
 
 		[[nodiscard]] friend simd operator&(const simd &a, const simd &b) noexcept
 		{
-			simd result;
+			simd result = {};
 			impl_t::template bit_and<data_size>(result.m_data, a.m_data, b.m_data);
 			return result;
 		}
 		[[nodiscard]] friend simd operator|(const simd &a, const simd &b) noexcept
 		{
-			simd result;
+			simd result = {};
 			impl_t::template bit_or<data_size>(result.m_data, a.m_data, b.m_data);
 			return result;
 		}
 		[[nodiscard]] friend simd operator^(const simd &a, const simd &b) noexcept
 		{
-			simd result;
+			simd result = {};
 			impl_t::template bit_xor<data_size>(result.m_data, a.m_data, b.m_data);
 			return result;
 		}
@@ -961,13 +962,13 @@ namespace dpm
 
 		[[nodiscard]] friend simd operator+(const simd &a, const simd &b) noexcept
 		{
-			simd result;
+			simd result = {};
 			impl_t::template add<data_size>(result.m_data, a.m_data, b.m_data);
 			return result;
 		}
 		[[nodiscard]] friend simd operator-(const simd &a, const simd &b) noexcept
 		{
-			simd result;
+			simd result = {};
 			impl_t::template sub<data_size>(result.m_data, a.m_data, b.m_data);
 			return result;
 		}
@@ -985,13 +986,13 @@ namespace dpm
 
 		[[nodiscard]] friend simd operator<<(const simd &a, const simd &b) noexcept
 		{
-			simd result;
+			simd result = {};
 			impl_t::template lshift<data_size>(result.m_data, a.m_data, b.m_data);
 			return result;
 		}
 		[[nodiscard]] friend simd operator>>(const simd &a, const simd &b) noexcept
 		{
-			simd result;
+			simd result = {};
 			impl_t::template rshift<data_size>(result.m_data, a.m_data, b.m_data);
 			return result;
 		}
@@ -1010,7 +1011,7 @@ namespace dpm
 #ifdef DPM_HAS_AVX512VL
 		[[nodiscard]] friend simd operator*(const simd &a, const simd &b) noexcept
 		{
-			simd result;
+			simd result = {};
 			impl_t::template mul<data_size>(result.m_data, a.m_data, b.m_data);
 			return result;
 		}
@@ -1024,13 +1025,13 @@ namespace dpm
 #ifdef DPM_HAS_SSE4_1
 		[[nodiscard]] friend mask_type operator==(const simd &a, const simd &b) noexcept
 		{
-			data_type mask_data;
+			data_type mask_data = {};
 			impl_t::template cmp_eq<data_size>(mask_data, a.m_data, b.m_data);
 			return {mask_data};
 		}
 		[[nodiscard]] friend mask_type operator!=(const simd &a, const simd &b) noexcept
 		{
-			data_type mask_data;
+			data_type mask_data = {};
 			impl_t::template cmp_ne<data_size>(mask_data, a.m_data, b.m_data);
 			return {mask_data};
 		}
@@ -1078,7 +1079,7 @@ namespace dpm
 		{
 			constexpr auto data_size = native_data_size_v<simd<I, detail::avec<N, A>>>;
 
-			simd<I, detail::avec<N, A>> result;
+			simd<I, detail::avec<N, A>> result = {};
 			detail::x86_simd_impl<I, __m128i, N>::template blend<data_size>(
 					to_native_data(result).data(),
 					to_native_data(a).data(),
@@ -1101,7 +1102,7 @@ namespace dpm
 	{
 		constexpr auto data_size = ext::native_data_size_v<simd<I, detail::avec<N, A>>>;
 
-		simd<double, detail::avec<N, A>> result;
+		simd<double, detail::avec<N, A>> result = {};
 		detail::x86_simd_impl<I, __m128i, N>::template min<data_size>(
 				ext::to_native_data(result).data(),
 				ext::to_native_data(a).data(),
@@ -1118,7 +1119,7 @@ namespace dpm
 	{
 		constexpr auto data_size = ext::native_data_size_v<simd<I, detail::avec<N, A>>>;
 
-		simd<I, detail::avec<N, A>> result;
+		simd<I, detail::avec<N, A>> result = {};
 		detail::x86_simd_impl<I, __m128i, N>::template max<data_size>(
 				ext::to_native_data(result).data(),
 				ext::to_native_data(a).data(),
@@ -1136,7 +1137,7 @@ namespace dpm
 	{
 		constexpr auto data_size = ext::native_data_size_v<simd<I, detail::avec<N, A>>>;
 
-		std::pair<simd<I, detail::avec<N, A>>, simd<I, detail::avec<N, A>>> result;
+		std::pair<simd<I, detail::avec<N, A>>, simd<I, detail::avec<N, A>>> result = {};
 		detail::x86_simd_impl<I, __m128i, N>::template minmax<data_size>(
 				ext::to_native_data(result.first).data(),
 				ext::to_native_data(result.second).data(),
@@ -1156,7 +1157,7 @@ namespace dpm
 	{
 		constexpr auto data_size = ext::native_data_size_v<simd<I, detail::avec<N, A>>>;
 
-		simd<I, detail::avec<N, A>> result;
+		simd<I, detail::avec<N, A>> result = {};
 		detail::x86_simd_impl<I, __m128i, N>::template clamp<data_size>(
 				ext::to_native_data(result).data(),
 				ext::to_native_data(x).data(),

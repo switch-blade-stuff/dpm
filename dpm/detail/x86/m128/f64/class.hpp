@@ -25,7 +25,7 @@ namespace dpm
 	template<std::size_t N, std::size_t A>
 	[[nodiscard]] inline simd_mask<double, detail::avec<N, A>> isnan(const simd<double, detail::avec<N, A>> &x) noexcept requires detail::x86_overload_m128<double, N, A>
 	{
-		simd_mask<double, detail::avec<N, A>> result;
+		simd_mask<double, detail::avec<N, A>> result = {};
 		for (std::size_t i = 0; i < ext::native_data_size_v<simd<double, detail::avec<N, A>>>; ++i)
 			ext::to_native_data(result)[i] = detail::x86_isnan(ext::to_native_data(x)[i]);
 		return result;
@@ -34,7 +34,7 @@ namespace dpm
 	template<std::size_t N, std::size_t A>
 	[[nodiscard]] inline simd_mask<double, detail::avec<N, A>> isinf(const simd<double, detail::avec<N, A>> &x) noexcept requires detail::x86_overload_m128<double, N, A>
 	{
-		simd_mask<double, detail::avec<N, A>> result;
+		simd_mask<double, detail::avec<N, A>> result = {};
 		for (std::size_t i = 0; i < ext::native_data_size_v<simd<double, detail::avec<N, A>>>; ++i)
 			ext::to_native_data(result)[i] = detail::x86_isinf(ext::to_native_data(x)[i]);
 		return result;

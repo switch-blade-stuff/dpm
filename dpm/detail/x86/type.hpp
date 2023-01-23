@@ -63,7 +63,7 @@ namespace dpm
 	          detail::x86_overload_any<To, N, A> &&
 	          detail::x86_overload_any<U, N, A>)
 	{
-		detail::cast_return_t<T, U, detail::avec<N, A>, simd<U, detail::avec<N, A>>::size()> result;
+		detail::cast_return_t<T, U, detail::avec<N, A>, simd<U, detail::avec<N, A>>::size()> result = {};
 		detail::cast_impl(result, x);
 		return result;
 	}
@@ -74,7 +74,7 @@ namespace dpm
 	          detail::x86_overload_any<To, N, A> &&
 	          detail::x86_overload_any<U, N, A>)
 	{
-		detail::static_cast_return_t<T, U, detail::avec<N, A>, simd<U, detail::avec<N, A>>::size()> result;
+		detail::static_cast_return_t<T, U, detail::avec<N, A>, simd<U, detail::avec<N, A>>::size()> result = {};
 		detail::cast_impl(result, x);
 		return result;
 	}
@@ -87,7 +87,7 @@ namespace dpm
 			return (values, ...);
 		else
 		{
-			simd_mask<T, simd_abi::deduce_t<T, (simd_size_v<T, Abis> + ...)>> result;
+			simd_mask<T, simd_abi::deduce_t<T, (simd_size_v<T, Abis> + ...)>> result = {};
 			detail::concat_impl<0>(result, values...);
 			return result;
 		}
@@ -100,7 +100,7 @@ namespace dpm
 			return (values, ...);
 		else
 		{
-			simd<T, simd_abi::deduce_t<T, (simd_size_v<T, Abis> + ...)>> result;
+			simd<T, simd_abi::deduce_t<T, (simd_size_v<T, Abis> + ...)>> result = {};
 			detail::concat_impl<0>(result, values...);
 			return result;
 		}
@@ -115,7 +115,7 @@ namespace dpm
 			return values[0];
 		else
 		{
-			result_t result;
+			result_t result = {};
 			for (std::size_t i = 0; i < M; ++i)
 			{
 				auto *data = reinterpret_cast<T *>(ext::to_native_data(result).data());
@@ -136,7 +136,7 @@ namespace dpm
 			return values[0];
 		else
 		{
-			result_t result;
+			result_t result = {};
 			for (std::size_t i = 0; i < M; ++i)
 			{
 				auto *data = reinterpret_cast<T *>(ext::to_native_data(result).data());
@@ -154,7 +154,7 @@ namespace dpm
 	template<typename V, std::size_t N, std::size_t A, typename U = typename V::simd_type::value_type>
 	[[nodiscard]] inline auto split(const simd_mask<U, detail::avec<N, A>> &x) noexcept requires detail::can_split_mask<V, detail::avec<N, A>> && detail::x86_overload_any<U, N, A>
 	{
-		std::array<V, simd_size_v<U, detail::avec<N, A>> / V::size()> result;
+		std::array<V, simd_size_v<U, detail::avec<N, A>> / V::size()> result = {};
 		for (std::size_t j = 0; j < result.size(); ++j)
 		{
 			const auto *data = reinterpret_cast<const U *>(ext::to_native_data(x).data());
@@ -167,7 +167,7 @@ namespace dpm
 	template<typename V, std::size_t N, std::size_t A, typename U = typename V::simd_type::value_type>
 	[[nodiscard]] inline auto split(const simd<U, detail::avec<N, A>> &x) noexcept requires detail::can_split_mask<V, detail::avec<N, A>> && detail::x86_overload_any<U, N, A>
 	{
-		std::array<V, simd_size_v<U, detail::avec<N, A>> / V::size()> result;
+		std::array<V, simd_size_v<U, detail::avec<N, A>> / V::size()> result = {};
 		for (std::size_t j = 0; j < result.size(); ++j)
 		{
 			const auto *data = reinterpret_cast<const U *>(ext::to_native_data(x).data());

@@ -170,12 +170,12 @@ namespace dpm
 		[[nodiscard]] value_type operator[](std::size_t i) const noexcept
 		{
 			DPM_ASSERT(i < size());
-			return reinterpret_cast<const std::int64_t *>(m_data)[i];
+			return reinterpret_cast<const value_proxy *>(m_data)[i];
 		}
 
 		[[nodiscard]] simd_mask operator!() const noexcept
 		{
-			simd_mask result;
+			simd_mask result = {};
 			const auto mask = _mm_set1_pd(std::bit_cast<double>(0xffff'ffff'ffff'ffff));
 			for (std::size_t i = 0; i < data_size; ++i) result.m_data[i] = _mm_xor_pd(m_data[i], mask);
 			return result;
@@ -183,19 +183,19 @@ namespace dpm
 
 		[[nodiscard]] friend simd_mask operator&(const simd_mask &a, const simd_mask &b) noexcept
 		{
-			simd_mask result;
+			simd_mask result = {};
 			for (std::size_t i = 0; i < data_size; ++i) result.m_data[i] = _mm_and_pd(a.m_data[i], b.m_data[i]);
 			return result;
 		}
 		[[nodiscard]] friend simd_mask operator|(const simd_mask &a, const simd_mask &b) noexcept
 		{
-			simd_mask result;
+			simd_mask result = {};
 			for (std::size_t i = 0; i < data_size; ++i) result.m_data[i] = _mm_or_pd(a.m_data[i], b.m_data[i]);
 			return result;
 		}
 		[[nodiscard]] friend simd_mask operator^(const simd_mask &a, const simd_mask &b) noexcept
 		{
-			simd_mask result;
+			simd_mask result = {};
 			for (std::size_t i = 0; i < data_size; ++i) result.m_data[i] = _mm_xor_pd(a.m_data[i], b.m_data[i]);
 			return result;
 		}
@@ -221,7 +221,7 @@ namespace dpm
 
 		[[nodiscard]] friend simd_mask operator==(const simd_mask &a, const simd_mask &b) noexcept
 		{
-			simd_mask result;
+			simd_mask result = {};
 			for (std::size_t i = 0; i < data_size; ++i)
 			{
 				const auto va = std::bit_cast<__m128i>(a.m_data[i]);
@@ -375,7 +375,7 @@ namespace dpm
 		{
 			constexpr auto data_size = native_data_size_v<simd_mask<double, detail::avec<N, A>>>;
 
-			simd_mask<double, detail::avec<N, A>> result;
+			simd_mask<double, detail::avec<N, A>> result = {};
 			auto result_data = to_native_data(result);
 			const auto a_data = to_native_data(a);
 			const auto b_data = to_native_data(b);
@@ -555,7 +555,7 @@ namespace dpm
 			return (values, ...);
 		else
 		{
-			simd_mask<double, simd_abi::deduce_t<double, (simd_size_v<double, Abis> + ...)>> result;
+			simd_mask<double, simd_abi::deduce_t<double, (simd_size_v<double, Abis> + ...)>> result = {};
 			detail::concat_impl<0>(result, values...);
 			return result;
 		}
@@ -568,7 +568,7 @@ namespace dpm
 			return values[0];
 		else
 		{
-			simd_mask<double, detail::avec<N * M, A>> result;
+			simd_mask<double, detail::avec<N * M, A>> result = {};
 			auto *data = reinterpret_cast<double *>(ext::to_native_data(result).data());
 			for (std::size_t i = 0; i < M; ++i)
 			{
@@ -604,10 +604,11 @@ namespace dpm
 		constexpr static auto alignment = std::max(Align, alignof(__m128d));
 
 		using data_type = __m128d[data_size];
+		using value_proxy = detail::simd_element<double>;
 
 	public:
 		using value_type = double;
-		using reference = value_type &;
+		using reference = value_proxy &;
 
 		using abi_type = detail::avec<N, Align>;
 		using mask_type = simd_mask<double, abi_type>;
@@ -755,12 +756,12 @@ namespace dpm
 		[[nodiscard]] reference operator[](std::size_t i) noexcept
 		{
 			DPM_ASSERT(i < size());
-			return reinterpret_cast<double *>(m_data)[i];
+			return reinterpret_cast<value_proxy *>(m_data)[i];
 		}
 		[[nodiscard]] value_type operator[](std::size_t i) const noexcept
 		{
 			DPM_ASSERT(i < size());
-			return reinterpret_cast<const double *>(m_data)[i];
+			return reinterpret_cast<const value_proxy *>(m_data)[i];
 		}
 
 		simd operator++(int) noexcept
@@ -791,7 +792,7 @@ namespace dpm
 		[[nodiscard]] simd operator+() const noexcept { return *this; }
 		[[nodiscard]] simd operator-() const noexcept
 		{
-			simd result;
+			simd result = {};
 			const auto mask = _mm_set1_pd(-0.0);
 			for (std::size_t i = 0; i < data_size; ++i) result.m_data[i] = _mm_xor_pd(m_data[i], mask);
 			return result;
@@ -799,13 +800,13 @@ namespace dpm
 
 		[[nodiscard]] friend simd operator+(const simd &a, const simd &b) noexcept
 		{
-			simd result;
+			simd result = {};
 			for (std::size_t i = 0; i < data_size; ++i) result.m_data[i] = _mm_add_pd(a.m_data[i], b.m_data[i]);
 			return result;
 		}
 		[[nodiscard]] friend simd operator-(const simd &a, const simd &b) noexcept
 		{
-			simd result;
+			simd result = {};
 			for (std::size_t i = 0; i < data_size; ++i) result.m_data[i] = _mm_sub_pd(a.m_data[i], b.m_data[i]);
 			return result;
 		}
@@ -823,13 +824,13 @@ namespace dpm
 
 		[[nodiscard]] friend simd operator*(const simd &a, const simd &b) noexcept
 		{
-			simd result;
+			simd result = {};
 			for (std::size_t i = 0; i < data_size; ++i) result.m_data[i] = _mm_mul_pd(a.m_data[i], b.m_data[i]);
 			return result;
 		}
 		[[nodiscard]] friend simd operator/(const simd &a, const simd &b) noexcept
 		{
-			simd result;
+			simd result = {};
 			for (std::size_t i = 0; i < data_size; ++i) result.m_data[i] = _mm_div_pd(a.m_data[i], b.m_data[i]);
 			return result;
 		}
@@ -847,37 +848,37 @@ namespace dpm
 
 		[[nodiscard]] friend mask_type operator==(const simd &a, const simd &b) noexcept
 		{
-			data_type mask_data;
+			data_type mask_data = {};
 			for (std::size_t i = 0; i < data_size; ++i) mask_data[i] = _mm_cmpeq_pd(a.m_data[i], b.m_data[i]);
 			return {mask_data};
 		}
 		[[nodiscard]] friend mask_type operator<=(const simd &a, const simd &b) noexcept
 		{
-			data_type mask_data;
+			data_type mask_data = {};
 			for (std::size_t i = 0; i < data_size; ++i) mask_data[i] = _mm_cmple_pd(a.m_data[i], b.m_data[i]);
 			return {mask_data};
 		}
 		[[nodiscard]] friend mask_type operator>=(const simd &a, const simd &b) noexcept
 		{
-			data_type mask_data;
+			data_type mask_data = {};
 			for (std::size_t i = 0; i < data_size; ++i) mask_data[i] = _mm_cmpge_pd(a.m_data[i], b.m_data[i]);
 			return {mask_data};
 		}
 		[[nodiscard]] friend mask_type operator<(const simd &a, const simd &b) noexcept
 		{
-			data_type mask_data;
+			data_type mask_data = {};
 			for (std::size_t i = 0; i < data_size; ++i) mask_data[i] = _mm_cmplt_pd(a.m_data[i], b.m_data[i]);
 			return {mask_data};
 		}
 		[[nodiscard]] friend mask_type operator>(const simd &a, const simd &b) noexcept
 		{
-			data_type mask_data;
+			data_type mask_data = {};
 			for (std::size_t i = 0; i < data_size; ++i) mask_data[i] = _mm_cmpgt_pd(a.m_data[i], b.m_data[i]);
 			return {mask_data};
 		}
 		[[nodiscard]] friend mask_type operator!=(const simd &a, const simd &b) noexcept
 		{
-			data_type mask_data;
+			data_type mask_data = {};
 			for (std::size_t i = 0; i < data_size; ++i) mask_data[i] = _mm_cmpneq_pd(a.m_data[i], b.m_data[i]);
 			return {mask_data};
 		}
@@ -1144,7 +1145,7 @@ namespace dpm
 		{
 			constexpr auto data_size = native_data_size_v<simd<double, detail::avec<N, A>>>;
 
-			simd<double, detail::avec<N, A>> result;
+			simd<double, detail::avec<N, A>> result = {};
 			auto result_data = to_native_data(result);
 			const auto a_data = to_native_data(a);
 			const auto b_data = to_native_data(b);
@@ -1164,7 +1165,7 @@ namespace dpm
 	          detail::x86_overload_m128<double, N, A> &&
 	          detail::x86_overload_any<To, N, A>)
 	{
-		detail::cast_return_t<T, double, detail::avec<N, A>, simd<double, detail::avec<N, A>>::size()> result;
+		detail::cast_return_t<T, double, detail::avec<N, A>, simd<double, detail::avec<N, A>>::size()> result = {};
 		x.copy_to(reinterpret_cast<To *>(ext::to_native_data(result).data()), vector_aligned);
 		return result;
 	}
@@ -1175,7 +1176,7 @@ namespace dpm
 	          detail::x86_overload_m128<double, N, A> &&
 	          detail::x86_overload_any<To, N, A>)
 	{
-		typename detail::static_cast_return<T, double, detail::avec<N, A>, simd<double, detail::avec<N, A>>::size()>::type result;
+		typename detail::static_cast_return<T, double, detail::avec<N, A>, simd<double, detail::avec<N, A>>::size()>::type result = {};
 		x.copy_to(reinterpret_cast<To *>(ext::to_native_data(result).data()), vector_aligned);
 		return result;
 	}
@@ -1188,7 +1189,7 @@ namespace dpm
 			return (values, ...);
 		else
 		{
-			simd<double, simd_abi::deduce_t<double, (simd_size_v<double, Abis> + ...)>> result;
+			simd<double, simd_abi::deduce_t<double, (simd_size_v<double, Abis> + ...)>> result = {};
 			detail::concat_impl<0>(result, values...);
 			return result;
 		}
@@ -1201,7 +1202,7 @@ namespace dpm
 			return values[0];
 		else
 		{
-			simd<double, detail::avec<N * M, A>> result;
+			simd<double, detail::avec<N * M, A>> result = {};
 			auto *data = reinterpret_cast<double *>(ext::to_native_data(result).data());
 			for (std::size_t i = 0; i < M; ++i)
 			{
@@ -1225,7 +1226,7 @@ namespace dpm
 	{
 		constexpr auto data_size = native_data_size_v<simd<double, detail::avec<N, A>>>;
 
-		simd<double, detail::avec<N, A>> result;
+		simd<double, detail::avec<N, A>> result = {};
 		auto result_data = ext::to_native_data(result);
 		const auto a_data = ext::to_native_data(a);
 		const auto b_data = ext::to_native_data(b);
@@ -1242,7 +1243,7 @@ namespace dpm
 	{
 		constexpr auto data_size = native_data_size_v<simd<double, detail::avec<N, A>>>;
 
-		simd<double, detail::avec<N, A>> result;
+		simd<double, detail::avec<N, A>> result = {};
 		auto result_data = ext::to_native_data(result);
 		const auto a_data = ext::to_native_data(a);
 		const auto b_data = ext::to_native_data(b);
@@ -1260,7 +1261,7 @@ namespace dpm
 	{
 		constexpr auto data_size = native_data_size_v<simd<double, detail::avec<N, A>>>;
 
-		std::pair<simd<double, detail::avec<N, A>>, simd<double, detail::avec<N, A>>> result;
+		std::pair<simd<double, detail::avec<N, A>>, simd<double, detail::avec<N, A>>> result = {};
 		auto min_data = ext::to_native_data(result.first), max_data = ext::to_native_data(result.second);
 		const auto a_data = ext::to_native_data(a);
 		const auto b_data = ext::to_native_data(b);
@@ -1283,7 +1284,7 @@ namespace dpm
 	{
 		constexpr auto data_size = native_data_size_v<simd<double, detail::avec<N, A>>>;
 
-		simd<double, detail::avec<N, A>> result;
+		simd<double, detail::avec<N, A>> result = {};
 		auto result_data = ext::to_native_data(result);
 		const auto min_data = ext::to_native_data(min);
 		const auto max_data = ext::to_native_data(max);
