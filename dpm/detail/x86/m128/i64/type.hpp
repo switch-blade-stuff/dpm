@@ -55,7 +55,8 @@ namespace dpm
 		template<std::size_t I>
 		inline DPM_FORCEINLINE void x86_shuffle_i64(__m128i *to, const __m128i *from) noexcept
 		{
-			*to = _mm_shuffle_epi32(from[I / 2], _MM_SHUFFLE(I % 2, I % 2, I % 2, I % 2));
+			const auto v = std::bit_cast<__m128d>(from[I / 2]);
+			*to = _mm_shuffle_pd(v, v, _MM_SHUFFLE2(I % 2, I % 2));
 		}
 		template<std::size_t I0, std::size_t I1, std::size_t... Is>
 		inline DPM_FORCEINLINE void x86_shuffle_i64(__m128i *to, const __m128i *from) noexcept
@@ -256,7 +257,7 @@ namespace dpm
 		template<typename Flags>
 		DPM_FORCEINLINE void copy_to(bool *mem, Flags) const && noexcept requires is_simd_flag_type_v<Flags>
 		{
-			const auto v_mask = ext::to_native_data(m_data);
+			const auto v_mask = ext::to_native_data(m_mask);
 			const auto v_data = ext::to_native_data(m_data);
 			for (std::size_t i = 0; i < mask_t::size(); ++i)
 			{
@@ -312,7 +313,7 @@ namespace dpm
 		template<typename Flags>
 		DPM_FORCEINLINE void copy_from(const bool *mem, Flags) const && noexcept requires is_simd_flag_type_v<Flags>
 		{
-			const auto v_mask = ext::to_native_data(m_data);
+			const auto v_mask = ext::to_native_data(m_mask);
 			const auto v_data = ext::to_native_data(m_data);
 			for (std::size_t i = 0; i < mask_t::size(); ++i)
 			{
@@ -787,7 +788,7 @@ namespace dpm
 		[[nodiscard]] friend DPM_FORCEINLINE simd operator>>(const simd &a, const simd &b) noexcept
 		{
 			simd result = {};
-			for (std::size_t i = 0; i < data_size; ++i) result.m_data[i] = _mm_sllv_epi64(a.m_data[i], b.m_data[i]);
+			for (std::size_t i = 0; i < data_size; ++i) result.m_data[i] = _mm_srlv_epi64(a.m_data[i], b.m_data[i]);
 			return result;
 		}
 
@@ -798,7 +799,7 @@ namespace dpm
 		}
 		friend DPM_FORCEINLINE simd &operator>>=(simd &a, const simd &b) noexcept
 		{
-			for (std::size_t i = 0; i < data_size; ++i) a.m_data[i] = _mm_sllv_epi64(a.m_data[i], b.m_data[i]);
+			for (std::size_t i = 0; i < data_size; ++i) a.m_data[i] = _mm_srlv_epi64(a.m_data[i], b.m_data[i]);
 			return a;
 		}
 #endif
@@ -807,7 +808,7 @@ namespace dpm
 		[[nodiscard]] friend DPM_FORCEINLINE mask_type operator==(const simd &a, const simd &b) noexcept
 		{
 			storage_type mask_data = {};
-			for (std::size_t i = 0; i < data_size; ++i) mask_data[i] = _mm_cmpeq_epi32(a.m_data[i], b.m_data[i]);
+			for (std::size_t i = 0; i < data_size; ++i) mask_data[i] = _mm_cmpeq_epi64(a.m_data[i], b.m_data[i]);
 			return {mask_data};
 		}
 		[[nodiscard]] friend DPM_FORCEINLINE mask_type operator!=(const simd &a, const simd &b) noexcept { return !(a == b); }
@@ -849,7 +850,7 @@ namespace dpm
 		{
 			if constexpr (sizeof(U) == 8)
 			{
-				const auto v_mask = ext::to_native_data(m_data);
+				const auto v_mask = ext::to_native_data(m_mask);
 				const auto v_data = ext::to_native_data(m_data);
 				for (std::size_t i = 0; i < mask_t::size(); i += 2)
 				{
@@ -951,11 +952,11 @@ namespace dpm
 #ifdef DPM_HAS_AVX
 			if constexpr (detail::aligned_tag<Flags, 16>)
 			{
-				const auto v_mask = ext::to_native_data(m_data);
+				const auto v_mask = ext::to_native_data(m_mask);
 				const auto v_data = ext::to_native_data(m_data);
 				for (std::size_t i = 0; i < mask_t::size(); i += 2)
 				{
-					const auto mi = std::bit_cast<__m128i>(detail::x86_maskzero_f64(mask_t::size() - i, v_mask[i / 2]));
+					const auto mi = std::bit_cast<__m128i>(detail::x86_maskzero_i64(mask_t::size() - i, v_mask[i / 2]));
 					auto v = _mm_maskload_pd(reinterpret_cast<const double *>(mem + i), mi);
 					if constexpr (std::same_as<std::remove_volatile_t<U>, double>)
 					{
@@ -1056,13 +1057,11 @@ namespace dpm
 			return res;
 		}
 		template<detail::integral_of_size<8> I, std::size_t N, std::size_t A, typename Op>
-		inline float DPM_FORCEINLINE x86_reduce_i64(const simd<I, detail::avec<N, A>> &x, __m128i idt, Op op) noexcept
+		inline I DPM_FORCEINLINE x86_reduce_i64(const simd<I, detail::avec<N, A>> &x, __m128i idt, Op op) noexcept
 		{
-			const auto a = x86_reduce_lanes_i64(x, idt, op);
-			const auto b = _mm_shuffle_epi32(a, _MM_SHUFFLE(3, 3, 1, 1));
-			const auto c = op(a, b);
-			const auto d = _mm_movehl_ps(std::bit_cast<__m128>(b), std::bit_cast<__m128>(c));
-			return _mm_cvtss_f32(op(c, std::bit_cast<__m128>(d)));
+			const auto a = std::bit_cast<__m128d>(x86_reduce_lanes_i64(x, idt, op));
+			const auto b = _mm_shuffle_pd(a, a, _MM_SHUFFLE2(1, 1));
+			return static_cast<I>(_mm_cvtsi128_si64x(op(std::bit_cast<__m128i>(a), std::bit_cast<__m128i>(b))));
 		}
 	}
 

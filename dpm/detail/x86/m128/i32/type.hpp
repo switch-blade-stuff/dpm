@@ -64,7 +64,8 @@ namespace dpm
 		template<std::size_t I>
 		inline DPM_FORCEINLINE void x86_shuffle_i32(__m128i *to, const __m128i *from) noexcept
 		{
-			*to = _mm_shuffle_epi32(from[I / 4], _MM_SHUFFLE(I % 4, I % 4, I % 4, I % 4));
+			const auto v = std::bit_cast<__m128>(from[I / 4]);
+			*to = _mm_shuffle_ps(v, v, _MM_SHUFFLE(I % 4, I % 4, I % 4, I % 4));
 		}
 		template<std::size_t I0, std::size_t I1>
 		inline DPM_FORCEINLINE void x86_shuffle_i32(__m128i *to, const __m128i *from) noexcept
@@ -73,7 +74,10 @@ namespace dpm
 			if constexpr (P0 != P1)
 				copy_positions<I0, I1>(reinterpret_cast<alias_uint32_t *>(to), reinterpret_cast<const alias_uint32_t *>(from));
 			else
-				*to = _mm_shuffle_epi32(from[P0], _MM_SHUFFLE(3, 2, I1 % 4, I0 % 4));
+			{
+				const auto v = std::bit_cast<__m128>(from[P0]);
+				*to = _mm_shuffle_ps(v, v, _MM_SHUFFLE(3, 2, I1 % 4, I0 % 4));
+			}
 		}
 		template<std::size_t I0, std::size_t I1, std::size_t I2>
 		inline DPM_FORCEINLINE void x86_shuffle_i32(__m128i *to, const __m128i *from) noexcept
@@ -297,7 +301,7 @@ namespace dpm
 		template<typename Flags>
 		DPM_FORCEINLINE void copy_to(bool *mem, Flags) const && noexcept requires is_simd_flag_type_v<Flags>
 		{
-			const auto v_mask = ext::to_native_data(m_data);
+			const auto v_mask = ext::to_native_data(m_mask);
 			const auto v_data = ext::to_native_data(m_data);
 			for (std::size_t i = 0; i < mask_t::size(); ++i)
 			{
@@ -355,7 +359,7 @@ namespace dpm
 		template<typename Flags>
 		DPM_FORCEINLINE void copy_from(const bool *mem, Flags) const && noexcept requires is_simd_flag_type_v<Flags>
 		{
-			const auto v_mask = ext::to_native_data(m_data);
+			const auto v_mask = ext::to_native_data(m_mask);
 			const auto v_data = ext::to_native_data(m_data);
 			for (std::size_t i = 0; i < mask_t::size(); ++i)
 			{
@@ -844,7 +848,7 @@ namespace dpm
 		[[nodiscard]] friend DPM_FORCEINLINE simd operator>>(const simd &a, const simd &b) noexcept
 		{
 			simd result = {};
-			for (std::size_t i = 0; i < data_size; ++i) result.m_data[i] = _mm_sllv_epi32(a.m_data[i], b.m_data[i]);
+			for (std::size_t i = 0; i < data_size; ++i) result.m_data[i] = _mm_srlv_epi32(a.m_data[i], b.m_data[i]);
 			return result;
 		}
 
@@ -855,7 +859,7 @@ namespace dpm
 		}
 		friend DPM_FORCEINLINE simd &operator>>=(simd &a, const simd &b) noexcept
 		{
-			for (std::size_t i = 0; i < data_size; ++i) a.m_data[i] = _mm_sllv_epi32(a.m_data[i], b.m_data[i]);
+			for (std::size_t i = 0; i < data_size; ++i) a.m_data[i] = _mm_srlv_epi32(a.m_data[i], b.m_data[i]);
 			return a;
 		}
 #endif
@@ -864,12 +868,12 @@ namespace dpm
 		[[nodiscard]] friend DPM_FORCEINLINE simd operator*(const simd &a, const simd &b) noexcept
 		{
 			simd result = {};
-			for (std::size_t i = 0; i < data_size; ++i) result.m_data[i] = _mm_mul_epi32(a.m_data[i], b.m_data[i]);
+			for (std::size_t i = 0; i < data_size; ++i) result.m_data[i] = _mm_mullo_epi32(a.m_data[i], b.m_data[i]);
 			return result;
 		}
 		friend DPM_FORCEINLINE simd &operator*=(simd &a, const simd &b) noexcept
 		{
-			for (std::size_t i = 0; i < data_size; ++i) a.m_data[i] = _mm_mul_epi32(a.m_data[i], b.m_data[i]);
+			for (std::size_t i = 0; i < data_size; ++i) a.m_data[i] = _mm_mullo_epi32(a.m_data[i], b.m_data[i]);
 			return a;
 		}
 #endif
@@ -919,7 +923,7 @@ namespace dpm
 #ifdef DPM_HAS_AVX
 			if constexpr (detail::aligned_tag<Flags, 16>)
 			{
-				const auto v_mask = ext::to_native_data(m_data);
+				const auto v_mask = ext::to_native_data(m_mask);
 				const auto v_data = ext::to_native_data(m_data);
 				if constexpr (std::same_as<std::remove_cvref_t<U>, float>)
 				{
@@ -1024,7 +1028,7 @@ namespace dpm
 #ifdef DPM_HAS_AVX
 			if constexpr (detail::aligned_tag<Flags, 16>)
 			{
-				const auto v_mask = ext::to_native_data(m_data);
+				const auto v_mask = ext::to_native_data(m_mask);
 				const auto v_data = ext::to_native_data(m_data);
 				if constexpr (std::same_as<std::remove_cvref_t<U>, float>)
 				{
@@ -1138,10 +1142,10 @@ namespace dpm
 		inline I DPM_FORCEINLINE x86_reduce_i32(const simd<I, detail::avec<N, A>> &x, __m128i idt, Op op) noexcept
 		{
 			const auto a = x86_reduce_lanes_i32(x, idt, op);
-			const auto b = _mm_shuffle_epi32(a, _MM_SHUFFLE(3, 3, 1, 1));
+			const auto b = _mm_shuffle_ps(std::bit_cast<__m128>(x), std::bit_cast<__m128>(x), _MM_SHUFFLE(3, 3, 1, 1));
 			const auto c = op(a, b);
 			const auto d = _mm_movehl_ps(std::bit_cast<__m128>(b), std::bit_cast<__m128>(c));
-			return _mm_cvtsi128_si32(op(c, std::bit_cast<__m128>(d)));
+			return static_cast<I>(_mm_cvtsi128_si32(op(c, std::bit_cast<__m128>(d))));
 		}
 	}
 
@@ -1153,7 +1157,7 @@ namespace dpm
 			return detail::x86_reduce_i32(x, _mm_setzero_si128(), [](auto a, auto b) { return _mm_add_epi32(a, b); });
 #ifdef DPM_HAS_SSE4_1
 		else if constexpr (std::same_as<Op, std::multiplies<>> || std::same_as<Op, std::multiplies<I>>)
-			return detail::x86_reduce_i32(x, _mm_set1_epi32(1), [](auto a, auto b) { return _mm_mul_epi32(a, b); });
+			return detail::x86_reduce_i32(x, _mm_set1_epi32(1), [](auto a, auto b) { return _mm_mullo_epi32(a, b); });
 #endif
 		else
 			return detail::reduce_impl<simd<I, detail::avec<N, A>>::size()>(x, op);

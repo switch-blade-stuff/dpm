@@ -327,7 +327,7 @@ namespace dpm
 		template<typename Flags>
 		DPM_FORCEINLINE void copy_to(bool *mem, Flags) const && noexcept requires is_simd_flag_type_v<Flags>
 		{
-			const auto v_mask = ext::to_native_data(m_data);
+			const auto v_mask = ext::to_native_data(m_mask);
 			const auto v_data = ext::to_native_data(m_data);
 			for (std::size_t i = 0; i < mask_t::size(); ++i)
 			{
@@ -385,7 +385,7 @@ namespace dpm
 		template<typename Flags>
 		DPM_FORCEINLINE void copy_from(const bool *mem, Flags) const && noexcept requires is_simd_flag_type_v<Flags>
 		{
-			const auto v_mask = ext::to_native_data(m_data);
+			const auto v_mask = ext::to_native_data(m_mask);
 			const auto v_data = ext::to_native_data(m_data);
 			for (std::size_t i = 0; i < mask_t::size(); ++i)
 			{
@@ -932,7 +932,7 @@ namespace dpm
 #ifdef DPM_HAS_AVX
 			if constexpr (detail::aligned_tag<Flags, 16>)
 			{
-				const auto v_mask = ext::to_native_data(m_data);
+				const auto v_mask = ext::to_native_data(m_mask);
 				const auto v_data = ext::to_native_data(m_data);
 				if constexpr (std::same_as<std::remove_cvref_t<U>, float>)
 				{
@@ -1037,7 +1037,7 @@ namespace dpm
 #ifdef DPM_HAS_AVX
 			if constexpr (detail::aligned_tag<Flags, 16>)
 			{
-				const auto v_mask = ext::to_native_data(m_data);
+				const auto v_mask = ext::to_native_data(m_mask);
 				const auto v_data = ext::to_native_data(m_data);
 				if constexpr (std::same_as<std::remove_cvref_t<U>, float>)
 				{
