@@ -20,7 +20,7 @@ namespace dpm
 			if (n == 1)
 			{
 #if defined(DPM_HAS_SSE4_1)
-				return _mm_blend_pd(v, b, 0b10);
+				return _mm_blend_pd(a, b, 0b10);
 #else
 				const auto vm = _mm_set_pd(std::bit_cast<double>(0xffff'ffff'ffff'ffff), 0.0);
 				return _mm_or_pd(_mm_andnot_pd(vm, a), _mm_and_pd(vm, b));
@@ -55,13 +55,13 @@ namespace dpm
 		template<std::size_t I>
 		inline DPM_FORCEINLINE void x86_shuffle_f64(__m128d *to, const __m128d *from) noexcept
 		{
-			*to = _mm_shuffle_pd(from[I / 4], from[I / 4], _MM_SHUFFLE2(I % 4, I % 4));
+			*to = _mm_shuffle_pd(from[I / 2], from[I / 2], _MM_SHUFFLE2(I % 2, I % 2));
 		}
 		template<std::size_t I0, std::size_t I1, std::size_t... Is>
 		inline DPM_FORCEINLINE void x86_shuffle_f64(__m128d *to, const __m128d *from) noexcept
 		{
-			constexpr auto P0 = I0 / 4, P1 = I1 / 4;
-			*to = _mm_shuffle_pd(from[P0], from[P1], _MM_SHUFFLE2(I1 % 4, I0 % 4));
+			constexpr auto P0 = I0 / 2, P1 = I1 / 2;
+			*to = _mm_shuffle_pd(from[P0], from[P1], _MM_SHUFFLE2(I1 % 2, I0 % 2));
 			if constexpr (sizeof...(Is) != 0) x86_shuffle_f64<Is...>(to + 1, from);
 		}
 	}
@@ -623,7 +623,7 @@ namespace dpm
 		template<typename U, typename Flags>
 		DPM_FORCEINLINE void copy_from(const U *mem, Flags) noexcept requires is_simd_flag_type_v<Flags>
 		{
-			if constexpr (detail::aligned_tag<Flags, alignof(__m128d)>)
+			if constexpr (detail::aligned_tag<Flags, 16>)
 			{
 				if constexpr (std::same_as<std::remove_cvref_t<U>, double>)
 				{
@@ -665,7 +665,7 @@ namespace dpm
 		template<typename U, typename Flags>
 		DPM_FORCEINLINE void copy_to(U *mem, Flags) const noexcept requires is_simd_flag_type_v<Flags>
 		{
-			if constexpr (detail::aligned_tag<Flags, alignof(__m128d)>)
+			if constexpr (detail::aligned_tag<Flags, 16>)
 			{
 				if constexpr (std::same_as<std::remove_cvref_t<U>, double>)
 				{
@@ -868,59 +868,26 @@ namespace dpm
 		template<typename U, typename Flags>
 		DPM_FORCEINLINE void copy_to(U *mem, Flags) const && noexcept requires is_simd_flag_type_v<Flags>
 		{
-			const auto v_mask = ext::to_native_data(m_data);
-			const auto v_data = ext::to_native_data(m_data);
-			if constexpr (std::same_as<std::remove_cvref_t<U>, double>)
+			if constexpr (sizeof(U) == 8)
+			{
+				const auto v_mask = ext::to_native_data(m_data);
+				const auto v_data = ext::to_native_data(m_data);
 				for (std::size_t i = 0; i < mask_t::size(); i += 2)
 				{
+					const auto mi = std::bit_cast<__m128i>(detail::x86_maskzero_f64(mask_t::size() - i, v_mask[i / 2]));
+					auto v = v_data[i / 2];
+					if constexpr (std::is_signed_v<std::remove_volatile_t<U>>)
+						v = std::bit_cast<__m128d>(detail::x86_cvt_f64_i64(v));
+					else
+						v = std::bit_cast<__m128d>(detail::x86_cvt_f64_u64(v));
 #ifdef DPM_HAS_AVX
-					if constexpr (detail::aligned_tag<Flags, alignof(__m128d)>)
-					{
-						const auto mi = std::bit_cast<__m128i>(detail::x86_maskzero_f64(mask_t::size() - i, v_mask[i / 2]));
-						_mm_maskstore_pd(mem, mi, v_data[i / 2]);
-					}
+					if constexpr (detail::aligned_tag<Flags, 16>)
+						_mm_maskstore_pd(reinterpret_cast<double *>(mem + i), mi, v);
 					else
 #endif
-					{
-						const auto mi = std::bit_cast<__m128i>(detail::x86_maskzero_f64(mask_t::size() - i, v_mask[i / 2]));
-						const auto vi = std::bit_cast<__m128i>(v_data[i / 2]);
-						_mm_maskmoveu_si128(vi, mi, reinterpret_cast<char *>(mem));
-					}
+					_mm_maskmoveu_si128(std::bit_cast<__m128i>(v), mi, reinterpret_cast<char *>(mem + i));
 				}
-			else if constexpr (detail::signed_integral_of_size<std::remove_cvref_t<U>, 8>)
-				for (std::size_t i = 0; i < mask_t::size(); i += 2)
-				{
-#ifdef DPM_HAS_AVX
-					if constexpr (detail::aligned_tag<Flags, alignof(__m128d)>)
-					{
-						const auto mi = std::bit_cast<__m128i>(detail::x86_maskzero_f64(mask_t::size() - i, v_mask[i / 2]));
-						_mm_maskstore_pd(mem, mi, std::bit_cast<__m128d>(detail::x86_cvt_f64_i64(v_data[i / 2])));
-					}
-					else
-#endif
-					{
-						const auto mi = std::bit_cast<__m128i>(detail::x86_maskzero_f64(mask_t::size() - i, v_mask[i / 2]));
-						const auto vi = detail::x86_cvt_f64_i64(v_data[i / 2]);
-						_mm_maskmoveu_si128(vi, mi, reinterpret_cast<char *>(mem));
-					}
-				}
-			else if constexpr (detail::unsigned_integral_of_size<std::remove_cvref_t<U>, 8>)
-				for (std::size_t i = 0; i < mask_t::size(); i += 2)
-				{
-#ifdef DPM_HAS_AVX
-					if constexpr (detail::aligned_tag<Flags, alignof(__m128d)>)
-					{
-						const auto mi = std::bit_cast<__m128i>(detail::x86_maskzero_f64(mask_t::size() - i, v_mask[i / 2]));
-						_mm_maskstore_pd(mem, mi, std::bit_cast<__m128d>(detail::x86_cvt_f64_u64(v_data[i / 2])));
-					}
-					else
-#endif
-					{
-						const auto mi = std::bit_cast<__m128i>(detail::x86_maskzero_f64(mask_t::size() - i, v_mask[i / 2]));
-						const auto vi = detail::x86_cvt_f64_u64(v_data[i / 2]);
-						_mm_maskmoveu_si128(vi, mi, reinterpret_cast<char *>(mem));
-					}
-				}
+			}
 			else
 				for (std::size_t i = 0; i < mask_t::size(); ++i) if (m_mask[i]) mem[i] = static_cast<U>(m_data[i]);
 		}
@@ -999,61 +966,26 @@ namespace dpm
 		template<typename U, typename Flags>
 		DPM_FORCEINLINE void copy_from(const U *mem, Flags) && noexcept requires is_simd_flag_type_v<Flags>
 		{
-			const auto v_mask = ext::to_native_data(m_data);
-			const auto v_data = ext::to_native_data(m_data);
-			if constexpr (std::same_as<std::remove_cvref_t<U>, double>)
+#ifdef DPM_HAS_AVX
+			if constexpr (detail::aligned_tag<Flags, 16>)
+			{
+				const auto v_mask = ext::to_native_data(m_data);
+				const auto v_data = ext::to_native_data(m_data);
 				for (std::size_t i = 0; i < mask_t::size(); i += 2)
 				{
-#ifdef DPM_HAS_AVX
-					if constexpr (detail::aligned_tag<Flags, alignof(__m128d)>)
-					{
-						const auto mi = std::bit_cast<__m128i>(detail::x86_maskzero_f64(mask_t::size() - i, v_mask[i / 2]));
-						v_data[i / 2] = _mm_maskload_pd(mem + i, mi);
-					}
+					const auto mi = std::bit_cast<__m128i>(detail::x86_maskzero_f64(mask_t::size() - i, v_mask[i / 2]));
+					auto v = _mm_maskload_pd(reinterpret_cast<const double *>(mem + i), mi);
+					if constexpr (detail::signed_integral_of_size<std::remove_volatile_t<U>, 8>)
+						v_data[i / 2] = detail::x86_cvt_i64_f64(std::bit_cast<__m128i>(v));
+					else if constexpr (detail::unsigned_integral_of_size<std::remove_volatile_t<U>, 8>)
+						v_data[i / 2] = detail::x86_cvt_u64_f64(std::bit_cast<__m128i>(v));
 					else
-#endif
-					{
-						const auto mi = std::bit_cast<__m128i>(detail::x86_maskzero_f64(mask_t::size() - i, v_mask[i / 2]));
-						const auto vi = std::bit_cast<__m128i>(v_data[i / 2]);
-						_mm_maskmoveu_si128(vi, mi, reinterpret_cast<char *>(mem + i));
-					}
+						v_data[i / 2] = v;
 				}
-			else if constexpr (detail::signed_integral_of_size<std::remove_cvref_t<U>, 8>)
-				for (std::size_t i = 0; i < mask_t::size(); i += 2)
-				{
-#ifdef DPM_HAS_AVX
-					if constexpr (detail::aligned_tag<Flags, alignof(__m128d)>)
-					{
-						const auto mi = std::bit_cast<__m128i>(detail::x86_maskzero_f64(mask_t::size() - i, v_mask[i / 2]));
-						v_data[i / 2] = detail::x86_cvt_i64_f64(_mm_maskload_pd(mem + i, mi));
-					}
-					else
-#endif
-					{
-						const auto mi = std::bit_cast<__m128i>(detail::x86_maskzero_f64(mask_t::size() - i, v_mask[i / 2]));
-						const auto vi = detail::x86_cvt_i64_f64(v_data[i / 2]);
-						_mm_maskmoveu_si128(vi, mi, reinterpret_cast<char *>(mem + i));
-					}
-				}
-			else if constexpr (detail::unsigned_integral_of_size<std::remove_cvref_t<U>, 8>)
-				for (std::size_t i = 0; i < mask_t::size(); i += 2)
-				{
-#ifdef DPM_HAS_AVX
-					if constexpr (detail::aligned_tag<Flags, alignof(__m128d)>)
-					{
-						const auto mi = std::bit_cast<__m128i>(detail::x86_maskzero_f64(mask_t::size() - i, v_mask[i / 2]));
-						v_data[i / 2] = detail::x86_cvt_u64_f64(_mm_maskload_pd(mem + i, mi));
-					}
-					else
-#endif
-					{
-						const auto mi = std::bit_cast<__m128i>(detail::x86_maskzero_f64(mask_t::size() - i, v_mask[i / 2]));
-						const auto vi = detail::x86_cvt_u64_f64(v_data[i / 2]);
-						_mm_maskmoveu_si128(vi, mi, reinterpret_cast<char *>(mem + i));
-					}
-				}
+			}
 			else
-				for (std::size_t i = 0; i < mask_t::size(); ++i) if (m_mask[i]) m_data[i] = static_cast<double>(mem[i]);
+#endif
+			for (std::size_t i = 0; i < mask_t::size(); ++i) if (m_mask[i]) m_data[i] = static_cast<double>(mem[i]);
 		}
 	};
 

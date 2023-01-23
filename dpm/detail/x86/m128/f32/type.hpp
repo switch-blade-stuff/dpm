@@ -694,7 +694,7 @@ namespace dpm
 		template<typename U, typename Flags>
 		DPM_FORCEINLINE void copy_from(const U *mem, Flags) noexcept requires std::convertible_to<U, float> && is_simd_flag_type_v<Flags>
 		{
-			if constexpr (detail::aligned_tag<Flags, alignof(__m128)>)
+			if constexpr (detail::aligned_tag<Flags, 16>)
 			{
 				if constexpr (std::same_as<std::remove_cvref_t<U>, float>)
 				{
@@ -710,7 +710,7 @@ namespace dpm
 					return;
 				}
 #ifdef DPM_HAS_SSE2
-				if constexpr (detail::signed_integral_of_size<std::remove_cvref_t<U>, 4>)
+				else if constexpr (detail::signed_integral_of_size<std::remove_cvref_t<U>, 4>)
 				{
 					for (std::size_t i = 0; i < size(); i += 4)
 						switch (size() - i)
@@ -731,7 +731,7 @@ namespace dpm
 		template<typename U, typename Flags>
 		DPM_FORCEINLINE void copy_to(U *mem, Flags) const noexcept requires std::convertible_to<float, U> && is_simd_flag_type_v<Flags>
 		{
-			if constexpr (detail::aligned_tag<Flags, alignof(__m128)>)
+			if constexpr (detail::aligned_tag<Flags, 16>)
 			{
 				if constexpr (std::same_as<std::remove_cvref_t<U>, float>)
 				{
@@ -930,7 +930,7 @@ namespace dpm
 		DPM_FORCEINLINE void copy_to(U *mem, Flags) const && noexcept requires is_simd_flag_type_v<Flags>
 		{
 #ifdef DPM_HAS_AVX
-			if constexpr (detail::aligned_tag<Flags, alignof(__m128)>)
+			if constexpr (detail::aligned_tag<Flags, 16>)
 			{
 				const auto v_mask = ext::to_native_data(m_data);
 				const auto v_data = ext::to_native_data(m_data);
@@ -1035,7 +1035,7 @@ namespace dpm
 		DPM_FORCEINLINE void copy_from(const U *mem, Flags) && noexcept requires is_simd_flag_type_v<Flags>
 		{
 #ifdef DPM_HAS_AVX
-			if constexpr (detail::aligned_tag<Flags, alignof(__m128)>)
+			if constexpr (detail::aligned_tag<Flags, 16>)
 			{
 				const auto v_mask = ext::to_native_data(m_data);
 				const auto v_data = ext::to_native_data(m_data);
