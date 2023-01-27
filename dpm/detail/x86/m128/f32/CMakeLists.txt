@@ -1,6 +1,5 @@
 
 list(APPEND DPM_INTERFACE_SOURCES
-        ${CMAKE_CURRENT_LIST_DIR}/utility.hpp
         ${CMAKE_CURRENT_LIST_DIR}/sincos.hpp
         ${CMAKE_CURRENT_LIST_DIR}/fmadd.hpp
         ${CMAKE_CURRENT_LIST_DIR}/class.hpp

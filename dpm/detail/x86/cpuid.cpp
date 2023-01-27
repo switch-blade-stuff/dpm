@@ -50,7 +50,7 @@ namespace dpm
 		{
 			return static_cast<std::uint32_t>(_xgetbv(0));
 		}
-#elif defined(__GNUC__) || defined(__clang__)
+#elif defined(__clang__) || defined(__GNUC__)
 		inline static void DPM_FORCEINLINE platform_cpuid(std::uint32_t leaf, cpuid_regs &regs) noexcept
 		{
 			__asm("xchgq  %%rbx,%q1\n"

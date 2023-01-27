@@ -50,7 +50,7 @@ import std;
 #define DPM_ASSUME(x)
 #endif
 
-#if defined(__GNUC__) || defined(__clang__)
+#if defined(__clang__) || defined(__GNUC__)
 #define DPM_UNREACHABLE() __builtin_unreachable()
 #elif defined(__cpp_lib_unreachable) && __cpp_lib_unreachable >= 202202L
 #define DPM_UNREACHABLE() std::unreachable()
@@ -63,7 +63,7 @@ import std;
 #define DPM_PURE
 #define DPM_TARGET(t)
 #define DPM_MAY_ALIAS
-#define DPM_FORCEINLINE __forceinline
+#define DPM_FORCEINLINE inline __forceinline
 #define DPM_NEVER_INLINE __declspec(noinline)
 
 /* Windows calling convention will never use vector registers for function arguments. Force it. */
@@ -74,7 +74,7 @@ import std;
 #define DPM_PURE __attribute__((pure))
 #define DPM_TARGET(t) __attribute__((target(t)))
 #define DPM_MAY_ALIAS __attribute__((__may_alias__))
-#define DPM_FORCEINLINE __attribute__((always_inline))
+#define DPM_FORCEINLINE inline __attribute__((always_inline))
 #define DPM_NEVER_INLINE __attribute__((noinline))
 #define DPM_VECTORCALL
 
@@ -83,7 +83,7 @@ import std;
 #define DPM_PURE
 #define DPM_TARGET(t)
 #define DPM_MAY_ALIAS
-#define DPM_FORCEINLINE
+#define DPM_FORCEINLINE inline
 #define DPM_NEVER_INLINE
 #define DPM_VECTORCALL
 
