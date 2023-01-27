@@ -46,7 +46,7 @@ namespace dpm::detail
 	using sincos_ret_t = typename sincos_ret<Mask>::type;
 
 	template<sincos_op Mask>
-	inline static DPM_FORCEINLINE sincos_ret_t<Mask> return_sincos(__m128d sin, __m128d cos) noexcept
+	DPM_FORCEINLINE static sincos_ret_t<Mask> return_sincos(__m128d sin, __m128d cos) noexcept
 	{
 		if constexpr (Mask == sincos_op::OP_SINCOS)
 			return {sin, cos};
@@ -56,20 +56,20 @@ namespace dpm::detail
 			return cos;
 	}
 
-	inline static DPM_FORCEINLINE std::tuple<__m128d, __m128d, __m128d> prepare_sincos(__m128d x, __m128d abs_x) noexcept
+	DPM_FORCEINLINE static std::tuple<__m128d, __m128d, __m128d> prepare_sincos(__m128d x, __m128d abs_x) noexcept
 	{
 		/* y = |x| * 4 / Pi */
 		auto y = _mm_mul_pd(abs_x, _mm_set1_pd(fopi_f64));
 
 		/* i = isodd(y) ? y + 1 : y */
-		auto i = x86_cvt_f64_i64_sse2(y);
+		auto i = cvt_f64_i64_sse2(y);
 		i = _mm_add_epi64(i, _mm_set1_epi64x(1));
 		i = _mm_and_si128(i, _mm_set1_epi64x(~1ll));
-		y = x86_cvt_i64_f64_sse2(i); /* y = i */
+		y = cvt_i64_f64_sse2(i); /* y = i */
 
 		/* Extract sign bit mask */
 		const auto flip_sign = _mm_slli_epi64(_mm_and_si128(i, _mm_set1_epi64x(4)), 61);
-		const auto sign = _mm_xor_pd(x86_masksign(x), std::bit_cast<__m128d>(flip_sign));
+		const auto sign = _mm_xor_pd(masksign(x), std::bit_cast<__m128d>(flip_sign));
 
 		/* Find polynomial selection mask */
 		auto p_mask = std::bit_cast<__m128d>(_mm_and_si128(i, _mm_set1_epi64x(2)));
@@ -90,11 +90,11 @@ namespace dpm::detail
 		const auto zz = _mm_mul_pd(z, z);
 
 		/* p1 (0 <= a <= Pi/4) */
-		auto p1 = x86_polevl_f64_fma(zz, std::span{sincof_f64});    /* p1 = sincof_f64(zz) */
+		auto p1 = polevl_f64_fma(zz, std::span{sincof_f64});    /* p1 = sincof_f64(zz) */
 		p1 = _mm_fmadd_pd(_mm_mul_pd(p1, zz), z, z);                /* p1 = p1 * zz * z + z */
 
 		/* p2 (Pi/4 <= a <= 0) */
-		auto p2 = x86_polevl_f64_fma(zz, std::span{coscof_f64});    /* p2 = coscof_f64(zz) */
+		auto p2 = polevl_f64_fma(zz, std::span{coscof_f64});    /* p2 = coscof_f64(zz) */
 		p2 = _mm_mul_pd(_mm_mul_pd(zz, p2), zz);                    /* p2 = zz * p2 * zz */
 		p2 = _mm_fmadd_pd(zz, _mm_set1_pd(0.5), p2);                /* p2 = zz * 0.5 + p2 */
 		p2 = _mm_sub_pd(_mm_set1_pd(1.0), p2);                      /* p2 = 1.0 - p2 */
@@ -145,19 +145,19 @@ namespace dpm::detail
 	{
 		const auto [y, sign, p_mask] = prepare_sincos(x, abs_x);
 
-		auto z = x86_fnmadd_sse2(y, _mm_set1_pd(dp_sincos_f64[0]), x);
-		z = x86_fnmadd_sse2(y, _mm_set1_pd(dp_sincos_f64[1]), z);
-		z = x86_fnmadd_sse2(y, _mm_set1_pd(dp_sincos_f64[2]), z);
+		auto z = fnmadd_sse2(y, _mm_set1_pd(dp_sincos_f64[0]), x);
+		z = fnmadd_sse2(y, _mm_set1_pd(dp_sincos_f64[1]), z);
+		z = fnmadd_sse2(y, _mm_set1_pd(dp_sincos_f64[2]), z);
 		const auto zz = _mm_mul_pd(z, z);
 
 		/* p1 */
-		auto p1 = x86_polevl_f64_sse(zz, std::span{sincof_f64});    /* p1 = sincof_f64(zz) */
-		p1 = x86_fmadd_sse2(_mm_mul_pd(p1, zz), z, z);              /* p1 = p1 * zz * z + z */
+		auto p1 = polevl_f64_sse(zz, std::span{sincof_f64});    /* p1 = sincof_f64(zz) */
+		p1 = fmadd_sse2(_mm_mul_pd(p1, zz), z, z);              /* p1 = p1 * zz * z + z */
 
 		/* p2 */
-		auto p2 = x86_polevl_f64_sse(zz, std::span{coscof_f64});    /* p2 = coscof_f64(zz) */
+		auto p2 = polevl_f64_sse(zz, std::span{coscof_f64});    /* p2 = coscof_f64(zz) */
 		p2 = _mm_mul_pd(_mm_mul_pd(zz, p2), zz);                    /* p2 = zz * p2 * zz */
-		p2 = x86_fmadd_sse2(zz, _mm_set1_pd(0.5), p2);              /* p2 = zz * 0.5 + p2 */
+		p2 = fmadd_sse2(zz, _mm_set1_pd(0.5), p2);              /* p2 = zz * 0.5 + p2 */
 		p2 = _mm_sub_pd(_mm_set1_pd(1.0), p2);                      /* p2 = 1.0 - p2 */
 
 		__m128d p_cos = {}, p_sin = {};
@@ -210,11 +210,11 @@ namespace dpm::detail
 		const auto zz = _mm_mul_pd(z, z);
 
 		/* p1 */
-		auto p1 = x86_polevl_f64_sse(zz, std::span{sincof_f64});    /* p1 = sincof_f64(zz) */
+		auto p1 = polevl_f64_sse(zz, std::span{sincof_f64});    /* p1 = sincof_f64(zz) */
 		p1 = _mm_add_pd(_mm_mul_pd(_mm_mul_pd(p1, zz), z), z);      /* p1 = p1 * zz * z + z */
 
 		/* p2 */
-		auto p2 = x86_polevl_f64_sse(zz, std::span{coscof_f64});    /* p2 = coscof_f64(zz) */
+		auto p2 = polevl_f64_sse(zz, std::span{coscof_f64});    /* p2 = coscof_f64(zz) */
 		p2 = _mm_mul_pd(_mm_mul_pd(zz, p2), zz);                    /* p2 = zz * p2 * zz */
 		p2 = _mm_add_pd(_mm_mul_pd(zz, _mm_set1_pd(0.5)), p2);      /* p2 = zz * 0.5 + p2 */
 		p2 = _mm_sub_pd(_mm_set1_pd(1.0), p2);                      /* p2 = 1.0 - p2 */
@@ -258,14 +258,14 @@ namespace dpm::detail
 	}
 
 	template<sincos_op Mask>
-	inline static DPM_FORCEINLINE sincos_ret_t<Mask> SSE2_FUNC impl_sincos(__m128d x) noexcept
+	DPM_FORCEINLINE static sincos_ret_t<Mask> SSE2_FUNC impl_sincos(__m128d x) noexcept
 	{
-		const auto abs_x = x86_abs(x);
+		const auto abs_x = abs(x);
 
 		/* Check for infinity, NaN & errors. */
 #ifdef DPM_PROPAGATE_NAN
 		const auto nan = _mm_set1_pd(std::numeric_limits<double>::quiet_NaN());
-		auto nan_mask = x86_isnan(x);
+		auto nan_mask = isnan(x);
 
 #ifdef DPM_HANDLE_ERRORS
 		const auto inf = _mm_set1_pd(std::numeric_limits<double>::infinity());
@@ -312,13 +312,13 @@ namespace dpm::detail
 #endif
 	}
 
-	std::pair<__m128d, __m128d> DPM_PUBLIC SSE2_FUNC x86_sincos(__m128d x) noexcept
+	std::pair<__m128d, __m128d> DPM_PUBLIC SSE2_FUNC sincos(__m128d x) noexcept
 	{
 		const auto [sin, cos] = impl_sincos<sincos_op::OP_SINCOS>(x);
 		return {sin, cos};
 	}
-	__m128d DPM_PUBLIC SSE2_FUNC x86_sin(__m128d x) noexcept { return impl_sincos<sincos_op::OP_SIN>(x); }
-	__m128d DPM_PUBLIC SSE2_FUNC x86_cos(__m128d x) noexcept { return impl_sincos<sincos_op::OP_COS>(x); }
+	__m128d DPM_PUBLIC SSE2_FUNC sin(__m128d x) noexcept { return impl_sincos<sincos_op::OP_SIN>(x); }
+	__m128d DPM_PUBLIC SSE2_FUNC cos(__m128d x) noexcept { return impl_sincos<sincos_op::OP_COS>(x); }
 }
 
 #endif

@@ -49,6 +49,14 @@ namespace dpm::detail
 	[[nodiscard]] constexpr bool test_bit(T x, int pos) noexcept { return x & static_cast<T>(1 << pos); }
 	template<typename T>
 	constexpr void mask_bit(T &x, int pos, bool bit = true) noexcept { x &= ~static_cast<T>(!bit << pos); }
+	template<std::size_t N>
+	[[nodiscard]] constexpr std::size_t fill_bits() noexcept
+	{
+		std::size_t result = 0;
+		for (std::size_t i = 0; i < N; ++i)
+			result |= 1ull << i;
+		return result;
+	}
 
 	template<typename T>
 	[[nodiscard]] constexpr T extend_bool(bool b) noexcept { return -static_cast<T>(b); }

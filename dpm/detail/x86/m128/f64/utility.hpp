@@ -4,13 +4,13 @@
 
 #pragma once
 
-#include "../../fwd.hpp"
+#include "../../type_fwd.hpp"
 
 #if defined(DPM_ARCH_X86) && (defined(DPM_HAS_SSE2) || defined(DPM_DYNAMIC_DISPATCH))
 
 namespace dpm::detail
 {
-	[[maybe_unused]] [[nodiscard]] inline DPM_FORCEINLINE __m128d x86_cvt_u64_f64_sse2(__m128i x) noexcept
+	[[maybe_unused]] [[nodiscard]] DPM_FORCEINLINE __m128d cvt_u64_f64_sse2(__m128i x) noexcept
 	{
 		const auto exp84 = std::bit_cast<__m128i>(_mm_set1_pd(19342813113834066795298816.));  /* 2^84 */
 		const auto exp52 = std::bit_cast<__m128i>(_mm_set1_pd(0x0010'0000'0000'0000));        /* 2^52 */
@@ -22,7 +22,7 @@ namespace dpm::detail
 
 		return _mm_add_pd(_mm_sub_pd(std::bit_cast<__m128d>(a), adjust), std::bit_cast<__m128d>(b));
 	}
-	[[maybe_unused]] [[nodiscard]] inline DPM_FORCEINLINE __m128d x86_cvt_i64_f64_sse2(__m128i x) noexcept
+	[[maybe_unused]] [[nodiscard]] DPM_FORCEINLINE __m128d cvt_i64_f64_sse2(__m128i x) noexcept
 	{
 		const auto exp67m3 = std::bit_cast<__m128i>(_mm_set1_pd(442721857769029238784.)); /* 2^67 * 3 */
 		const auto exp52 = std::bit_cast<__m128i>(_mm_set1_pd(0x0010'0000'0000'0000));    /* 2^52 */
@@ -34,47 +34,47 @@ namespace dpm::detail
 
 		return _mm_add_pd(_mm_sub_pd(std::bit_cast<__m128d>(_mm_add_epi64(a, exp67m3)), adjust), std::bit_cast<__m128d>(b));
 	}
-	[[maybe_unused]] [[nodiscard]] inline DPM_FORCEINLINE __m128i x86_cvt_f64_u64_sse2(__m128d x) noexcept
+	[[maybe_unused]] [[nodiscard]] DPM_FORCEINLINE __m128i cvt_f64_u64_sse2(__m128d x) noexcept
 	{
 		const auto offset = _mm_set1_pd(0x0010'0000'0000'0000);
 		return _mm_xor_si128(std::bit_cast<__m128i>(_mm_add_pd(x, offset)), std::bit_cast<__m128i>(offset));
 	}
-	[[maybe_unused]] [[nodiscard]] inline DPM_FORCEINLINE __m128i x86_cvt_f64_i64_sse2(__m128d x) noexcept
+	[[maybe_unused]] [[nodiscard]] DPM_FORCEINLINE __m128i cvt_f64_i64_sse2(__m128d x) noexcept
 	{
 		const auto offset = _mm_set1_pd(0x0018'0000'0000'0000);
 		return _mm_sub_epi64(std::bit_cast<__m128i>(_mm_add_pd(x, offset)), std::bit_cast<__m128i>(offset));
 	}
 
-	[[nodiscard]] inline DPM_FORCEINLINE __m128d x86_cvt_u64_f64(__m128i x) noexcept
+	[[nodiscard]] DPM_FORCEINLINE __m128d cvt_u64_f64(__m128i x) noexcept
 	{
 #if defined(DPM_HAS_AVX512DQ)
 		return _mm_cvtepu64_pd(x);
 #else
-		return x86_cvt_u64_f64_sse2(x);
+		return cvt_u64_f64_sse2(x);
 #endif
 	}
-	[[nodiscard]] inline DPM_FORCEINLINE __m128d x86_cvt_i64_f64(__m128i x) noexcept
+	[[nodiscard]] DPM_FORCEINLINE __m128d cvt_i64_f64(__m128i x) noexcept
 	{
 #if defined(DPM_HAS_AVX512DQ)
 		return _mm_cvtepi64_pd(x);
 #else
-		return x86_cvt_i64_f64_sse2(x);
+		return cvt_i64_f64_sse2(x);
 #endif
 	}
-	[[nodiscard]] inline DPM_FORCEINLINE __m128i x86_cvt_f64_u64(__m128d x) noexcept
+	[[nodiscard]] DPM_FORCEINLINE __m128i cvt_f64_u64(__m128d x) noexcept
 	{
 #ifdef DPM_HAS_AVX512DQ
 		return _mm_cvtpd_epu64(x);
 #else
-		return x86_cvt_f64_u64_sse2(x);
+		return cvt_f64_u64_sse2(x);
 #endif
 	}
-	[[nodiscard]] inline DPM_FORCEINLINE __m128i x86_cvt_f64_i64(__m128d x) noexcept
+	[[nodiscard]] DPM_FORCEINLINE __m128i cvt_f64_i64(__m128d x) noexcept
 	{
 #ifdef DPM_HAS_AVX512DQ
 		return _mm_cvtpd_epi64(x);
 #else
-		return x86_cvt_f64_i64_sse2(x);
+		return cvt_f64_i64_sse2(x);
 #endif
 	}
 }
