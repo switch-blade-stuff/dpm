@@ -284,9 +284,7 @@ namespace dpm
 			const auto vm = detail::maskzero<T>(mask_data[i], mask_t::size() - i * sizeof(mask_data[i]) / sizeof(T));
 			result += std::popcount(detail::movemask<T>(vm));
 		}
-
-		if constexpr (sizeof(T) == 2) result /= 2;
-		return result;
+		return result / detail::movemask_bits_v<T>;
 	}
 	/** Returns the index of the first `true` element of \a mask. */
 	template<typename T, std::size_t N, std::size_t A>
@@ -298,13 +296,13 @@ namespace dpm
 		for (std::size_t i = 0; i < ext::native_data_size_v<mask_t>; ++i)
 		{
 			const auto bits = detail::movemask<T>(mask_data[i]);
-			if (bits) return std::countr_zero(bits) + i * sizeof(T) <= 2 ? 1 : sizeof(T);
+			if (bits) return std::countr_zero(bits) + i * (sizeof(mask_data[i]) / sizeof(T)) / detail::movemask_bits_v<T>;
 		}
 		DPM_UNREACHABLE();
 	}
 	/** Returns the index of the last `true` element of \a mask. */
 	template<typename T, std::size_t N, std::size_t A>
-	[[nodiscard]] DPM_FORCEINLINE std::size_t find_last_set(const simd_mask<float, detail::avec<N, A>> &mask) noexcept requires detail::overload_128<T, N, A>
+	[[nodiscard]] DPM_FORCEINLINE std::size_t find_last_set(const simd_mask<T, detail::avec<N, A>> &mask) noexcept requires detail::overload_128<T, N, A>
 	{
 		using mask_t = simd_mask<float, detail::avec<N, A>>;
 		const auto mask_data = ext::to_native_data(mask);

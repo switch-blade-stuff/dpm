@@ -20,8 +20,12 @@ namespace dpm::detail
 	using simd_abi::detail::overload_any;
 	using simd_abi::detail::simd_abi_any;
 
-	template<typename T, std::size_t>
-	struct select_vector;
+	template<typename>
+	struct movemask_bits : std::integral_constant<std::size_t, 1> {};
+	template<typename T> requires (sizeof(T) == 2)
+	struct movemask_bits<T> : std::integral_constant<std::size_t, 2> {};
+	template<typename T>
+	inline constexpr auto movemask_bits_v = movemask_bits<T>::value;
 }
 
 #endif
