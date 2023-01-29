@@ -19,7 +19,7 @@ namespace dpm
 
 #ifdef DPM_HAS_SSE2
 	template<std::size_t N, std::size_t A>
-	[[nodiscard]] inline simd<double, detail::avec<N, A>> fabs(const simd<double, detail::avec<N, A>> &x) noexcept requires detail::overload_128<double, N, A>
+	[[nodiscard]] inline simd<double, detail::avec<N, A>> fabs(const simd<double, detail::avec<N, A>> &x) noexcept requires detail::x86_overload_128<double, N, A>
 	{
 		simd<double, detail::avec<N, A>> result = {};
 		for (std::size_t i = 0; i < ext::native_data_size_v<simd<double, detail::avec<N, A>>>; ++i)
@@ -27,7 +27,7 @@ namespace dpm
 		return result;
 	}
 	template<std::size_t N, std::size_t A>
-	[[nodiscard]] inline simd_mask<double, detail::avec<N, A>> signbit(const simd<double, detail::avec<N, A>> &x) noexcept requires detail::overload_128<double, N, A>
+	[[nodiscard]] inline simd_mask<double, detail::avec<N, A>> signbit(const simd<double, detail::avec<N, A>> &x) noexcept requires detail::x86_overload_128<double, N, A>
 	{
 		simd_mask<double, detail::avec<N, A>> result = {};
 		for (std::size_t i = 0; i < ext::native_data_size_v<simd<double, detail::avec<N, A>>>; ++i)
@@ -38,7 +38,7 @@ namespace dpm
 		return result;
 	}
 	template<std::size_t N, std::size_t A>
-	[[nodiscard]] inline simd<double, detail::avec<N, A>> copysign(const simd<double, detail::avec<N, A>> &x, const simd<double, detail::avec<N, A>> &sign) noexcept requires detail::overload_128<double, N, A>
+	[[nodiscard]] inline simd<double, detail::avec<N, A>> copysign(const simd<double, detail::avec<N, A>> &x, const simd<double, detail::avec<N, A>> &sign) noexcept requires detail::x86_overload_128<double, N, A>
 	{
 		simd<double, detail::avec<N, A>> result = {};
 		for (std::size_t i = 0; i < ext::native_data_size_v<simd<double, detail::avec<N, A>>>; ++i)

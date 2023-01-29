@@ -72,7 +72,7 @@ namespace dpm
 				const simd<double, detail::avec<N, A>> &a,
 				const simd<double, detail::avec<N, A>> &b,
 				const simd<double, detail::avec<N, A>> &c)
-		noexcept requires detail::overload_128<double, N, A>
+		noexcept requires detail::x86_overload_128<double, N, A>
 		{
 			simd<double, detail::avec<N, A>> result = {};
 			for (std::size_t i = 0; i < ext::native_data_size_v<simd<double, detail::avec<N, A>>>; ++i)
@@ -90,7 +90,7 @@ namespace dpm
 				const simd<double, detail::avec<N, A>> &a,
 				const simd<double, detail::avec<N, A>> &b,
 				const simd<double, detail::avec<N, A>> &c)
-		noexcept requires detail::overload_128<double, N, A>
+		noexcept requires detail::x86_overload_128<double, N, A>
 		{
 			simd<double, detail::avec<N, A>> result = {};
 			for (std::size_t i = 0; i < ext::native_data_size_v<simd<double, detail::avec<N, A>>>; ++i)
@@ -108,7 +108,7 @@ namespace dpm
 				const simd<double, detail::avec<N, A>> &a,
 				const simd<double, detail::avec<N, A>> &b,
 				const simd<double, detail::avec<N, A>> &c)
-		noexcept requires detail::overload_128<double, N, A>
+		noexcept requires detail::x86_overload_128<double, N, A>
 		{
 			simd<double, detail::avec<N, A>> result = {};
 			for (std::size_t i = 0; i < ext::native_data_size_v<simd<double, detail::avec<N, A>>>; ++i)
@@ -126,7 +126,7 @@ namespace dpm
 				const simd<double, detail::avec<N, A>> &a,
 				const simd<double, detail::avec<N, A>> &b,
 				const simd<double, detail::avec<N, A>> &c)
-		noexcept requires detail::overload_128<double, N, A>
+		noexcept requires detail::x86_overload_128<double, N, A>
 		{
 			simd<double, detail::avec<N, A>> result = {};
 			for (std::size_t i = 0; i < ext::native_data_size_v<simd<double, detail::avec<N, A>>>; ++i)
@@ -146,7 +146,7 @@ namespace dpm
 			const simd<double, detail::avec<N, A>> &a,
 			const simd<double, detail::avec<N, A>> &b,
 			const simd<double, detail::avec<N, A>> &c)
-	noexcept requires detail::overload_128<double, N, A>
+	noexcept requires detail::x86_overload_128<double, N, A>
 	{
 		return ext::fmadd(a, b, c);
 	}

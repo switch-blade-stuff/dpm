@@ -8,6 +8,17 @@
 
 namespace dpm::detail
 {
+	template<std::size_t I3, std::size_t I2, std::size_t I1, std::size_t I0>
+	[[nodiscard]] constexpr int shuffle4_mask(std::index_sequence<I3, I2, I1, I0>) noexcept
+	{
+		return _MM_SHUFFLE(I3, I2, I1, I0);
+	}
+	template<std::size_t I1, std::size_t I0>
+	[[nodiscard]] constexpr int shuffle2_mask(std::index_sequence<I1, I1>) noexcept
+	{
+		return _MM_SHUFFLE2(I1, I0);
+	}
+
 	template<typename V, typename T>
 	[[nodiscard]] DPM_FORCEINLINE V fill(float value) noexcept requires (sizeof(T) == 4 && sizeof(V) == 16)
 	{
@@ -31,7 +42,7 @@ namespace dpm::detail
 #endif
 	}
 
-	template<typename... Ts, typename V>
+	template<typename V, typename... Ts>
 	[[nodiscard]] DPM_FORCEINLINE V set(Ts... vs) noexcept requires (sizeof...(Ts) == 4 && sizeof(V) == 16)
 	{
 		return std::bit_cast<V>(_mm_set_ps(std::bit_cast<float>(vs)...));
@@ -61,6 +72,17 @@ namespace dpm::detail
 		const auto bits = movemask<T>(x);
 		for (std::size_t i = 0; i < n && i < 4; ++i)
 			fn(i, bits & (1 << i));
+	}
+
+	/* Same as movemask, but aligns the resulting bitmask to the left. */
+	template<typename T, typename V>
+	[[nodiscard]] DPM_FORCEINLINE std::size_t movemask_l(V x, std::size_t n) noexcept requires (sizeof(V) == 16)
+	{
+		constexpr auto extent = sizeof(V) / sizeof(T);
+		auto bits = detail::movemask<T>(x) << (std::numeric_limits<std::size_t>::digits - extent * movemask_bits_v<T>);
+		for (std::size_t i = 0; i < n && i < extent; ++i)
+			bits <<= movemask_bits_v<T>;
+		return bits;
 	}
 
 	template<typename T, typename V>
@@ -103,6 +125,17 @@ namespace dpm::detail
 	}
 	template<typename T, typename V>
 	[[nodiscard]] DPM_FORCEINLINE V maskone(V x, std::size_t n) noexcept requires (sizeof(T) == 4 && sizeof(V) == 16)
+	{
+		const auto mask = std::bit_cast<float>(0xffff'ffff);
+		const auto vx = std::bit_cast<__m128>(x);
+		switch (n)
+		{
+			case 3: return std::bit_cast<V>(_mm_and_ps(vx, _mm_set_ps(mask, 0.0f, 0.0f, 0.0f)));
+			case 2: return std::bit_cast<V>(_mm_and_ps(vx, _mm_set_ps(mask, mask, 0.0f, 0.0f)));
+			case 1: return std::bit_cast<V>(_mm_and_ps(vx, _mm_set_ps(mask, mask, mask, 0.0f)));
+			default: return x;
+		}
+	}
 
 	template<typename T, typename V, typename M>
 	[[nodiscard]] DPM_FORCEINLINE V blendv(V a, V b, M m) noexcept requires (sizeof(T) == 4 && sizeof(V) == 16 && sizeof(M) == 16)
@@ -111,6 +144,22 @@ namespace dpm::detail
 		const auto vb = std::bit_cast<__m128>(b);
 		const auto vm = std::bit_cast<__m128>(m);
 		return std::bit_cast<V>(_mm_blendv_ps(va, vb, vm));
+	}
+
+	template<typename T, std::size_t I3, std::size_t I2, std::size_t I1, std::size_t I0, typename V>
+	[[nodiscard]] DPM_FORCEINLINE V shuffle(std::index_sequence<I3, I2, I1, I0>, const V *x) noexcept requires (sizeof(T) == 4 && sizeof(V) == 16)
+	{
+		constexpr auto P0 = I0 / 4, P1 = I1 / 4, P2 = I2 / 4, P3 = I3 / 4;
+		const auto va = std::bit_cast<__m128d>(x[P0]);
+		const auto vb = std::bit_cast<__m128d>(x[P2]);
+		if constexpr (P0 == P1 && P2 == P3)
+			return std::bit_cast<V>(_mm_shuffle_ps(va, vb, _MM_SHUFFLE(I3 % 4, I2 % 4, I1 % 4, I0 % 4)));
+		else
+		{
+			const auto a = _mm_shuffle_ps(va, va, _MM_SHUFFLE(I1 % 4, I1 % 4, I0 % 4, I0 % 4));
+			const auto b = _mm_shuffle_ps(va, va, _MM_SHUFFLE(I3 % 4, I3 % 4, I2 % 4, I2 % 4));
+			return std::bit_cast<V>(_mm_shuffle_ps(a, b, _MM_SHUFFLE(2, 0, 2, 0)));
+		}
 	}
 
 #ifdef DPM_HAS_SSE2
@@ -130,17 +179,17 @@ namespace dpm::detail
 		return std::bit_cast<V>(_mm_set1_pd(std::bit_cast<double>(value)));
 	}
 
-	template<typename... Ts, typename V>
+	template<typename V, typename... Ts>
 	[[nodiscard]] DPM_FORCEINLINE V set(Ts... vs) noexcept requires (sizeof...(Ts) == 16 && sizeof(V) == 16)
 	{
 		return std::bit_cast<V>(_mm_set_epi8(std::bit_cast<std::int8_t>(vs)...));
 	}
-	template<typename... Ts, typename V>
+	template<typename V, typename... Ts>
 	[[nodiscard]] DPM_FORCEINLINE V set(Ts... vs) noexcept requires (sizeof...(Ts) == 8 && sizeof(V) == 16)
 	{
 		return std::bit_cast<V>(_mm_set_epi16(std::bit_cast<std::int16_t>(vs)...));
 	}
-	template<typename... Ts, typename V>
+	template<typename V, typename... Ts>
 	[[nodiscard]] DPM_FORCEINLINE V set(Ts... vs) noexcept requires (sizeof...(Ts) == 2 && sizeof(V) == 16)
 	{
 		return std::bit_cast<V>(_mm_set_pd(std::bit_cast<double>(vs)...));
@@ -442,6 +491,65 @@ namespace dpm::detail
 		const auto vb = std::bit_cast<__m128d>(b);
 		const auto vm = std::bit_cast<__m128d>(m);
 		return std::bit_cast<V>(_mm_blendv_pd(va, vb, vm));
+	}
+
+	template<std::size_t IA, std::size_t... IAs, std::size_t IB, std::size_t... IBs, typename V>
+	[[nodiscard]] DPM_FORCEINLINE V shuffle16hilo(std::index_sequence<IA, IAs...> ia, std::index_sequence<IB, IBs...> ib, const V *x) noexcept
+	{
+		if constexpr (((IA / 4 == IAs / 4) && ...) && ((IB / 4 == IBs / 4) && ...))
+		{
+			constexpr auto J0 = (IA / 4) & 1, J1 = (IB / 4) & 1;
+			constexpr auto ma = shuffle4_mask(ia);
+			constexpr auto mb = shuffle4_mask(ib);
+			__m128i a, b;
+
+			if constexpr (J0)
+				a = _mm_shufflehi_epi16(std::bit_cast<__m128i>(x[IA / 16]), ma);
+			else
+				a = _mm_shufflelo_epi16(std::bit_cast<__m128i>(x[IA / 16]), ma);
+			if constexpr (J1)
+				b = _mm_shufflehi_epi16(std::bit_cast<__m128i>(x[IB / 16]), mb);
+			else
+				b = _mm_shufflelo_epi16(std::bit_cast<__m128i>(x[IB / 16]), mb);
+			return std::bit_cast<V>(_mm_shuffle_pd(std::bit_cast<__m128d>(a), std::bit_cast<__m128d>(b), _MM_SHUFFLE2(J1, J0)));
+		}
+		else
+			return shuffle<std::int8_t>(repeat_sequence_t<2, IA, IAs..., IB, IBs...>{}, x);
+	}
+	template<typename T, std::size_t I, std::size_t... Is, typename V>
+	[[nodiscard]] DPM_FORCEINLINE V shuffle(std::index_sequence<I, Is...>, const V *x) noexcept requires (sizeof(T) == 1 && sizeof(V) == 16)
+	{
+		if constexpr (((I / 16 == Is / 16) && ...))
+			return std::bit_cast<V>(_mm_blendv_epi8(std::bit_cast<__m128i>(x[I / 16]), _mm_set_epi8(I % 16, (Is % 16)...)));
+		else
+		{
+			V result;
+			copy_positions(
+					reverse_sequence_t<I, Is...>{},
+					reinterpret_cast<alias_t<std::int8_t> *>(&result),
+					reinterpret_cast<const alias_t<std::int8_t> *>(x)
+			);
+			return result;
+		}
+	}
+	template<typename T, std::size_t I, std::size_t... Is, typename V>
+	[[nodiscard]] DPM_FORCEINLINE V shuffle(std::index_sequence<I, Is...>, const V *x) noexcept requires (sizeof(T) == 2 && sizeof(V) == 16)
+	{
+		return shuffle16hilo(extract_sequence_t<0, 4, I, Is...>{}, extract_sequence_t<4, 4, I, Is...>{}, x);
+	}
+	template<typename T, std::size_t I1, std::size_t I0, typename V>
+	[[nodiscard]] DPM_FORCEINLINE V shuffle(std::index_sequence<I1, I0>, const V *x) noexcept requires (sizeof(T) == 8 && sizeof(V) == 16)
+	{
+		const auto va = std::bit_cast<__m128d>(x[I0 / 2]);
+		const auto vb = std::bit_cast<__m128d>(x[I1 / 2]);
+		if constexpr (I0 / 2 == I1 / 2)
+			return std::bit_cast<V>(_mm_shuffle_pd(va, vb, _MM_SHUFFLE2(I1 % 2, I0 % 2)));
+		else
+		{
+			const auto a = _mm_shuffle_pd(va, va, _MM_SHUFFLE2(I0 % 2, I0 % 2));
+			const auto b = _mm_shuffle_pd(vb, vb, _MM_SHUFFLE2(I1 % 2, I1 % 2));
+			return std::bit_cast<V>(_mm_shuffle_pd(va, vb, _MM_SHUFFLE2(1, 0)));
+		}
 	}
 #endif
 }

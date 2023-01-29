@@ -12,92 +12,15 @@
 
 namespace dpm
 {
-	namespace detail
-	{
-		template<std::size_t I>
-		DPM_FORCEINLINE void shuffle_f32(__m128 *to, const __m128 *from) noexcept
-		{
-			*to = _mm_shuffle_ps(from[I / 4], from[I / 4], _MM_SHUFFLE(I % 4, I % 4, I % 4, I % 4));
-		}
-		template<std::size_t I0, std::size_t I1>
-		DPM_FORCEINLINE void shuffle_f32(__m128 *to, const __m128 *from) noexcept
-		{
-			constexpr auto P0 = I0 / 4, P1 = I1 / 4;
-			if constexpr (P0 != P1)
-				copy_positions<I0, I1>(reinterpret_cast<alias_float_t *>(to), reinterpret_cast<const alias_float_t *>(from));
-			else
-				*to = _mm_shuffle_ps(from[P0], from[P0], _MM_SHUFFLE(3, 2, I1 % 4, I0 % 4));
-		}
-		template<std::size_t I0, std::size_t I1, std::size_t I2>
-		DPM_FORCEINLINE void shuffle_f32(__m128 *to, const __m128 *from) noexcept
-		{
-			constexpr auto P0 = I0 / 4, P1 = I1 / 4, P2 = I2 / 4;
-			if constexpr (P0 != P1)
-				copy_positions<I0, I1, I2>(reinterpret_cast<alias_float_t *>(to), reinterpret_cast<const alias_float_t *>(from));
-			else
-				*to = _mm_shuffle_ps(from[P0], from[P2], _MM_SHUFFLE(3, I2 % 4, I1 % 4, I0 % 4));
-		}
-		template<std::size_t I0, std::size_t I1, std::size_t I2, std::size_t I3, std::size_t... Is>
-		DPM_FORCEINLINE void shuffle_f32(__m128 *to, const __m128 *from) noexcept
-		{
-			constexpr auto P0 = I0 / 4, P1 = I1 / 4, P2 = I2 / 4, P3 = I3 / 4;
-			if constexpr (P0 != P1 || P2 != P3)
-				copy_positions<I0, I1, I2, I3>(reinterpret_cast<alias_float_t *>(to), reinterpret_cast<const alias_float_t *>(from));
-			else
-				*to = _mm_shuffle_ps(from[P0], from[P2], _MM_SHUFFLE(I3 % 4, I2 % 4, I1 % 4, I0 % 4));
-			if constexpr (sizeof...(Is) != 0) shuffle_f32<Is...>(to + 1, from);
-		}
-	}
-
 	DPM_DECLARE_EXT_NAMESPACE
 	{
-#ifdef DPM_HAS_SSE4_1
-		/** Replaces elements of mask \a a with elements of mask \a b using mask \a m. Elements of \a b are selected if the corresponding element of \a m evaluates to `true`. */
-		template<std::size_t N, std::size_t A>
-		[[nodiscard]] DPM_FORCEINLINE simd_mask<float, detail::avec<N, A>> blend(
-				const simd_mask<float, detail::avec<N, A>> &a,
-				const simd_mask<float, detail::avec<N, A>> &b,
-				const simd_mask<float, detail::avec<N, A>> &m)
-		noexcept requires detail::overload_128<float, N, A>
-		{
-			constexpr auto data_size = native_data_size_v<simd_mask<float, detail::avec<N, A>>>;
-
-			simd_mask<float, detail::avec<N, A>> result = {};
-			auto result_data = to_native_data(result);
-			const auto a_data = to_native_data(a);
-			const auto b_data = to_native_data(b);
-			const auto m_data = to_native_data(m);
-
-			for (std::size_t i = 0; i < data_size; ++i) result_data[i] = _mm_blendv_ps(a_data[i], b_data[i], m_data[i]);
-			return result;
-		}
-#endif
-
-		/** Shuffles elements of mask \a x into a new mask according to the specified indices. */
-		template<std::size_t... Is, std::size_t N, std::size_t A, std::size_t M = sizeof...(Is)>
-		[[nodiscard]] DPM_FORCEINLINE simd_mask<float, detail::avec<M, A>> shuffle(const simd_mask<float, detail::avec<N, A>> &x) noexcept requires detail::overload_any<float, N, A> && detail::overload_128<float, M, A>
-		{
-			if constexpr (detail::is_sequential<0, Is...>::value && M == N)
-				return simd_mask<float, detail::avec<M, A>>{x};
-			else
-			{
-				simd_mask<float, detail::avec<M, A>> result = {};
-				const auto src_data = reinterpret_cast<const __m128 *>(to_native_data(x).data());
-				detail::shuffle_f32<Is...>(to_native_data(result).data(), src_data);
-				return result;
-			}
-		}
-	}
-
-	DPM_DECLARE_EXT_NAMESPACE
-	{
-		template<std::size_t N, std::size_t Align> requires detail::overload_128<float, N, Align>
+		template<std::size_t N, std::size_t Align> requires detail::x86_overload_128<float, N, Align>
 		struct native_data_type<simd<float, detail::avec<N, Align>>> { using type = __m128; };
-		template<std::size_t N, std::size_t Align> requires detail::overload_128<float, N, Align>
+		template<std::size_t N, std::size_t Align> requires detail::x86_overload_128<float, N, Align>
 		struct native_data_size<simd<float, detail::avec<N, Align>>> : std::integral_constant<std::size_t, detail::align_data<float, N, 16>()> {};
 	}
 
-	template<std::size_t N, std::size_t Align> requires detail::overload_128<float, N, Align>
+	template<std::size_t N, std::size_t Align> requires detail::x86_overload_128<float, N, Align>
 	class simd<float, detail::avec<N, Align>>
 	{
 		friend struct detail::native_access<simd>;
@@ -385,7 +308,7 @@ namespace dpm
 		alignas(alignment) storage_type m_data;
 	};
 
-	template<std::size_t N, std::size_t A> requires detail::overload_128<float, N, A>
+	template<std::size_t N, std::size_t A> requires detail::x86_overload_128<float, N, A>
 	class const_where_expression<simd_mask<float, detail::avec<N, A>>, simd<float, detail::avec<N, A>>>
 	{
 		template<typename U, typename Abi, typename K>
@@ -440,7 +363,7 @@ namespace dpm
 		mask_t m_mask;
 		simd_t &m_data;
 	};
-	template<std::size_t N, std::size_t A> requires detail::overload_128<float, N, A>
+	template<std::size_t N, std::size_t A> requires detail::x86_overload_128<float, N, A>
 	class where_expression<simd_mask<float, detail::avec<N, A>>, simd<float, detail::avec<N, A>>> : public const_where_expression<simd_mask<float, detail::avec<N, A>>, simd<float, detail::avec<N, A>>>
 	{
 		using base_expr = const_where_expression<simd_mask<float, detail::avec<N, A>>, simd<float, detail::avec<N, A>>>;
@@ -535,7 +458,7 @@ namespace dpm
 
 	namespace detail
 	{
-		template<std::size_t N, std::size_t A> requires detail::overload_128<float, N, A>
+		template<std::size_t N, std::size_t A> requires detail::x86_overload_128<float, N, A>
 		struct native_access<simd<float, avec<N, A>>>
 		{
 			using simd_t = simd<float, avec<N, A>>;
@@ -543,59 +466,6 @@ namespace dpm
 			static std::span<__m128, simd_t::data_size> to_native_data(simd_t &x) noexcept { return {x.m_data}; }
 			static std::span<const __m128, simd_t::data_size> to_native_data(const simd_t &x) noexcept { return {x.m_data}; }
 		};
-	}
-
-	DPM_DECLARE_EXT_NAMESPACE
-	{
-		/** Returns a span of the underlying SSE vectors for \a x. */
-		template<std::size_t N, std::size_t A>
-		[[nodiscard]] inline std::span<__m128, detail::align_data<float, N, 16>()> to_native_data(simd<float, detail::avec<N, A>> &x) noexcept requires detail::overload_128<float, N, A>
-		{
-			return detail::native_access<simd<float, detail::avec<N, A>>>::to_native_data(x);
-		}
-		/** Returns a constant span of the underlying SSE vectors for \a x. */
-		template<std::size_t N, std::size_t A>
-		[[nodiscard]] inline std::span<const __m128, detail::align_data<float, N, 16>()> to_native_data(const simd<float, detail::avec<N, A>> &x) noexcept requires detail::overload_128<float, N, A>
-		{
-			return detail::native_access<simd<float, detail::avec<N, A>>>::to_native_data(x);
-		}
-
-#ifdef DPM_HAS_SSE4_1
-		/** Replaces elements of vector \a a with elements of vector \a b using mask \a m. Elements of \a b are selected if the corresponding element of \a m evaluates to `true`. */
-		template<std::size_t N, std::size_t A>
-		[[nodiscard]] DPM_FORCEINLINE simd<float, detail::avec<N, A>> blend(
-				const simd<float, detail::avec<N, A>> &a,
-				const simd<float, detail::avec<N, A>> &b,
-				const simd_mask<float, detail::avec<N, A>> &m)
-		noexcept requires detail::overload_128<float, N, A>
-		{
-			constexpr auto data_size = native_data_size_v<simd<float, detail::avec<N, A>>>;
-
-			simd<float, detail::avec<N, A>> result = {};
-			auto result_data = to_native_data(result);
-			const auto a_data = to_native_data(a);
-			const auto b_data = to_native_data(b);
-			const auto m_data = to_native_data(m);
-
-			for (std::size_t i = 0; i < data_size; ++i) result_data[i] = _mm_blendv_ps(a_data[i], b_data[i], m_data[i]);
-			return result;
-		}
-#endif
-
-		/** Shuffles elements of vector \a x into a new vector according to the specified indices. */
-		template<std::size_t... Is, std::size_t N, std::size_t A, std::size_t M = sizeof...(Is)>
-		[[nodiscard]] DPM_FORCEINLINE simd<float, detail::avec<M, A>> shuffle(const simd<float, detail::avec<N, A>> &x) noexcept requires detail::overload_any<float, N, A> && detail::overload_128<float, M, A>
-		{
-			if constexpr (detail::is_sequential<0, Is...>::value && M == N)
-				return simd<float, detail::avec<M, A>>{x};
-			else
-			{
-				simd<float, detail::avec<M, A>> result = {};
-				const auto src_data = reinterpret_cast<const __m128 *>(to_native_data(x).data());
-				detail::shuffle_f32<Is...>(to_native_data(result).data(), src_data);
-				return result;
-			}
-		}
 	}
 
 #pragma region "simd reductions"
@@ -630,7 +500,7 @@ namespace dpm
 
 	/** Horizontally reduced elements of \a x using operation `Op`. */
 	template<std::size_t N, std::size_t A, typename Op = std::plus<>>
-	[[nodiscard]] DPM_FORCEINLINE float reduce(const simd<float, detail::avec<N, A>> &x, Op op = {}) noexcept requires detail::overload_128<float, N, A>
+	[[nodiscard]] DPM_FORCEINLINE float reduce(const simd<float, detail::avec<N, A>> &x, Op op = {}) noexcept requires detail::x86_overload_128<float, N, A>
 	{
 		if constexpr (std::same_as<Op, std::plus<>> || std::same_as<Op, std::plus<float>>)
 			return detail::reduce_f32(x, _mm_setzero_ps(), [](auto a, auto b) { return _mm_add_ps(a, b); });
@@ -642,14 +512,14 @@ namespace dpm
 
 	/** Calculates horizontal minimum of elements of \a x. */
 	template<std::size_t N, std::size_t A>
-	[[nodiscard]] DPM_FORCEINLINE float hmin(const simd<float, detail::avec<N, A>> &x) noexcept requires detail::overload_128<float, N, A>
+	[[nodiscard]] DPM_FORCEINLINE float hmin(const simd<float, detail::avec<N, A>> &x) noexcept requires detail::x86_overload_128<float, N, A>
 	{
 		const auto max = std::numeric_limits<float>::max();
 		return detail::reduce_f32(x, _mm_set1_ps(max), [](auto a, auto b) { return _mm_min_ps(a, b); });
 	}
 	/** Calculates horizontal maximum of elements of \a x. */
 	template<std::size_t N, std::size_t A>
-	[[nodiscard]] DPM_FORCEINLINE float hmax(const simd<float, detail::avec<N, A>> &x) noexcept requires detail::overload_128<float, N, A>
+	[[nodiscard]] DPM_FORCEINLINE float hmax(const simd<float, detail::avec<N, A>> &x) noexcept requires detail::x86_overload_128<float, N, A>
 	{
 		const auto min = std::numeric_limits<float>::min();
 		return detail::reduce_f32(x, _mm_set1_ps(min), [](auto a, auto b) { return _mm_max_ps(a, b); });
@@ -662,7 +532,7 @@ namespace dpm
 	[[nodiscard]] DPM_FORCEINLINE simd<float, detail::avec<N, A>> min(
 			const simd<float, detail::avec<N, A>> &a,
 			const simd<float, detail::avec<N, A>> &b)
-	noexcept requires detail::overload_128<float, N, A>
+	noexcept requires detail::x86_overload_128<float, N, A>
 	{
 		constexpr auto data_size = ext::native_data_size_v<simd<float, detail::avec<N, A>>>;
 
@@ -679,7 +549,7 @@ namespace dpm
 	[[nodiscard]] DPM_FORCEINLINE simd<float, detail::avec<N, A>> max(
 			const simd<float, detail::avec<N, A>> &a,
 			const simd<float, detail::avec<N, A>> &b)
-	noexcept requires detail::overload_128<float, N, A>
+	noexcept requires detail::x86_overload_128<float, N, A>
 	{
 		constexpr auto data_size = ext::native_data_size_v<simd<float, detail::avec<N, A>>>;
 
@@ -697,7 +567,7 @@ namespace dpm
 	[[nodiscard]] DPM_FORCEINLINE std::pair<simd<float, detail::avec<N, A>>, simd<float, detail::avec<N, A>>> minmax(
 			const simd<float, detail::avec<N, A>> &a,
 			const simd<float, detail::avec<N, A>> &b)
-	noexcept requires detail::overload_128<float, N, A>
+	noexcept requires detail::x86_overload_128<float, N, A>
 	{
 		constexpr auto data_size = ext::native_data_size_v<simd<float, detail::avec<N, A>>>;
 
@@ -720,7 +590,7 @@ namespace dpm
 			const simd<float, detail::avec<N, A>> &x,
 			const simd<float, detail::avec<N, A>> &min,
 			const simd<float, detail::avec<N, A>> &max)
-	noexcept requires detail::overload_128<float, N, A>
+	noexcept requires detail::x86_overload_128<float, N, A>
 	{
 		constexpr auto data_size = ext::native_data_size_v<simd<float, detail::avec<N, A>>>;
 

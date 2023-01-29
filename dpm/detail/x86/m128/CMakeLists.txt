@@ -11,6 +11,5 @@ list(APPEND DPM_INTERFACE_SOURCES
         ${CMAKE_CURRENT_LIST_DIR}/bitwise.hpp
         ${CMAKE_CURRENT_LIST_DIR}/cmp.hpp
         ${CMAKE_CURRENT_LIST_DIR}/cvt.hpp
-        ${CMAKE_CURRENT_LIST_DIR}/mask.hpp
         ${CMAKE_CURRENT_LIST_DIR}/type.hpp
         ${CMAKE_CURRENT_LIST_DIR}/math.hpp)

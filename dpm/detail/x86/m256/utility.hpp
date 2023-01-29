@@ -8,47 +8,25 @@
 
 namespace dpm::detail
 {
-	template<typename T>
-	[[nodiscard]] DPM_FORCEINLINE T setzero() noexcept requires (std::same_as<T, m64x4> || std::same_as<T, f64x4>)
+	template<std::same_as<__m256> V, typename F, typename... Args>
+	[[nodiscard]] DPM_FORCEINLINE V mux_128(Args &&...args, F op)
 	{
-		return std::bit_cast<T>(_mm256_setzero_pd());
+		const auto l = op(_mm256_extractf128_ps(std::bit_cast<__m256>(args), 0)...);
+		const auto h = op(_mm256_extractf128_ps(std::bit_cast<__m256>(args), 1)...);
+		return _mm256_set_m128(h, l);
 	}
-	template<typename T>
-	[[nodiscard]] DPM_FORCEINLINE T setones() noexcept requires (std::same_as<T, m64x4> || std::same_as<T, f64x4>)
+	template<std::same_as<__m256d> V, typename F, typename... Args>
+	[[nodiscard]] DPM_FORCEINLINE V mux_128(Args &&...args, F op)
 	{
-		const auto tmp = _mm256_undefined_pd();
-		return std::bit_cast<T>(_mm256_cmp_pd(tmp, tmp, _MM_CMPINT_EQ));
+		const auto l = op(_mm256_extractf128_pd(std::bit_cast<__m256d>(args), 0)...);
+		const auto h = op(_mm256_extractf128_pd(std::bit_cast<__m256d>(args), 1)...);
+		return _mm256_set_m128d(h, l);
 	}
-
-	template<typename T>
-	[[nodiscard]] DPM_FORCEINLINE T setzero() noexcept requires (std::same_as<T, m32x8> || std::same_as<T, f32x8>)
+	template<std::same_as<__m256i> V, typename F, typename... Args>
+	[[nodiscard]] DPM_FORCEINLINE V mux_128(Args &&...args, F op)
 	{
-		return std::bit_cast<T>(_mm256_setzero_ps());
-	}
-	template<typename T>
-	[[nodiscard]] DPM_FORCEINLINE T setones() noexcept requires (std::same_as<T, m32x8> || std::same_as<T, f32x8>)
-	{
-		const auto tmp = _mm256_undefined_ps();
-		return std::bit_cast<T>(_mm256_cmp_ps(tmp, tmp, _MM_CMPINT_EQ));
-	}
-
-	template<typename T>
-	[[nodiscard]] DPM_FORCEINLINE T setzero() noexcept
-	requires (std::same_as<T, i64x4> || std::same_as<T, u64x4> ||
-	          std::same_as<T, i32x8> || std::same_as<T, u32x8> ||
-	          std::same_as<T, i16x16> || std::same_as<T, u16x16> ||
-	          std::same_as<T, i8x32> || std::same_as<T, u8x32>)
-	{
-		return std::bit_cast<T>(_mm256_setzero_si256());
-	}
-	template<typename T>
-	[[nodiscard]] DPM_FORCEINLINE T setones() noexcept
-	requires (std::same_as<T, i64x4> || std::same_as<T, u64x4> ||
-	          std::same_as<T, i32x8> || std::same_as<T, u32x8> ||
-	          std::same_as<T, i16x16> || std::same_as<T, u16x16> ||
-	          std::same_as<T, i8x32> || std::same_as<T, u8x32>)
-	{
-		const auto tmp = _mm256_undefined_si256();
-		return std::bit_cast<T>(_mm256_cmpeq_epi64(tmp, tmp));
+		const auto l = op(_mm256_extractf128_si256(std::bit_cast<__m256i>(args), 0)...);
+		const auto h = op(_mm256_extractf128_si256(std::bit_cast<__m256i>(args), 1)...);
+		return _mm256_set_m128i(h, l);
 	}
 }
