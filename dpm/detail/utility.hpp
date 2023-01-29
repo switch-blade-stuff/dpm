@@ -99,16 +99,16 @@ namespace dpm::detail
 	template<std::size_t N, std::size_t... Is>
 	using repeat_sequence_t = repeat_sequence<std::index_sequence<>, N, 0, Is...>;
 
-	template<typename, std::size_t, std::size_t...>
+	template<typename, std::size_t, std::size_t, std::size_t...>
 	struct pad_sequence;
-	template<std::size_t N, std::size_t I, std::size_t... Js> requires (sizeof...(Js) >= N)
-	struct pad_sequence<std::index_sequence<Js...>, N, I> : std::index_sequence<Js...> {};
-	template<std::size_t N, std::size_t I, std::size_t... Js>
-	struct pad_sequence<std::index_sequence<Js...>, N, I> : pad_sequence<std::index_sequence<Js..., I>, N, I> {};
-	template<std::size_t N, std::size_t I, std::size_t... Is, std::size_t... Js>
-	struct pad_sequence<std::index_sequence<Js...>, N, I, Is...> : pad_sequence<std::index_sequence<Js..., I>, N, Is...> {};
-	template<std::size_t N, std::size_t... Is>
-	using pad_sequence_t = pad_sequence<std::index_sequence<>, N, Is...>;
+	template<std::size_t N, std::size_t Inc, std::size_t I, std::size_t... Js> requires (sizeof...(Js) >= N)
+	struct pad_sequence<std::index_sequence<Js...>, N, Inc, I> : std::index_sequence<Js...> {};
+	template<std::size_t N, std::size_t Inc, std::size_t I, std::size_t... Js>
+	struct pad_sequence<std::index_sequence<Js...>, N, Inc, I> : pad_sequence<std::index_sequence<Js..., I>, N, Inc, I + Inc> {};
+	template<std::size_t N, std::size_t Inc, std::size_t I, std::size_t... Is, std::size_t... Js>
+	struct pad_sequence<std::index_sequence<Js...>, N, Inc, I, Is...> : pad_sequence<std::index_sequence<Js..., I>, N, Inc, Is...> {};
+	template<std::size_t N, std::size_t Inc, std::size_t... Is>
+	using pad_sequence_t = pad_sequence<std::index_sequence<>, N, Inc, Is...>;
 
 	template<std::size_t I, std::size_t... Is>
 	constexpr void copy_positions(std::index_sequence<Is...>, auto *dst, const auto *src) noexcept

@@ -494,7 +494,7 @@ namespace dpm::detail
 	}
 
 	template<std::size_t IA, std::size_t... IAs, std::size_t IB, std::size_t... IBs, typename V>
-	[[nodiscard]] DPM_FORCEINLINE V shuffle16hilo(std::index_sequence<IA, IAs...> ia, std::index_sequence<IB, IBs...> ib, const V *x) noexcept
+	[[nodiscard]] DPM_FORCEINLINE V shuffle16pairs(std::index_sequence<IA, IAs...> ia, std::index_sequence<IB, IBs...> ib, const V *x) noexcept
 	{
 		if constexpr (((IA / 4 == IAs / 4) && ...) && ((IB / 4 == IBs / 4) && ...))
 		{
@@ -535,7 +535,7 @@ namespace dpm::detail
 	template<typename T, std::size_t I, std::size_t... Is, typename V>
 	[[nodiscard]] DPM_FORCEINLINE V shuffle(std::index_sequence<I, Is...>, const V *x) noexcept requires (sizeof(T) == 2 && sizeof(V) == 16)
 	{
-		return shuffle16hilo(extract_sequence_t<0, 4, I, Is...>{}, extract_sequence_t<4, 4, I, Is...>{}, x);
+		return shuffle16pairs(extract_sequence_t<0, 4, I, Is...>{}, extract_sequence_t<4, 4, I, Is...>{}, x);
 	}
 	template<typename T, std::size_t I1, std::size_t I0, typename V>
 	[[nodiscard]] DPM_FORCEINLINE V shuffle(std::index_sequence<I1, I0>, const V *x) noexcept requires (sizeof(T) == 8 && sizeof(V) == 16)

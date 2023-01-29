@@ -75,7 +75,7 @@ namespace dpm
 			constexpr auto vector_extent = sizeof(V) / sizeof(T);
 			if constexpr (sizeof...(Is) == vector_extent)
 			{
-				if constexpr (!detail::is_sequential<0, Is...>::value)
+				if constexpr (!detail::is_sequential<J * vector_extent, Is...>::value)
 					dst[J] = shuffle<T>(reverse_sequence_t<Is...>{}, src);
 				else
 					dst[J] = src[J];
@@ -86,7 +86,7 @@ namespace dpm
 				shuffle_unwrap<T, J + 1>(is, dst, src);
 			}
 			else
-				shuffle_unwrap<T, J>(pad_sequence_t<vector_extent, Is...>{}, dst, src);
+				shuffle_unwrap<T, J>(pad_sequence_t<vector_extent, 1, Is...>{}, dst, src);
 		}
 	}
 
