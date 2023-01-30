@@ -2,14 +2,11 @@
  * Created by switchblade on 2023-01-10.
  */
 
-#include "../../../const_f64.hpp"
-#include "../../../dispatch.hpp"
-#include "../../cpuid.hpp"
-#include "utility.hpp"
+#include "../const_f64.hpp"
+#include "../dispatch.hpp"
 #include "polevl.hpp"
+#include "cpuid.hpp"
 #include "sincos.hpp"
-#include "fmadd.hpp"
-#include "class.hpp"
 
 #if defined(DPM_ARCH_X86) && (defined(DPM_HAS_SSE2) || defined(DPM_DYNAMIC_DISPATCH))
 

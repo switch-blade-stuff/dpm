@@ -4,11 +4,7 @@
 
 #pragma once
 
-#include "../../../define.hpp"
-
-#if defined(DPM_ARCH_X86) && (defined(DPM_HAS_SSE2) || defined(DPM_DYNAMIC_DISPATCH))
-
-#include <immintrin.h>
+#include "fmadd.hpp"
 
 #ifndef DPM_USE_IMPORT
 
@@ -18,6 +14,40 @@
 
 namespace dpm::detail
 {
+	template<std::size_t N, std::size_t I, std::size_t J = 0>
+	[[nodiscard]] DPM_FORCEINLINE __m128 DPM_TARGET("fma") polevl_fma(__m128 x, __m128 y, std::span<const float, N> c) noexcept
+	{
+		if constexpr (I == 0)
+			return y;
+		else
+		{
+			y = _mm_fmadd_ps(y, x, _mm_set1_ps(c[J]));
+			return polevl_fma<N, I - 1, J + 1>(x, y, c);
+		}
+	}
+	template<std::size_t N>
+	[[nodiscard]] DPM_FORCEINLINE __m128 DPM_TARGET("fma") polevl_fma(__m128 x, std::span<const float, N> c) noexcept
+	{
+		return polevl_fma<N, N>(x, _mm_set1_pd(c[0]), c);
+	}
+
+	template<std::size_t N, std::size_t I, std::size_t J = 0>
+	[[nodiscard]] DPM_FORCEINLINE __m128 polevl_sse(__m128 x, __m128 y, std::span<const float, N> c) noexcept
+	{
+		if constexpr (I == 0)
+			return y;
+		else
+		{
+			y = fmadd_sse(y, x, _mm_set1_ps(c[J]));
+			return polevl_sse<N, I - 1, J + 1>(x, y, c);
+		}
+	}
+	template<std::size_t N>
+	[[nodiscard]] DPM_FORCEINLINE __m128 polevl_sse(__m128 x, std::span<const float, N> c) noexcept
+	{
+		return polevl_sse<N, N>(x, _mm_set1_pd(c[0]), c);
+	}
+
 	template<std::size_t N, std::size_t I, std::size_t J = 0>
 	[[nodiscard]] DPM_FORCEINLINE __m128d DPM_TARGET("fma") polevl_fma(__m128d x, __m128d y, std::span<const double, N> c) noexcept
 	{
@@ -42,7 +72,7 @@ namespace dpm::detail
 			return y;
 		else
 		{
-			y = _mm_add_pd(_mm_mul_pd(y, x), _mm_set1_pd(c[J]));
+			y = fmadd_sse(y, x, _mm_set1_pd(c[J]));
 			return polevl_sse<N, I - 1, J + 1>(x, y, c);
 		}
 	}
@@ -52,5 +82,3 @@ namespace dpm::detail
 		return polevl_sse<N, N>(x, _mm_set1_pd(c[0]), c);
 	}
 }
-
-#endif

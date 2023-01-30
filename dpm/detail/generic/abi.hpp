@@ -124,8 +124,14 @@ namespace dpm
 		}
 	}
 
+	namespace detail
+	{
+		template<std::size_t N, std::size_t A>
+		using avec = simd_abi::ext::aligned_vector<N, A>;
+	}
+
 	template<>
 	struct is_abi_tag<simd_abi::scalar> : std::true_type {};
 	template<std::size_t N, std::size_t Align>
-	struct is_abi_tag<simd_abi::ext::aligned_vector<N, Align>> : std::true_type {};
+	struct is_abi_tag<detail::avec<N, Align>> : std::true_type {};
 }

@@ -12,21 +12,21 @@ namespace dpm
 {
 	namespace detail
 	{
-		[[maybe_unused]] [[nodiscard]] DPM_FORCEINLINE __m128d fmadd_sse2(__m128d a, __m128d b, __m128d c) noexcept
+		[[maybe_unused]] [[nodiscard]] DPM_FORCEINLINE __m128d fmadd_sse(__m128d a, __m128d b, __m128d c) noexcept
 		{
 			return _mm_add_pd(_mm_mul_pd(a, b), c);
 		}
-		[[maybe_unused]] [[nodiscard]] DPM_FORCEINLINE __m128d fmsub_sse2(__m128d a, __m128d b, __m128d c) noexcept
+		[[maybe_unused]] [[nodiscard]] DPM_FORCEINLINE __m128d fmsub_sse(__m128d a, __m128d b, __m128d c) noexcept
 		{
 			return _mm_sub_pd(_mm_mul_pd(a, b), c);
 		}
-		[[maybe_unused]] [[nodiscard]] DPM_FORCEINLINE __m128d fnmadd_sse2(__m128d a, __m128d b, __m128d c) noexcept
+		[[maybe_unused]] [[nodiscard]] DPM_FORCEINLINE __m128d fnmadd_sse(__m128d a, __m128d b, __m128d c) noexcept
 		{
 			return _mm_sub_pd(c, _mm_mul_pd(a, b));
 		}
-		[[maybe_unused]] [[nodiscard]] DPM_FORCEINLINE __m128d fnmsub_sse2(__m128d a, __m128d b, __m128d c) noexcept
+		[[maybe_unused]] [[nodiscard]] DPM_FORCEINLINE __m128d fnmsub_sse(__m128d a, __m128d b, __m128d c) noexcept
 		{
-			return _mm_sub_pd(_mm_setzero_pd(), fmadd_sse2(a, b, c));
+			return _mm_sub_pd(_mm_setzero_pd(), fmadd_sse(a, b, c));
 		}
 
 		[[nodiscard]] DPM_FORCEINLINE __m128d fmadd(__m128d a, __m128d b, __m128d c) noexcept
@@ -34,7 +34,7 @@ namespace dpm
 #ifdef DPM_HAS_FMA
 			return _mm_fmadd_pd(a, b, c);
 #else
-			return fmadd_sse2(a, b, c);
+			return fmadd_sse(a, b, c);
 #endif
 		}
 		[[nodiscard]] DPM_FORCEINLINE __m128d fmsub(__m128d a, __m128d b, __m128d c) noexcept
@@ -42,7 +42,7 @@ namespace dpm
 #ifdef DPM_HAS_FMA
 			return _mm_fmsub_pd(a, b, c);
 #else
-			return fmsub_sse2(a, b, c);
+			return fmsub_sse(a, b, c);
 #endif
 		}
 		[[nodiscard]] DPM_FORCEINLINE __m128d fnmadd(__m128d a, __m128d b, __m128d c) noexcept
@@ -50,7 +50,7 @@ namespace dpm
 #ifdef DPM_HAS_FMA
 			return _mm_fnmadd_pd(a, b, c);
 #else
-			return fnmadd_sse2(a, b, c);
+			return fnmadd_sse(a, b, c);
 #endif
 		}
 		[[nodiscard]] DPM_FORCEINLINE __m128d fnmsub(__m128d a, __m128d b, __m128d c) noexcept
@@ -58,7 +58,7 @@ namespace dpm
 #ifdef DPM_HAS_FMA
 			return _mm_fnmsub_pd(a, b, c);
 #else
-			return fnmsub_sse2(a, b, c);
+			return fnmsub_sse(a, b, c);
 #endif
 		}
 	}

@@ -94,18 +94,9 @@ namespace dpm
 		const_where_expression(M mask, T &data) noexcept : m_mask(mask), m_data(data) {}
 		const_where_expression(M mask, const T &data) noexcept : m_mask(mask), m_data(const_cast<T &>(data)) {}
 
-		[[nodiscard]] T operator-() const && noexcept requires (requires { -std::declval<T>(); })
-		{
-			return ext::blend(m_data, -m_data, m_mask);
-		}
-		[[nodiscard]] T operator+() const && noexcept requires (requires { +std::declval<T>(); })
-		{
-			return ext::blend(m_data, +m_data, m_mask);
-		}
-		[[nodiscard]] T operator~() const && noexcept requires (requires { ~std::declval<T>(); })
-		{
-			return ext::blend(m_data, ~m_data, m_mask);
-		}
+		[[nodiscard]] DPM_FORCEINLINE T operator+() const && noexcept { return ext::blend(m_data, +m_data, m_mask); }
+		[[nodiscard]] DPM_FORCEINLINE T operator-() const && noexcept { return ext::blend(m_data, -m_data, m_mask); }
+		[[nodiscard]] DPM_FORCEINLINE T operator~() const && noexcept requires std::integral<T> { return ext::blend(m_data, ~m_data, m_mask); }
 
 		/** Copies selected elements to \a mem. */
 		template<typename U, typename Flags>
@@ -135,40 +126,40 @@ namespace dpm
 		using const_where_expression<M, T>::const_where_expression;
 
 		template<std::convertible_to<T> U>
-		void operator=(U &&value) && noexcept { m_data = ext::blend(m_data, static_cast<T>(std::forward<U>(value)), m_mask); }
+		DPM_FORCEINLINE void operator=(U &&value) && noexcept { m_data = ext::blend(m_data, static_cast<T>(std::forward<U>(value)), m_mask); }
 
-		void operator++() && noexcept requires (requires{ ++std::declval<T>(); })
+		DPM_FORCEINLINE void operator++() && noexcept requires (requires{ ++std::declval<T>(); })
 		{
 			const auto old_data = m_data;
 			const auto new_data = ++old_data;
 			m_data = ext::blend(old_data, new_data, m_mask);
 		}
-		void operator--() && noexcept requires (requires{ --std::declval<T>(); })
+		DPM_FORCEINLINE void operator--() && noexcept requires (requires{ --std::declval<T>(); })
 		{
 			const auto old_data = m_data;
 			const auto new_data = --old_data;
 			m_data = ext::blend(old_data, new_data, m_mask);
 		}
-		void operator++(int) && noexcept requires (requires{ std::declval<T>()++; })
+		DPM_FORCEINLINE void operator++(int) && noexcept requires (requires{ std::declval<T>()++; })
 		{
 			const auto old_data = m_data++;
 			m_data = ext::blend(old_data, m_data, m_mask);
 		}
-		void operator--(int) && noexcept requires (requires{ std::declval<T>()--; })
+		DPM_FORCEINLINE void operator--(int) && noexcept requires (requires{ std::declval<T>()--; })
 		{
 			const auto old_data = m_data--;
 			m_data = ext::blend(old_data, m_data, m_mask);
 		}
 
 		template<typename U>
-		void operator+=(U &&value) && noexcept requires std::convertible_to<U, T> && requires(T &a, T b) { a += b; }
+		DPM_FORCEINLINE void operator+=(U &&value) && noexcept requires requires(T &a, U b) {{ a += b } -> std::convertible_to<T>; }
 		{
 			auto new_data = m_data;
 			new_data += static_cast<T>(std::forward<U>(value));
 			m_data = ext::blend(m_data, new_data, m_mask);
 		}
 		template<typename U>
-		void operator-=(U &&value) && noexcept requires std::convertible_to<U, T> && requires(T &a, T b) { a -= b; }
+		DPM_FORCEINLINE void operator-=(U &&value) && noexcept requires requires(T &a, U b) {{ a -= b } -> std::convertible_to<T>; }
 		{
 			auto new_data = m_data;
 			new_data -= static_cast<T>(std::forward<U>(value));
@@ -176,21 +167,21 @@ namespace dpm
 		}
 
 		template<typename U>
-		void operator*=(U &&value) && noexcept requires std::convertible_to<U, T> && requires(T &a, T b) { a *= b; }
+		DPM_FORCEINLINE void operator*=(U &&value) && noexcept requires requires(T &a, U b) {{ a *= b } -> std::convertible_to<T>; }
 		{
 			auto new_data = m_data;
 			new_data *= static_cast<T>(std::forward<U>(value));
 			m_data = ext::blend(m_data, new_data, m_mask);
 		}
 		template<typename U>
-		void operator/=(U &&value) && noexcept requires std::convertible_to<U, T> && requires(T &a, T b) { a /= b; }
+		DPM_FORCEINLINE void operator/=(U &&value) && noexcept requires requires(T &a, U b) {{ a /= b } -> std::convertible_to<T>; }
 		{
 			auto new_data = m_data;
 			new_data /= static_cast<T>(std::forward<U>(value));
 			m_data = ext::blend(m_data, new_data, m_mask);
 		}
 		template<typename U>
-		void operator%=(U &&value) && noexcept requires std::convertible_to<U, T> && requires(T &a, T b) { a %= b; }
+		DPM_FORCEINLINE void operator%=(U &&value) && noexcept requires requires(T &a, U b) {{ a %= b } -> std::convertible_to<T>; }
 		{
 			auto new_data = m_data;
 			new_data %= static_cast<T>(std::forward<U>(value));
@@ -198,24 +189,38 @@ namespace dpm
 		}
 
 		template<typename U>
-		void operator&=(U &&value) && noexcept requires std::convertible_to<U, T> && requires(T &a, T b) { a &= b; }
+		DPM_FORCEINLINE void operator&=(U &&value) && noexcept requires requires(T &a, U b) {{ a &= b } -> std::convertible_to<T>; }
 		{
 			auto new_data = m_data;
 			new_data &= static_cast<T>(std::forward<U>(value));
 			m_data = ext::blend(m_data, new_data, m_mask);
 		}
 		template<typename U>
-		void operator|=(U &&value) && noexcept requires std::convertible_to<U, T> && requires(T &a, T b) { a |= b; }
+		DPM_FORCEINLINE void operator|=(U &&value) && noexcept requires requires(T &a, U b) {{ a |= b } -> std::convertible_to<T>; }
 		{
 			auto new_data = m_data;
 			new_data |= static_cast<T>(std::forward<U>(value));
 			m_data = ext::blend(m_data, new_data, m_mask);
 		}
 		template<typename U>
-		void operator^=(U &&value) && noexcept requires std::convertible_to<U, T> && requires(T &a, T b) { a ^= b; }
+		DPM_FORCEINLINE void operator^=(U &&value) && noexcept requires requires(T &a, U b) {{ a ^= b } -> std::convertible_to<T>; }
 		{
 			auto new_data = m_data;
 			new_data ^= static_cast<T>(std::forward<U>(value));
+			m_data = ext::blend(m_data, new_data, m_mask);
+		}
+		template<typename U>
+		DPM_FORCEINLINE void operator<<=(U &&value) && noexcept requires requires(T &a, U b) {{ a <<= b } -> std::convertible_to<T>; }
+		{
+			auto new_data = m_data;
+			new_data << std::forward<U>(value);
+			m_data = ext::blend(m_data, new_data, m_mask);
+		}
+		template<typename U>
+		DPM_FORCEINLINE void operator>>=(U &&value) && noexcept requires requires(T &a, U b) {{ a >>= b } -> std::convertible_to<T>; }
+		{
+			auto new_data = m_data;
+			new_data >>= std::forward<U>(value);
 			m_data = ext::blend(m_data, new_data, m_mask);
 		}
 

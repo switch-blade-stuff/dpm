@@ -49,20 +49,31 @@ namespace dpm
 
 	namespace detail
 	{
-		template<std::size_t, std::size_t...>
+		template<typename T>
+		struct get_simd_value;
+		template<typename T, typename Abi>
+		struct get_simd_value<simd<T, Abi>> { using type = T; };
+		template<typename T, typename Abi>
+		struct get_simd_value<simd_mask<T, Abi>> { using type = bool; };
+
+		template<typename T>
+		struct get_simd_abi;
+		template<typename T, typename Abi>
+		struct get_simd_abi<simd<T, Abi>> { using type = Abi; };
+		template<typename T, typename Abi>
+		struct get_simd_abi<simd_mask<T, Abi>> { using type = Abi; };
+
+		template<int, std::size_t, std::size_t...>
 		struct is_sequential : std::false_type {};
-		template<std::size_t I>
-		struct is_sequential<I, I> : std::true_type {};
-		template<std::size_t I, std::size_t... Is>
-		struct is_sequential<I, I, Is...> : is_sequential<I + 1, Is...> {};
+		template<int Step, std::size_t I>
+		struct is_sequential<Step, I, I> : std::true_type {};
+		template<int Step, std::size_t I, std::size_t... Is>
+		struct is_sequential<Step, I, I, Is...> : is_sequential<Step, I + Step, Is...> {};
 
 		template<typename V, typename Abi>
 		concept can_split_simd = is_simd_v<V> && !(simd_size_v<typename V::value_type, Abi> % V::size());
 		template<typename V, typename Abi>
 		concept can_split_mask = is_simd_mask_v<V> && !(simd_size_v<typename V::simd_type::value_type, Abi> % V::size());
-
-		template<std::size_t N, std::size_t A>
-		using avec = simd_abi::ext::aligned_vector<N, A>;
 
 		struct bool_wrapper
 		{
@@ -194,15 +205,10 @@ namespace dpm
 
 	DPM_DECLARE_EXT_NAMESPACE
 	{
-		template<detail::vectorizable T>
-		struct native_data_type<simd_mask<T, simd_abi::scalar>> { using type = bool; };
-		template<detail::vectorizable T, std::size_t N, std::size_t Align>
-		struct native_data_type<simd<T, detail::avec<N, Align>>> { using type = bool; };
-
-		template<detail::vectorizable T>
-		struct native_data_size<simd_mask<T, simd_abi::scalar>> : std::integral_constant<std::size_t, 1> {};
-		template<detail::vectorizable T, std::size_t N, std::size_t Align>
-		struct native_data_size<simd_mask<T, detail::avec<N, Align>>> : std::integral_constant<std::size_t, N> {};
+		template<typename T>
+		struct native_data_type : detail::get_simd_value<T> { };
+		template<typename T>
+		struct native_data_size : simd_size<typename detail::get_simd_value<T>::type, typename detail::get_simd_abi<T>::type> {};
 
 		/** Replaces elements of mask \a a with elements of mask \a b using mask \a m. Elements of \a b are selected if the corresponding element of \a m evaluates to `true`. */
 		template<typename T, typename Abi, typename M>
@@ -218,7 +224,7 @@ namespace dpm
 		[[nodiscard]] inline simd_mask<T, simd_abi::deduce_t<T, sizeof...(Is) + 1, Abi>> shuffle(const simd_mask<T, Abi> &x)
 		{
 			using result_t = simd_mask<T, simd_abi::deduce_t<T, sizeof...(Is) + 1, Abi>>;
-			if constexpr (detail::is_sequential<0, I, Is...>::value && result_t::size() == simd_mask<T, Abi>::size())
+			if constexpr (detail::is_sequential<1, 0, I, Is...>::value && result_t::size() == simd_mask<T, Abi>::size())
 				return result_t{x};
 			else if constexpr (sizeof...(Is) == 0 || ((Is == I) && ...))
 				return result_t{x[I]};
@@ -229,19 +235,9 @@ namespace dpm
 				return result;
 			}
 		}
-
-		template<detail::vectorizable T>
-		[[nodiscard]] inline std::span<bool, 1> to_native_data(simd_mask<T, simd_abi::scalar> &) noexcept;
-		template<detail::vectorizable T>
-		[[nodiscard]] inline std::span<const bool, 1> to_native_data(const simd_mask<T, simd_abi::scalar> &) noexcept;
-
-		template<detail::vectorizable T, std::size_t N, std::size_t Align>
-		[[nodiscard]] inline std::span<T, N> to_native_data(simd_mask<T, detail::avec<N, Align>> &) noexcept;
-		template<detail::vectorizable T, std::size_t N, std::size_t Align>
-		[[nodiscard]] inline std::span<const T, N> to_native_data(const simd_mask<T, detail::avec<N, Align>> &) noexcept;
 	}
 
-	template<detail::vectorizable T>
+	template<typename T>
 	class simd_mask<T, simd_abi::scalar>
 	{
 		friend struct detail::native_access<simd_mask>;
@@ -291,7 +287,7 @@ namespace dpm
 		value_type m_value;
 	};
 
-	template<detail::vectorizable T, std::size_t N, std::size_t Align>
+	template<typename T, std::size_t N, std::size_t Align>
 	class simd_mask<T, detail::avec<N, Align>>
 	{
 		friend struct detail::native_access<simd_mask>;
@@ -594,7 +590,7 @@ namespace dpm
 
 	namespace detail
 	{
-		template<detail::vectorizable T>
+		template<typename T>
 		struct native_access<simd_mask<T, simd_abi::scalar>>
 		{
 			using mask_t = simd_mask<T, simd_abi::scalar>;
@@ -602,7 +598,7 @@ namespace dpm
 			[[nodiscard]] static std::span<bool, 1> to_native_data(mask_t &x) noexcept { return std::span<bool, 1>{&x.m_value, &x.m_value + 1}; }
 			[[nodiscard]] static std::span<const bool, 1> to_native_data(const mask_t &x) noexcept { return std::span<const bool, 1>{&x.m_value, &x.m_value + 1}; }
 		};
-		template<detail::vectorizable T, std::size_t N, std::size_t Align>
+		template<typename T, std::size_t N, std::size_t Align>
 		struct native_access<simd_mask<T, detail::avec<N, Align>>>
 		{
 			using mask_t = simd_mask<T, detail::avec<N, Align>>;
@@ -614,30 +610,17 @@ namespace dpm
 
 	DPM_DECLARE_EXT_NAMESPACE
 	{
-		/** Returns a (single-element) span of the underlying boolean of \a x. */
-		template<detail::vectorizable T>
-		[[nodiscard]] inline std::span<bool, 1> to_native_data(simd_mask<T, simd_abi::scalar> &x) noexcept
-		{
-			return detail::native_access<simd_mask<T, simd_abi::scalar>>::to_native_data(x);
-		}
-		/** Returns a constant (single-element) span of the underlying boolean of \a x. */
-		template<detail::vectorizable T>
-		[[nodiscard]] inline std::span<const bool, 1> to_native_data(const simd_mask<T, simd_abi::scalar> &x) noexcept
-		{
-			return detail::native_access<simd_mask<T, simd_abi::scalar>>::to_native_data(x);
-		}
-
 		/** Returns a span of the underlying booleans of \a x. */
-		template<detail::vectorizable T, std::size_t N, std::size_t A>
-		[[nodiscard]] inline std::span<T, N> to_native_data(simd_mask<T, detail::avec<N, A>> &x) noexcept
+		template<typename T, typename Abi>
+		[[nodiscard]] inline auto to_native_data(simd_mask<T, Abi> &x) noexcept
 		{
-			return detail::native_access<simd_mask<T, detail::avec<N, A>>>::to_native_data(x);
+			return detail::native_access<simd_mask<T, Abi>>::to_native_data(x);
 		}
 		/** Returns a constant span of the underlying booleans of \a x. */
-		template<detail::vectorizable T, std::size_t N, std::size_t A>
-		[[nodiscard]] inline std::span<const T, N> to_native_data(const simd_mask<T, detail::avec<N, A>> &x) noexcept
+		template<typename T, typename Abi>
+		[[nodiscard]] inline auto to_native_data(const simd_mask<T, Abi> &x) noexcept
 		{
-			return detail::native_access<simd_mask<T, detail::avec<N, A>>>::to_native_data(x);
+			return detail::native_access<simd_mask<T, Abi>>::to_native_data(x);
 		}
 	}
 
@@ -665,16 +648,6 @@ namespace dpm
 
 	DPM_DECLARE_EXT_NAMESPACE
 	{
-		template<detail::vectorizable T>
-		struct native_data_type<simd<T, simd_abi::scalar>> { using type = T; };
-		template<detail::vectorizable T, std::size_t N, std::size_t Align>
-		struct native_data_type<simd<T, detail::avec<N, Align>>> { using type = T; };
-
-		template<detail::vectorizable T>
-		struct native_data_size<simd<T, simd_abi::scalar>> : std::integral_constant<std::size_t, 1> {};
-		template<detail::vectorizable T, std::size_t N, std::size_t Align>
-		struct native_data_size<simd<T, detail::avec<N, Align>>> : std::integral_constant<std::size_t, N> {};
-
 		/** Replaces elements of vector \a a with elements of vector \a b using mask \a m. Elements of \a b are selected if the corresponding element of \a m evaluates to `true`. */
 		template<typename T, typename Abi>
 		[[nodiscard]] inline simd<T, Abi> blend(const simd<T, Abi> &a, const simd<T, Abi> &b, const simd_mask<T, Abi> &m)
@@ -689,7 +662,7 @@ namespace dpm
 		[[nodiscard]] inline simd<T, simd_abi::deduce_t<T, sizeof...(Is) + 1, Abi>> shuffle(const simd<T, Abi> &x)
 		{
 			using result_t = simd<T, simd_abi::deduce_t<T, sizeof...(Is) + 1, Abi>>;
-			if constexpr (detail::is_sequential<0, I, Is...>::value && result_t::size() == simd<T, Abi>::size())
+			if constexpr (detail::is_sequential<1, 0, I, Is...>::value && result_t::size() == simd<T, Abi>::size())
 				return result_t{x};
 			else if constexpr (sizeof...(Is) == 0 || ((Is == I) && ...))
 				return result_t{x[I]};
@@ -700,19 +673,9 @@ namespace dpm
 				return result;
 			}
 		}
-
-		template<detail::vectorizable T>
-		[[nodiscard]] inline std::span<T, 1> to_native_data(simd<T, simd_abi::scalar> &) noexcept;
-		template<detail::vectorizable T>
-		[[nodiscard]] inline std::span<const T, 1> to_native_data(const simd<T, simd_abi::scalar> &) noexcept;
-
-		template<detail::vectorizable T, std::size_t N, std::size_t Align>
-		[[nodiscard]] inline std::span<T, N> to_native_data(simd<T, detail::avec<N, Align>> &) noexcept;
-		template<detail::vectorizable T, std::size_t N, std::size_t Align>
-		[[nodiscard]] inline std::span<const T, N> to_native_data(const simd<T, detail::avec<N, Align>> &) noexcept;
 	}
 
-	template<detail::vectorizable T>
+	template<typename T>
 	class simd<T, simd_abi::scalar>
 	{
 		friend struct detail::native_access<simd>;
@@ -766,7 +729,7 @@ namespace dpm
 		value_type m_value;
 	};
 
-	template<detail::vectorizable T, std::size_t N, std::size_t Align>
+	template<typename T, std::size_t N, std::size_t Align>
 	class simd<T, detail::avec<N, Align>>
 	{
 		friend struct detail::native_access<simd>;
@@ -832,7 +795,7 @@ namespace dpm
 
 	namespace detail
 	{
-		template<detail::vectorizable T>
+		template<typename T>
 		struct native_access<simd<T, simd_abi::scalar>>
 		{
 			using simd_t = simd<T, simd_abi::scalar>;
@@ -840,7 +803,7 @@ namespace dpm
 			[[nodiscard]] static std::span<T, 1> to_native_data(simd_t &x) noexcept { return std::span<T, 1>{&x.m_value, &x.m_value + 1}; }
 			[[nodiscard]] static std::span<const T, 1> to_native_data(const simd_t &x) noexcept { return std::span<const T, 1>{&x.m_value, &x.m_value + 1}; }
 		};
-		template<detail::vectorizable T, std::size_t N, std::size_t Align>
+		template<typename T, std::size_t N, std::size_t Align>
 		struct native_access<simd<T, detail::avec<N, Align>>>
 		{
 			using simd_t = simd<T, detail::avec<N, Align>>;
@@ -852,40 +815,27 @@ namespace dpm
 
 	DPM_DECLARE_EXT_NAMESPACE
 	{
-		/** Returns a (single-element) span of the underlying scalar of \a x. */
-		template<detail::vectorizable T>
-		[[nodiscard]] inline std::span<T, 1> to_native_data(simd<T, simd_abi::scalar> &x) noexcept
-		{
-			return detail::native_access<simd<T, simd_abi::scalar>>::to_native_data(x);
-		}
-		/** Returns a constant (single-element) span of the underlying scalar of \a x. */
-		template<detail::vectorizable T>
-		[[nodiscard]] inline std::span<const T, 1> to_native_data(const simd<T, simd_abi::scalar> &x) noexcept
-		{
-			return detail::native_access<simd<T, simd_abi::scalar>>::to_native_data(x);
-		}
-
 		/** Returns a span of the underlying elements of \a x. */
-		template<detail::vectorizable T, std::size_t N, std::size_t A>
-		[[nodiscard]] inline std::span<T, N> to_native_data(simd<T, detail::avec<N, A>> &x) noexcept
+		template<typename T, typename Abi>
+		[[nodiscard]] inline auto to_native_data(simd<T, Abi> &x) noexcept
 		{
-			return detail::native_access<simd<T, detail::avec<N, A>>>::to_native_data(x);
+			return detail::native_access<simd<T, Abi>>::to_native_data(x);
 		}
 		/** Returns a constant span of the underlying elements of \a x. */
-		template<detail::vectorizable T, std::size_t N, std::size_t A>
-		[[nodiscard]] inline std::span<const T, N> to_native_data(const simd<T, detail::avec<N, A>> &x) noexcept
+		template<typename T, typename Abi>
+		[[nodiscard]] inline auto to_native_data(const simd<T, Abi> &x) noexcept
 		{
-			return detail::native_access<simd<T, detail::avec<N, A>>>::to_native_data(x);
+			return detail::native_access<simd<T, Abi>>::to_native_data(x);
 		}
 	}
 
 #pragma region "simd operators"
 	/** Returns a copy of vector \a x. */
 	template<typename T, typename Abi>
-	[[nodiscard]] inline simd<T, Abi> operator+(const simd<T, Abi> &x) noexcept requires (requires(T v){ +v; }) { return x; }
+	[[nodiscard]] inline simd<T, Abi> operator+(const simd<T, Abi> &x) noexcept { return x; }
 	/** Negates elements of vector \a x, and returns the resulting vector. */
 	template<typename T, typename Abi>
-	[[nodiscard]] inline simd<T, Abi> operator-(const simd<T, Abi> &x) noexcept requires (requires(T v){ -v; })
+	[[nodiscard]] inline simd<T, Abi> operator-(const simd<T, Abi> &x) noexcept
 	{
 		simd<T, Abi> result = {};
 		for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i) result[i] = -x[i];

@@ -9,8 +9,16 @@
 #pragma GCC diagnostic ignored "-Wignored-attributes"
 #endif
 
-#include "m128/math.hpp"
-#include "m256/math.hpp"
+#include "../define.hpp"
+
+#if defined(DPM_ARCH_X86) && defined(DPM_HAS_SSE)
+
+#include "sign.hpp"
+#include "class.hpp"
+#include "fmadd.hpp"
+#include "sincos.hpp"
+
+#endif
 
 #ifdef __GNUC__
 #pragma GCC diagnostic pop

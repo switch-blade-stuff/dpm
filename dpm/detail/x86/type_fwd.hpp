@@ -14,11 +14,36 @@
 namespace dpm::detail
 {
 	using simd_abi::detail::x86_overload_128;
-	using simd_abi::detail::x86_overload_256;
 	using simd_abi::detail::x86_simd_abi_128;
+
+#ifdef DPM_HAS_AVX
+	using simd_abi::detail::x86_overload_256;
 	using simd_abi::detail::x86_simd_abi_256;
+#endif
+
 	using simd_abi::detail::x86_overload_any;
 	using simd_abi::detail::x86_simd_abi_any;
+
+	template<typename, std::size_t>
+	struct select_vector;
+	template<>
+	struct select_vector<float, 16> { using type = __m128; };
+
+#ifdef DPM_HAS_SSE2
+	template<std::integral T>
+	struct select_vector<T, 16> { using type = __m128i; };
+	template<>
+	struct select_vector<double, 16> { using type = __m128d; };
+#endif
+
+#ifdef DPM_HAS_AVX
+	template<std::integral T>
+	struct select_vector<T, 32> { using type = __m256i; };
+	template<>
+	struct select_vector<float, 32> { using type = __m256; };
+	template<>
+	struct select_vector<double, 32> { using type = __m256d; };
+#endif
 
 	template<typename>
 	struct movemask_bits : std::integral_constant<std::size_t, 1> {};

@@ -30,9 +30,6 @@ namespace dpm
 	}
 	namespace detail
 	{
-		template<typename T>
-		concept vectorizable = std::is_arithmetic_v<T>;
-
 		template<typename U, typename T, typename From = std::remove_cvref_t<U>>
 		concept compatible_element = (std::unsigned_integral<T> && std::same_as<From, unsigned int>) || std::same_as<From, int> || std::is_convertible_v<From, T>;
 
@@ -95,7 +92,6 @@ namespace dpm
 	template<typename T, typename U = typename T::value_type>
 	inline constexpr std::size_t memory_alignment_v = memory_alignment<T, U>::value;
 
-	/* TODO: Implement */
 	template<typename T, typename V>
 	struct rebind_simd;
 	template<typename T, typename V>

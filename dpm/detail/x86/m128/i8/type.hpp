@@ -139,7 +139,7 @@ namespace dpm
 			if constexpr (P0 == P1 && P1 == P2 && P2 == P3 && P3 == P4 && P4 == P5 && P5 == P6 && P6 == P7 && P7 == P8 && P8 == P9 && P10 == P11 && P11 == P12 && P12 == P13 && P13 == P14 && P13 == P15)
 				*to = _mm_shuffle_epi8(from[P0], _mm_set_epi8(I0 % 16, I1 % 16, I2 % 16, I3 % 16, I4 % 16, I5 % 16, I6 % 16, I7 % 16, I8 % 16, I9 % 16, I10 % 16, I11 % 16, I12 % 16, I13 % 16, I14 % 16, I15 % 16));
 			else
-				copy_positions<I0, I1, I2, I3, I4, I5, I6, I7, I8, I9, I10, I11, I12, I13, I14, I15>(reinterpret_cast<alias_uint8_t *>(to), reinterpret_cast<const alias_uint8_t *>(from));
+				copy_elements<I0, I1, I2, I3, I4, I5, I6, I7, I8, I9, I10, I11, I12, I13, I14, I15>(reinterpret_cast<alias_uint8_t *>(to), reinterpret_cast<const alias_uint8_t *>(from));
 			if constexpr (sizeof...(Is) != 0) shuffle_i8<Is...>(to + 1, from);
 		}
 		template<std::size_t I, std::size_t... Is>

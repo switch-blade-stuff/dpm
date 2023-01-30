@@ -89,7 +89,7 @@ namespace dpm
 		{
 			constexpr auto P0 = I0 / 8, P1 = I1 / 8, P2 = I2 / 8, P3 = I3 / 8, P4 = I4 / 8, P5 = I5 / 8, P6 = I6 / 8, P7 = I7 / 8;
 			if constexpr (!(P0 == P1 && P1 == P2 && P2 == P3 && P3 == P4 && P4 == P5 && P5 == P6 && P6 == P7))
-				copy_positions<I0, I1, I2, I3, I4, I5, I6, I7>(reinterpret_cast<alias_uint16_t *>(to), reinterpret_cast<const alias_uint16_t *>(from));
+				copy_elements<I0, I1, I2, I3, I4, I5, I6, I7>(reinterpret_cast<alias_uint16_t *>(to), reinterpret_cast<const alias_uint16_t *>(from));
 			else
 			{
 				const auto mask = _mm_set_epi8(

@@ -74,7 +74,7 @@ namespace dpm
 		{
 			constexpr auto P0 = I0 / 4, P1 = I1 / 4;
 			if constexpr (P0 != P1)
-				copy_positions<I0, I1>(reinterpret_cast<alias_uint32_t *>(to), reinterpret_cast<const alias_uint32_t *>(from));
+				copy_elements<I0, I1>(reinterpret_cast<alias_uint32_t *>(to), reinterpret_cast<const alias_uint32_t *>(from));
 			else
 			{
 				const auto v = std::bit_cast<__m128>(from[P0]);
@@ -86,7 +86,7 @@ namespace dpm
 		{
 			constexpr auto P0 = I0 / 4, P1 = I1 / 4, P2 = I2 / 4;
 			if constexpr (P0 != P1)
-				copy_positions<I0, I1, I2>(reinterpret_cast<alias_uint32_t *>(to), reinterpret_cast<const alias_uint32_t *>(from));
+				copy_elements<I0, I1, I2>(reinterpret_cast<alias_uint32_t *>(to), reinterpret_cast<const alias_uint32_t *>(from));
 			else
 			{
 				const auto v0 = std::bit_cast<__m128>(from[P0]);
@@ -99,7 +99,7 @@ namespace dpm
 		{
 			constexpr auto P0 = I0 / 4, P1 = I1 / 4, P2 = I2 / 4, P3 = I3 / 4;
 			if constexpr (P0 != P1 || P2 != P3)
-				copy_positions<I0, I1, I2, I3>(reinterpret_cast<alias_uint32_t *>(to), reinterpret_cast<const alias_uint32_t *>(from));
+				copy_elements<I0, I1, I2, I3>(reinterpret_cast<alias_uint32_t *>(to), reinterpret_cast<const alias_uint32_t *>(from));
 			else
 			{
 				const auto v0 = std::bit_cast<__m128>(from[P0]);

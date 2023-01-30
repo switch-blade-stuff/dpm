@@ -253,4 +253,16 @@ int main()
 		TEST_ASSERT(std::abs(dpm::cos(b)[0] - dpm::cos(d)[0]) < 0.0001);
 		TEST_ASSERT(std::abs(dpm::cos(b)[1] - dpm::cos(d)[0]) < 0.0001);
 	}
+	{
+		const std::array<std::int16_t, 16> a_data = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15};
+		dpm::fixed_size_simd<std::int16_t, 16> a;
+		a.copy_from(a_data.data(), dpm::element_aligned);
+
+		const std::array<std::int16_t, 8> b_data = {1, 1, 2, 2, 4, 5, 4, 5};
+		dpm::fixed_size_simd<std::int16_t, 8> b;
+		b.copy_from(b_data.data(), dpm::element_aligned);
+
+		const auto c = dpm::ext::shuffle<1, 1, 2, 2, 4, 5, 4, 5>(a);
+		TEST_ASSERT(dpm::all_of(b == c));
+	}
 }
