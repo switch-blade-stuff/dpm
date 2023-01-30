@@ -14,6 +14,7 @@
 
 namespace dpm
 {
+	/** Calculates sine of elements in vector \a x, and returns the resulting vector. */
 	template<typename T, typename Abi>
 	[[nodiscard]] inline simd<T, Abi> sin(const simd<T, Abi> &x) noexcept
 	{
@@ -22,6 +23,7 @@ namespace dpm
 			result[i] = std::sin(x[i]);
 		return result;
 	}
+	/** Calculates cosine of elements in vector \a x, and returns the resulting vector. */
 	template<typename T, typename Abi>
 	[[nodiscard]] inline simd<T, Abi> cos(const simd<T, Abi> &x) noexcept
 	{
@@ -33,6 +35,7 @@ namespace dpm
 
 	DPM_DECLARE_EXT_NAMESPACE
 	{
+		/** Calculates sine and cosine of elements in vector \a x, and assigns results to elements of \a out_sin and \a out_cos respectively. */
 		template<typename T, typename Abi>
 		inline void sincos(const simd<T, Abi> &x, simd<T, Abi> &out_sin, simd<T, Abi> &out_cos) noexcept
 		{
@@ -68,7 +71,7 @@ namespace dpm
 
 	/** Returns a result of fused multiply-add operation on elements of \a a, \a b, and \a c. Equivalent to `a * b + c`. */
 	template<typename T, typename Abi>
-	[[nodiscard]] inline simd<T, Abi> fma(const simd<T, Abi> &a, const simd<T, Abi> &b, const simd<T, Abi> &c) noexcept
+	[[nodiscard]] DPM_FORCEINLINE simd<T, Abi> fma(const simd<T, Abi> &a, const simd<T, Abi> &b, const simd<T, Abi> &c) noexcept
 	{
 		return ext::fmadd(a, b, c);
 	}

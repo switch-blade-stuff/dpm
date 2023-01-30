@@ -1166,7 +1166,7 @@ namespace dpm
 	namespace detail
 	{
 		template<typename T, typename Op>
-		[[nodiscard]] inline T reduce_pair(T a, T b, Op binary_op)
+		[[nodiscard]] DPM_FORCEINLINE T reduce_pair(T a, T b, Op binary_op)
 		{
 			if constexpr (!std::is_invocable_r_v<T, Op, T, T>)
 				return std::invoke(binary_op, simd<T, simd_abi::scalar>{a}, simd<T, simd_abi::scalar>{b})[0];
@@ -1174,7 +1174,7 @@ namespace dpm
 				return std::invoke(binary_op, a, b);
 		}
 		template<typename T, std::size_t N, typename Op>
-		[[nodiscard]] inline T reduce_array(const std::array<T, N> &data, Op binary_op)
+		[[nodiscard]] DPM_FORCEINLINE T reduce_array(const std::array<T, N> &data, Op binary_op)
 		{
 			if constexpr (N == 1)
 				return data[0];
@@ -1195,7 +1195,7 @@ namespace dpm
 			}
 		}
 		template<std::size_t N, typename T, typename Abi, typename Op>
-		[[nodiscard]] inline T reduce_impl(const simd<T, Abi> &x, Op binary_op)
+		[[nodiscard]] DPM_FORCEINLINE T reduce_impl(const simd<T, Abi> &x, Op binary_op)
 		{
 			alignas(simd<T, Abi>) std::array<T, simd<T, Abi>::size()> buff;
 			x.copy_to(buff.data(), vector_aligned);
@@ -1209,10 +1209,10 @@ namespace dpm
 
 	/** Finds the minimum of all elements (horizontal minimum) in \a x. */
 	template<typename T, typename Abi>
-	[[nodiscard]] inline T hmin(const simd<T, Abi> &x) noexcept { return reduce(x, [](T a, T b) { return std::min(a, b); }); }
+	[[nodiscard]] DPM_FORCEINLINE T hmin(const simd<T, Abi> &x) noexcept { return reduce(x, [](T a, T b) { return std::min(a, b); }); }
 	/** Finds the maximum of all elements (horizontal maximum) in \a x. */
 	template<typename T, typename Abi>
-	[[nodiscard]] inline T hmax(const simd<T, Abi> &x) noexcept { return reduce(x, [](T a, T b) { return std::max(a, b); }); }
+	[[nodiscard]] DPM_FORCEINLINE T hmax(const simd<T, Abi> &x) noexcept { return reduce(x, [](T a, T b) { return std::max(a, b); }); }
 #pragma endregion
 
 #pragma region "simd casts"

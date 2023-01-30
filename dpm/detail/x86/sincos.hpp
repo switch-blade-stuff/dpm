@@ -19,10 +19,16 @@ namespace dpm
 		[[nodiscard]] std::pair<__m128, __m128> DPM_PUBLIC DPM_PURE DPM_VECTORCALL DPM_TARGET("sse2") sincos(__m128 x) noexcept;
 		[[nodiscard]] __m128 DPM_PUBLIC DPM_PURE DPM_VECTORCALL DPM_TARGET("sse2") sin(__m128 x) noexcept;
 		[[nodiscard]] __m128 DPM_PUBLIC DPM_PURE DPM_VECTORCALL DPM_TARGET("sse2") cos(__m128 x) noexcept;
-		
+
 		[[nodiscard]] std::pair<__m128d, __m128d> DPM_PUBLIC DPM_PURE DPM_VECTORCALL DPM_TARGET("sse2") sincos(__m128d x) noexcept;
 		[[nodiscard]] __m128d DPM_PUBLIC DPM_PURE DPM_VECTORCALL DPM_TARGET("sse2") sin(__m128d x) noexcept;
 		[[nodiscard]] __m128d DPM_PUBLIC DPM_PURE DPM_VECTORCALL DPM_TARGET("sse2") cos(__m128d x) noexcept;
+
+#ifdef DPM_HAS_AVX
+		[[nodiscard]] std::pair<__m256d, __m256d> DPM_PUBLIC DPM_PURE DPM_VECTORCALL DPM_TARGET("avx") sincos(__m256d x) noexcept;
+		[[nodiscard]] __m256d DPM_PUBLIC DPM_PURE DPM_VECTORCALL DPM_TARGET("avx") sin(__m256d x) noexcept;
+		[[nodiscard]] __m256d DPM_PUBLIC DPM_PURE DPM_VECTORCALL DPM_TARGET("avx") cos(__m256d x) noexcept;
+#endif
 	}
 
 	/** Calculates sine of elements in vector \a x, and returns the resulting vector. */

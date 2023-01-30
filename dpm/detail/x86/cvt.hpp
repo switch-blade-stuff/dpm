@@ -90,6 +90,41 @@ namespace dpm::detail
 #endif
 	}
 
+	[[maybe_unused]] [[nodiscard]] DPM_FORCEINLINE __m256i DPM_TARGET("avx2") cvt_f64_u64_avx2(__m256d x) noexcept
+	{
+		const auto offset = _mm256_set1_pd(0x0010'0000'0000'0000);
+		return std::bit_cast<__m256i>(_mm256_xor_pd(_mm256_add_pd(x, offset), offset));
+	}
+	[[maybe_unused]] [[nodiscard]] DPM_FORCEINLINE __m256d DPM_TARGET("avx2") cvt_u64_f64_avx2(__m256i x) noexcept
+	{
+		const auto exp84 = std::bit_cast<__m256i>(_mm256_set1_pd(19342813113834066795298816.));  /* 2^84 */
+		const auto exp52 = std::bit_cast<__m256i>(_mm256_set1_pd(0x0010'0000'0000'0000));        /* 2^52 */
+		const auto adjust = _mm256_set1_pd(19342813118337666422669312.);                         /* 2^84 + 2^52 */
+
+		const auto a = _mm256_or_si256(_mm256_srli_epi64(x, 32), exp84);
+		const auto mask = _mm256_set1_epi64x(static_cast<std::int64_t>(0xffff'ffff'0000'0000));
+		const auto b = _mm256_or_si256(_mm256_and_si256(mask, exp52), _mm256_andnot_si256(mask, x));
+
+		return _mm256_add_pd(_mm256_sub_pd(std::bit_cast<__m256d>(a), adjust), std::bit_cast<__m256d>(b));
+	}
+	[[maybe_unused]] [[nodiscard]] DPM_FORCEINLINE __m256d DPM_TARGET("avx2") cvt_i64_f64_avx2(__m256i x) noexcept
+	{
+		const auto exp67m3 = std::bit_cast<__m256i>(_mm256_set1_pd(442721857769029238784.)); /* 2^67 * 3 */
+		const auto exp52 = std::bit_cast<__m256i>(_mm256_set1_pd(0x0010'0000'0000'0000));    /* 2^52 */
+		const auto adjust = _mm256_set1_pd(442726361368656609280.);                          /* 2^67 * 3 + 2^52 */
+
+		const auto a = _mm256_and_si256(_mm256_set1_epi64x(static_cast<std::int64_t>(0xffff'ffff'0000'0000)), _mm256_srai_epi32(x, 16));
+		const auto mask = _mm256_set1_epi64x(static_cast<std::int64_t>(0xffff'0000'0000'0000));
+		const auto b = _mm256_or_si256(_mm256_and_si256(mask, exp52), _mm256_andnot_si256(mask, x));
+
+		return _mm256_add_pd(_mm256_sub_pd(std::bit_cast<__m256d>(_mm256_add_epi64(a, exp67m3)), adjust), std::bit_cast<__m256d>(b));
+	}
+	[[maybe_unused]] [[nodiscard]] DPM_FORCEINLINE __m256i DPM_TARGET("avx2") cvt_f64_i64_avx2(__m256d x) noexcept
+	{
+		const auto offset = _mm256_set1_pd(0x0018'0000'0000'0000);
+		return _mm256_sub_epi64(std::bit_cast<__m256i>(_mm256_add_pd(x, offset)), std::bit_cast<__m256i>(offset));
+	}
+
 #ifdef DPM_HAS_AVX
 	[[nodiscard]] DPM_FORCEINLINE __m256i cvt_f32_u32(__m256 x) noexcept
 	{
@@ -109,77 +144,28 @@ namespace dpm::detail
 #endif
 	}
 
-	[[maybe_unused]] [[nodiscard]] DPM_FORCEINLINE __m256i cvt_f64_u64_avx(__m256d x) noexcept
-	{
-		const auto offset = _mm256_set1_pd(0x0010'0000'0000'0000);
-		return std::bit_cast<__m256i>(_mm256_xor_pd(_mm256_add_pd(x, offset), offset));
-	}
-
-#ifdef DPM_HAS_AVX2
-	[[maybe_unused]] [[nodiscard]] DPM_FORCEINLINE __m256d cvt_u64_f64_avx(__m256i x) noexcept
-	{
-		const auto exp84 = std::bit_cast<__m256i>(_mm256_set1_pd(19342813113834066795298816.));  /* 2^84 */
-		const auto exp52 = std::bit_cast<__m256i>(_mm256_set1_pd(0x0010'0000'0000'0000));        /* 2^52 */
-		const auto adjust = _mm256_set1_pd(19342813118337666422669312.);                         /* 2^84 + 2^52 */
-
-		const auto a = _mm256_or_si256(_mm256_srli_epi64(x, 32), exp84);
-		const auto mask = _mm256_set1_epi64x(static_cast<std::int64_t>(0xffff'ffff'0000'0000));
-		const auto b = _mm256_or_si256(_mm256_and_si256(mask, exp52), _mm256_andnot_si256(mask, x));
-
-		return _mm256_add_pd(_mm256_sub_pd(std::bit_cast<__m256d>(a), adjust), std::bit_cast<__m256d>(b));
-	}
-	[[maybe_unused]] [[nodiscard]] DPM_FORCEINLINE __m256d cvt_i64_f64_avx(__m256i x) noexcept
-	{
-		const auto exp67m3 = std::bit_cast<__m256i>(_mm256_set1_pd(442721857769029238784.)); /* 2^67 * 3 */
-		const auto exp52 = std::bit_cast<__m256i>(_mm256_set1_pd(0x0010'0000'0000'0000));    /* 2^52 */
-		const auto adjust = _mm256_set1_pd(442726361368656609280.);                          /* 2^67 * 3 + 2^52 */
-
-		const auto a = _mm256_and_si256(_mm256_set1_epi64x(static_cast<std::int64_t>(0xffff'ffff'0000'0000)), _mm256_srai_epi32(x, 16));
-		const auto mask = _mm256_set1_epi64x(static_cast<std::int64_t>(0xffff'0000'0000'0000));
-		const auto b = _mm256_or_si256(_mm256_and_si256(mask, exp52), _mm256_andnot_si256(mask, x));
-
-		return _mm256_add_pd(_mm256_sub_pd(std::bit_cast<__m256d>(_mm256_add_epi64(a, exp67m3)), adjust), std::bit_cast<__m256d>(b));
-	}
-	[[maybe_unused]] [[nodiscard]] DPM_FORCEINLINE __m256i cvt_f64_i64_avx(__m256d x) noexcept
-	{
-		const auto offset = _mm256_set1_pd(0x0018'0000'0000'0000);
-		return _mm256_sub_epi64(std::bit_cast<__m256i>(_mm256_add_pd(x, offset)), std::bit_cast<__m256i>(offset));
-	}
-#else
-	[[maybe_unused]] [[nodiscard]] DPM_FORCEINLINE __m256d cvt_u64_f64_avx(__m256i x) noexcept
-	{
-		const auto l = cvt_u64_f64_sse(_mm256_extractf128_si256(x, 0));
-		const auto h = cvt_u64_f64_sse(_mm256_extractf128_si256(x, 1));
-		return _mm256_set_m128d(h, l);
-	}
-	[[maybe_unused]] [[nodiscard]] DPM_FORCEINLINE __m256d cvt_i64_f64_avx(__m256i x) noexcept
-	{
-		const auto l = cvt_i64_f64_sse(_mm256_extractf128_si256(x, 0));
-		const auto h = cvt_i64_f64_sse(_mm256_extractf128_si256(x, 1));
-		return _mm256_set_m128d(h, l);
-	}
-	[[maybe_unused]] [[nodiscard]] DPM_FORCEINLINE __m256i cvt_f64_i64_avx(__m256d x) noexcept
-	{
-		const auto l = cvt_f64_i64_sse(_mm256_extractf128_pd(x, 0));
-		const auto h = cvt_f64_i64_sse(_mm256_extractf128_pd(x, 1));
-		return _mm256_set_m128i(h, l);
-	}
-#endif
-
 	[[nodiscard]] DPM_FORCEINLINE __m256d cvt_u64_f64(__m256i x) noexcept
 	{
 #if defined(DPM_HAS_AVX512DQ) && defined(DPM_HAS_AVX512VL)
 		return _mm256_cvtepu64_pd(x);
+#elif defined(DPM_HAS_AVX2)
+		return cvt_u64_f64_avx2(x);
 #else
-		return cvt_u64_f64_avx(x);
+		const auto l = cvt_u64_f64_sse(_mm256_extractf128_si256(x, 0));
+		const auto h = cvt_u64_f64_sse(_mm256_extractf128_si256(x, 1));
+		return _mm256_set_m128d(h, l);
 #endif
 	}
 	[[nodiscard]] DPM_FORCEINLINE __m256d cvt_i64_f64(__m256i x) noexcept
 	{
 #if defined(DPM_HAS_AVX512DQ) && defined(DPM_HAS_AVX512VL)
 		return _mm_cvtepi64_pd(x);
+#elif defined(DPM_HAS_AVX2)
+		return cvt_i64_f64_avx2(x);
 #else
-		return cvt_i64_f64_avx(x);
+		const auto l = cvt_i64_f64_sse(_mm256_extractf128_si256(x, 0));
+		const auto h = cvt_i64_f64_sse(_mm256_extractf128_si256(x, 1));
+		return _mm256_set_m128d(h, l);
 #endif
 	}
 	[[nodiscard]] DPM_FORCEINLINE __m256i cvt_f64_u64(__m256d x) noexcept
@@ -187,15 +173,19 @@ namespace dpm::detail
 #if defined(DPM_HAS_AVX512DQ) && defined(DPM_HAS_AVX512VL)
 		return _mm_cvtpd_epu64(x);
 #else
-		return cvt_f64_u64_avx(x);
+		return cvt_f64_u64_avx2(x);
 #endif
 	}
 	[[nodiscard]] DPM_FORCEINLINE __m256i cvt_f64_i64(__m256d x) noexcept
 	{
 #if defined(DPM_HAS_AVX512DQ) && defined(DPM_HAS_AVX512VL)
 		return _mm_cvtpd_epi64(x);
+#elif defined(DPM_HAS_AVX2)
+		return cvt_f64_i64_avx2(x);
 #else
-		return cvt_f64_i64_avx(x);
+		const auto l = cvt_f64_i64_sse(_mm256_extractf128_pd(x, 0));
+		const auto h = cvt_f64_i64_sse(_mm256_extractf128_pd(x, 1));
+		return _mm256_set_m128i(h, l);
 #endif
 	}
 #endif

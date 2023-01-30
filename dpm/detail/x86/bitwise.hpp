@@ -20,6 +20,19 @@ namespace dpm::detail
 	[[nodiscard]] DPM_FORCEINLINE __m128i bit_and(__m128i a, __m128i b) noexcept { return _mm_and_si128(a, b); }
 	[[nodiscard]] DPM_FORCEINLINE __m128i bit_xor(__m128i a, __m128i b) noexcept { return _mm_xor_si128(a, b); }
 	[[nodiscard]] DPM_FORCEINLINE __m128i bit_or(__m128i a, __m128i b) noexcept { return _mm_or_si128(a, b); }
+
+	template<integral_of_size<2> T, int N>
+	[[nodiscard]] DPM_FORCEINLINE __m128i bit_shiftl(__m128i x) noexcept { return _mm_slli_epi16(x, N); }
+	template<integral_of_size<2> T, int N>
+	[[nodiscard]] DPM_FORCEINLINE __m128i bit_shiftr(__m128i x) noexcept { return _mm_srli_epi16(x, N); }
+	template<integral_of_size<4> T, int N>
+	[[nodiscard]] DPM_FORCEINLINE __m128i bit_shiftl(__m128i x) noexcept { return _mm_slli_epi32(x, N); }
+	template<integral_of_size<4> T, int N>
+	[[nodiscard]] DPM_FORCEINLINE __m128i bit_shiftr(__m128i x) noexcept { return _mm_srli_epi32(x, N); }
+	template<integral_of_size<8> T, int N>
+	[[nodiscard]] DPM_FORCEINLINE __m128i bit_shiftl(__m128i x) noexcept { return _mm_slli_epi64(x, N); }
+	template<integral_of_size<8> T, int N>
+	[[nodiscard]] DPM_FORCEINLINE __m128i bit_shiftr(__m128i x) noexcept { return _mm_srli_epi64(x, N); }
 #endif
 
 #ifdef DPM_HAS_AVX
@@ -35,6 +48,37 @@ namespace dpm::detail
 	[[nodiscard]] DPM_FORCEINLINE __m256i bit_and(__m256i a, __m256i b) noexcept { return _mm256_and_si256(a, b); }
 	[[nodiscard]] DPM_FORCEINLINE __m256i bit_xor(__m256i a, __m256i b) noexcept { return _mm256_xor_si256(a, b); }
 	[[nodiscard]] DPM_FORCEINLINE __m256i bit_or(__m256i a, __m256i b) noexcept { return _mm256_or_si256(a, b); }
+
+	template<integral_of_size<2> T, int N>
+	[[nodiscard]] DPM_FORCEINLINE __m256i bit_shiftl(__m256i x) noexcept { return _mm256_slli_epi16(x, N); }
+	template<integral_of_size<2> T, int N>
+	[[nodiscard]] DPM_FORCEINLINE __m256i bit_shiftr(__m256i x) noexcept { return _mm256_srli_epi16(x, N); }
+	template<integral_of_size<4> T, int N>
+	[[nodiscard]] DPM_FORCEINLINE __m256i bit_shiftl(__m256i x) noexcept { return _mm256_slli_epi32(x, N); }
+	template<integral_of_size<4> T, int N>
+	[[nodiscard]] DPM_FORCEINLINE __m256i bit_shiftr(__m256i x) noexcept { return _mm256_srli_epi32(x, N); }
+	template<integral_of_size<8> T, int N>
+	[[nodiscard]] DPM_FORCEINLINE __m256i bit_shiftl(__m256i x) noexcept { return _mm256_slli_epi64(x, N); }
+	template<integral_of_size<8> T, int N>
+	[[nodiscard]] DPM_FORCEINLINE __m256i bit_shiftr(__m256i x) noexcept { return _mm256_srli_epi64(x, N); }
+
+	template<integral_of_size<4> T>
+	[[nodiscard]] DPM_FORCEINLINE __m128i bit_shiftl(__m128i a, __m128i b) noexcept { return _mm_sllv_epi32(a, b); }
+	template<integral_of_size<4> T>
+	[[nodiscard]] DPM_FORCEINLINE __m128i bit_shiftr(__m128i a, __m128i b) noexcept { return _mm_srlv_epi32(a, b); }
+	template<integral_of_size<4> T>
+	[[nodiscard]] DPM_FORCEINLINE __m256i bit_shiftl(__m256i a, __m256i b) noexcept { return _mm256_sllv_epi32(a, b); }
+	template<integral_of_size<4> T>
+	[[nodiscard]] DPM_FORCEINLINE __m256i bit_shiftr(__m256i a, __m256i b) noexcept { return _mm256_srlv_epi32(a, b); }
+
+	template<integral_of_size<8> T>
+	[[nodiscard]] DPM_FORCEINLINE __m128i bit_shiftl(__m128i a, __m128i b) noexcept { return _mm_sllv_epi64(a, b); }
+	template<integral_of_size<8> T>
+	[[nodiscard]] DPM_FORCEINLINE __m128i bit_shiftr(__m128i a, __m128i b) noexcept { return _mm_srlv_epi64(a, b); }
+	template<integral_of_size<8> T>
+	[[nodiscard]] DPM_FORCEINLINE __m256i bit_shiftl(__m256i a, __m256i b) noexcept { return _mm256_sllv_epi64(a, b); }
+	template<integral_of_size<8> T>
+	[[nodiscard]] DPM_FORCEINLINE __m256i bit_shiftr(__m256i a, __m256i b) noexcept { return _mm256_srlv_epi64(a, b); }
 #else
 	[[nodiscard]] DPM_FORCEINLINE __m256i bit_and(__m256i a, __m256i b)
 	{
@@ -54,7 +98,31 @@ namespace dpm::detail
 		const auto bf = std::bit_cast<__m256>(b);
 		return std::bit_cast<__m256i>(bit_or(af, bf));
 	}
+
+	template<integral_of_size<2> T, int N>
+	[[nodiscard]] DPM_FORCEINLINE __m256i bit_shiftl(__m256i x) noexcept { return mux_128x2<__m256i>([](auto x) { return bit_shiftl<T, N>(x); }, x); }
+	template<integral_of_size<2> T, int N>
+	[[nodiscard]] DPM_FORCEINLINE __m256i bit_shiftr(__m256i x) noexcept { return mux_128x2<__m256i>([](auto x) { return bit_shiftr<T, N>(x); }, x); }
+	template<integral_of_size<4> T, int N>
+	[[nodiscard]] DPM_FORCEINLINE __m256i bit_shiftl(__m256i x) noexcept { return mux_128x2<__m256i>([](auto x) { return bit_shiftl<T, N>(x); }, x); }
+	template<integral_of_size<4> T, int N>
+	[[nodiscard]] DPM_FORCEINLINE __m256i bit_shiftr(__m256i x) noexcept { return mux_128x2<__m256i>([](auto x) { return bit_shiftr<T, N>(x); }, x); }
+	template<integral_of_size<8> T, int N>
+	[[nodiscard]] DPM_FORCEINLINE __m256i bit_shiftl(__m256i x) noexcept { return mux_128x2<__m256i>([](auto x) { return bit_shiftl<T, N>(x); }, x); }
+	template<integral_of_size<8> T, int N>
+	[[nodiscard]] DPM_FORCEINLINE __m256i bit_shiftr(__m256i x) noexcept { return mux_128x2<__m256i>([](auto x) { return bit_shiftr<T, N>(x); }, x); }
 #endif
+#endif
+
+#if defined(DPM_HAS_AVX512BW) && defined(DPM_HAS_AVX512VL)
+	template<integral_of_size<2> T>
+	[[nodiscard]] DPM_FORCEINLINE __m128i bit_shiftl(__m128i a, __m128i b) noexcept { return _mm_sllv_epi16(a, b); }
+	template<integral_of_size<2> T>
+	[[nodiscard]] DPM_FORCEINLINE __m128i bit_shiftr(__m128i a, __m128i b) noexcept { return _mm_srlv_epi16(a, b); }
+	template<integral_of_size<2> T>
+	[[nodiscard]] DPM_FORCEINLINE __m256i bit_shiftl(__m256i a, __m256i b) noexcept { return _mm256_sllv_epi16(a, b); }
+	template<integral_of_size<2> T>
+	[[nodiscard]] DPM_FORCEINLINE __m256i bit_shiftr(__m256i a, __m256i b) noexcept { return _mm256_srlv_epi16(a, b); }
 #endif
 
 	template<typename V>

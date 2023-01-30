@@ -254,6 +254,19 @@ int main()
 		TEST_ASSERT(std::abs(dpm::cos(b)[1] - dpm::cos(d)[0]) < 0.0001);
 	}
 	{
+		dpm::simd<double, dpm::simd_abi::fixed_size<4>> a = {0.1234}, b = {12.7};
+		dpm::simd<double, dpm::simd_abi::scalar> c = {0.1234}, d = {12.7};
+
+		TEST_ASSERT(std::abs(dpm::sin(a)[0] - dpm::sin(c)[0]) < 0.0001);
+		TEST_ASSERT(std::abs(dpm::sin(a)[1] - dpm::sin(c)[0]) < 0.0001);
+		TEST_ASSERT(std::abs(dpm::sin(b)[0] - dpm::sin(d)[0]) < 0.0001);
+		TEST_ASSERT(std::abs(dpm::sin(b)[1] - dpm::sin(d)[0]) < 0.0001);
+		TEST_ASSERT(std::abs(dpm::cos(a)[0] - dpm::cos(c)[0]) < 0.0001);
+		TEST_ASSERT(std::abs(dpm::cos(a)[1] - dpm::cos(c)[0]) < 0.0001);
+		TEST_ASSERT(std::abs(dpm::cos(b)[0] - dpm::cos(d)[0]) < 0.0001);
+		TEST_ASSERT(std::abs(dpm::cos(b)[1] - dpm::cos(d)[0]) < 0.0001);
+	}
+	{
 		const std::array<std::int16_t, 16> a_data = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15};
 		dpm::fixed_size_simd<std::int16_t, 16> a;
 		a.copy_from(a_data.data(), dpm::element_aligned);
@@ -264,5 +277,22 @@ int main()
 
 		const auto c = dpm::ext::shuffle<1, 1, 2, 2, 4, 5, 4, 5>(a);
 		TEST_ASSERT(dpm::all_of(b == c));
+	}
+	{
+		alignas(32) const std::array<std::int32_t, 8> a_data = {9, 10, 11, 12, 13, 14, 15};
+		alignas(32) const std::array<bool, 8> m_data = {true, false, false, true, true};
+
+		dpm::fixed_size_simd<std::int32_t, 8> a;
+		a.copy_from(a_data.data(), dpm::vector_aligned);
+		dpm::fixed_size_simd_mask<std::int32_t, 8> m;
+		m.copy_from(m_data.data(), dpm::vector_aligned);
+
+		alignas(32) const std::array<std::int32_t, 8> b_data = {0, 10, 11, 3, 4, 14, 15};
+		alignas(32) const std::array<std::int32_t, 8> c_data = {0, 1, 2, 3, 4, 5, 6, 7};
+		dpm::fixed_size_simd<std::int32_t, 8> b;
+		b.copy_from(b_data.data(), dpm::vector_aligned);
+
+		dpm::where(m, a).copy_from(c_data.data(), dpm::vector_aligned);
+		TEST_ASSERT(dpm::all_of(a == b));
 	}
 }

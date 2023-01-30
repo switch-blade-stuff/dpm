@@ -91,7 +91,7 @@ namespace dpm::detail
 	template<std::same_as<double> T>
 	[[nodiscard]] DPM_FORCEINLINE __m256d cmp_ne(__m256d a, __m256d b) noexcept { return _mm256_cmp_pd(a, b, _CMP_NEQ_OQ); }
 
-#ifndef DPM_HAS_AVX2
+#ifdef DPM_HAS_AVX2
 	template<integral_of_size<1> T>
 	[[nodiscard]] DPM_FORCEINLINE __m256i cmp_eq(__m256i a, __m256i b) noexcept { return _mm256_cmpeq_epi8(a, b); }
 	template<integral_of_size<2> T>

@@ -111,6 +111,108 @@ namespace dpm
 #endif
 		}
 #endif
+
+#ifdef DPM_HAS_AVX
+		[[maybe_unused]] [[nodiscard]] DPM_FORCEINLINE __m256 fmadd_avx(__m256 a, __m256 b, __m256 c) noexcept
+		{
+			return _mm256_add_ps(_mm256_mul_ps(a, b), c);
+		}
+		[[maybe_unused]] [[nodiscard]] DPM_FORCEINLINE __m256 fmsub_avx(__m256 a, __m256 b, __m256 c) noexcept
+		{
+			return _mm256_sub_ps(_mm256_mul_ps(a, b), c);
+		}
+		[[maybe_unused]] [[nodiscard]] DPM_FORCEINLINE __m256 fnmadd_avx(__m256 a, __m256 b, __m256 c) noexcept
+		{
+			return _mm256_sub_ps(c, _mm256_mul_ps(a, b));
+		}
+		[[maybe_unused]] [[nodiscard]] DPM_FORCEINLINE __m256 fnmsub_avx(__m256 a, __m256 b, __m256 c) noexcept
+		{
+			return _mm256_sub_ps(_mm256_setzero_ps(), fmadd_avx(a, b, c));
+		}
+
+		[[nodiscard]] DPM_FORCEINLINE __m256 fmadd(__m256 a, __m256 b, __m256 c) noexcept
+		{
+		#ifdef DPM_HAS_FMA
+			return _mm256_fmadd_ps(a, b, c);
+		#else
+			return fmadd_avx(a, b, c);
+		#endif
+		}
+		[[nodiscard]] DPM_FORCEINLINE __m256 fmsub(__m256 a, __m256 b, __m256 c) noexcept
+		{
+		#ifdef DPM_HAS_FMA
+			return _mm256_fmsub_ps(a, b, c);
+		#else
+			return fmsub_avx(a, b, c);
+		#endif
+		}
+		[[nodiscard]] DPM_FORCEINLINE __m256 fnmadd(__m256 a, __m256 b, __m256 c) noexcept
+		{
+		#ifdef DPM_HAS_FMA
+			return _mm256_fnmadd_ps(a, b, c);
+		#else
+			return fnmadd_avx(a, b, c);
+		#endif
+		}
+		[[nodiscard]] DPM_FORCEINLINE __m256 fnmsub(__m256 a, __m256 b, __m256 c) noexcept
+		{
+		#ifdef DPM_HAS_FMA
+			return _mm256_fnmsub_ps(a, b, c);
+		#else
+			return fnmsub_avx(a, b, c);
+		#endif
+		}
+
+		[[maybe_unused]] [[nodiscard]] DPM_FORCEINLINE __m256d fmadd_avx(__m256d a, __m256d b, __m256d c) noexcept
+		{
+			return _mm256_add_pd(_mm256_mul_pd(a, b), c);
+		}
+		[[maybe_unused]] [[nodiscard]] DPM_FORCEINLINE __m256d fmsub_avx(__m256d a, __m256d b, __m256d c) noexcept
+		{
+			return _mm256_sub_pd(_mm256_mul_pd(a, b), c);
+		}
+		[[maybe_unused]] [[nodiscard]] DPM_FORCEINLINE __m256d fnmadd_avx(__m256d a, __m256d b, __m256d c) noexcept
+		{
+			return _mm256_sub_pd(c, _mm256_mul_pd(a, b));
+		}
+		[[maybe_unused]] [[nodiscard]] DPM_FORCEINLINE __m256d fnmsub_avx(__m256d a, __m256d b, __m256d c) noexcept
+		{
+			return _mm256_sub_pd(_mm256_setzero_pd(), fmadd_avx(a, b, c));
+		}
+
+		[[nodiscard]] DPM_FORCEINLINE __m256d fmadd(__m256d a, __m256d b, __m256d c) noexcept
+		{
+#ifdef DPM_HAS_FMA
+			return _mm256_fmadd_pd(a, b, c);
+#else
+			return fmadd_avx(a, b, c);
+#endif
+		}
+		[[nodiscard]] DPM_FORCEINLINE __m256d fmsub(__m256d a, __m256d b, __m256d c) noexcept
+		{
+#ifdef DPM_HAS_FMA
+			return _mm256_fmsub_pd(a, b, c);
+#else
+			return fmsub_avx(a, b, c);
+#endif
+		}
+		[[nodiscard]] DPM_FORCEINLINE __m256d fnmadd(__m256d a, __m256d b, __m256d c) noexcept
+		{
+#ifdef DPM_HAS_FMA
+			return _mm256_fnmadd_pd(a, b, c);
+#else
+			return fnmadd_avx(a, b, c);
+#endif
+		}
+		[[nodiscard]] DPM_FORCEINLINE __m256d fnmsub(__m256d a, __m256d b, __m256d c) noexcept
+		{
+#ifdef DPM_HAS_FMA
+			return _mm256_fnmsub_pd(a, b, c);
+#else
+			return fnmsub_avx(a, b, c);
+#endif
+		}
+#endif
 	}
 
 	DPM_DECLARE_EXT_NAMESPACE

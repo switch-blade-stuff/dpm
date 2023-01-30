@@ -151,6 +151,13 @@ namespace dpm::detail
 	DPM_FORCEINLINE void cast_copy(__m128d &dst, const U *src) noexcept { dst = cvt_u64_f64(*reinterpret_cast<const __m128i *>(src)); }
 	template<unsigned_integral_of_size<8> T, std::same_as<double> U>
 	DPM_FORCEINLINE void cast_copy(__m128i &dst, const U *src) noexcept { dst = cvt_f64_u64(*reinterpret_cast<const __m128d *>(src)); }
+
+	template<typename V, typename T>
+	DPM_FORCEINLINE void maskstoreu(T *dst, V src, __m128i mask) noexcept
+	{
+		const auto data = reinterpret_cast<alias_t<char> *>(dst);
+		_mm_maskmoveu_si128(std::bit_cast<__m128i>(src), mask, data);
+	}
 #endif
 
 #ifdef DPM_HAS_AVX
@@ -276,7 +283,7 @@ namespace dpm::detail
 #else
 		const auto ml = movemask<T>(_mm256_extractf128_si256(std::bit_cast<__m256i>(x), 0));
 		const auto mh = movemask<T>(_mm256_extractf128_si256(std::bit_cast<__m256i>(x), 1));
-		return (mh << (sizeof(V) / sizeof(T) * movemask_bits_v<T>)) | ml;
+		return (mh << ((16 / sizeof(T)) * movemask_bits_v<T>)) | ml;
 #endif
 	}
 	template<typename T, typename V>
@@ -325,6 +332,64 @@ namespace dpm::detail
 	DPM_FORCEINLINE void cast_copy(__m256d &dst, const U *src) noexcept { dst = cvt_u64_f64(*reinterpret_cast<const __m256i *>(src)); }
 	template<unsigned_integral_of_size<8> T, std::same_as<double> U>
 	DPM_FORCEINLINE void cast_copy(__m256i &dst, const U *src) noexcept { dst = cvt_f64_u64(*reinterpret_cast<const __m256d *>(src)); }
+
+	template<typename V, typename T>
+	DPM_FORCEINLINE V maskload(const T *src, __m128i mask) noexcept requires (sizeof(T) == 4)
+	{
+		const auto data = reinterpret_cast<const alias_t<float> *>(src);
+		return std::bit_cast<V>(_mm_maskload_ps(data, mask));
+	}
+	template<typename V, typename T>
+	DPM_FORCEINLINE V maskload(const T *src, __m128i mask) noexcept requires (sizeof(T) == 8)
+	{
+		const auto data = reinterpret_cast<const alias_t<double> *>(src);
+		return std::bit_cast<V>(_mm_maskload_pd(data, mask));
+	}
+	template<typename V, typename T>
+	DPM_FORCEINLINE V maskload(const T *src, __m256i mask) noexcept requires (sizeof(T) == 4)
+	{
+		const auto data = reinterpret_cast<const alias_t<float> *>(src);
+		return std::bit_cast<V>(_mm256_maskload_ps(data, mask));
+	}
+	template<typename V, typename T>
+	DPM_FORCEINLINE V maskload(const T *src, __m256i mask) noexcept requires (sizeof(T) == 8)
+	{
+		const auto data = reinterpret_cast<const alias_t<double> *>(src);
+		return std::bit_cast<V>(_mm256_maskload_pd(data, mask));
+	}
+
+	template<typename V, typename T>
+	DPM_FORCEINLINE void maskstore(T *dst, V src, __m128i mask) noexcept requires (sizeof(T) == 4)
+	{
+		const auto data = reinterpret_cast<alias_t<float> *>(dst);
+		_mm_maskstore_ps(data, mask, std::bit_cast<__m128>(src));
+	}
+	template<typename V, typename T>
+	DPM_FORCEINLINE void maskstore(T *dst, V src, __m128i mask) noexcept requires (sizeof(T) == 8)
+	{
+		const auto data = reinterpret_cast<alias_t<double> *>(dst);
+		_mm_maskstore_pd(data, mask, std::bit_cast<__m128d>(src));
+	}
+	template<typename V, typename T>
+	DPM_FORCEINLINE void maskstore(T *dst, V src, __m256i mask) noexcept requires (sizeof(T) == 4)
+	{
+		const auto data = reinterpret_cast<alias_t<float> *>(dst);
+		_mm256_maskstore_ps(data, mask, std::bit_cast<__m256>(src));
+	}
+	template<typename V, typename T>
+	DPM_FORCEINLINE void maskstore(T *dst, V src, __m256i mask) noexcept requires (sizeof(T) == 8)
+	{
+		const auto data = reinterpret_cast<alias_t<double> *>(dst);
+		_mm256_maskstore_pd(data, mask, std::bit_cast<__m256d>(src));
+	}
+#elif defined(DPM_HAS_SSE2)
+	template<typename V, typename T>
+	DPM_FORCEINLINE void maskstore(T *dst, V src, __m128i mask) noexcept { maskstoreu(dst, src, mask); }
+	template<typename V, typename T>
+	DPM_FORCEINLINE void maskstore(T *dst, V src, __m256i mask) noexcept
+	{
+		mux_128x2<__m256i>([&](auto v, auto m) { maskstoreu(dst + (32 / sizeof(T)), v, m); }, src, mask);
+	}
 #endif
 
 	template<typename V, typename T0, std::convertible_to<T0>... Ts>
@@ -338,7 +403,7 @@ namespace dpm::detail
 	template<typename T, typename V>
 	[[nodiscard]] DPM_FORCEINLINE std::size_t movemask_l(V x, std::size_t n) noexcept
 	{
-		constexpr auto extent = sizeof(V) / sizeof(T);
+		constexpr std::size_t extent = sizeof(V) / sizeof(T);
 		auto bits = detail::movemask<T>(x) << (std::numeric_limits<std::size_t>::digits - extent * movemask_bits_v<T>);
 		if (n < extent) for (n = extent - n; n--;) bits <<= movemask_bits_v<T>;
 		return bits;
