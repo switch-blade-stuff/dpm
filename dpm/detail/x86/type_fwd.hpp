@@ -45,6 +45,9 @@ namespace dpm::detail
 	struct select_vector<double, 32> { using type = __m256d; };
 #endif
 
+	template<typename T, std::size_t N>
+	using select_vector_t = typename select_vector<T, N>::type;
+
 	template<typename>
 	struct movemask_bits : std::integral_constant<std::size_t, 1> {};
 	template<typename T> requires (sizeof(T) == 2)

@@ -21,6 +21,11 @@
 
 #ifdef __SSSE3__
 #define DPM_HAS_SSSE3
+#define DPM_IF_SSSE3(x) x
+#define DPM_NOT_SSSE3(x)
+#else
+#define DPM_IF_SSSE3(x)
+#define DPM_NOT_SSSE3(x) x
 #endif
 
 #ifdef __SSE4_1__

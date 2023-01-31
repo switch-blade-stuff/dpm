@@ -9,17 +9,6 @@
 
 namespace dpm::detail
 {
-	template<typename T, typename U, typename V>
-	DPM_FORCEINLINE void cast_copy(U *dst, const V &src) noexcept requires (std::same_as<T, U> || (std::integral<T> && std::integral<U> && sizeof(T) == sizeof(U)))
-	{
-		*reinterpret_cast<V *>(dst) = src;
-	}
-	template<typename T, typename U, typename V>
-	DPM_FORCEINLINE void cast_copy(V &dst, const U *src) noexcept requires (std::same_as<T, U> || (std::integral<T> && std::integral<U> && sizeof(T) == sizeof(U)))
-	{
-		dst = *reinterpret_cast<const V *>(src);
-	}
-
 	template<typename V>
 	[[nodiscard]] DPM_FORCEINLINE V setzero() noexcept requires (sizeof(V) == 16)
 	{
@@ -117,40 +106,40 @@ namespace dpm::detail
 	}
 
 	template<std::same_as<float> T, signed_integral_of_size<4> U>
-	DPM_FORCEINLINE void cast_copy(U *dst, const __m128 &src) noexcept { *reinterpret_cast<__m128i *>(dst) = _mm_cvtps_epi32(src); }
+	DPM_FORCEINLINE void cast_copy(__m128i &dst, const __m128 &src) noexcept { dst = _mm_cvtps_epi32(src); }
 	template<signed_integral_of_size<4> T, std::same_as<float> U>
-	DPM_FORCEINLINE void cast_copy(U *dst, const __m128i &src) noexcept { *reinterpret_cast<__m128 *>(dst) = _mm_cvtepi32_ps(src); }
+	DPM_FORCEINLINE void cast_copy(__m128 &dst, const __m128i &src) noexcept { dst = _mm_cvtepi32_ps(src); }
 	template<std::same_as<float> T, unsigned_integral_of_size<4> U>
-	DPM_FORCEINLINE void cast_copy(U *dst, const __m128 &src) noexcept { *reinterpret_cast<__m128i *>(dst) = cvt_f32_u32(src); }
+	DPM_FORCEINLINE void cast_copy(__m128i &dst, const __m128 &src) noexcept { dst = cvt_f32_u32(src); }
 	template<unsigned_integral_of_size<4> T, std::same_as<float> U>
-	DPM_FORCEINLINE void cast_copy(U *dst, const __m128i &src) noexcept { *reinterpret_cast<__m128 *>(dst) = cvt_u32_f32(src); }
+	DPM_FORCEINLINE void cast_copy(__m128 &dst, const __m128i &src) noexcept { dst = cvt_u32_f32(src); }
 
 	template<std::same_as<float> T, signed_integral_of_size<4> U>
-	DPM_FORCEINLINE void cast_copy(__m128 &dst, const U *src) noexcept { dst = _mm_cvtepi32_ps(*reinterpret_cast<const __m128i *>(src)); }
+	DPM_FORCEINLINE void cast_copy(__m128 &dst, const __m128i &src) noexcept { dst = _mm_cvtepi32_ps(src); }
 	template<signed_integral_of_size<4> T, std::same_as<float> U>
-	DPM_FORCEINLINE void cast_copy(__m128i &dst, const U *src) noexcept { dst = _mm_cvtps_epi32(*reinterpret_cast<const __m128 *>(src)); }
+	DPM_FORCEINLINE void cast_copy(__m128i &dst, const __m128 &src) noexcept { dst = _mm_cvtps_epi32(src); }
 	template<std::same_as<float> T, unsigned_integral_of_size<4> U>
-	DPM_FORCEINLINE void cast_copy(__m128 &dst, const U *src) noexcept { dst = cvt_u32_f32(*reinterpret_cast<const __m128i *>(src)); }
+	DPM_FORCEINLINE void cast_copy(__m128 &dst, const __m128i &src) noexcept { dst = cvt_u32_f32(src); }
 	template<unsigned_integral_of_size<4> T, std::same_as<float> U>
-	DPM_FORCEINLINE void cast_copy(__m128i &dst, const U *src) noexcept { dst = cvt_f32_u32(*reinterpret_cast<const __m128 *>(src)); }
+	DPM_FORCEINLINE void cast_copy(__m128i &dst, const __m128 &src) noexcept { dst = cvt_f32_u32(src); }
 
 	template<std::same_as<double> T, signed_integral_of_size<8> U>
-	DPM_FORCEINLINE void cast_copy(U *dst, const __m128d &src) noexcept { *reinterpret_cast<__m128i *>(dst) = cvt_f64_i64(src); }
+	DPM_FORCEINLINE void cast_copy(__m128i &dst, const __m128d &src) noexcept { dst = cvt_f64_i64(src); }
 	template<signed_integral_of_size<8> T, std::same_as<double> U>
-	DPM_FORCEINLINE void cast_copy(U *dst, const __m128i &src) noexcept { *reinterpret_cast<__m128 *>(dst) = cvt_i64_f64(src); }
+	DPM_FORCEINLINE void cast_copy(__m128d &dst, const __m128i &src) noexcept { dst = cvt_i64_f64(src); }
 	template<std::same_as<double> T, unsigned_integral_of_size<8> U>
-	DPM_FORCEINLINE void cast_copy(U *dst, const __m128d &src) noexcept { *reinterpret_cast<__m128i *>(dst) = cvt_f64_u64(src); }
+	DPM_FORCEINLINE void cast_copy(__m128i &dst, const __m128d &src) noexcept { dst = cvt_f64_u64(src); }
 	template<unsigned_integral_of_size<8> T, std::same_as<double> U>
-	DPM_FORCEINLINE void cast_copy(U *dst, const __m128i &src) noexcept { *reinterpret_cast<__m128 *>(dst) = cvt_u64_f64(src); }
+	DPM_FORCEINLINE void cast_copy(__m128d &dst, const __m128i &src) noexcept { dst = cvt_u64_f64(src); }
 
 	template<std::same_as<double> T, signed_integral_of_size<8> U>
-	DPM_FORCEINLINE void cast_copy(__m128d &dst, const U *src) noexcept { dst = cvt_i64_f64(*reinterpret_cast<const __m128i *>(src)); }
+	DPM_FORCEINLINE void cast_copy(__m128d &dst, const __m128i &src) noexcept { dst = cvt_i64_f64(src); }
 	template<signed_integral_of_size<8> T, std::same_as<double> U>
-	DPM_FORCEINLINE void cast_copy(__m128i &dst, const U *src) noexcept { dst = cvt_f64_i64(*reinterpret_cast<const __m128d *>(src)); }
+	DPM_FORCEINLINE void cast_copy(__m128i &dst, const __m128d &src) noexcept { dst = cvt_f64_i64(src); }
 	template<std::same_as<double> T, unsigned_integral_of_size<8> U>
-	DPM_FORCEINLINE void cast_copy(__m128d &dst, const U *src) noexcept { dst = cvt_u64_f64(*reinterpret_cast<const __m128i *>(src)); }
+	DPM_FORCEINLINE void cast_copy(__m128d &dst, const __m128i &src) noexcept { dst = cvt_u64_f64(src); }
 	template<unsigned_integral_of_size<8> T, std::same_as<double> U>
-	DPM_FORCEINLINE void cast_copy(__m128i &dst, const U *src) noexcept { dst = cvt_f64_u64(*reinterpret_cast<const __m128d *>(src)); }
+	DPM_FORCEINLINE void cast_copy(__m128i &dst, const __m128d &src) noexcept { dst = cvt_f64_u64(src); }
 
 	template<typename V, typename T>
 	DPM_FORCEINLINE void maskstoreu(T *dst, V src, __m128i mask) noexcept
@@ -298,40 +287,40 @@ namespace dpm::detail
 	}
 
 	template<std::same_as<float> T, signed_integral_of_size<4> U>
-	DPM_FORCEINLINE void cast_copy(U *dst, const __m256 &src) noexcept { *reinterpret_cast<__m256i *>(dst) = _mm256_cvtps_epi32(src); }
+	DPM_FORCEINLINE void cast_copy(__m256i &dst, const __m256 &src) noexcept { dst = _mm256_cvtps_epi32(src); }
 	template<signed_integral_of_size<4> T, std::same_as<float> U>
-	DPM_FORCEINLINE void cast_copy(U *dst, const __m256i &src) noexcept { *reinterpret_cast<__m256 *>(dst) = _mm256_cvtepi32_ps(src); }
+	DPM_FORCEINLINE void cast_copy(__m256 &dst, const __m256i &src) noexcept { dst = _mm256_cvtepi32_ps(src); }
 	template<std::same_as<float> T, unsigned_integral_of_size<4> U>
-	DPM_FORCEINLINE void cast_copy(U *dst, const __m256 &src) noexcept { *reinterpret_cast<__m256i *>(dst) = cvt_f32_u32(src); }
+	DPM_FORCEINLINE void cast_copy(__m256i &dst, const __m256 &src) noexcept { dst = cvt_f32_u32(src); }
 	template<unsigned_integral_of_size<4> T, std::same_as<float> U>
-	DPM_FORCEINLINE void cast_copy(U *dst, const __m256i &src) noexcept { *reinterpret_cast<__m256 *>(dst) = cvt_u32_f32(src); }
+	DPM_FORCEINLINE void cast_copy(__m256 &dst, const __m256i &src) noexcept { dst = cvt_u32_f32(src); }
 
 	template<std::same_as<float> T, signed_integral_of_size<4> U>
-	DPM_FORCEINLINE void cast_copy(__m256 &dst, const U *src) noexcept { dst = _mm256_cvtepi32_ps(*reinterpret_cast<const __m256i *>(src)); }
+	DPM_FORCEINLINE void cast_copy(__m256 &dst, const __m256i &src) noexcept { dst = _mm256_cvtepi32_ps(src); }
 	template<signed_integral_of_size<4> T, std::same_as<float> U>
-	DPM_FORCEINLINE void cast_copy(__m256i &dst, const U *src) noexcept { dst = _mm256_cvtps_epi32(*reinterpret_cast<const __m256 *>(src)); }
+	DPM_FORCEINLINE void cast_copy(__m256i &dst, const __m256 &src) noexcept { dst = _mm256_cvtps_epi32(src); }
 	template<std::same_as<float> T, unsigned_integral_of_size<4> U>
-	DPM_FORCEINLINE void cast_copy(__m256 &dst, const U *src) noexcept { dst = cvt_u32_f32(*reinterpret_cast<const __m256i *>(src)); }
+	DPM_FORCEINLINE void cast_copy(__m256 &dst, const __m256i &src) noexcept { dst = cvt_u32_f32(src); }
 	template<unsigned_integral_of_size<4> T, std::same_as<float> U>
-	DPM_FORCEINLINE void cast_copy(__m256i &dst, const U *src) noexcept { dst = cvt_f32_u32(*reinterpret_cast<const __m256 *>(src)); }
+	DPM_FORCEINLINE void cast_copy(__m256i &dst, const __m256 &src) noexcept { dst = cvt_f32_u32(src); }
 
 	template<std::same_as<double> T, signed_integral_of_size<8> U>
-	DPM_FORCEINLINE void cast_copy(U *dst, const __m256d &src) noexcept { *reinterpret_cast<__m256i *>(dst) = cvt_f64_i64(src); }
+	DPM_FORCEINLINE void cast_copy(__m256i &dst, const __m256d &src) noexcept { dst = cvt_f64_i64(src); }
 	template<signed_integral_of_size<8> T, std::same_as<double> U>
-	DPM_FORCEINLINE void cast_copy(U *dst, const __m256i &src) noexcept { *reinterpret_cast<__m256d *>(dst) = cvt_i64_f64(src); }
+	DPM_FORCEINLINE void cast_copy(__m256d &dst, const __m256i &src) noexcept { dst = cvt_i64_f64(src); }
 	template<std::same_as<double> T, unsigned_integral_of_size<8> U>
-	DPM_FORCEINLINE void cast_copy(U *dst, const __m256d &src) noexcept { *reinterpret_cast<__m256i *>(dst) = cvt_f64_u64(src); }
+	DPM_FORCEINLINE void cast_copy(__m256i &dst, const __m256d &src) noexcept { dst = cvt_f64_u64(src); }
 	template<unsigned_integral_of_size<8> T, std::same_as<double> U>
-	DPM_FORCEINLINE void cast_copy(U *dst, const __m256i &src) noexcept { *reinterpret_cast<__m256d *>(dst) = cvt_u64_f64(src); }
+	DPM_FORCEINLINE void cast_copy(__m256d &dst, const __m256i &src) noexcept { dst = cvt_u64_f64(src); }
 
 	template<std::same_as<double> T, signed_integral_of_size<8> U>
-	DPM_FORCEINLINE void cast_copy(__m256d &dst, const U *src) noexcept { dst = cvt_i64_f64(*reinterpret_cast<const __m256i *>(src)); }
+	DPM_FORCEINLINE void cast_copy(__m256d &dst, const __m256i &src) noexcept { dst = cvt_i64_f64(src); }
 	template<signed_integral_of_size<8> T, std::same_as<double> U>
-	DPM_FORCEINLINE void cast_copy(__m256i &dst, const U *src) noexcept { dst = cvt_f64_i64(*reinterpret_cast<const __m256d *>(src)); }
+	DPM_FORCEINLINE void cast_copy(__m256i &dst, const __m256d &src) noexcept { dst = cvt_f64_i64(src); }
 	template<std::same_as<double> T, unsigned_integral_of_size<8> U>
-	DPM_FORCEINLINE void cast_copy(__m256d &dst, const U *src) noexcept { dst = cvt_u64_f64(*reinterpret_cast<const __m256i *>(src)); }
+	DPM_FORCEINLINE void cast_copy(__m256d &dst, const __m256i &src) noexcept { dst = cvt_u64_f64(src); }
 	template<unsigned_integral_of_size<8> T, std::same_as<double> U>
-	DPM_FORCEINLINE void cast_copy(__m256i &dst, const U *src) noexcept { dst = cvt_f64_u64(*reinterpret_cast<const __m256d *>(src)); }
+	DPM_FORCEINLINE void cast_copy(__m256i &dst, const __m256d &src) noexcept { dst = cvt_f64_u64(src); }
 
 	template<typename V, typename T>
 	DPM_FORCEINLINE V maskload(const T *src, __m128i mask) noexcept requires (sizeof(T) == 4)
@@ -391,6 +380,24 @@ namespace dpm::detail
 		mux_128x2<__m256i>([&](auto v, auto m) { maskstoreu(dst + (32 / sizeof(T)), v, m); }, src, mask);
 	}
 #endif
+
+	template<typename T, typename U, typename V0, typename V1>
+	DPM_FORCEINLINE void cast_copy(V0 &dst, const V1 &src) noexcept requires (std::same_as<T, U> || (std::integral<T> && std::integral<U> && sizeof(T) == sizeof(U)))
+	{
+		dst = src;
+	}
+	template<typename U, typename T, typename V>
+	DPM_FORCEINLINE void cast_copy(U *dst, const V &src) noexcept
+	{
+		using dst_vector = select_vector_t<U, sizeof(V)>;
+		cast_copy<T, U>(*reinterpret_cast<dst_vector *>(dst), src);
+	}
+	template<typename T, typename U, typename V>
+	DPM_FORCEINLINE void cast_copy(V &dst, const U *src) noexcept
+	{
+		using src_vector = select_vector_t<U, sizeof(V)>;
+		cast_copy<T, U>(dst, *reinterpret_cast<const src_vector *>(src));
+	}
 
 	template<typename V, typename T0, std::convertible_to<T0>... Ts>
 	[[nodiscard]] DPM_FORCEINLINE V set(T0 v0, Ts... vs) noexcept

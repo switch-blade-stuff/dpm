@@ -8,6 +8,7 @@ list(APPEND DPM_INTERFACE_SOURCES
         ${CMAKE_CURRENT_LIST_DIR}/bitwise.hpp
         ${CMAKE_CURRENT_LIST_DIR}/addsub.hpp
         ${CMAKE_CURRENT_LIST_DIR}/muldiv.hpp
+        ${CMAKE_CURRENT_LIST_DIR}/minmax.hpp
         ${CMAKE_CURRENT_LIST_DIR}/cmp.hpp
         ${CMAKE_CURRENT_LIST_DIR}/cvt.hpp
         ${CMAKE_CURRENT_LIST_DIR}/type.hpp

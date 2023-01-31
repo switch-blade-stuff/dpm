@@ -73,6 +73,13 @@ namespace dpm::detail
 		return N / size_mult + !!(N % size_mult);
 	}
 
+	template<template<typename> typename, typename>
+	struct is_template_instance : std::false_type {};
+	template<template<typename> typename T, typename U>
+	struct is_template_instance<T, T<U>> : std::true_type {};
+	template<typename U, template<typename> typename T>
+	concept template_instance = is_template_instance<T, U>::value;
+
 #pragma region "shuffle utils"
 	template<typename, std::size_t...>
 	struct reverse_sequence;

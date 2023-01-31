@@ -126,7 +126,7 @@ namespace dpm::detail
 #ifndef DPM_HAS_SSE2
 		return cmp_eq<float>(a, bit_xor(b, fill<V>(std::bit_cast<float>(0x3fff'ffff))));
 #else
-		using ivec_t = typename select_vector<std::int32_t, sizeof(V)>::type;
+		using ivec_t = select_vector_t<std::int32_t, sizeof(V)>;
 		const auto ai = std::bit_cast<ivec_t>(a);
 		const auto bi = std::bit_cast<ivec_t>(b);
 		return std::bit_cast<V>(cmp_eq<std::int32_t>(ai, bi));
@@ -136,7 +136,7 @@ namespace dpm::detail
 	template<typename T, typename V>
 	[[nodiscard]] DPM_FORCEINLINE V mask_eq(V a, V b) noexcept requires (sizeof(T) == 8)
 	{
-		using ivec_t = typename select_vector<std::int64_t, sizeof(V)>::type;
+		using ivec_t = select_vector_t<std::int64_t, sizeof(V)>;
 		const auto ai = std::bit_cast<ivec_t>(a);
 		const auto bi = std::bit_cast<ivec_t>(b);
 		return std::bit_cast<V>(cmp_eq<std::int64_t>(ai, bi));

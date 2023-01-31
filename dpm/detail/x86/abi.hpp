@@ -46,17 +46,17 @@ namespace dpm
 			using select_m256 = select_abi<T, 32>;
 
 			template<typename T, std::size_t N, std::size_t A, std::size_t MinWidth, std::size_t MaxWidth>
-			concept overload_default = has_vector<T> && A == 0 && MinWidth / sizeof(T) <= N && MaxWidth / sizeof(T) > N;
+			concept overload_default = has_vector<T> && (A == 0 && sizeof(T) * N > MinWidth && sizeof(T) * N <= MaxWidth);
 			template<typename T, std::size_t N, std::size_t A, std::size_t MinAlign, std::size_t MaxAlign>
-			concept overload_simd = has_vector<T> && N > 1 && A >= MinAlign && A < MaxAlign;
+			concept overload_simd = has_vector<T> && (N > 1 && A >= MinAlign && A < MaxAlign);
 			template<typename T, typename Abi, std::size_t A>
 			struct is_simd_abi : std::false_type {};
 
 #ifdef DPM_HAS_AVX
 			template<typename T, std::size_t N, std::size_t A = 0>
-			concept x86_overload_256 = overload_simd<T, N, A, 32, SIZE_MAX> || overload_default<T, N, A, 32, SIZE_MAX>;
+			concept x86_overload_256 = overload_simd<T, N, A, 32, SIZE_MAX> || overload_default<T, N, A, 16, SIZE_MAX>;
 			template<typename T, std::size_t N, std::size_t A = 0>
-			concept x86_overload_128 = overload_simd<T, N, A, 16, 32> || overload_default<T, N, A, 16, 32>;
+			concept x86_overload_128 = overload_simd<T, N, A, 16, 32> || overload_default<T, N, A, sizeof(T), 16>;
 			template<typename T, std::size_t N, std::size_t A>
 			concept x86_overload_any = x86_overload_128<T, N, A> || x86_overload_256<T, N, A>;
 
@@ -66,7 +66,7 @@ namespace dpm
 			concept x86_simd_abi_256 = is_simd_abi<Abi, T, 32>::value;
 #else
 			template<typename T, std::size_t N, std::size_t A = 0>
-			concept x86_overload_128 = overload_simd<T, N, A, 16, SIZE_MAX> || overload_default<T, N, A, 16, SIZE_MAX>;
+			concept x86_overload_128 = overload_simd<T, N, A, 16, SIZE_MAX> || overload_default<T, N, A, sizeof(T), SIZE_MAX>;
 			template<typename T, std::size_t N, std::size_t A>
 			concept x86_overload_any = x86_overload_128<T, N, A>;
 #endif
