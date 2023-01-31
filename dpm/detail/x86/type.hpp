@@ -1719,7 +1719,7 @@ namespace dpm
 	/** Returns an array of SIMD vectors where every `i`th element of the `j`th vector is a copy of the `i + j * V::size()`th element from \a x.
 	 * @note Size of \a x must be a multiple of `V::size()`. */
 	template<typename V, std::size_t N, std::size_t A, typename U = typename V::simd_type::value_type>
-	[[nodiscard]] DPM_FORCEINLINE auto split(const simd<U, detail::avec<N, A>> &x) noexcept requires detail::can_split_mask<V, detail::avec<N, A>> && detail::x86_overload_any<U, N, A>
+	[[nodiscard]] DPM_FORCEINLINE auto split(const simd<U, detail::avec<N, A>> &x) noexcept requires detail::can_split_simd<V, detail::avec<N, A>> && detail::x86_overload_any<U, N, A>
 	{
 		std::array<V, simd_size_v<U, detail::avec<N, A>> / V::size()> result = {};
 		for (std::size_t j = 0; j < result.size(); ++j)
