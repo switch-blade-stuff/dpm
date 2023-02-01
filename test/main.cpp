@@ -224,8 +224,16 @@ int main()
 		dpm::fixed_size_simd<float, 3> a;
 		a.copy_from(data.data(), dpm::element_aligned);
 
-		TEST_ASSERT(dpm::reduce(a, std::plus<>{}) == (-1 + 2 - 3));
-		TEST_ASSERT(dpm::reduce(a, std::multiplies<>{}) == (-1 * 2 * -3));
+		TEST_ASSERT(dpm::ext::hadd(a) == (-1 + 2 - 3));
+		TEST_ASSERT(dpm::ext::hmul(a) == (-1 * 2 * -3));
+	}
+	{
+		std::array<double, 3> data = {-1, 2, -3};
+		dpm::fixed_size_simd<double, 3> a;
+		a.copy_from(data.data(), dpm::element_aligned);
+
+		TEST_ASSERT(dpm::ext::hadd(a) == (-1 + 2 - 3));
+		TEST_ASSERT(dpm::ext::hmul(a) == (-1 * 2 * -3));
 	}
 	{
 		dpm::simd<std::int64_t, dpm::simd_abi::fixed_size<2>> a = {1}, b = {2}, c = {4}, d = {~4ll};
