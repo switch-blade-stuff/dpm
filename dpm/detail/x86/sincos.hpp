@@ -53,13 +53,13 @@ namespace dpm
 				return cos;
 		}
 
-#ifdef DPM_HAS_AVX
+#if defined(DPM_HAS_AVX) || defined(DPM_DYNAMIC_DISPATCH)
 		template<sincos_op>
 		inline static auto DPM_SINCOS_SIGN("avx2") sincos_avx2(__m256, __m256, __m256, __m256) noexcept;
 		template<sincos_op>
 		inline static auto DPM_SINCOS_SIGN("avx2") sincos_avx2(__m256d, __m256d, __m256d, __m256d) noexcept;
 #endif
-#ifdef DPM_HAS_FMA
+#if defined(DPM_HAS_FMA) || defined(DPM_DYNAMIC_DISPATCH)
 		template<sincos_op>
 		inline static auto DPM_SINCOS_SIGN("fma") sincos_fma(__m128, __m128, __m128, __m128) noexcept;
 		template<sincos_op>
@@ -69,13 +69,13 @@ namespace dpm
 		template<sincos_op>
 		inline static auto DPM_SINCOS_SIGN("fma") sincos_fma(__m256d, __m256d, __m256d, __m256d) noexcept;
 #endif
-#ifdef DPM_HAS_AVX
+#if defined(DPM_HAS_AVX) || defined(DPM_DYNAMIC_DISPATCH)
 		template<sincos_op>
 		inline static auto DPM_SINCOS_SIGN("avx") sincos_avx(__m256, __m256, __m256, __m256) noexcept;
 		template<sincos_op>
 		inline static auto DPM_SINCOS_SIGN("avx") sincos_avx(__m256d, __m256d, __m256d, __m256d) noexcept;
 #endif
-#ifdef DPM_HAS_SSE4_1
+#if defined(DPM_HAS_SSE4_1) || defined(DPM_DYNAMIC_DISPATCH)
 		template<sincos_op>
 		inline static auto DPM_SINCOS_SIGN("sse4.1") sincos_sse4_1(__m128, __m128, __m128, __m128) noexcept;
 		template<sincos_op>
