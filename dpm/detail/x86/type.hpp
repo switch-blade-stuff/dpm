@@ -1551,7 +1551,7 @@ namespace dpm
 	/** @copydoc min */
 	template<std::integral T, std::size_t N, std::size_t A>
 	[[nodiscard]] DPM_FORCEINLINE detail::x86_simd<T, N, A> min(const detail::x86_simd<T, N, A> &a, const detail::x86_simd<T, N, A> &b)
-	noexcept requires (detail::x86_overload_any<T, N, A> && (detail::unsigned_integral_of_size<1> || detail::signed_integral_of_size<2>))
+	noexcept requires (detail::x86_overload_any<T, N, A> && (detail::unsigned_integral_of_size<T, 1> || detail::signed_integral_of_size<T, 2>))
 	{
 		detail::x86_simd<T, N, A> result = {};
 		detail::vectorize([](auto &res, auto a, auto b) { res = detail::min<T>(a, b); }, result, a, b);
@@ -1560,7 +1560,7 @@ namespace dpm
 	/** @copydoc max */
 	template<std::integral T, std::size_t N, std::size_t A>
 	[[nodiscard]] DPM_FORCEINLINE detail::x86_simd<T, N, A> max(const detail::x86_simd<T, N, A> &a, const detail::x86_simd<T, N, A> &b)
-	noexcept requires (detail::x86_overload_any<T, N, A> && (detail::unsigned_integral_of_size<1> || detail::signed_integral_of_size<2>))
+	noexcept requires (detail::x86_overload_any<T, N, A> && (detail::unsigned_integral_of_size<T, 1> || detail::signed_integral_of_size<T, 2>))
 	{
 		detail::x86_simd<T, N, A> result = {};
 		detail::vectorize([](auto &res, auto a, auto b) { res = detail::max<T>(a, b); }, result, a, b);
@@ -1571,7 +1571,7 @@ namespace dpm
 	[[nodiscard]] DPM_FORCEINLINE std::pair<detail::x86_simd<T, N, A>, detail::x86_simd<T, N, A>> minmax(
 			const detail::x86_simd<T, N, A> &a,
 			const detail::x86_simd<T, N, A> &b)
-	noexcept requires (detail::x86_overload_any<T, N, A> && (detail::unsigned_integral_of_size<1> || detail::signed_integral_of_size<2>))
+	noexcept requires (detail::x86_overload_any<T, N, A> && (detail::unsigned_integral_of_size<T, 1> || detail::signed_integral_of_size<T, 2>))
 	{
 		return {min(a, b), max(a, b)};
 	}
@@ -1581,7 +1581,7 @@ namespace dpm
 			const detail::x86_simd<T, N, A> &x,
 			const detail::x86_simd<T, N, A> &min,
 			const detail::x86_simd<T, N, A> &max)
-	noexcept requires (detail::x86_overload_any<T, N, A> && (detail::unsigned_integral_of_size<1> || detail::signed_integral_of_size<2>))
+	noexcept requires (detail::x86_overload_any<T, N, A> && (detail::unsigned_integral_of_size<T, 1> || detail::signed_integral_of_size<T, 2>))
 	{
 		detail::x86_simd<T, N, A> result = {};
 		detail::vectorize([](auto &res, auto x, auto min, auto max) { res = detail::min<T>(detail::max<T>(x, min), max); }, result, x, min, max);

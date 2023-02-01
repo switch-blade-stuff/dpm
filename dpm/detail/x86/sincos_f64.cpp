@@ -3,57 +3,19 @@
  */
 
 #include "../const_f64.hpp"
-#include "../dispatch.hpp"
 #include "polevl.hpp"
-#include "cpuid.hpp"
 #include "sincos.hpp"
 
 #if defined(DPM_ARCH_X86) && (defined(DPM_HAS_SSE2) || defined(DPM_DYNAMIC_DISPATCH))
 
 #ifdef DPM_HANDLE_ERRORS
-#ifndef DPM_USE_IMPORT
-
-#include <cfenv>
-
-#endif
-
 #ifndef _MSC_VER /* MSVC does not support STDC pragmas */
 #pragma STDC FENV_ACCESS ON
 #endif
 #endif
 
-#define FMA_FUNC DPM_PURE DPM_VECTORCALL DPM_TARGET("fma")
-#define AVX2_FUNC DPM_PURE DPM_VECTORCALL DPM_TARGET("avx2")
-#define AVX_FUNC DPM_PURE DPM_VECTORCALL DPM_TARGET("avx")
-#define SSE4_1_FUNC DPM_PURE DPM_VECTORCALL DPM_TARGET("sse4.1")
-#define SSE2_FUNC DPM_PURE DPM_VECTORCALL DPM_TARGET("sse2")
-
 namespace dpm::detail
 {
-	enum sincos_op
-	{
-		OP_SINCOS = 3,
-		OP_COS = 2,
-		OP_SIN = 1,
-	};
-
-	template<typename T, sincos_op Mask>
-	struct sincos_ret { using type = T; };
-	template<typename T>
-	struct sincos_ret<T, sincos_op::OP_SINCOS> { using type = std::pair<T, T>; };
-	template<typename T, sincos_op Mask>
-	using sincos_ret_t = typename sincos_ret<T, Mask>::type;
-
-	template<sincos_op Mask>
-	DPM_FORCEINLINE static sincos_ret_t<__m128d, Mask> return_sincos(__m128d sin, __m128d cos) noexcept
-	{
-		if constexpr (Mask == sincos_op::OP_SINCOS)
-			return {sin, cos};
-		else if constexpr (Mask == sincos_op::OP_SIN)
-			return sin;
-		else
-			return cos;
-	}
 	DPM_FORCEINLINE static std::tuple<__m128d, __m128d, __m128d> prepare_sincos(__m128d x, __m128d abs_x) noexcept
 	{
 		/* y = |x| * 4 / Pi */
@@ -70,15 +32,13 @@ namespace dpm::detail
 		const auto sign = _mm_xor_pd(masksign(x), std::bit_cast<__m128d>(flip_sign));
 
 		/* Find polynomial selection mask */
-		auto p_mask = std::bit_cast<__m128d>(_mm_and_si128(i, _mm_set1_epi64x(2)));
-		p_mask = _mm_cmpeq_pd(p_mask, _mm_setzero_pd());
-
-		return {y, sign, p_mask};
+		const auto p_mask = std::bit_cast<__m128d>(_mm_and_si128(i, _mm_set1_epi64x(2)));
+		return {y, sign, _mm_cmpeq_pd(p_mask, _mm_setzero_pd())};
 	}
 
 #if defined(DPM_HAS_FMA) || defined(DPM_DYNAMIC_DISPATCH)
 	template<sincos_op Mask>
-	inline static auto FMA_FUNC sincos_fma(__m128d x, __m128d abs_x, [[maybe_unused]] __m128d nan_mask, [[maybe_unused]] __m128d zero_mask) noexcept
+	inline static auto DPM_SINCOS_SIGN("fma") sincos_fma(__m128d x, __m128d abs_x, [[maybe_unused]] __m128d nan_mask, [[maybe_unused]] __m128d zero_mask) noexcept
 	{
 		const auto [y, sign, p_mask] = prepare_sincos(x, abs_x);
 
@@ -139,7 +99,7 @@ namespace dpm::detail
 
 #if defined(DPM_HAS_SSE4_1) || defined(DPM_DYNAMIC_DISPATCH)
 	template<sincos_op Mask>
-	inline static auto SSE4_1_FUNC sincos_sse4_1(__m128d x, __m128d abs_x, [[maybe_unused]] __m128d nan_mask, [[maybe_unused]] __m128d zero_mask) noexcept
+	inline static auto DPM_SINCOS_SIGN("sse4.1") sincos_sse4_1(__m128d x, __m128d abs_x, [[maybe_unused]] __m128d nan_mask, [[maybe_unused]] __m128d zero_mask) noexcept
 	{
 		const auto [y, sign, p_mask] = prepare_sincos(x, abs_x);
 
@@ -198,7 +158,7 @@ namespace dpm::detail
 #endif
 
 	template<sincos_op Mask>
-	inline static auto SSE2_FUNC sincos_sse(__m128d x, __m128d abs_x, [[maybe_unused]] __m128d nan_mask, [[maybe_unused]] __m128d zero_mask) noexcept
+	inline static auto DPM_SINCOS_SIGN("sse2") sincos_sse(__m128d x, __m128d abs_x, [[maybe_unused]] __m128d nan_mask, [[maybe_unused]] __m128d zero_mask) noexcept
 	{
 		const auto [y, sign, p_mask] = prepare_sincos(x, abs_x);
 
@@ -208,14 +168,14 @@ namespace dpm::detail
 		const auto zz = _mm_mul_pd(z, z);
 
 		/* p1 */
-		auto p1 = polevl_sse(zz, std::span{sincof_f64});    /* p1 = sincof_f64(zz) */
-		p1 = _mm_add_pd(_mm_mul_pd(_mm_mul_pd(p1, zz), z), z);      /* p1 = p1 * zz * z + z */
+		auto p1 = polevl_sse(zz, std::span{sincof_f64});        /* p1 = sincof_f64(zz) */
+		p1 = _mm_add_pd(_mm_mul_pd(_mm_mul_pd(p1, zz), z), z);  /* p1 = p1 * zz * z + z */
 
 		/* p2 */
-		auto p2 = polevl_sse(zz, std::span{coscof_f64});    /* p2 = coscof_f64(zz) */
-		p2 = _mm_mul_pd(_mm_mul_pd(zz, p2), zz);                    /* p2 = zz * p2 * zz */
-		p2 = _mm_add_pd(_mm_mul_pd(zz, _mm_set1_pd(0.5)), p2);      /* p2 = zz * 0.5 + p2 */
-		p2 = _mm_sub_pd(_mm_set1_pd(1.0), p2);                      /* p2 = 1.0 - p2 */
+		auto p2 = polevl_sse(zz, std::span{coscof_f64});        /* p2 = coscof_f64(zz) */
+		p2 = _mm_mul_pd(_mm_mul_pd(zz, p2), zz);                /* p2 = zz * p2 * zz */
+		p2 = _mm_add_pd(_mm_mul_pd(zz, _mm_set1_pd(0.5)), p2);  /* p2 = zz * 0.5 + p2 */
+		p2 = _mm_sub_pd(_mm_set1_pd(1.0), p2);                  /* p2 = 1.0 - p2 */
 
 		__m128d p_cos = {}, p_sin = {};
 		if constexpr (Mask & sincos_op::OP_SIN)
@@ -255,80 +215,14 @@ namespace dpm::detail
 		return return_sincos<Mask>(p_sin, p_cos);
 	}
 
-	template<sincos_op Mask>
-	DPM_FORCEINLINE static auto SSE2_FUNC impl_sincos(__m128d x) noexcept
-	{
-		const auto abs_x = abs(x);
-
-		/* Check for infinity, NaN & errors. */
-#ifdef DPM_PROPAGATE_NAN
-		const auto nan = _mm_set1_pd(std::numeric_limits<double>::quiet_NaN());
-		auto nan_mask = isnan(x);
-
-#ifdef DPM_HANDLE_ERRORS
-		const auto inf = _mm_set1_pd(std::numeric_limits<double>::infinity());
-		const auto inf_mask = _mm_cmpeq_pd(abs_x, inf);
-		nan_mask = _mm_or_pd(nan_mask, inf_mask);
-
-		if (_mm_movemask_pd(inf_mask)) [[unlikely]]
-		{
-			std::feraiseexcept(FE_INVALID);
-			errno = EDOM;
-		}
-#endif
-		if (_mm_movemask_pd(nan_mask) == 0b11) [[unlikely]]
-			return return_sincos<Mask>(nan, nan);
-#else
-		const auto nan_mask = _mm_undefined_pd();
-#endif
-#ifdef DPM_HANDLE_ERRORS
-		const auto zero_mask = _mm_cmpeq_pd(abs_x, _mm_setzero_pd());
-		if (_mm_movemask_pd(zero_mask) == 0b11) [[unlikely]]
-			return return_sincos<Mask>(x, _mm_set1_pd(1.0));
-#else
-		const auto zero_mask = _mm_undefined_pd();
-#endif
-
-#if !defined(DPM_HAS_FMA) && defined(DPM_DYNAMIC_DISPATCH)
-		constinit static dispatcher sincos_disp = []() -> sincos_ret_t<__m128d, Mask> (*)(__m128d, __m128d, __m128d, __m128d)
-		{
-			if (cpuid::has_fma())
-				return sincos_fma<Mask>;
-#ifndef DPM_HAS_SSE4_1
-			if (!cpuid::has_sse4_1())
-				return sincos_sse<Mask>;
-#endif
-			return sincos_sse4_1<Mask>;
-		};
-		return sincos_disp(x, abs_x, nan_mask, zero_mask);
-#elif defined(DPM_HAS_FMA)
-		return sincos_fma<Mask>(x, abs_x, nan_mask, zero_mask);
-#elif defined(DPM_HAS_SSE4_1)
-		return sincos_sse4_1<Mask>(x, abs_x, nan_mask, zero_mask);
-#else
-		return sincos_sse<Mask>(x, abs_x, nan_mask, zero_mask);
-#endif
-	}
-
-	std::pair<__m128d, __m128d> DPM_PUBLIC SSE2_FUNC sincos(__m128d x) noexcept { return impl_sincos<sincos_op::OP_SINCOS>(x); }
-	__m128d DPM_PUBLIC SSE2_FUNC sin(__m128d x) noexcept { return impl_sincos<sincos_op::OP_SIN>(x); }
-	__m128d DPM_PUBLIC SSE2_FUNC cos(__m128d x) noexcept { return impl_sincos<sincos_op::OP_COS>(x); }
+	std::pair<__m128d, __m128d> DPM_PUBLIC DPM_SINCOS_SIGN("sse2") sincos(__m128d x) noexcept { return impl_sincos<double, sincos_op::OP_SINCOS>(x); }
+	__m128d DPM_PUBLIC DPM_SINCOS_SIGN("sse2") sin(__m128d x) noexcept { return impl_sincos<double, sincos_op::OP_SIN>(x); }
+	__m128d DPM_PUBLIC DPM_SINCOS_SIGN("sse2") cos(__m128d x) noexcept { return impl_sincos<double, sincos_op::OP_COS>(x); }
 
 #ifdef DPM_HAS_AVX
-	template<sincos_op Mask>
-	DPM_FORCEINLINE static sincos_ret_t<__m256d, Mask> return_sincos(__m256d sin, __m256d cos) noexcept
-	{
-		if constexpr (Mask == sincos_op::OP_SINCOS)
-			return {sin, cos};
-		else if constexpr (Mask == sincos_op::OP_SIN)
-			return sin;
-		else
-			return cos;
-	}
-
 #if defined(DPM_HAS_AVX2) || defined(DPM_DYNAMIC_DISPATCH)
 	template<sincos_op Mask>
-	inline static auto AVX2_FUNC sincos_avx2(__m256d x, __m256d abs_x, [[maybe_unused]] __m256d nan_mask, [[maybe_unused]] __m256d zero_mask) noexcept
+	inline static auto DPM_SINCOS_SIGN("avx2") sincos_avx2(__m256d x, __m256d abs_x, [[maybe_unused]] __m256d nan_mask, [[maybe_unused]] __m256d zero_mask) noexcept
 	{
 		/* y = |x| * 4 / Pi */
 		auto y = _mm256_mul_pd(abs_x, _mm256_set1_pd(fopi_f64));
@@ -418,14 +312,12 @@ namespace dpm::detail
 		const auto sign = _mm256_xor_pd(masksign(x), std::bit_cast<__m256d>(flip_sign));
 
 		/* Find polynomial selection mask */
-		auto p_mask = _mm256_and_pd(std::bit_cast<__m256d>(i), std::bit_cast<__m256d>(_mm256_set1_epi64x(2)));
-		p_mask = _mm256_cmp_pd(p_mask, _mm256_setzero_pd(), _CMP_EQ_OQ);
-
-		return {y, sign, p_mask};
+		const auto p_mask = _mm256_and_pd(std::bit_cast<__m256d>(i), std::bit_cast<__m256d>(_mm256_set1_epi64x(2)));
+		return {y, sign, _mm256_cmp_pd(p_mask, _mm256_setzero_pd(), _CMP_EQ_OQ)};
 	}
 
 	template<sincos_op Mask>
-	inline static auto FMA_FUNC sincos_fma(__m256d x, __m256d abs_x, [[maybe_unused]] __m256d nan_mask, [[maybe_unused]] __m256d zero_mask) noexcept
+	inline static auto DPM_SINCOS_SIGN("fma") sincos_fma(__m256d x, __m256d abs_x, [[maybe_unused]] __m256d nan_mask, [[maybe_unused]] __m256d zero_mask) noexcept
 	{
 		const auto [y, sign, p_mask] = prepare_sincos(x, abs_x);
 
@@ -485,7 +377,7 @@ namespace dpm::detail
 #endif
 
 	template<sincos_op Mask>
-	inline static auto AVX_FUNC sincos_avx(__m256d x, __m256d abs_x, [[maybe_unused]] __m256d nan_mask, [[maybe_unused]] __m256d zero_mask) noexcept
+	inline static auto DPM_SINCOS_SIGN("avx") sincos_avx(__m256d x, __m256d abs_x, [[maybe_unused]] __m256d nan_mask, [[maybe_unused]] __m256d zero_mask) noexcept
 	{
 		const auto [y, sign, p_mask] = prepare_sincos(x, abs_x);
 
@@ -542,64 +434,9 @@ namespace dpm::detail
 		return return_sincos<Mask>(p_sin, p_cos);
 	}
 
-	template<sincos_op Mask>
-	DPM_FORCEINLINE static auto AVX_FUNC impl_sincos(__m256d x) noexcept
-	{
-		const auto abs_x = abs(x);
-
-		/* Check for infinity, NaN & errors. */
-#ifdef DPM_PROPAGATE_NAN
-		const auto nan = _mm256_set1_pd(std::numeric_limits<double>::quiet_NaN());
-		auto nan_mask = isnan(x);
-
-#ifdef DPM_HANDLE_ERRORS
-		const auto inf = _mm256_set1_pd(std::numeric_limits<double>::infinity());
-		const auto inf_mask = _mm256_cmp_pd(abs_x, inf, _CMP_EQ_OQ);
-		nan_mask = _mm256_or_pd(nan_mask, inf_mask);
-
-		if (_mm256_movemask_pd(inf_mask)) [[unlikely]]
-		{
-			std::feraiseexcept(FE_INVALID);
-			errno = EDOM;
-		}
-#endif
-		if (_mm256_movemask_pd(nan_mask) == 0b1111) [[unlikely]]
-			return return_sincos<Mask>(nan, nan);
-#else
-		const auto nan_mask = _mm256_undefined_pd();
-#endif
-#ifdef DPM_HANDLE_ERRORS
-		const auto zero_mask = _mm256_cmp_pd(abs_x, _mm256_setzero_pd(), _CMP_EQ_OQ);
-		if (_mm256_movemask_pd(zero_mask) == 0b1111) [[unlikely]]
-			return return_sincos<Mask>(x, _mm256_set1_pd(1.0));
-#else
-		const auto zero_mask = _mm256_undefined_pd();
-#endif
-
-#if !defined(DPM_HAS_FMA) && defined(DPM_DYNAMIC_DISPATCH)
-		constinit static dispatcher sincos_disp = []() -> sincos_ret_t<__m256d, Mask> (*)(__m256d, __m256d, __m256d, __m256d)
-		{
-			if (cpuid::has_fma())
-				return sincos_fma<Mask>;
-#ifndef DPM_HAS_AVX2
-			if (!cpuid::has_avx2())
-				return sincos_avx<Mask>;
-#endif
-			return sincos_avx2<Mask>;
-		};
-		return sincos_disp(x, abs_x, nan_mask, zero_mask);
-#elif defined(DPM_HAS_FMA)
-		return sincos_fma<Mask>(x, abs_x, nan_mask, zero_mask);
-#elif defined(DPM_HAS_AVX2)
-		return sincos_avx2<Mask>(x, abs_x, nan_mask, zero_mask);
-#else
-		return sincos_avx<Mask>(x, abs_x, nan_mask, zero_mask);
-#endif
-	}
-
-	std::pair<__m256d, __m256d> DPM_PUBLIC AVX_FUNC sincos(__m256d x) noexcept { return impl_sincos<sincos_op::OP_SINCOS>(x); }
-	__m256d DPM_PUBLIC AVX_FUNC sin(__m256d x) noexcept { return impl_sincos<sincos_op::OP_SIN>(x); }
-	__m256d DPM_PUBLIC AVX_FUNC cos(__m256d x) noexcept { return impl_sincos<sincos_op::OP_COS>(x); }
+	std::pair<__m256d, __m256d> DPM_PUBLIC DPM_SINCOS_SIGN("avx") sincos(__m256d x) noexcept { return impl_sincos<double, sincos_op::OP_SINCOS>(x); }
+	__m256d DPM_PUBLIC DPM_SINCOS_SIGN("avx") sin(__m256d x) noexcept { return impl_sincos<double, sincos_op::OP_SIN>(x); }
+	__m256d DPM_PUBLIC DPM_SINCOS_SIGN("avx") cos(__m256d x) noexcept { return impl_sincos<double, sincos_op::OP_COS>(x); }
 #endif
 }
 

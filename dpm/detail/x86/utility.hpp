@@ -30,6 +30,8 @@ namespace dpm::detail
 	[[nodiscard]] DPM_FORCEINLINE V set(const float (&vals)[4]) noexcept { return _mm_set_ps(vals[3], vals[2], vals[1], vals[0]); }
 	template<std::same_as<__m128> V>
 	[[nodiscard]] DPM_FORCEINLINE V fill(float value) noexcept { return _mm_set1_ps(value); }
+	template<std::same_as<__m128> V>
+	[[nodiscard]] DPM_FORCEINLINE V undefined() noexcept { return _mm_undefined_ps(); }
 
 	template<typename T, typename V>
 	[[nodiscard]] DPM_FORCEINLINE std::size_t movemask(V x) noexcept requires (sizeof(T) == 4 && sizeof(V) == 16)
@@ -93,6 +95,11 @@ namespace dpm::detail
 	[[nodiscard]] DPM_FORCEINLINE V fill(T value) noexcept { return _mm_set1_epi32(static_cast<std::int32_t>(value)); }
 	template<std::same_as<__m128i> V, integral_of_size<8> T>
 	[[nodiscard]] DPM_FORCEINLINE V fill(T value) noexcept { return _mm_set1_epi64x(static_cast<std::int64_t>(value)); }
+
+	template<std::same_as<__m128d> V>
+	[[nodiscard]] DPM_FORCEINLINE V undefined() noexcept { return _mm_undefined_pd(); }
+	template<std::same_as<__m128i> V>
+	[[nodiscard]] DPM_FORCEINLINE V undefined() noexcept { return _mm_undefined_si128(); }
 
 	template<typename T, typename V>
 	[[nodiscard]] DPM_FORCEINLINE std::size_t movemask(V x) noexcept requires (sizeof(T) <= 2 && sizeof(V) == 16)
@@ -263,6 +270,13 @@ namespace dpm::detail
 	[[nodiscard]] DPM_FORCEINLINE V fill(T value) noexcept { return _mm256_set1_epi32(static_cast<std::int32_t>(value)); }
 	template<std::same_as<__m256i> V, integral_of_size<8> T>
 	[[nodiscard]] DPM_FORCEINLINE V fill(T value) noexcept { return _mm256_set1_epi64x(static_cast<std::int64_t>(value)); }
+
+	template<std::same_as<__m256> V>
+	[[nodiscard]] DPM_FORCEINLINE V undefined() noexcept { return _mm256_undefined_ps(); }
+	template<std::same_as<__m256d> V>
+	[[nodiscard]] DPM_FORCEINLINE V undefined() noexcept { return _mm256_undefined_pd(); }
+	template<std::same_as<__m256i> V>
+	[[nodiscard]] DPM_FORCEINLINE V undefined() noexcept { return _mm256_undefined_si256(); }
 
 	template<typename T, typename V>
 	[[nodiscard]] DPM_FORCEINLINE std::size_t movemask(V x) noexcept requires (sizeof(T) <= 2 && sizeof(V) == 32)
