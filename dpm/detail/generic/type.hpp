@@ -206,7 +206,7 @@ namespace dpm
 	DPM_DECLARE_EXT_NAMESPACE
 	{
 		template<typename T>
-		struct native_data_type : detail::get_simd_value<T> { };
+		struct native_data_type : detail::get_simd_value<T> {};
 		template<typename T>
 		struct native_data_size : simd_size<typename detail::get_simd_value<T>::type, typename detail::get_simd_abi<T>::type> {};
 
@@ -1213,6 +1213,26 @@ namespace dpm
 	/** Finds the maximum of all elements (horizontal maximum) in \a x. */
 	template<typename T, typename Abi>
 	[[nodiscard]] DPM_FORCEINLINE T hmax(const simd<T, Abi> &x) noexcept { return reduce(x, [](T a, T b) { return std::max(a, b); }); }
+
+	DPM_DECLARE_EXT_NAMESPACE
+	{
+		/** Finds the horizontal sum of all elements in \a x. Equivalent to `reduce(x, std::plus<>{})`. */
+		template<typename T, typename Abi>
+		[[nodiscard]] DPM_FORCEINLINE T hadd(const simd<T, Abi> &x) noexcept { return reduce(x, std::plus<>{}); }
+		/** Finds the horizontal product of all elements in \a x. Equivalent to `reduce(x, std::multiplies<>{})`. */
+		template<typename T, typename Abi>
+		[[nodiscard]] DPM_FORCEINLINE T hmul(const simd<T, Abi> &x) noexcept { return reduce(x, std::multiplies<>{}); }
+
+		/** Finds the horizontal bitwise AND of all elements in \a x. Equivalent to `reduce(x, std::bit_and<>{})`. */
+		template<std::integral T, typename Abi>
+		[[nodiscard]] DPM_FORCEINLINE T hmul(const simd<T, Abi> &x) noexcept { return reduce(x, std::bit_and<>{}); }
+		/** Finds the horizontal bitwise XOR of all elements in \a x. Equivalent to `reduce(x, std::bit_xor<>{})`. */
+		template<std::integral T, typename Abi>
+		[[nodiscard]] DPM_FORCEINLINE T hxor(const simd<T, Abi> &x) noexcept { return reduce(x, std::bit_xor<>{}); }
+		/** Finds the horizontal bitwise OR of all elements in \a x. Equivalent to `reduce(x, std::bit_or<>{})`. */
+		template<std::integral T, typename Abi>
+		[[nodiscard]] DPM_FORCEINLINE T hor(const simd<T, Abi> &x) noexcept { return reduce(x, std::bit_or<>{}); }
+	}
 #pragma endregion
 
 #pragma region "simd casts"

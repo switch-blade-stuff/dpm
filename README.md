@@ -4,7 +4,7 @@ This library implements a feature-complete version of the C++ data-parallel math
 
 ## SIMD intrinsics support
 
-DPM currently supports the following architectures for SIMD operations:
+DPM currently supports the following architectures for SIMD vectorization:
 
 - x86
     - SSE
@@ -17,7 +17,7 @@ DPM currently supports the following architectures for SIMD operations:
     - AVX2
     - FMA
     - AVX512 (see notes)
-- ARM Neon
+- ARM Neon (WIP)
 
 On architectures without SIMD intrinsic support, vectorization is emulated via scalar operations.
 
@@ -122,6 +122,12 @@ DPM provides the following extensions to the standard API:
     * `simd shuffle<Is...>(const simd &)`
     * `simd_mask shuffle<Is...>(const simd_mask &)`
     * `simd_mask shuffle<Is...>(const V &)`
+* Reductions
+    * `hadd(const simd &)`
+    * `hmul(const simd &)`
+    * `hand(const simd &)`
+    * `hxor(const simd &)`
+    * `hor(const simd &)`
 * Other utilities
     * `cpuid`
 
