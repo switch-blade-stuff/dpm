@@ -125,9 +125,8 @@ namespace dpm
 #if !defined(DPM_HAS_FMA) && defined(DPM_DYNAMIC_DISPATCH)
 			constinit static dispatcher sincos_disp = []() -> sincos_ret_t<V, Mask> (*)(V, V, V, V)
 			{
-				if (cpuid::has_fma())
-					return sincos_fma<Mask>;
-				else if constexpr(sizeof(V) == 16)
+				if (cpuid::has_fma()) return sincos_fma<Mask>;
+				if constexpr(sizeof(V) == 16)
 				{
 #ifndef DPM_HAS_SSE4_1
 					if (!cpuid::has_sse4_1()) return sincos_sse<Mask>;

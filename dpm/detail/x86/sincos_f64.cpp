@@ -220,80 +220,6 @@ namespace dpm::detail
 	__m128d DPM_PUBLIC DPM_SINCOS_SIGN("sse2") cos(__m128d x) noexcept { return impl_sincos<double, sincos_op::OP_COS>(x); }
 
 #ifdef DPM_HAS_AVX
-#if defined(DPM_HAS_AVX2) || defined(DPM_DYNAMIC_DISPATCH)
-	template<sincos_op Mask>
-	inline static auto DPM_SINCOS_SIGN("avx2") sincos_avx2(__m256d x, __m256d abs_x, [[maybe_unused]] __m256d nan_mask, [[maybe_unused]] __m256d zero_mask) noexcept
-	{
-		/* y = |x| * 4 / Pi */
-		auto y = _mm256_mul_pd(abs_x, _mm256_set1_pd(fopi_f64));
-
-		/* i = isodd(y) ? y + 1 : y */
-		auto i = cvt_f64_i64_avx2(y);
-		i = _mm256_add_epi64(i, _mm256_set1_epi64x(1));
-		i = _mm256_and_si256(i, _mm256_set1_epi64x(~1ll));
-		y = cvt_i64_f64_avx2(i); /* y = i */
-
-		/* Extract sign bit mask */
-		const auto flip_sign = _mm256_slli_epi64(_mm256_and_si256(i, _mm256_set1_epi64x(4)), 61);
-		const auto sign = _mm256_xor_pd(masksign(x), std::bit_cast<__m256d>(flip_sign));
-
-		/* Find polynomial selection mask */
-		auto p_mask = std::bit_cast<__m256d>(_mm256_and_si256(i, _mm256_set1_epi64x(2)));
-		p_mask = _mm256_cmp_pd(p_mask, _mm256_setzero_pd(), _CMP_EQ_OQ);
-
-		auto z = fnmadd_avx(y, _mm256_set1_pd(dp_sincos_f64[0]), x);
-		z = fnmadd_avx(y, _mm256_set1_pd(dp_sincos_f64[1]), z);
-		z = fnmadd_avx(y, _mm256_set1_pd(dp_sincos_f64[2]), z);
-		const auto zz = _mm256_mul_pd(z, z);
-
-		/* p1 */
-		auto p1 = polevl_avx(zz, std::span{sincof_f64});    /* p1 = sincof_f64(zz) */
-		p1 = fmadd_avx(_mm256_mul_pd(p1, zz), z, z);        /* p1 = p1 * zz * z + z */
-
-		/* p2 */
-		auto p2 = polevl_avx(zz, std::span{coscof_f64});    /* p2 = coscof_f64(zz) */
-		p2 = _mm256_mul_pd(_mm256_mul_pd(zz, p2), zz);      /* p2 = zz * p2 * zz */
-		p2 = fmadd_avx(zz, _mm256_set1_pd(0.5), p2);        /* p2 = zz * 0.5 + p2 */
-		p2 = _mm256_sub_pd(_mm256_set1_pd(1.0), p2);        /* p2 = 1.0 - p2 */
-
-		__m256d p_cos = {}, p_sin = {};
-		if constexpr (Mask & sincos_op::OP_SIN)
-		{
-			/* Select between p1 and p2 & restore sign */
-			p_sin = _mm256_blendv_pd(p1, p2, p_mask);  /* p_sin = p_mask ? p2 : p1 */
-			p_sin = _mm256_xor_pd(p_sin, sign);        /* p_sin = sign ? -p_sin : p_sin */
-
-			/* Handle errors & propagate NaN. */
-#ifdef DPM_PROPAGATE_NAN
-			/* p_sin = nan_mask ? NaN : p_sin */
-			const auto nan = _mm256_set1_pd(std::numeric_limits<double>::quiet_NaN());
-			p_sin = _mm256_blendv_pd(p_sin, nan, nan_mask);
-#endif
-#ifdef DPM_HANDLE_ERRORS
-			/* p_sin = zero_mask ? x : p_sin */
-			p_sin = _mm256_blendv_pd(p_sin, x, zero_mask);
-#endif
-		}
-		if constexpr (Mask & sincos_op::OP_COS)
-		{
-			/* Select between p1 and p2 & restore sign */
-			p_cos = _mm256_or_pd(_mm256_andnot_pd(p_mask, p2), _mm256_and_pd(p_mask, p1));   /* p_cos = p_mask ? p1 : p2 */
-			p_cos = _mm256_xor_pd(p_cos, sign);                                              /* p_cos = sign ? -p_cos : p_cos */
-
-			/* Handle errors & propagate NaN. */
-#ifdef DPM_PROPAGATE_NAN
-			/* p_sin = nan_mask ? NaN : p_sin */
-			const auto nan = _mm256_set1_pd(std::numeric_limits<double>::quiet_NaN());
-			p_cos = _mm256_blendv_pd(p_cos, nan, nan_mask);
-#endif
-#ifdef DPM_HANDLE_ERRORS
-			/* p_sin = zero_mask ? 1.0 : p_sin */
-			p_cos = _mm256_blendv_pd(p_cos, _mm256_set1_pd(1.0), zero_mask);
-#endif
-		}
-		return return_sincos<Mask>(p_sin, p_cos);
-	}
-#endif
 
 #if defined(DPM_HAS_FMA) || defined(DPM_DYNAMIC_DISPATCH)
 	DPM_FORCEINLINE static std::tuple<__m256d, __m256d, __m256d> prepare_sincos(__m256d x, __m256d abs_x) noexcept
@@ -372,6 +298,81 @@ namespace dpm::detail
 #endif
 		}
 
+		return return_sincos<Mask>(p_sin, p_cos);
+	}
+#endif
+
+#if defined(DPM_HAS_AVX2) || defined(DPM_DYNAMIC_DISPATCH)
+	template<sincos_op Mask>
+	inline static auto DPM_SINCOS_SIGN("avx2") sincos_avx2(__m256d x, __m256d abs_x, [[maybe_unused]] __m256d nan_mask, [[maybe_unused]] __m256d zero_mask) noexcept
+	{
+		/* y = |x| * 4 / Pi */
+		auto y = _mm256_mul_pd(abs_x, _mm256_set1_pd(fopi_f64));
+
+		/* i = isodd(y) ? y + 1 : y */
+		auto i = cvt_f64_i64_avx2(y);
+		i = _mm256_add_epi64(i, _mm256_set1_epi64x(1));
+		i = _mm256_and_si256(i, _mm256_set1_epi64x(~1ll));
+		y = cvt_i64_f64_avx2(i); /* y = i */
+
+		/* Extract sign bit mask */
+		const auto flip_sign = _mm256_slli_epi64(_mm256_and_si256(i, _mm256_set1_epi64x(4)), 61);
+		const auto sign = _mm256_xor_pd(masksign(x), std::bit_cast<__m256d>(flip_sign));
+
+		/* Find polynomial selection mask */
+		auto p_mask = std::bit_cast<__m256d>(_mm256_and_si256(i, _mm256_set1_epi64x(2)));
+		p_mask = _mm256_cmp_pd(p_mask, _mm256_setzero_pd(), _CMP_EQ_OQ);
+
+		auto z = fnmadd_avx(y, _mm256_set1_pd(dp_sincos_f64[0]), x);
+		z = fnmadd_avx(y, _mm256_set1_pd(dp_sincos_f64[1]), z);
+		z = fnmadd_avx(y, _mm256_set1_pd(dp_sincos_f64[2]), z);
+		const auto zz = _mm256_mul_pd(z, z);
+
+		/* p1 */
+		auto p1 = polevl_avx(zz, std::span{sincof_f64});    /* p1 = sincof_f64(zz) */
+		p1 = fmadd_avx(_mm256_mul_pd(p1, zz), z, z);        /* p1 = p1 * zz * z + z */
+
+		/* p2 */
+		auto p2 = polevl_avx(zz, std::span{coscof_f64});    /* p2 = coscof_f64(zz) */
+		p2 = _mm256_mul_pd(_mm256_mul_pd(zz, p2), zz);      /* p2 = zz * p2 * zz */
+		p2 = fmadd_avx(zz, _mm256_set1_pd(0.5), p2);        /* p2 = zz * 0.5 + p2 */
+		p2 = _mm256_sub_pd(_mm256_set1_pd(1.0), p2);        /* p2 = 1.0 - p2 */
+
+		__m256d p_cos = {}, p_sin = {};
+		if constexpr (Mask & sincos_op::OP_SIN)
+		{
+			/* Select between p1 and p2 & restore sign */
+			p_sin = _mm256_blendv_pd(p1, p2, p_mask);  /* p_sin = p_mask ? p2 : p1 */
+			p_sin = _mm256_xor_pd(p_sin, sign);        /* p_sin = sign ? -p_sin : p_sin */
+
+			/* Handle errors & propagate NaN. */
+#ifdef DPM_PROPAGATE_NAN
+			/* p_sin = nan_mask ? NaN : p_sin */
+			const auto nan = _mm256_set1_pd(std::numeric_limits<double>::quiet_NaN());
+			p_sin = _mm256_blendv_pd(p_sin, nan, nan_mask);
+#endif
+#ifdef DPM_HANDLE_ERRORS
+			/* p_sin = zero_mask ? x : p_sin */
+			p_sin = _mm256_blendv_pd(p_sin, x, zero_mask);
+#endif
+		}
+		if constexpr (Mask & sincos_op::OP_COS)
+		{
+			/* Select between p1 and p2 & restore sign */
+			p_cos = _mm256_or_pd(_mm256_andnot_pd(p_mask, p2), _mm256_and_pd(p_mask, p1));   /* p_cos = p_mask ? p1 : p2 */
+			p_cos = _mm256_xor_pd(p_cos, sign);                                              /* p_cos = sign ? -p_cos : p_cos */
+
+			/* Handle errors & propagate NaN. */
+#ifdef DPM_PROPAGATE_NAN
+			/* p_sin = nan_mask ? NaN : p_sin */
+			const auto nan = _mm256_set1_pd(std::numeric_limits<double>::quiet_NaN());
+			p_cos = _mm256_blendv_pd(p_cos, nan, nan_mask);
+#endif
+#ifdef DPM_HANDLE_ERRORS
+			/* p_sin = zero_mask ? 1.0 : p_sin */
+			p_cos = _mm256_blendv_pd(p_cos, _mm256_set1_pd(1.0), zero_mask);
+#endif
+		}
 		return return_sincos<Mask>(p_sin, p_cos);
 	}
 #endif
