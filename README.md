@@ -128,6 +128,9 @@ DPM provides the following extensions to the standard API:
     * `hand(const simd &)`
     * `hxor(const simd &)`
     * `hor(const simd &)`
+* Basic math functions
+    * `remquo(const simd &, const simd &, simd &)`
+    * `nan<T, Abi>(const char *)`
 * Other utilities
     * `cpuid`
 

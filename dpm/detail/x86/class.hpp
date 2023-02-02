@@ -48,8 +48,7 @@ namespace dpm
 	[[nodiscard]] DPM_FORCEINLINE detail::x86_mask<T, N, A> isnan(const detail::x86_simd<T, N, A> &x) noexcept requires detail::x86_overload_any<T, N, A>
 	{
 		detail::x86_mask<T, N, A> result = {};
-		for (std::size_t i = 0; i < ext::native_data_size_v<detail::x86_simd<T, N, A>>; ++i)
-			ext::to_native_data(result)[i] = detail::isnan(ext::to_native_data(x)[i]);
+		detail::vectorize([](auto &res, auto x) { res = detail::isnan(x); }, result, x);
 		return result;
 	}
 	/** Determines is elements of \a x are infinite and returns the resulting mask. */
@@ -57,8 +56,7 @@ namespace dpm
 	[[nodiscard]] DPM_FORCEINLINE detail::x86_mask<T, N, A> isinf(const detail::x86_simd<T, N, A> &x) noexcept requires detail::x86_overload_any<T, N, A>
 	{
 		detail::x86_mask<T, N, A> result = {};
-		for (std::size_t i = 0; i < ext::native_data_size_v<detail::x86_simd<T, N, A >>; ++i)
-			ext::to_native_data(result)[i] = detail::isinf(ext::to_native_data(x)[i]);
+		detail::vectorize([](auto &res, auto x) { res = detail::isinf(x); }, result, x);
 		return result;
 	}
 }

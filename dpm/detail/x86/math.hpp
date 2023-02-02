@@ -13,8 +13,9 @@
 
 #if defined(DPM_ARCH_X86) && defined(DPM_HAS_SSE)
 
-#include "sign.hpp"
+#include "mbase.hpp"
 #include "class.hpp"
+#include "sign.hpp"
 #include "fmadd.hpp"
 #include "sincos.hpp"
 

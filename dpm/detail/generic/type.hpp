@@ -765,7 +765,7 @@ namespace dpm
 		template<typename U, std::size_t OtherAlign>
 		simd(const simd<U, detail::avec<size(), OtherAlign>> &other) noexcept
 		{
-			for (std::size_t i = 0; i < size(); ++i) operator[](i) = other[i];
+			for (std::size_t i = 0; i < size(); ++i) operator[](i) = static_cast<T>(other[i]);
 		}
 		/** Initializes the underlying elements from \a mem. */
 		template<typename U, typename Flags>

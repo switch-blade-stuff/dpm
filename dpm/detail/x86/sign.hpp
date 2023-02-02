@@ -37,8 +37,7 @@ namespace dpm
 	[[nodiscard]] DPM_FORCEINLINE detail::x86_simd<T, N, A> fabs(const detail::x86_simd<T, N, A> &x) noexcept requires detail::x86_overload_any<T, N, A>
 	{
 		detail::x86_simd<T, N, A> result = {};
-		for (std::size_t i = 0; i < ext::native_data_size_v<detail::x86_simd<T, N, A>>; ++i)
-			ext::to_native_data(result)[i] = detail::abs(ext::to_native_data(x)[i]);
+		detail::vectorize([](auto &res, auto x) { res = detail::abs(x); }, result, x);
 		return result;
 	}
 	/** Extracts a vector mask filled with sign bits of elements from vector \a x. */
@@ -46,11 +45,7 @@ namespace dpm
 	[[nodiscard]] DPM_FORCEINLINE detail::x86_mask<T, N, A> signbit(const detail::x86_simd<T, N, A> &x) noexcept requires detail::x86_overload_any<T, N, A>
 	{
 		detail::x86_mask<T, N, A> result = {};
-		for (std::size_t i = 0; i < ext::native_data_size_v<detail::x86_simd<T, N, A>>; ++i)
-		{
-			const auto sign = detail::masksign(ext::to_native_data(x)[i]);
-			ext::to_native_data(result)[i] = detail::cmp_ne<T>(sign, detail::setzero<decltype(sign)>());
-		}
+		detail::vectorize([](auto &res, auto x) { res = detail::cmp_ne<T>(detail::masksign(x), detail::setzero<decltype(x)>()); }, result, x);
 		return result;
 	}
 	/** Copies sign from elements of vector \a sign to elements of vector \a x, and returns the resulting vector. */
@@ -58,11 +53,7 @@ namespace dpm
 	[[nodiscard]] DPM_FORCEINLINE simd<T, detail::avec<N, A>> copysign(const detail::x86_simd<T, N, A> &x, const detail::x86_simd<T, N, A> &sign) noexcept requires detail::x86_overload_any<T, N, A>
 	{
 		detail::x86_simd<T, N, A> result = {};
-		for (std::size_t i = 0; i < ext::native_data_size_v<detail::x86_simd<T, N, A>>; ++i)
-		{
-			const auto mask = detail::masksign(ext::to_native_data(sign)[i]);
-			ext::to_native_data(result)[i] = detail::copysign(ext::to_native_data(x)[i], mask);
-		}
+		detail::vectorize([](auto &res, auto x, auto s) { res = detail::copysign(x, detail::masksign(s)); }, result, x, sign);
 		return result;
 	}
 }

@@ -226,14 +226,7 @@ namespace dpm
 		noexcept requires detail::x86_overload_any<T, N, A>
 		{
 			detail::x86_simd<T, N, A> result = {};
-			for (std::size_t i = 0; i < native_data_size_v<detail::x86_simd<T, N, A>>; ++i)
-			{
-				to_native_data(result)[i] = detail::fmadd(
-						to_native_data(a)[i],
-						to_native_data(b)[i],
-						to_native_data(c)[i]
-				);
-			}
+			detail::vectorize([](auto &res, auto a, auto b, auto c) { res = detail::fmadd(a, b, c); }, result, a, b, c);
 			return result;
 		}
 		/** Returns a result of fused multiply-sub operation on elements of \a a, \a b, and \a c. Equivalent to `a * b - c`. */
@@ -245,14 +238,7 @@ namespace dpm
 		noexcept requires detail::x86_overload_any<T, N, A>
 		{
 			detail::x86_simd<T, N, A> result = {};
-			for (std::size_t i = 0; i < native_data_size_v<detail::x86_simd<T, N, A>>; ++i)
-			{
-				to_native_data(result)[i] = detail::fmsub(
-						to_native_data(a)[i],
-						to_native_data(b)[i],
-						to_native_data(c)[i]
-				);
-			}
+			detail::vectorize([](auto &res, auto a, auto b, auto c) { res = detail::fmsub(a, b, c); }, result, a, b, c);
 			return result;
 		}
 		/** Returns a result of fused negate-multiply-add operation on elements of \a a, \a b, and \a c. Equivalent to `-(a * b) + c`. */
@@ -264,14 +250,7 @@ namespace dpm
 		noexcept requires detail::x86_overload_any<T, N, A>
 		{
 			detail::x86_simd<T, N, A> result = {};
-			for (std::size_t i = 0; i < native_data_size_v<detail::x86_simd<T, N, A>>; ++i)
-			{
-				to_native_data(result)[i] = detail::fnmadd(
-						to_native_data(a)[i],
-						to_native_data(b)[i],
-						to_native_data(c)[i]
-				);
-			}
+			detail::vectorize([](auto &res, auto a, auto b, auto c) { res = detail::fnmadd(a, b, c); }, result, a, b, c);
 			return result;
 		}
 		/** Returns a result of fused negate-multiply-sub operation on elements of \a a, \a b, and \a c. Equivalent to `-(a * b) - c`. */
@@ -283,14 +262,7 @@ namespace dpm
 		noexcept requires detail::x86_overload_any<T, N, A>
 		{
 			detail::x86_simd<T, N, A> result = {};
-			for (std::size_t i = 0; i < native_data_size_v<detail::x86_simd<T, N, A>>; ++i)
-			{
-				to_native_data(result)[i] = detail::fnmsub(
-						to_native_data(a)[i],
-						to_native_data(b)[i],
-						to_native_data(c)[i]
-				);
-			}
+			detail::vectorize([](auto &res, auto a, auto b, auto c) { res = detail::fnmsub(a, b, c); }, result, a, b, c);
 			return result;
 		}
 	}

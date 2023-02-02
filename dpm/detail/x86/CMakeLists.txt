@@ -12,8 +12,10 @@ list(APPEND DPM_INTERFACE_SOURCES
         ${CMAKE_CURRENT_LIST_DIR}/cmp.hpp
         ${CMAKE_CURRENT_LIST_DIR}/cvt.hpp
         ${CMAKE_CURRENT_LIST_DIR}/type.hpp
+        ${CMAKE_CURRENT_LIST_DIR}/math_fwd.hpp
         ${CMAKE_CURRENT_LIST_DIR}/sign.hpp
         ${CMAKE_CURRENT_LIST_DIR}/class.hpp
+        ${CMAKE_CURRENT_LIST_DIR}/mbase.hpp
         ${CMAKE_CURRENT_LIST_DIR}/fmadd.hpp
         ${CMAKE_CURRENT_LIST_DIR}/polevl.hpp
         ${CMAKE_CURRENT_LIST_DIR}/sincos.hpp
@@ -21,6 +23,7 @@ list(APPEND DPM_INTERFACE_SOURCES
 
 list(APPEND DPM_PRIVATE_SOURCES
         ${CMAKE_CURRENT_LIST_DIR}/cpuid.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/mbase.cpp
         ${CMAKE_CURRENT_LIST_DIR}/sincos_f64.cpp
         ${CMAKE_CURRENT_LIST_DIR}/sincos_f32.cpp)
 

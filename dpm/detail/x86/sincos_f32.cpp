@@ -3,10 +3,11 @@
  */
 
 #include "../const_f32.hpp"
-#include "polevl.hpp"
 #include "sincos.hpp"
 
 #if defined(DPM_ARCH_X86) && (defined(DPM_HAS_SSE2) || defined(DPM_DYNAMIC_DISPATCH))
+
+#include "polevl.hpp"
 
 #ifdef DPM_HANDLE_ERRORS
 #ifndef _MSC_VER /* MSVC does not support STDC pragmas */
@@ -38,7 +39,7 @@ namespace dpm::detail
 
 #if defined(DPM_HAS_FMA) || defined(DPM_DYNAMIC_DISPATCH)
 	template<sincos_op Mask>
-	inline static auto DPM_SINCOS_SIGN("fma") sincos_fma(__m128 x, __m128 abs_x, [[maybe_unused]] __m128 nan_mask, [[maybe_unused]] __m128 zero_mask) noexcept
+	inline static auto DPM_MATHFUNC("fma") sincos_fma(__m128 x, __m128 abs_x, [[maybe_unused]] __m128 nan_mask, [[maybe_unused]] __m128 zero_mask) noexcept
 	{
 		const auto [y, sign, p_mask] = prepare_sincos(x, abs_x);
 
@@ -99,7 +100,7 @@ namespace dpm::detail
 
 #if defined(DPM_HAS_SSE4_1) || defined(DPM_DYNAMIC_DISPATCH)
 	template<sincos_op Mask>
-	inline static auto DPM_SINCOS_SIGN("sse4.1") sincos_sse4_1(__m128 x, __m128 abs_x, [[maybe_unused]] __m128 nan_mask, [[maybe_unused]] __m128 zero_mask) noexcept
+	inline static auto DPM_MATHFUNC("sse4.1") sincos_sse4_1(__m128 x, __m128 abs_x, [[maybe_unused]] __m128 nan_mask, [[maybe_unused]] __m128 zero_mask) noexcept
 	{
 		const auto [y, sign, p_mask] = prepare_sincos(x, abs_x);
 
@@ -158,7 +159,7 @@ namespace dpm::detail
 #endif
 
 	template<sincos_op Mask>
-	inline static auto DPM_SINCOS_SIGN("sse2") sincos_sse(__m128 x, __m128 abs_x, [[maybe_unused]] __m128 nan_mask, [[maybe_unused]] __m128 zero_mask) noexcept
+	inline static auto DPM_MATHFUNC("sse2") sincos_sse(__m128 x, __m128 abs_x, [[maybe_unused]] __m128 nan_mask, [[maybe_unused]] __m128 zero_mask) noexcept
 	{
 		const auto [y, sign, p_mask] = prepare_sincos(x, abs_x);
 
@@ -215,9 +216,9 @@ namespace dpm::detail
 		return return_sincos<Mask>(p_sin, p_cos);
 	}
 
-	std::pair<__m128, __m128> DPM_PUBLIC DPM_SINCOS_SIGN("sse2") sincos(__m128 x) noexcept { return impl_sincos<float, sincos_op::OP_SINCOS>(x); }
-	__m128 DPM_PUBLIC DPM_SINCOS_SIGN("sse2") sin(__m128 x) noexcept { return impl_sincos<float, sincos_op::OP_SIN>(x); }
-	__m128 DPM_PUBLIC DPM_SINCOS_SIGN("sse2") cos(__m128 x) noexcept { return impl_sincos<float, sincos_op::OP_COS>(x); }
+	std::pair<__m128, __m128> DPM_PUBLIC DPM_MATHFUNC("sse2") sincos(__m128 x) noexcept { return impl_sincos<float, sincos_op::OP_SINCOS>(x); }
+	__m128 DPM_PUBLIC DPM_MATHFUNC("sse2") sin(__m128 x) noexcept { return impl_sincos<float, sincos_op::OP_SIN>(x); }
+	__m128 DPM_PUBLIC DPM_MATHFUNC("sse2") cos(__m128 x) noexcept { return impl_sincos<float, sincos_op::OP_COS>(x); }
 
 #ifdef DPM_HAS_AVX
 #if defined(DPM_HAS_FMA) || defined(DPM_DYNAMIC_DISPATCH)
@@ -246,7 +247,7 @@ namespace dpm::detail
 	}
 
 	template<sincos_op Mask>
-	inline static auto DPM_SINCOS_SIGN("fma") sincos_fma(__m256 x, __m256 abs_x, [[maybe_unused]] __m256 nan_mask, [[maybe_unused]] __m256 zero_mask) noexcept
+	inline static auto DPM_MATHFUNC("fma") sincos_fma(__m256 x, __m256 abs_x, [[maybe_unused]] __m256 nan_mask, [[maybe_unused]] __m256 zero_mask) noexcept
 	{
 		const auto [y, sign, p_mask] = prepare_sincos(x, abs_x);
 
@@ -307,7 +308,7 @@ namespace dpm::detail
 
 #if defined(DPM_HAS_AVX2) || defined(DPM_DYNAMIC_DISPATCH)
 	template<sincos_op Mask>
-	inline static auto DPM_SINCOS_SIGN("avx2") sincos_avx2(__m256 x, __m256 abs_x, [[maybe_unused]] __m256 nan_mask, [[maybe_unused]] __m256 zero_mask) noexcept
+	inline static auto DPM_MATHFUNC("avx2") sincos_avx2(__m256 x, __m256 abs_x, [[maybe_unused]] __m256 nan_mask, [[maybe_unused]] __m256 zero_mask) noexcept
 	{
 		/* y = |x| * 4 / Pi */
 		auto y = _mm256_mul_ps(abs_x, _mm256_set1_ps(fopi_f32));
@@ -381,7 +382,7 @@ namespace dpm::detail
 #endif
 
 	template<sincos_op Mask>
-	inline static auto DPM_SINCOS_SIGN("avx") sincos_avx(__m256 x, __m256 abs_x, [[maybe_unused]] __m256 nan_mask, [[maybe_unused]] __m256 zero_mask) noexcept
+	inline static auto DPM_MATHFUNC("avx") sincos_avx(__m256 x, __m256 abs_x, [[maybe_unused]] __m256 nan_mask, [[maybe_unused]] __m256 zero_mask) noexcept
 	{
 		const auto [y, sign, p_mask] = prepare_sincos(x, abs_x);
 
@@ -438,9 +439,9 @@ namespace dpm::detail
 		return return_sincos<Mask>(p_sin, p_cos);
 	}
 
-	std::pair<__m256, __m256> DPM_PUBLIC DPM_SINCOS_SIGN("avx") sincos(__m256 x) noexcept { return impl_sincos<float, sincos_op::OP_SINCOS>(x); }
-	__m256 DPM_PUBLIC DPM_SINCOS_SIGN("avx") sin(__m256 x) noexcept { return impl_sincos<float, sincos_op::OP_SIN>(x); }
-	__m256 DPM_PUBLIC DPM_SINCOS_SIGN("avx") cos(__m256 x) noexcept { return impl_sincos<float, sincos_op::OP_COS>(x); }
+	std::pair<__m256, __m256> DPM_PUBLIC DPM_MATHFUNC("avx") sincos(__m256 x) noexcept { return impl_sincos<float, sincos_op::OP_SINCOS>(x); }
+	__m256 DPM_PUBLIC DPM_MATHFUNC("avx") sin(__m256 x) noexcept { return impl_sincos<float, sincos_op::OP_SIN>(x); }
+	__m256 DPM_PUBLIC DPM_MATHFUNC("avx") cos(__m256 x) noexcept { return impl_sincos<float, sincos_op::OP_COS>(x); }
 #endif
 }
 

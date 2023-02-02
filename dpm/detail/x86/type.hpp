@@ -1149,29 +1149,56 @@ namespace dpm
 		return a;
 	}
 
-#ifdef DPM_HAS_AVX2
-	template<std::integral T, std::size_t N, std::size_t A>
-	[[nodiscard]] DPM_FORCEINLINE detail::x86_simd<T, N, A> operator<<(const detail::x86_simd<T, N, A> &a, const detail::x86_simd<T, N, A> &b) noexcept requires (detail::x86_overload_any<T, N, A> && sizeof(T) >= 4)
+	template<detail::integral_of_size<8> T, std::size_t N, std::size_t A>
+	[[nodiscard]] DPM_FORCEINLINE detail::x86_simd<T, N, A> operator<<(const detail::x86_simd<T, N, A> &a, const detail::x86_simd<T, N, A> &b) noexcept requires detail::x86_overload_any<T, N, A>
 	{
 		detail::x86_simd<T, N, A> result = {};
 		detail::vectorize([](auto &res, auto a, auto b) { res = detail::bit_shiftl<T>(a, b); }, result, a, b);
 		return result;
 	}
-	template<std::integral T, std::size_t N, std::size_t A>
-	[[nodiscard]] DPM_FORCEINLINE detail::x86_simd<T, N, A> operator>>(const detail::x86_simd<T, N, A> &a, const detail::x86_simd<T, N, A> &b) noexcept requires (detail::x86_overload_any<T, N, A> && sizeof(T) >= 4)
+	template<detail::integral_of_size<8> T, std::size_t N, std::size_t A>
+	[[nodiscard]] DPM_FORCEINLINE detail::x86_simd<T, N, A> operator>>(const detail::x86_simd<T, N, A> &a, const detail::x86_simd<T, N, A> &b) noexcept requires detail::x86_overload_any<T, N, A>
 	{
 		detail::x86_simd<T, N, A> result = {};
 		detail::vectorize([](auto &res, auto a, auto b) { res = detail::bit_shiftr<T>(a, b); }, result, a, b);
 		return result;
 	}
-	template<std::integral T, std::size_t N, std::size_t A>
-	DPM_FORCEINLINE detail::x86_simd<T, N, A> &operator<<=(detail::x86_simd<T, N, A> &a, const detail::x86_simd<T, N, A> &b) noexcept requires (detail::x86_overload_any<T, N, A> && sizeof(T) >= 4)
+	template<detail::integral_of_size<8> T, std::size_t N, std::size_t A>
+	DPM_FORCEINLINE detail::x86_simd<T, N, A> &operator<<=(detail::x86_simd<T, N, A> &a, const detail::x86_simd<T, N, A> &b) noexcept requires detail::x86_overload_any<T, N, A>
 	{
 		detail::vectorize([](auto &a, auto b) { a = detail::bit_shiftl<T>(a, b); }, a, b);
 		return a;
 	}
-	template<std::integral T, std::size_t N, std::size_t A>
-	DPM_FORCEINLINE detail::x86_simd<T, N, A> &operator>>=(detail::x86_simd<T, N, A> &a, const detail::x86_simd<T, N, A> &b) noexcept requires (detail::x86_overload_any<T, N, A> && sizeof(T) >= 4)
+	template<detail::integral_of_size<8> T, std::size_t N, std::size_t A>
+	DPM_FORCEINLINE detail::x86_simd<T, N, A> &operator>>=(detail::x86_simd<T, N, A> &a, const detail::x86_simd<T, N, A> &b) noexcept requires detail::x86_overload_any<T, N, A>
+	{
+		detail::vectorize([](auto &a, auto b) { a = detail::bit_shiftr<T>(a, b); }, a, b);
+		return a;
+	}
+
+#ifdef DPM_HAS_AVX2
+	template<detail::integral_of_size<4> T, std::size_t N, std::size_t A>
+	[[nodiscard]] DPM_FORCEINLINE detail::x86_simd<T, N, A> operator<<(const detail::x86_simd<T, N, A> &a, const detail::x86_simd<T, N, A> &b) noexcept requires detail::x86_overload_any<T, N, A>
+	{
+		detail::x86_simd<T, N, A> result = {};
+		detail::vectorize([](auto &res, auto a, auto b) { res = detail::bit_shiftl<T>(a, b); }, result, a, b);
+		return result;
+	}
+	template<detail::integral_of_size<4> T, std::size_t N, std::size_t A>
+	[[nodiscard]] DPM_FORCEINLINE detail::x86_simd<T, N, A> operator>>(const detail::x86_simd<T, N, A> &a, const detail::x86_simd<T, N, A> &b) noexcept requires detail::x86_overload_any<T, N, A>
+	{
+		detail::x86_simd<T, N, A> result = {};
+		detail::vectorize([](auto &res, auto a, auto b) { res = detail::bit_shiftr<T>(a, b); }, result, a, b);
+		return result;
+	}
+	template<detail::integral_of_size<4> T, std::size_t N, std::size_t A>
+	DPM_FORCEINLINE detail::x86_simd<T, N, A> &operator<<=(detail::x86_simd<T, N, A> &a, const detail::x86_simd<T, N, A> &b) noexcept requires detail::x86_overload_any<T, N, A>
+	{
+		detail::vectorize([](auto &a, auto b) { a = detail::bit_shiftl<T>(a, b); }, a, b);
+		return a;
+	}
+	template<detail::integral_of_size<4> T, std::size_t N, std::size_t A>
+	DPM_FORCEINLINE detail::x86_simd<T, N, A> &operator>>=(detail::x86_simd<T, N, A> &a, const detail::x86_simd<T, N, A> &b) noexcept requires detail::x86_overload_any<T, N, A>
 	{
 		detail::vectorize([](auto &a, auto b) { a = detail::bit_shiftr<T>(a, b); }, a, b);
 		return a;

@@ -4,25 +4,15 @@
 
 #pragma once
 
+#include "math_fwd.hpp"
 #include "type.hpp"
 
 #ifdef DPM_HAS_SSE2
-
-#ifdef DPM_HANDLE_ERRORS
-#ifndef DPM_USE_IMPORT
-
-#include <cerrno>
-#include <cfenv>
-
-#endif
-#endif
 
 #include "../dispatch.hpp"
 #include "fmadd.hpp"
 #include "class.hpp"
 #include "cpuid.hpp"
-
-#define DPM_SINCOS_SIGN(tgt) DPM_PURE DPM_VECTORCALL DPM_TARGET(tgt)
 
 namespace dpm
 {
@@ -53,39 +43,57 @@ namespace dpm
 				return cos;
 		}
 
-#if defined(DPM_HAS_AVX) || defined(DPM_DYNAMIC_DISPATCH)
-		template<sincos_op>
-		inline static auto DPM_SINCOS_SIGN("avx2") sincos_avx2(__m256, __m256, __m256, __m256) noexcept;
-		template<sincos_op>
-		inline static auto DPM_SINCOS_SIGN("avx2") sincos_avx2(__m256d, __m256d, __m256d, __m256d) noexcept;
-#endif
 #if defined(DPM_HAS_FMA) || defined(DPM_DYNAMIC_DISPATCH)
 		template<sincos_op>
-		inline static auto DPM_SINCOS_SIGN("fma") sincos_fma(__m128, __m128, __m128, __m128) noexcept;
+		inline static auto DPM_MATHFUNC("fma") sincos_fma(__m128, __m128, __m128, __m128) noexcept;
 		template<sincos_op>
-		inline static auto DPM_SINCOS_SIGN("fma") sincos_fma(__m128d, __m128d, __m128d, __m128d) noexcept;
-		template<sincos_op>
-		inline static auto DPM_SINCOS_SIGN("fma") sincos_fma(__m256, __m256, __m256, __m256) noexcept;
-		template<sincos_op>
-		inline static auto DPM_SINCOS_SIGN("fma") sincos_fma(__m256d, __m256d, __m256d, __m256d) noexcept;
-#endif
-#if defined(DPM_HAS_AVX) || defined(DPM_DYNAMIC_DISPATCH)
-		template<sincos_op>
-		inline static auto DPM_SINCOS_SIGN("avx") sincos_avx(__m256, __m256, __m256, __m256) noexcept;
-		template<sincos_op>
-		inline static auto DPM_SINCOS_SIGN("avx") sincos_avx(__m256d, __m256d, __m256d, __m256d) noexcept;
+		inline static auto DPM_MATHFUNC("fma") sincos_fma(__m128d, __m128d, __m128d, __m128d) noexcept;
 #endif
 #if defined(DPM_HAS_SSE4_1) || defined(DPM_DYNAMIC_DISPATCH)
 		template<sincos_op>
-		inline static auto DPM_SINCOS_SIGN("sse4.1") sincos_sse4_1(__m128, __m128, __m128, __m128) noexcept;
+		inline static auto DPM_MATHFUNC("sse4.1") sincos_sse4_1(__m128, __m128, __m128, __m128) noexcept;
 		template<sincos_op>
-		inline static auto DPM_SINCOS_SIGN("sse4.1") sincos_sse4_1(__m128d, __m128d, __m128d, __m128d) noexcept;
+		inline static auto DPM_MATHFUNC("sse4.1") sincos_sse4_1(__m128d, __m128d, __m128d, __m128d) noexcept;
 #endif
+		template<sincos_op>
+		inline static auto DPM_MATHFUNC("sse2") sincos_sse(__m128, __m128, __m128, __m128) noexcept;
+		template<sincos_op>
+		inline static auto DPM_MATHFUNC("sse2") sincos_sse(__m128d, __m128d, __m128d, __m128d) noexcept;
 
+		[[nodiscard]] std::pair<__m128, __m128> DPM_PUBLIC DPM_MATHFUNC("sse2") sincos(__m128 x) noexcept;
+		[[nodiscard]] __m128 DPM_PUBLIC DPM_MATHFUNC("sse2") sin(__m128 x) noexcept;
+		[[nodiscard]] __m128 DPM_PUBLIC DPM_MATHFUNC("sse2") cos(__m128 x) noexcept;
+
+		[[nodiscard]] std::pair<__m128d, __m128d> DPM_PUBLIC DPM_MATHFUNC("sse2") sincos(__m128d x) noexcept;
+		[[nodiscard]] __m128d DPM_PUBLIC DPM_MATHFUNC("sse2") sin(__m128d x) noexcept;
+		[[nodiscard]] __m128d DPM_PUBLIC DPM_MATHFUNC("sse2") cos(__m128d x) noexcept;
+
+#ifdef DPM_HAS_AVX
+#if defined(DPM_HAS_AVX2) || defined(DPM_DYNAMIC_DISPATCH)
 		template<sincos_op>
-		inline static auto DPM_SINCOS_SIGN("sse2") sincos_sse(__m128, __m128, __m128, __m128) noexcept;
+		inline static auto DPM_MATHFUNC("avx2") sincos_avx2(__m256, __m256, __m256, __m256) noexcept;
 		template<sincos_op>
-		inline static auto DPM_SINCOS_SIGN("sse2") sincos_sse(__m128d, __m128d, __m128d, __m128d) noexcept;
+		inline static auto DPM_MATHFUNC("avx2") sincos_avx2(__m256d, __m256d, __m256d, __m256d) noexcept;
+#endif
+#if defined(DPM_HAS_FMA) || defined(DPM_DYNAMIC_DISPATCH)
+		template<sincos_op>
+		inline static auto DPM_MATHFUNC("fma") sincos_fma(__m256, __m256, __m256, __m256) noexcept;
+		template<sincos_op>
+		inline static auto DPM_MATHFUNC("fma") sincos_fma(__m256d, __m256d, __m256d, __m256d) noexcept;
+#endif
+		template<sincos_op>
+		inline static auto DPM_MATHFUNC("avx") sincos_avx(__m256, __m256, __m256, __m256) noexcept;
+		template<sincos_op>
+		inline static auto DPM_MATHFUNC("avx") sincos_avx(__m256d, __m256d, __m256d, __m256d) noexcept;
+
+		[[nodiscard]] std::pair<__m256, __m256> DPM_PUBLIC DPM_MATHFUNC("avx") sincos(__m256 x) noexcept;
+		[[nodiscard]] __m256 DPM_PUBLIC DPM_MATHFUNC("avx") sin(__m256 x) noexcept;
+		[[nodiscard]] __m256 DPM_PUBLIC DPM_MATHFUNC("avx") cos(__m256 x) noexcept;
+
+		[[nodiscard]] std::pair<__m256d, __m256d> DPM_PUBLIC DPM_MATHFUNC("avx") sincos(__m256d x) noexcept;
+		[[nodiscard]] __m256d DPM_PUBLIC DPM_MATHFUNC("avx") sin(__m256d x) noexcept;
+		[[nodiscard]] __m256d DPM_PUBLIC DPM_MATHFUNC("avx") cos(__m256d x) noexcept;
+#endif
 
 		template<typename T, sincos_op Mask, typename V>
 		DPM_FORCEINLINE static auto impl_sincos(V x) noexcept
@@ -163,24 +171,6 @@ namespace dpm
 			}
 #endif
 		}
-
-		[[nodiscard]] std::pair<__m128, __m128> DPM_PUBLIC DPM_SINCOS_SIGN("sse2") sincos(__m128 x) noexcept;
-		[[nodiscard]] __m128 DPM_PUBLIC DPM_SINCOS_SIGN("sse2") sin(__m128 x) noexcept;
-		[[nodiscard]] __m128 DPM_PUBLIC DPM_SINCOS_SIGN("sse2") cos(__m128 x) noexcept;
-
-		[[nodiscard]] std::pair<__m128d, __m128d> DPM_PUBLIC DPM_SINCOS_SIGN("sse2") sincos(__m128d x) noexcept;
-		[[nodiscard]] __m128d DPM_PUBLIC DPM_SINCOS_SIGN("sse2") sin(__m128d x) noexcept;
-		[[nodiscard]] __m128d DPM_PUBLIC DPM_SINCOS_SIGN("sse2") cos(__m128d x) noexcept;
-
-#ifdef DPM_HAS_AVX
-		[[nodiscard]] std::pair<__m256, __m256> DPM_PUBLIC DPM_SINCOS_SIGN("avx") sincos(__m256 x) noexcept;
-		[[nodiscard]] __m256 DPM_PUBLIC DPM_SINCOS_SIGN("avx") sin(__m256 x) noexcept;
-		[[nodiscard]] __m256 DPM_PUBLIC DPM_SINCOS_SIGN("avx") cos(__m256 x) noexcept;
-
-		[[nodiscard]] std::pair<__m256d, __m256d> DPM_PUBLIC DPM_SINCOS_SIGN("avx") sincos(__m256d x) noexcept;
-		[[nodiscard]] __m256d DPM_PUBLIC DPM_SINCOS_SIGN("avx") sin(__m256d x) noexcept;
-		[[nodiscard]] __m256d DPM_PUBLIC DPM_SINCOS_SIGN("avx") cos(__m256d x) noexcept;
-#endif
 	}
 
 	/** Calculates sine of elements in vector \a x, and returns the resulting vector. */
@@ -188,8 +178,7 @@ namespace dpm
 	[[nodiscard]] DPM_FORCEINLINE detail::x86_simd<T, N, A> sin(const detail::x86_simd<T, N, A> &x) noexcept requires detail::x86_overload_any<T, N, A>
 	{
 		detail::x86_simd<T, N, A> result = {};
-		for (std::size_t i = 0; i < ext::native_data_size_v<detail::x86_simd<T, N, A>>; ++i)
-			ext::to_native_data(result)[i] = detail::sin(ext::to_native_data(x)[i]);
+		detail::vectorize([](auto &res, auto x) { res = detail::sin(x); }, result, x);
 		return result;
 	}
 	/** Calculates cosine of elements in vector \a x, and returns the resulting vector. */
@@ -197,8 +186,7 @@ namespace dpm
 	[[nodiscard]] DPM_FORCEINLINE detail::x86_simd<T, N, A> cos(const detail::x86_simd<T, N, A> &x) noexcept requires detail::x86_overload_any<T, N, A>
 	{
 		detail::x86_simd<T, N, A> result = {};
-		for (std::size_t i = 0; i < ext::native_data_size_v<detail::x86_simd<T, N, A>>; ++i)
-			ext::to_native_data(result)[i] = detail::cos(ext::to_native_data(x)[i]);
+		detail::vectorize([](auto &res, auto x) { res = detail::cos(x); }, result, x);
 		return result;
 	}
 
@@ -208,12 +196,12 @@ namespace dpm
 		template<std::floating_point T, std::size_t N, std::size_t A>
 		DPM_FORCEINLINE void sincos(const detail::x86_simd<T, N, A> &x, detail::x86_simd<T, N, A> &out_sin, detail::x86_simd<T, N, A> &out_cos) noexcept requires detail::x86_overload_any<T, N, A>
 		{
-			for (std::size_t i = 0; i < native_data_size_v<detail::x86_simd<T, N, A>>; ++i)
-			{
-				const auto [sin, cos] = detail::sincos(to_native_data(x)[i]);
-				to_native_data(out_sin)[i] = sin;
-				to_native_data(out_cos)[i] = cos;
-			}
+			detail::vectorize([](auto x, auto &out_sin, auto &out_cos)
+			                  {
+				                  const auto [sin, cos] = detail::sincos(x);
+				                  out_sin = sin;
+				                  out_cos = cos;
+			                  }, x, out_sin, out_cos);
 		}
 	}
 }
