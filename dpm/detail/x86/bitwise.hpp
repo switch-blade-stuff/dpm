@@ -59,17 +59,17 @@ namespace dpm::detail
 	/* Emulate AVX2 64-bit shifts by shifting individual elements. */
 	[[nodiscard]] DPM_FORCEINLINE __m128i bit_shiftl64_sse(__m128i a, __m128i b) noexcept
 	{
-		const auto sl = _mm_sll_epi64(a, b);
 		const auto bh = _mm_unpackhi_epi64(b, b);
-		const auto sh = _mm_sll_epi64(a, bh);
-		return _mm_shuffle_pd(sl, sh, 0b10);
+		const auto sl = std::bit_cast<__m128d>(_mm_sll_epi64(a, b));
+		const auto sh = std::bit_cast<__m128d>(_mm_sll_epi64(a, bh));
+		return std::bit_cast<__m128i>(_mm_shuffle_pd(sl, sh, 0b10));
 	}
 	[[nodiscard]] DPM_FORCEINLINE __m128i bit_shiftr64_sse(__m128i a, __m128i b) noexcept
 	{
-		const auto sl = _mm_srl_epi64(a, b);
 		const auto bh = _mm_unpackhi_epi64(b, b);
-		const auto sh = _mm_srl_epi64(a, bh);
-		return _mm_shuffle_pd(sl, sh, 0b10);
+		const auto sl = std::bit_cast<__m128d>(_mm_srl_epi64(a, b));
+		const auto sh = std::bit_cast<__m128d>(_mm_srl_epi64(a, bh));
+		return std::bit_cast<__m128i>(_mm_shuffle_pd(sl, sh, 0b10));
 	}
 
 #ifndef DPM_HAS_AVX2

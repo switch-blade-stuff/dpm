@@ -86,7 +86,7 @@ namespace dpm::detail
 
 	/* If all indices are from the same vector, no shuffle is needed. */
 	template<typename T, std::size_t I, std::size_t... Is, typename V>
-	[[nodiscard]] DPM_FORCEINLINE V shuffle(std::index_sequence<Is...>, const V *x) requires sequence_shuffle<T, V, I, Is...>
+	[[nodiscard]] DPM_FORCEINLINE V shuffle(std::index_sequence<I, Is...>, const V *x) requires sequence_shuffle<T, V, I, Is...>
 	{
 		return x[I / (sizeof(V) / sizeof(T))];
 	}

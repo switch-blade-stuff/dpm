@@ -68,7 +68,7 @@ namespace dpm
 		template<int Step, std::size_t I>
 		struct is_sequential<Step, I, I> : std::true_type {};
 		template<int Step, std::size_t I, std::size_t... Is>
-		struct is_sequential<Step, I, I, Is...> : is_sequential<Step, I + Step, Is...> {};
+		struct is_sequential<Step, I, I, Is...> : is_sequential<Step, I + static_cast<std::size_t>(Step), Is...> {};
 
 		template<typename V, typename Abi>
 		concept can_split_simd = is_simd_v<V> && !(simd_size_v<typename V::value_type, Abi> % V::size());

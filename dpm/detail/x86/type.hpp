@@ -733,9 +733,9 @@ namespace dpm
 					detail::cast_copy<U, T>(tmp, ext::to_native_data(m_data)[i / native_extent]);
 
 					if constexpr (!detail::aligned_tag<Flags, alignof(native_type)>)
-						detail::maskstoreu<native_type>(mem + i, tmp, mask);
+						detail::maskstoreu(mem + i, tmp, mask);
 					else
-						detail::maskstore<native_type>(mem + i, tmp, mask);
+						detail::maskstore(mem + i, tmp, mask);
 					continue;
 				}
 #endif

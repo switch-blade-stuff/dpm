@@ -109,7 +109,7 @@ namespace dpm::detail
 	template<typename T, typename V>
 	[[nodiscard]] DPM_FORCEINLINE std::size_t movemask(V x) noexcept requires (sizeof(T) == 8 && sizeof(V) == 16)
 	{
-		return static_cast<std::size_t>(_mm_movemask_pd(std::bit_cast<__m128>(x)));
+		return static_cast<std::size_t>(_mm_movemask_pd(std::bit_cast<__m128d>(x)));
 	}
 
 	template<std::same_as<float> T, signed_integral_of_size<4> U>
@@ -148,11 +148,11 @@ namespace dpm::detail
 	template<unsigned_integral_of_size<8> T, std::same_as<double> U>
 	DPM_FORCEINLINE void cast_copy(__m128i &dst, const __m128d &src) noexcept { dst = cvt_f64_u64(src); }
 
-	template<typename V, typename T>
-	DPM_FORCEINLINE void maskstoreu(T *dst, V src, __m128i mask) noexcept
+	template<typename V, typename T, typename M>
+	DPM_FORCEINLINE void maskstoreu(T *dst, V src, M mask) noexcept
 	{
 		const auto data = reinterpret_cast<alias_t<char> *>(dst);
-		_mm_maskmoveu_si128(std::bit_cast<__m128i>(src), mask, data);
+		_mm_maskmoveu_si128(std::bit_cast<__m128i>(src), std::bit_cast<__m128i>(mask), data);
 	}
 #endif
 
@@ -361,35 +361,35 @@ namespace dpm::detail
 		return std::bit_cast<V>(_mm256_maskload_pd(data, mask));
 	}
 
-	template<typename V, typename T>
-	DPM_FORCEINLINE void maskstore(T *dst, V src, __m128i mask) noexcept requires (sizeof(T) == 4)
+	template<typename V, typename T, typename M>
+	DPM_FORCEINLINE void maskstore(T *dst, V src, M mask) noexcept requires (sizeof(T) == 4 && sizeof(V) == 16)
 	{
 		const auto data = reinterpret_cast<alias_t<float> *>(dst);
-		_mm_maskstore_ps(data, mask, std::bit_cast<__m128>(src));
+		_mm_maskstore_ps(data, std::bit_cast<__m128i>(mask), std::bit_cast<__m128>(src));
 	}
-	template<typename V, typename T>
-	DPM_FORCEINLINE void maskstore(T *dst, V src, __m128i mask) noexcept requires (sizeof(T) == 8)
+	template<typename V, typename T, typename M>
+	DPM_FORCEINLINE void maskstore(T *dst, V src, M mask) noexcept requires (sizeof(T) == 8 && sizeof(V) == 16)
 	{
 		const auto data = reinterpret_cast<alias_t<double> *>(dst);
-		_mm_maskstore_pd(data, mask, std::bit_cast<__m128d>(src));
+		_mm_maskstore_pd(data, std::bit_cast<__m128i>(mask), std::bit_cast<__m128d>(src));
 	}
-	template<typename V, typename T>
-	DPM_FORCEINLINE void maskstore(T *dst, V src, __m256i mask) noexcept requires (sizeof(T) == 4)
+	template<typename V, typename T, typename M>
+	DPM_FORCEINLINE void maskstore(T *dst, V src, M mask) noexcept requires (sizeof(T) == 4 && sizeof(V) == 32)
 	{
 		const auto data = reinterpret_cast<alias_t<float> *>(dst);
-		_mm256_maskstore_ps(data, mask, std::bit_cast<__m256>(src));
+		_mm256_maskstore_ps(data, std::bit_cast<__m256i>(mask), std::bit_cast<__m256>(src));
 	}
-	template<typename V, typename T>
-	DPM_FORCEINLINE void maskstore(T *dst, V src, __m256i mask) noexcept requires (sizeof(T) == 8)
+	template<typename V, typename T, typename M>
+	DPM_FORCEINLINE void maskstore(T *dst, V src, M mask) noexcept requires (sizeof(T) == 8 && sizeof(V) == 32)
 	{
 		const auto data = reinterpret_cast<alias_t<double> *>(dst);
-		_mm256_maskstore_pd(data, mask, std::bit_cast<__m256d>(src));
+		_mm256_maskstore_pd(data, std::bit_cast<__m256i>(mask), std::bit_cast<__m256d>(src));
 	}
 #elif defined(DPM_HAS_SSE2)
-	template<typename V, typename T>
-	DPM_FORCEINLINE void maskstore(T *dst, V src, __m128i mask) noexcept { maskstoreu(dst, src, mask); }
-	template<typename V, typename T>
-	DPM_FORCEINLINE void maskstore(T *dst, V src, __m256i mask) noexcept
+	template<typename V, typename T, typename M>
+	DPM_FORCEINLINE void maskstore(T *dst, V src, M mask) noexcept requires (sizeof(V) == 16) { maskstoreu(dst, src, mask); }
+	template<typename V, typename T, typename M>
+	DPM_FORCEINLINE void maskstore(T *dst, V src, M mask) noexcept requires (sizeof(V) == 32)
 	{
 		mux_128x2<__m256i>([&](auto v, auto m) { maskstoreu(dst + (32 / sizeof(T)), v, m); }, src, mask);
 	}
