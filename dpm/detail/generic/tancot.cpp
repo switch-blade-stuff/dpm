@@ -31,7 +31,7 @@ namespace dpm::detail
 	[[nodiscard]] DPM_FORCEINLINE float cot_poly(float abs_x, float y) noexcept
 	{
 		y = ((abs_x + y * dp_tancotf[0]) + y * dp_tancotf[1]) + y * dp_tancotf[2];
-		if (const auto y2 = y * y; y2 > 1.0e-4)
+		if (const auto y2 = y * y; y2 > 1.0e-4f)
 		{
 			const auto p = (((tancot_pf[0] * y2 + tancot_pf[1]) * y2 + tancot_pf[2]) * y2 + tancot_pf[3]);
 			y += ((p * y2 + tancot_pf[4]) * y2 + tancot_pf[5]) * y2 * y;
@@ -55,7 +55,7 @@ namespace dpm::detail
 		auto y = abs_x * fopi<T>;
 
 		/* j = isodd(y) ? y + 1 : y */
-		const auto j = (static_cast<std::int32_t>(std::trunc(y)) + 1) & ~1;
+		const auto j = (static_cast<I>(std::trunc(y)) + 1ll) & ~1ll;
 		y = static_cast<T>(j);
 
 		/* Calculate cotangent polynomial. */
@@ -72,7 +72,7 @@ namespace dpm::detail
 	[[nodiscard]] long double DPM_PUBLIC DPM_MATHFUNC cot(long double x) noexcept
 	{
 		const auto abs_x = std::abs(x);
-		if (abs_x == 0.0) [[unlikely]]
+		if (abs_x == 0.0L) [[unlikely]]
 		{
 			std::feraiseexcept(FE_INVALID);
 			errno = EDOM;
@@ -81,21 +81,25 @@ namespace dpm::detail
 
 		/* y = |x| * 4 / Pi */
 		auto y = abs_x * fopi<long double>;
-
-		/* j = isodd(y) ? y + 1 : y */
-		const auto j = (static_cast<std::int32_t>(std::trunc(y)) + 1) & ~1;
-		y = static_cast<long double>(j);
+		/* Extract 15 bits of integer part. */
+		const auto z = y - std::floor(y / 16) * 16;     /* y - 16 * (y / 16) */
+		auto j = static_cast<std::int32_t>(z);
+		if (j & 1)
+		{
+			y += 1.0L;
+			j += 1;
+		}
 
 		/* Calculate cotangent polynomial. */
 		y = ((abs_x + y * dp_tancotld[0]) + y * dp_tancotld[1]) + y * dp_tancotld[2];
-		if (const auto y2 = y * y; y2 > 1.0e-20)
+		if (const auto y2 = y * y; y2 > 1.0e-20L)
 		{
 			auto p0 = y2 * ((y2 * tancot_pld[0] + tancot_pld[1]) * y2 + tancot_pld[2]);
 			auto p1 = ((y2 * tancot_qld[0] + tancot_qld[1]) * y2 + tancot_qld[2]);
 			p1 = (p1 * y2 + tancot_qld[3]) * y2 + tancot_qld[4];
 			y += y * (p0 / p1);
 		}
-		y = (j & 2) ? -y : 1.0 / y;
+		y = (j & 2) ? -y : 1.0L / y;
 
 		/* Restore sign. */
 		return std::copysign(y, x);
