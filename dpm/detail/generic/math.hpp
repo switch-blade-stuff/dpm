@@ -17,7 +17,7 @@ namespace dpm
 	namespace detail
 	{
 		template<typename... Ts>
-		using promote_return = std::conditional_t<std::disjunction_v<std::is_same<Ts, long double>...>, long double, double>;
+		using promote_t = std::conditional_t<std::disjunction_v<std::is_same<Ts, long double>...>, long double, double>;
 	}
 
 #pragma region "basic operations"
@@ -32,7 +32,7 @@ namespace dpm
 	}
 	/** @copydoc fmod
 	 * @note Arguments and return type are promoted to `double`, or `long double` if one of the arguments is `long double`. */
-	template<typename T0, typename T1, typename Abi, typename Promoted = rebind_simd_t<detail::promote_return<T0, T1>, simd<T0, Abi>>>
+	template<typename T0, typename T1, typename Abi, typename Promoted = rebind_simd_t<detail::promote_t<T0, T1>, simd<T0, Abi>>>
 	[[nodiscard]] DPM_FORCEINLINE Promoted fmod(const simd<T0, Abi> &a, const simd<T1, Abi> &b) noexcept
 	{
 		return Promoted{fmod(Promoted{a}, Promoted{b})};
@@ -49,7 +49,7 @@ namespace dpm
 	}
 	/** @copydoc remainder
 	 * @note Arguments and return type are promoted to `double`, or `long double` if one of the arguments is `long double`. */
-	template<typename T0, typename T1, typename Abi, typename Promoted = rebind_simd_t<detail::promote_return<T0, T1>, simd<T0, Abi>>>
+	template<typename T0, typename T1, typename Abi, typename Promoted = rebind_simd_t<detail::promote_t<T0, T1>, simd<T0, Abi>>>
 	[[nodiscard]] DPM_FORCEINLINE Promoted remainder(const simd<T0, Abi> &a, const simd<T1, Abi> &b) noexcept
 	{
 		return Promoted{remainder(Promoted{a}, Promoted{b})};
@@ -67,7 +67,7 @@ namespace dpm
 	}
 	/** @copydoc remquo
 	 * @note Arguments and return type are promoted to `double`, or `long double` if one of the arguments is `long double`. */
-	template<typename T0, typename T1, typename Abi, typename QAbi, typename Promoted = rebind_simd_t<detail::promote_return<T0, T1>, simd<T0, Abi>>>
+	template<typename T0, typename T1, typename Abi, typename QAbi, typename Promoted = rebind_simd_t<detail::promote_t<T0, T1>, simd<T0, Abi>>>
 	[[nodiscard]] DPM_FORCEINLINE Promoted remquo(const simd<T0, Abi> &a, const simd<T1, Abi> &b, simd<int, QAbi> *quo) noexcept
 	{
 		return Promoted{remquo(Promoted{a}, Promoted{b}, quo)};
@@ -85,7 +85,7 @@ namespace dpm
 	}
 	/** @copydoc fmax
 	 * @note Arguments and return type are promoted to `double`, or `long double` if one of the arguments is `long double`. */
-	template<typename T0, typename T1, typename Abi, typename Promoted = rebind_simd_t<detail::promote_return<T0, T1>, simd<T0, Abi>>>
+	template<typename T0, typename T1, typename Abi, typename Promoted = rebind_simd_t<detail::promote_t<T0, T1>, simd<T0, Abi>>>
 	[[nodiscard]] DPM_FORCEINLINE Promoted fmax(const simd<T0, Abi> &a, const simd<T1, Abi> &b) noexcept
 	{
 		return Promoted{fmax(Promoted{a}, Promoted{b})};
@@ -103,7 +103,7 @@ namespace dpm
 	}
 	/** @copydoc fmin
 	 * @note Arguments and return type are promoted to `double`, or `long double` if one of the arguments is `long double`. */
-	template<typename T0, typename T1, typename Abi, typename Promoted = rebind_simd_t<detail::promote_return<T0, T1>, simd<T0, Abi>>>
+	template<typename T0, typename T1, typename Abi, typename Promoted = rebind_simd_t<detail::promote_t<T0, T1>, simd<T0, Abi>>>
 	[[nodiscard]] DPM_FORCEINLINE Promoted fmin(const simd<T0, Abi> &a, const simd<T1, Abi> &b) noexcept
 	{
 		return Promoted{fmin(Promoted{a}, Promoted{b})};
@@ -120,7 +120,7 @@ namespace dpm
 	}
 	/** @copydoc fdim
 	 * @note Arguments and return type are promoted to `double`, or `long double` if one of the arguments is `long double`. */
-	template<typename T0, typename T1, typename Abi, typename Promoted = rebind_simd_t<detail::promote_return<T0, T1>, simd<T0, Abi>>>
+	template<typename T0, typename T1, typename Abi, typename Promoted = rebind_simd_t<detail::promote_t<T0, T1>, simd<T0, Abi>>>
 	[[nodiscard]] DPM_FORCEINLINE Promoted fdim(const simd<T0, Abi> &a, const simd<T1, Abi> &b) noexcept
 	{
 		return Promoted{fdim(Promoted{a}, Promoted{b})};
@@ -137,7 +137,7 @@ namespace dpm
 	}
 	/** @copydoc lerp
 	 * @note Arguments and return type are promoted to `double`, or `long double` if one of the arguments is `long double`. */
-	template<typename T0, typename T1, typename T2, typename Abi, typename Promoted = rebind_simd_t<detail::promote_return<T0, T1, T2>, simd<T0, Abi>>>
+	template<typename T0, typename T1, typename T2, typename Abi, typename Promoted = rebind_simd_t<detail::promote_t<T0, T1, T2>, simd<T0, Abi>>>
 	[[nodiscard]] DPM_FORCEINLINE Promoted lerp(const simd<T0, Abi> &a, const simd<T1, Abi> &b, const simd<T2, Abi> &f) noexcept
 	{
 		return Promoted{lerp(Promoted{a}, Promoted{b}, Promoted{f})};
@@ -155,7 +155,7 @@ namespace dpm
 		}
 		/** @copydoc remquo
 		 * @note Arguments and return type are promoted to `double`, or `long double` if one of the arguments is `long double`. */
-		template<typename T0, typename T1, typename Abi, typename QAbi, typename Promoted = rebind_simd_t<detail::promote_return<T0, T1>, simd<T0, Abi>>>
+		template<typename T0, typename T1, typename Abi, typename QAbi, typename Promoted = rebind_simd_t<detail::promote_t<T0, T1>, simd<T0, Abi>>>
 		[[nodiscard]] DPM_FORCEINLINE Promoted remquo(const simd<T0, Abi> &a, const simd<T1, Abi> &b, simd<int, QAbi> &quo) noexcept
 		{
 			return Promoted{remquo(Promoted{a}, Promoted{b}, quo)};
@@ -169,7 +169,7 @@ namespace dpm
 		}
 		/** @copydoc fmadd
 		 * @note Arguments and return type are promoted to `double`, or `long double` if one of the arguments is `long double`. */
-		template<typename T0, typename T1, typename T2, typename Abi, typename Promoted = rebind_simd_t<detail::promote_return<T0, T1, T2>, simd<T0, Abi>>>
+		template<typename T0, typename T1, typename T2, typename Abi, typename Promoted = rebind_simd_t<detail::promote_t<T0, T1, T2>, simd<T0, Abi>>>
 		[[nodiscard]] DPM_FORCEINLINE Promoted fmadd(const simd<T0, Abi> &a, const simd<T1, Abi> &b, const simd<T2, Abi> &c) noexcept
 		{
 			return Promoted{fmadd(Promoted{a}, Promoted{b}, Promoted{c})};
@@ -182,7 +182,7 @@ namespace dpm
 		}
 		/** @copydoc fmsub
 		 * @note Arguments and return type are promoted to `double`, or `long double` if one of the arguments is `long double`. */
-		template<typename T0, typename T1, typename T2, typename Abi, typename Promoted = rebind_simd_t<detail::promote_return<T0, T1, T2>, simd<T0, Abi>>>
+		template<typename T0, typename T1, typename T2, typename Abi, typename Promoted = rebind_simd_t<detail::promote_t<T0, T1, T2>, simd<T0, Abi>>>
 		[[nodiscard]] DPM_FORCEINLINE Promoted fmsub(const simd<T0, Abi> &a, const simd<T1, Abi> &b, const simd<T2, Abi> &c) noexcept
 		{
 			return Promoted{fmsub(Promoted{a}, Promoted{b}, Promoted{c})};
@@ -195,7 +195,7 @@ namespace dpm
 		}
 		/** @copydoc fnmadd
 		 * @note Arguments and return type are promoted to `double`, or `long double` if one of the arguments is `long double`. */
-		template<typename T0, typename T1, typename T2, typename Abi, typename Promoted = rebind_simd_t<detail::promote_return<T0, T1, T2>, simd<T0, Abi>>>
+		template<typename T0, typename T1, typename T2, typename Abi, typename Promoted = rebind_simd_t<detail::promote_t<T0, T1, T2>, simd<T0, Abi>>>
 		[[nodiscard]] DPM_FORCEINLINE Promoted fnmadd(const simd<T0, Abi> &a, const simd<T1, Abi> &b, const simd<T2, Abi> &c) noexcept
 		{
 			return Promoted{fnmadd(Promoted{a}, Promoted{b}, Promoted{c})};
@@ -208,7 +208,7 @@ namespace dpm
 		}
 		/** @copydoc fnmsub
 		 * @note Arguments and return type are promoted to `double`, or `long double` if one of the arguments is `long double`. */
-		template<typename T0, typename T1, typename T2, typename Abi, typename Promoted = rebind_simd_t<detail::promote_return<T0, T1, T2>, simd<T0, Abi>>>
+		template<typename T0, typename T1, typename T2, typename Abi, typename Promoted = rebind_simd_t<detail::promote_t<T0, T1, T2>, simd<T0, Abi>>>
 		[[nodiscard]] DPM_FORCEINLINE Promoted fnmsub(const simd<T0, Abi> &a, const simd<T1, Abi> &b, const simd<T2, Abi> &c) noexcept
 		{
 			return Promoted{fnmsub(Promoted{a}, Promoted{b}, Promoted{c})};
@@ -235,7 +235,7 @@ namespace dpm
 	}
 	/** @copydoc fma
 	 * @note Arguments and return type are promoted to `double`, or `long double` if one of the arguments is `long double`. */
-	template<typename T0, typename T1, typename T2, typename Abi, typename Promoted = rebind_simd_t<detail::promote_return<T0, T1, T2>, simd<T0, Abi>>>
+	template<typename T0, typename T1, typename T2, typename Abi, typename Promoted = rebind_simd_t<detail::promote_t<T0, T1, T2>, simd<T0, Abi>>>
 	[[nodiscard]] DPM_FORCEINLINE Promoted fma(const simd<T0, Abi> &a, const simd<T1, Abi> &b, const simd<T2, Abi> &c) noexcept
 	{
 		return Promoted{fma(Promoted{a}, Promoted{b}, Promoted{c})};
@@ -254,7 +254,7 @@ namespace dpm
 	}
 	/** @copydoc pow
 	 * @note Arguments and return type are promoted to `double`, or `long double` if one of the arguments is `long double`. */
-	template<typename T0, typename T1, typename Abi, typename Promoted = rebind_simd_t<detail::promote_return<T0, T1>, simd<T0, Abi>>>
+	template<typename T0, typename T1, typename Abi, typename Promoted = rebind_simd_t<detail::promote_t<T0, T1>, simd<T0, Abi>>>
 	[[nodiscard]] DPM_FORCEINLINE Promoted pow(const simd<T0, Abi> &x, const simd<T1, Abi> &p) noexcept { return Promoted{pow(Promoted{x}, Promoted{p})}; }
 
 	/** Calculates square root of elements in vector \a x, and returns the resulting vector. */
@@ -268,7 +268,7 @@ namespace dpm
 	}
 	/** @copydoc sqrt
 	 * @note Arguments and return type are promoted to `double`, or `long double` if one of the arguments is `long double`. */
-	template<typename T, typename Abi, typename Promoted = rebind_simd_t<detail::promote_return<T>, simd<T, Abi>>>
+	template<typename T, typename Abi, typename Promoted = rebind_simd_t<detail::promote_t<T>, simd<T, Abi>>>
 	[[nodiscard]] DPM_FORCEINLINE Promoted sqrt(const simd<T, Abi> &x) noexcept { return Promoted{sqrt(Promoted{x})}; }
 
 	/** Calculates cube root of elements in vector \a x, and returns the resulting vector. */
@@ -282,7 +282,7 @@ namespace dpm
 	}
 	/** @copydoc cbrt
 	 * @note Arguments and return type are promoted to `double`, or `long double` if one of the arguments is `long double`. */
-	template<typename T, typename Abi, typename Promoted = rebind_simd_t<detail::promote_return<T>, simd<T, Abi>>>
+	template<typename T, typename Abi, typename Promoted = rebind_simd_t<detail::promote_t<T>, simd<T, Abi>>>
 	[[nodiscard]] DPM_FORCEINLINE Promoted cbrt(const simd<T, Abi> &x) noexcept { return Promoted{cbrt(Promoted{x})}; }
 
 	/** Calculates square root of the sum of elements in vectors \a a and \a b without causing over or underflow, and returns the resulting vector. */
@@ -296,7 +296,7 @@ namespace dpm
 	}
 	/** @copydoc hypot
 	 * @note Arguments and return type are promoted to `double`, or `long double` if one of the arguments is `long double`. */
-	template<typename T0, typename T1, typename Abi, typename Promoted = rebind_simd_t<detail::promote_return<T0, T1>, simd<T0, Abi>>>
+	template<typename T0, typename T1, typename Abi, typename Promoted = rebind_simd_t<detail::promote_t<T0, T1>, simd<T0, Abi>>>
 	[[nodiscard]] DPM_FORCEINLINE Promoted hypot(const simd<T0, Abi> &a, const simd<T1, Abi> &b) noexcept { return Promoted{hypot(Promoted{a}, Promoted{b})}; }
 
 	DPM_DECLARE_EXT_NAMESPACE
@@ -306,7 +306,7 @@ namespace dpm
 		[[nodiscard]] DPM_FORCEINLINE simd<T, Abi> rcp(const simd<T, Abi> &x) noexcept { return simd<T, Abi>{T{1}} / x; }
 		/** @copydoc rcp
 		 * @note Arguments and return type are promoted to `double`, or `long double` if one of the arguments is `long double`. */
-		template<typename T, typename Abi, typename Promoted = rebind_simd_t<detail::promote_return<T>, simd<T, Abi>>>
+		template<typename T, typename Abi, typename Promoted = rebind_simd_t<detail::promote_t<T>, simd<T, Abi>>>
 		[[nodiscard]] DPM_FORCEINLINE Promoted rcp(const simd<T, Abi> &x) noexcept { return Promoted{rcp(Promoted{x})}; }
 
 		/** Calculates reciprocal square root of elements in vector \a x, and returns the resulting vector. */
@@ -314,7 +314,7 @@ namespace dpm
 		[[nodiscard]] DPM_FORCEINLINE simd<T, Abi> rsqrt(const simd<T, Abi> &x) noexcept { return rcp(sqrt(x)); }
 		/** @copydoc rsqrt
 		 * @note Arguments and return type are promoted to `double`, or `long double` if one of the arguments is `long double`. */
-		template<typename T, typename Abi, typename Promoted = rebind_simd_t<detail::promote_return<T>, simd<T, Abi>>>
+		template<typename T, typename Abi, typename Promoted = rebind_simd_t<detail::promote_t<T>, simd<T, Abi>>>
 		[[nodiscard]] DPM_FORCEINLINE Promoted rsqrt(const simd<T, Abi> &x) noexcept { return Promoted{rsqrt(Promoted{x})}; }
 	}
 #pragma endregion
@@ -363,7 +363,7 @@ namespace dpm
 	}
 	/** @copydoc isnan
 	 * @note Arguments and return type are promoted to `double`, or `long double` if one of the arguments is `long double`. */
-	template<typename T0, typename T1, typename Abi, typename Promoted = rebind_simd_t<detail::promote_return<T0, T1>, simd<T0, Abi>>>
+	template<typename T0, typename T1, typename Abi, typename Promoted = rebind_simd_t<detail::promote_t<T0, T1>, simd<T0, Abi>>>
 	[[nodiscard]] DPM_FORCEINLINE Promoted copysign(const simd<T0, Abi> &x, const simd<T1, Abi> &sign) noexcept
 	{
 		return Promoted{copysign(Promoted{x}, Promoted{sign})};
@@ -382,7 +382,7 @@ namespace dpm
 	}
 	/** @copydoc fpclassify
 	 * @note Arguments and return type are promoted to `double`, or `long double` if one of the arguments is `long double`. */
-	template<typename T, typename Abi, typename Promoted = rebind_simd_t<detail::promote_return<T>, simd<T, Abi>>>
+	template<typename T, typename Abi, typename Promoted = rebind_simd_t<detail::promote_t<T>, simd<T, Abi>>>
 	[[nodiscard]] DPM_FORCEINLINE rebind_simd_t<int, Promoted> fpclassify(const simd<T, Abi> &x) noexcept
 	{
 		return rebind_simd_t<int, Promoted>{fpclassify(Promoted{x})};
@@ -399,7 +399,7 @@ namespace dpm
 	}
 	/** @copydoc isfinite
 	 * @note Arguments and return type are promoted to `double`, or `long double` if one of the arguments is `long double`. */
-	template<typename T, typename Abi, typename Promoted = rebind_simd_t<detail::promote_return<T>, simd<T, Abi>>>
+	template<typename T, typename Abi, typename Promoted = rebind_simd_t<detail::promote_t<T>, simd<T, Abi>>>
 	[[nodiscard]] DPM_FORCEINLINE typename Promoted::mask_type isfinite(const simd<T, Abi> &x) noexcept
 	{
 		return typename Promoted::mask_type{isfinite(Promoted{x})};
@@ -415,7 +415,7 @@ namespace dpm
 	}
 	/** @copydoc isinf
 	 * @note Arguments and return type are promoted to `double`, or `long double` if one of the arguments is `long double`. */
-	template<typename T, typename Abi, typename Promoted = rebind_simd_t<detail::promote_return<T>, simd<T, Abi>>>
+	template<typename T, typename Abi, typename Promoted = rebind_simd_t<detail::promote_t<T>, simd<T, Abi>>>
 	[[nodiscard]] DPM_FORCEINLINE typename Promoted::mask_type isinf(const simd<T, Abi> &x) noexcept
 	{
 		return typename Promoted::mask_type{isinf(Promoted{x})};
@@ -431,7 +431,7 @@ namespace dpm
 	}
 	/** @copydoc isnan
 	 * @note Arguments and return type are promoted to `double`, or `long double` if one of the arguments is `long double`. */
-	template<typename T, typename Abi, typename Promoted = rebind_simd_t<detail::promote_return<T>, simd<T, Abi>>>
+	template<typename T, typename Abi, typename Promoted = rebind_simd_t<detail::promote_t<T>, simd<T, Abi>>>
 	[[nodiscard]] DPM_FORCEINLINE typename Promoted::mask_type isnan(const simd<T, Abi> &x) noexcept
 	{
 		return typename Promoted::mask_type{isnan(Promoted{x})};
@@ -448,7 +448,7 @@ namespace dpm
 	}
 	/** @copydoc isnormal
 	 * @note Arguments and return type are promoted to `double`, or `long double` if one of the arguments is `long double`. */
-	template<typename T, typename Abi, typename Promoted = rebind_simd_t<detail::promote_return<T>, simd<T, Abi>>>
+	template<typename T, typename Abi, typename Promoted = rebind_simd_t<detail::promote_t<T>, simd<T, Abi>>>
 	[[nodiscard]] DPM_FORCEINLINE typename Promoted::mask_type isnormal(const simd<T, Abi> &x) noexcept
 	{
 		return typename Promoted::mask_type{isnormal(Promoted{x})};
@@ -465,7 +465,7 @@ namespace dpm
 	}
 	/** @copydoc signbit
 	 * @note Arguments and return type are promoted to `double`, or `long double` if one of the arguments is `long double`. */
-	template<typename T, typename Abi, typename Promoted = rebind_simd_t<detail::promote_return<T>, simd<T, Abi>>>
+	template<typename T, typename Abi, typename Promoted = rebind_simd_t<detail::promote_t<T>, simd<T, Abi>>>
 	[[nodiscard]] DPM_FORCEINLINE typename Promoted::mask_type signbit(const simd<T, Abi> &x) noexcept
 	{
 		return typename Promoted::mask_type{signbit(Promoted{x})};
@@ -482,7 +482,7 @@ namespace dpm
 	}
 	/** @copydoc isgreater
 	 * @note Arguments and return type are promoted to `double`, or `long double` if one of the arguments is `long double`. */
-	template<typename T0, typename T1, typename Abi, typename Promoted = rebind_simd_t<detail::promote_return<T0, T1>, simd<T0, Abi>>>
+	template<typename T0, typename T1, typename Abi, typename Promoted = rebind_simd_t<detail::promote_t<T0, T1>, simd<T0, Abi>>>
 	[[nodiscard]] DPM_FORCEINLINE typename Promoted::mask_type isgreater(const simd<T0, Abi> &a, const simd<T1, Abi> &b) noexcept
 	{
 		return typename Promoted::mask_type{isgreater(Promoted{a}, Promoted{b})};
@@ -498,7 +498,7 @@ namespace dpm
 	}
 	/** @copydoc isgreaterequal
 	 * @note Arguments and return type are promoted to `double`, or `long double` if one of the arguments is `long double`. */
-	template<typename T0, typename T1, typename Abi, typename Promoted = rebind_simd_t<detail::promote_return<T0, T1>, simd<T0, Abi>>>
+	template<typename T0, typename T1, typename Abi, typename Promoted = rebind_simd_t<detail::promote_t<T0, T1>, simd<T0, Abi>>>
 	[[nodiscard]] DPM_FORCEINLINE typename Promoted::mask_type isgreaterequal(const simd<T0, Abi> &a, const simd<T1, Abi> &b) noexcept
 	{
 		return typename Promoted::mask_type{isgreaterequal(Promoted{a}, Promoted{b})};
@@ -514,7 +514,7 @@ namespace dpm
 	}
 	/** @copydoc isless
 	 * @note Arguments and return type are promoted to `double`, or `long double` if one of the arguments is `long double`. */
-	template<typename T0, typename T1, typename Abi, typename Promoted = rebind_simd_t<detail::promote_return<T0, T1>, simd<T0, Abi>>>
+	template<typename T0, typename T1, typename Abi, typename Promoted = rebind_simd_t<detail::promote_t<T0, T1>, simd<T0, Abi>>>
 	[[nodiscard]] DPM_FORCEINLINE typename Promoted::mask_type isless(const simd<T0, Abi> &a, const simd<T1, Abi> &b) noexcept
 	{
 		return typename Promoted::mask_type{isless(Promoted{a}, Promoted{b})};
@@ -530,7 +530,7 @@ namespace dpm
 	}
 	/** @copydoc islessequal
 	 * @note Arguments and return type are promoted to `double`, or `long double` if one of the arguments is `long double`. */
-	template<typename T0, typename T1, typename Abi, typename Promoted = rebind_simd_t<detail::promote_return<T0, T1>, simd<T0, Abi>>>
+	template<typename T0, typename T1, typename Abi, typename Promoted = rebind_simd_t<detail::promote_t<T0, T1>, simd<T0, Abi>>>
 	[[nodiscard]] DPM_FORCEINLINE typename Promoted::mask_type islessequal(const simd<T0, Abi> &a, const simd<T1, Abi> &b) noexcept
 	{
 		return typename Promoted::mask_type{islessequal(Promoted{a}, Promoted{b})};
@@ -546,7 +546,7 @@ namespace dpm
 	}
 	/** @copydoc islessgreater
 	 * @note Arguments and return type are promoted to `double`, or `long double` if one of the arguments is `long double`. */
-	template<typename T0, typename T1, typename Abi, typename Promoted = rebind_simd_t<detail::promote_return<T0, T1>, simd<T0, Abi>>>
+	template<typename T0, typename T1, typename Abi, typename Promoted = rebind_simd_t<detail::promote_t<T0, T1>, simd<T0, Abi>>>
 	[[nodiscard]] DPM_FORCEINLINE typename Promoted::mask_type islessgreater(const simd<T0, Abi> &a, const simd<T1, Abi> &b) noexcept
 	{
 		return typename Promoted::mask_type{islessgreater(Promoted{a}, Promoted{b})};
@@ -562,7 +562,7 @@ namespace dpm
 	}
 	/** @copydoc isunordered
 	 * @note Arguments and return type are promoted to `double`, or `long double` if one of the arguments is `long double`. */
-	template<typename T0, typename T1, typename Abi, typename Promoted = rebind_simd_t<detail::promote_return<T0, T1>, simd<T0, Abi>>>
+	template<typename T0, typename T1, typename Abi, typename Promoted = rebind_simd_t<detail::promote_t<T0, T1>, simd<T0, Abi>>>
 	[[nodiscard]] DPM_FORCEINLINE typename Promoted::mask_type isunordered(const simd<T0, Abi> &a, const simd<T1, Abi> &b) noexcept
 	{
 		return typename Promoted::mask_type{isunordered(Promoted{a}, Promoted{b})};

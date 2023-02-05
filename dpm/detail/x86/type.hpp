@@ -639,7 +639,7 @@ namespace dpm
 		template<typename U, std::size_t OtherAlign>
 		DPM_FORCEINLINE simd(const simd<U, detail::avec<size(), OtherAlign>> &other) noexcept
 		{
-			if constexpr (constexpr auto other_alignment = alignof(decltype(other)); other_alignment >= alignment)
+			if constexpr (constexpr auto other_alignment = alignof(decltype(other)); other_alignment >= alignof(native_type))
 				copy_from(reinterpret_cast<const detail::alias_t<U> *>(ext::to_native_data(other).data()), vector_aligned);
 			else if constexpr (other_alignment != alignof(value_type))
 				copy_from(reinterpret_cast<const detail::alias_t<U> *>(ext::to_native_data(other).data()), overaligned<other_alignment>);
@@ -656,7 +656,7 @@ namespace dpm
 		{
 			std::size_t i = 0;
 			if constexpr (detail::aligned_tag<Flags, alignof(native_type)> && sizeof(U) == sizeof(value_type))
-				for (; i + native_extent < size(); i += native_extent)
+				for (; i + native_extent <= size(); i += native_extent)
 				{
 					auto &dst = m_data[i / native_extent];
 					detail::cast_copy<T, U>(dst, mem + i);
@@ -669,7 +669,7 @@ namespace dpm
 		{
 			std::size_t i = 0;
 			if constexpr (detail::aligned_tag<Flags, alignof(native_type)> && sizeof(U) == sizeof(value_type))
-				for (; i + native_extent < size(); i += native_extent)
+				for (; i + native_extent <= size(); i += native_extent)
 				{
 					const auto &src = m_data[i / native_extent];
 					detail::cast_copy<U, T>(mem + i, src);
