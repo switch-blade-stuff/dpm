@@ -15,7 +15,7 @@
 
 #include "mbase.hpp"
 #include "power.hpp"
-#include "sincos.hpp"
+#include "trig.hpp"
 #include "fmanip.hpp"
 #include "class.hpp"
 

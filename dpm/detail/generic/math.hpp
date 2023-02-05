@@ -10,7 +10,15 @@
 
 #include <cmath>
 
+#ifdef DPM_HANDLE_ERRORS
+
+#include <cerrno>
+#include <cfenv>
+
 #endif
+#endif
+
+#define DPM_MATHFUNC DPM_PURE DPM_VECTORCALL
 
 namespace dpm
 {
@@ -320,8 +328,15 @@ namespace dpm
 #pragma endregion
 
 #pragma region "trigonometric functions"
+	namespace detail
+	{
+		[[nodiscard]] float DPM_PUBLIC DPM_MATHFUNC cot(float x) noexcept;
+		[[nodiscard]] double DPM_PUBLIC DPM_MATHFUNC cot(double x) noexcept;
+		[[nodiscard]] long double DPM_PUBLIC DPM_MATHFUNC cot(long double x) noexcept;
+	}
+
 	/** Calculates sine of elements in vector \a x, and returns the resulting vector. */
-	template<typename T, typename Abi>
+	template<std::floating_point T, typename Abi>
 	[[nodiscard]] inline simd<T, Abi> sin(const simd<T, Abi> &x) noexcept
 	{
 		simd<T, Abi> result = {};
@@ -329,8 +344,13 @@ namespace dpm
 			result[i] = std::sin(x[i]);
 		return result;
 	}
+	/** @copydoc sin
+	 * @note Arguments and return type are promoted to `double`, or `long double` if one of the arguments is `long double`. */
+	template<typename T, typename Abi, typename Promoted = rebind_simd_t<detail::promote_t<T>, simd<T, Abi>>>
+	[[nodiscard]] DPM_FORCEINLINE Promoted sin(const simd<T, Abi> &x) noexcept { return Promoted{sin(Promoted{x})}; }
+
 	/** Calculates cosine of elements in vector \a x, and returns the resulting vector. */
-	template<typename T, typename Abi>
+	template<std::floating_point T, typename Abi>
 	[[nodiscard]] inline simd<T, Abi> cos(const simd<T, Abi> &x) noexcept
 	{
 		simd<T, Abi> result = {};
@@ -338,6 +358,80 @@ namespace dpm
 			result[i] = std::cos(x[i]);
 		return result;
 	}
+	/** @copydoc cos
+	 * @note Arguments and return type are promoted to `double`, or `long double` if one of the arguments is `long double`. */
+	template<typename T, typename Abi, typename Promoted = rebind_simd_t<detail::promote_t<T>, simd<T, Abi>>>
+	[[nodiscard]] DPM_FORCEINLINE Promoted cos(const simd<T, Abi> &x) noexcept { return Promoted{cos(Promoted{x})}; }
+
+	/** Calculates tangent of elements in vector \a x, and returns the resulting vector. */
+	template<std::floating_point T, typename Abi>
+	[[nodiscard]] inline simd<T, Abi> tan(const simd<T, Abi> &x) noexcept
+	{
+		simd<T, Abi> result = {};
+		for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i)
+			result[i] = std::tan(x[i]);
+		return result;
+	}
+	/** @copydoc tan
+	 * @note Arguments and return type are promoted to `double`, or `long double` if one of the arguments is `long double`. */
+	template<typename T, typename Abi, typename Promoted = rebind_simd_t<detail::promote_t<T>, simd<T, Abi>>>
+	[[nodiscard]] DPM_FORCEINLINE Promoted tan(const simd<T, Abi> &x) noexcept { return Promoted{tan(Promoted{x})}; }
+
+	/** Calculates arc-sine of elements in vector \a x, and returns the resulting vector. */
+	template<std::floating_point T, typename Abi>
+	[[nodiscard]] inline simd<T, Abi> asin(const simd<T, Abi> &x) noexcept
+	{
+		simd<T, Abi> result = {};
+		for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i)
+			result[i] = std::asin(x[i]);
+		return result;
+	}
+	/** @copydoc asin
+	 * @note Arguments and return type are promoted to `double`, or `long double` if one of the arguments is `long double`. */
+	template<typename T, typename Abi, typename Promoted = rebind_simd_t<detail::promote_t<T>, simd<T, Abi>>>
+	[[nodiscard]] DPM_FORCEINLINE Promoted asin(const simd<T, Abi> &x) noexcept { return Promoted{asin(Promoted{x})}; }
+
+	/** Calculates arc-cosine of elements in vector \a x, and returns the resulting vector. */
+	template<std::floating_point T, typename Abi>
+	[[nodiscard]] inline simd<T, Abi> acos(const simd<T, Abi> &x) noexcept
+	{
+		simd<T, Abi> result = {};
+		for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i)
+			result[i] = std::acos(x[i]);
+		return result;
+	}
+	/** @copydoc acos
+	 * @note Arguments and return type are promoted to `double`, or `long double` if one of the arguments is `long double`. */
+	template<typename T, typename Abi, typename Promoted = rebind_simd_t<detail::promote_t<T>, simd<T, Abi>>>
+	[[nodiscard]] DPM_FORCEINLINE Promoted acos(const simd<T, Abi> &x) noexcept { return Promoted{acos(Promoted{x})}; }
+
+	/** Calculates arc-tangent of elements in vector \a x, and returns the resulting vector. */
+	template<std::floating_point T, typename Abi>
+	[[nodiscard]] inline simd<T, Abi> atan(const simd<T, Abi> &x) noexcept
+	{
+		simd<T, Abi> result = {};
+		for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i)
+			result[i] = std::atan(x[i]);
+		return result;
+	}
+	/** @copydoc atan
+	 * @note Arguments and return type are promoted to `double`, or `long double` if one of the arguments is `long double`. */
+	template<typename T, typename Abi, typename Promoted = rebind_simd_t<detail::promote_t<T>, simd<T, Abi>>>
+	[[nodiscard]] DPM_FORCEINLINE Promoted atan(const simd<T, Abi> &x) noexcept { return Promoted{atan(Promoted{x})}; }
+
+	/** Calculates arc-tangent of quotient of elements in vectors \a a and \a b, and returns the resulting vector. */
+	template<std::floating_point T, typename Abi>
+	[[nodiscard]] inline simd<T, Abi> atan2(const simd<T, Abi> &a, const simd<T, Abi> &b) noexcept
+	{
+		simd<T, Abi> result = {};
+		for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i)
+			result[i] = std::atan2(a[i], b[i]);
+		return result;
+	}
+	/** @copydoc atan
+	 * @note Arguments and return type are promoted to `double`, or `long double` if one of the arguments is `long double`. */
+	template<typename T0, typename T1, typename Abi, typename Promoted = rebind_simd_t<detail::promote_t<T0, T1>, simd<T0, Abi>>>
+	[[nodiscard]] DPM_FORCEINLINE Promoted atan2(const simd<T0, Abi> &a, const simd<T1, Abi> &b) noexcept { return Promoted{atan2(Promoted{a}, Promoted{b})}; }
 
 	DPM_DECLARE_EXT_NAMESPACE
 	{
@@ -348,6 +442,20 @@ namespace dpm
 			out_sin = sin(x);
 			out_cos = cos(x);
 		}
+
+		/** Calculates cotangent of elements in vector \a x, and returns the resulting vector. */
+		template<std::floating_point T, typename Abi>
+		[[nodiscard]] inline simd<T, Abi> cot(const simd<T, Abi> &x) noexcept
+		{
+			simd<T, Abi> result = {};
+			for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i)
+				result[i] = detail::cot(x[i]);
+			return result;
+		}
+		/** @copydoc cot
+		 * @note Arguments and return type are promoted to `double`, or `long double` if one of the arguments is `long double`. */
+		template<typename T, typename Abi, typename Promoted = rebind_simd_t<detail::promote_t<T>, simd<T, Abi>>>
+		[[nodiscard]] DPM_FORCEINLINE Promoted cot(const simd<T, Abi> &x) noexcept { return Promoted{atan(Promoted{x})}; }
 	}
 #pragma endregion
 

@@ -2,7 +2,7 @@
  * Created by switchblade on 2023-02-01.
  */
 
-#include "sincos.hpp"
+#include "trig.hpp"
 
 #if defined(DPM_ARCH_X86) && defined(DPM_HAS_SSE2)
 
@@ -75,12 +75,18 @@ namespace dpm::detail
 		/* y = |x| * 4 / Pi */
 		auto y = mul<T>(abs_x, fill<V>(fopi<T>));
 
+		/* Set rounding mode to truncation. */
+		const auto old_csr = _mm_getcsr();
+		_mm_setcsr((old_csr & ~_MM_ROUND_MASK) | _MM_ROUND_TOWARD_ZERO);
+
 		/* i = isodd(y) ? y + 1 : y */
-		select_vector_t<I, sizeof(V)> i;
-		cast_copy<T, I>(i, y);
+		auto i = cvt<I, T>(y);
 		i = add<I>(i, fill<decltype(i)>(I{1}));
 		i = bit_and(i, fill<decltype(i)>(I{~1ll}));
-		cast_copy<I, T>(y, i);
+		y = cvt<T, I>(i);
+
+		/* Restore mxcsr */
+		_mm_setcsr(old_csr);
 
 		/* Extract sign bit mask */
 		const auto flip_sign = bit_shiftl<I, sizeof(T) * 8 - 3>(bit_and(i, fill<decltype(i)>(I{4})));
@@ -136,6 +142,7 @@ namespace dpm::detail
 			p_cos = blendv<T>(p_cos, fill<V>(T{1.0}), zero_mask);
 #endif
 		}
+
 		return return_sincos<Mask>(p_sin, p_cos);
 	}
 
@@ -151,6 +158,7 @@ namespace dpm::detail
 	std::pair<__m256, __m256> DPM_PUBLIC DPM_MATHFUNC sincos(__m256 x) noexcept { return impl_sincos<float, sincos_op::OP_SINCOS>(x); }
 	__m256 DPM_PUBLIC DPM_MATHFUNC sin(__m256 x) noexcept { return impl_sincos<float, sincos_op::OP_SIN>(x); }
 	__m256 DPM_PUBLIC DPM_MATHFUNC cos(__m256 x) noexcept { return impl_sincos<float, sincos_op::OP_COS>(x); }
+	__m256 DPM_PUBLIC DPM_MATHFUNC tan(__m256 x) noexcept;
 
 	std::pair<__m256d, __m256d> DPM_PUBLIC DPM_MATHFUNC sincos(__m256d x) noexcept { return impl_sincos<double, sincos_op::OP_SINCOS>(x); }
 	__m256d DPM_PUBLIC DPM_MATHFUNC sin(__m256d x) noexcept { return impl_sincos<double, sincos_op::OP_SIN>(x); }

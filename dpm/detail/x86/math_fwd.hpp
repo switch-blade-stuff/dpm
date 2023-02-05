@@ -4,9 +4,7 @@
 
 #pragma once
 
-#include "../define.hpp"
-
-#define DPM_MATHFUNC DPM_PURE DPM_VECTORCALL
+#include "../generic/math.hpp"
 
 #ifdef DPM_HANDLE_ERRORS
 #ifndef DPM_USE_IMPORT

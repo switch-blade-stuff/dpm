@@ -1,4 +1,4 @@
-# Data-Parralel Math
+# Data-Parallel Math
 
 This library implements a feature-complete version of the C++ data-parallel math library TS with optional extensions.
 
@@ -117,17 +117,19 @@ DPM provides the following extensions to the standard API:
     * `simd_mask shuffle<Is...>(const simd_mask &)`
     * `simd_mask shuffle<Is...>(const V &)`
 * Reductions
-    * `hadd(const simd &)`
-    * `hmul(const simd &)`
-    * `hand(const simd &)`
-    * `hxor(const simd &)`
-    * `hor(const simd &)`
+    * `simd hadd(const simd &)`
+    * `simd hmul(const simd &)`
+    * `simd hand(const simd &)`
+    * `simd hxor(const simd &)`
+    * `simd hor(const simd &)`
 * Basic math functions
-    * `remquo(const simd &, const simd &, simd &)`
-    * `nan<T, Abi>(const char *)`
+    * `simd remquo(const simd &, const simd &, simd &)`
+    * `simd nan<T, Abi>(const char *)`
 * Power math functions
-    * `rcp(const simd &)`
-    * `rsqrt(const simd &)`
+    * `simd rcp(const simd &)`
+    * `simd rsqrt(const simd &)`
+* Trigonometric functions
+  * `simd cot(const simd &)`
 * Other utilities
     * `cpuid`
 

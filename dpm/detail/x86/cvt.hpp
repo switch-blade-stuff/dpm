@@ -22,6 +22,15 @@ namespace dpm::detail
 		return std::bit_cast<__m128i>(_mm_xor_ps(_mm_add_ps(x, offset), offset));
 	}
 
+	template<signed_integral_of_size<4> To, std::same_as<float> From>
+	[[nodiscard]] DPM_FORCEINLINE __m128i cvt(__m128 x) noexcept { return _mm_cvtps_epi32(x); }
+	template<std::same_as<float> To, signed_integral_of_size<4> From>
+	[[nodiscard]] DPM_FORCEINLINE __m128 cvt(__m128i x) noexcept { return _mm_cvtepi32_ps(x); }
+	template<unsigned_integral_of_size<4> To, std::same_as<float> From>
+	[[nodiscard]] DPM_FORCEINLINE __m128i cvt(__m128 x) noexcept { return cvt_f32_u32(x); }
+	template<std::same_as<float> To, unsigned_integral_of_size<4> From>
+	[[nodiscard]] DPM_FORCEINLINE __m128 cvt(__m128i x) noexcept { return cvt_u32_f32(x); }
+
 	[[maybe_unused]] [[nodiscard]] DPM_FORCEINLINE __m128d cvt_u64_f64_sse(__m128i x) noexcept
 	{
 		const auto exp84 = std::bit_cast<__m128i>(_mm_set1_pd(19342813113834066795298816.));  /* 2^84 */
@@ -90,6 +99,15 @@ namespace dpm::detail
 #endif
 	}
 
+	template<std::same_as<double> To, unsigned_integral_of_size<8> From>
+	[[nodiscard]] DPM_FORCEINLINE __m128d cvt(__m128i x) noexcept { return cvt_u64_f64(x); }
+	template<std::same_as<double> To, signed_integral_of_size<8> From>
+	[[nodiscard]] DPM_FORCEINLINE __m128d cvt(__m128i x) noexcept { return cvt_i64_f64(x); }
+	template<unsigned_integral_of_size<8> To, std::same_as<double> From>
+	[[nodiscard]] DPM_FORCEINLINE __m128i cvt(__m128d x) noexcept { return cvt_f64_u64(x); }
+	template<signed_integral_of_size<8> To, std::same_as<double> From>
+	[[nodiscard]] DPM_FORCEINLINE __m128i cvt(__m128d x) noexcept { return cvt_f64_i64(x); }
+
 	[[maybe_unused]] [[nodiscard]] DPM_FORCEINLINE __m256i DPM_TARGET("avx2") cvt_f64_u64_avx2(__m256d x) noexcept
 	{
 		const auto offset = _mm256_set1_pd(0x0010'0000'0000'0000);
@@ -144,6 +162,15 @@ namespace dpm::detail
 #endif
 	}
 
+	template<signed_integral_of_size<4> To, std::same_as<float> From>
+	[[nodiscard]] DPM_FORCEINLINE __m256i cvt(__m256 x) noexcept { return _mm256_cvtps_epi32(x); }
+	template<std::same_as<float> To, signed_integral_of_size<4> From>
+	[[nodiscard]] DPM_FORCEINLINE __m256 cvt(__m256i x) noexcept { return _mm256_cvtepi32_ps(x); }
+	template<unsigned_integral_of_size<4> To, std::same_as<float> From>
+	[[nodiscard]] DPM_FORCEINLINE __m256i cvt(__m256 x) noexcept { return cvt_f32_u32(x); }
+	template<std::same_as<float> To, unsigned_integral_of_size<4> From>
+	[[nodiscard]] DPM_FORCEINLINE __m256 cvt(__m256i x) noexcept { return cvt_u32_f32(x); }
+
 	[[nodiscard]] DPM_FORCEINLINE __m256d cvt_u64_f64(__m256i x) noexcept
 	{
 #if defined(DPM_HAS_AVX512DQ) && defined(DPM_HAS_AVX512VL)
@@ -188,6 +215,15 @@ namespace dpm::detail
 		return _mm256_set_m128i(h, l);
 #endif
 	}
+
+	template<std::same_as<double> To, unsigned_integral_of_size<8> From>
+	[[nodiscard]] DPM_FORCEINLINE __m256d cvt(__m256i x) noexcept { return cvt_u64_f64(x); }
+	template<std::same_as<double> To, signed_integral_of_size<8> From>
+	[[nodiscard]] DPM_FORCEINLINE __m256d cvt(__m256i x) noexcept { return cvt_i64_f64(x); }
+	template<unsigned_integral_of_size<8> To, std::same_as<double> From>
+	[[nodiscard]] DPM_FORCEINLINE __m256i cvt(__m256d x) noexcept { return cvt_f64_u64(x); }
+	template<signed_integral_of_size<8> To, std::same_as<double> From>
+	[[nodiscard]] DPM_FORCEINLINE __m256i cvt(__m256d x) noexcept { return cvt_f64_i64(x); }
 #endif
 }
 
