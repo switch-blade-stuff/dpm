@@ -4,7 +4,7 @@
 
 #include "cpuid.hpp"
 
-#if defined(DPM_ARCH_X86) && defined(DPM_DYNAMIC_DISPATCH)
+#ifdef DPM_ARCH_X86
 
 #if defined(__linux__) || defined(__ANDROID__) || defined(__FreeBSD__)
 

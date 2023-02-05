@@ -6,7 +6,7 @@
 
 #include "../define.hpp"
 
-#if defined(DPM_ARCH_X86) && defined(DPM_DYNAMIC_DISPATCH)
+#ifdef DPM_ARCH_X86
 
 #include "../utility.hpp"
 

@@ -6,7 +6,7 @@
 
 #include "../generic/abi.hpp"
 
-#if defined(DPM_ARCH_ARM) && (defined(DPM_HAS_NEON) || defined(DPM_DYNAMIC_DISPATCH))
+#if defined(DPM_ARCH_ARM) && defined(DPM_HAS_NEON)
 
 /* On GCC & CLang `arm_neon.h` will error-out if __ARM_NEON was not defined. We still need `arm_neon.h` for dynamic dispatch. */
 #if !defined(DPM_HAS_NEON) && (defined(__clang__) || defined(__GNUC__))

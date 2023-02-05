@@ -12,11 +12,6 @@ if (${DPM_INLINE_EXTENSIONS})
     add_compile_definitions(DPM_INLINE_EXTENSIONS)
 endif ()
 
-option(DPM_DYNAMIC_DISPATCH "Toggles runtime detection & dispatch of SIMD operations" ON)
-if (${DPM_DYNAMIC_DISPATCH})
-    add_compile_definitions(DPM_DYNAMIC_DISPATCH)
-endif ()
-
 option(DPM_HANDLE_ERRORS "Toggles detection & reporting of math errors via math_errhandling" ON)
 if (${DPM_HANDLE_ERRORS})
     add_compile_definitions(DPM_HANDLE_ERRORS)
