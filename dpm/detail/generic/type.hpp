@@ -142,6 +142,7 @@ namespace dpm
 		template<std::size_t J, std::size_t I, std::size_t... Is, typename T, typename FromAbi, typename ToAbi>
 		DPM_FORCEINLINE void shuffle_impl(const simd_mask<T, FromAbi> &from, simd_mask<T, ToAbi> &to) noexcept
 		{
+			static_assert(J < simd_mask<T, ToAbi>::size() && I < simd_mask<T, FromAbi>::size());
 			to[J] = from[I];
 			if constexpr (sizeof...(Is) != 0)
 				shuffle_impl<J + 1, Is...>(from, to);
@@ -149,6 +150,7 @@ namespace dpm
 		template<std::size_t J, std::size_t I, std::size_t... Is, typename T, typename FromAbi, typename ToAbi>
 		DPM_FORCEINLINE void shuffle_impl(const simd<T, FromAbi> &from, simd<T, ToAbi> &to) noexcept
 		{
+			static_assert(J < simd<T, ToAbi>::size() && I < simd<T, FromAbi>::size());
 			to[J] = from[I];
 			if constexpr (sizeof...(Is) != 0)
 				shuffle_impl<J + 1, Is...>(from, to);
@@ -219,7 +221,7 @@ namespace dpm
 			return result;
 		}
 
-		/** Shuffles elements of mask \a x into a new mask according to the specified indices. ABI of the resulting mask is deduced via `simd_abi::deduce_t<T, sizeof...(Is), Abi>`. */
+		/** Shuffles elements of mask \a x into a new mask according to the specified indices. ABI of the resulting mask is deduced via `simd_abi::deduce_value<T, sizeof...(Is), Abi>`. */
 		template<std::size_t I, std::size_t... Is, typename T, typename Abi>
 		[[nodiscard]] inline simd_mask<T, simd_abi::deduce_t<T, sizeof...(Is) + 1, Abi>> shuffle(const simd_mask<T, Abi> &x)
 		{
@@ -657,7 +659,7 @@ namespace dpm
 			return result;
 		}
 
-		/** Shuffles elements of vector \a x into a new vector according to the specified indices. ABI of the resulting vector is deduced via `simd_abi::deduce_t<T, sizeof...(Is), Abi>`. */
+		/** Shuffles elements of vector \a x into a new vector according to the specified indices. ABI of the resulting vector is deduced via `simd_abi::deduce_value<T, sizeof...(Is), Abi>`. */
 		template<std::size_t I, std::size_t... Is, typename T, typename Abi>
 		[[nodiscard]] inline simd<T, simd_abi::deduce_t<T, sizeof...(Is) + 1, Abi>> shuffle(const simd<T, Abi> &x)
 		{
