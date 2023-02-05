@@ -425,7 +425,7 @@ namespace dpm::detail
 	[[nodiscard]] DPM_FORCEINLINE std::size_t movemask_l(V x, std::size_t n) noexcept
 	{
 		constexpr std::size_t extent = sizeof(V) / sizeof(T);
-		auto bits = detail::movemask<T>(x) << (std::numeric_limits<std::size_t>::digits - extent * movemask_bits_v<T>);
+		auto bits = detail::movemask<T>(x) << (std::numeric_limits<std::size_t>::digits - extent * movemask_bits_v < T > );
 		if (n < extent) for (n = extent - n; n--;) bits <<= movemask_bits_v<T>;
 		return bits;
 	}

@@ -14,10 +14,10 @@
 #if defined(DPM_ARCH_X86) && defined(DPM_HAS_SSE)
 
 #include "mbase.hpp"
-#include "class.hpp"
-#include "sign.hpp"
-#include "fmadd.hpp"
+#include "power.hpp"
 #include "sincos.hpp"
+#include "fmanip.hpp"
+#include "class.hpp"
 
 #endif
 

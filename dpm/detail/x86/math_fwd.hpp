@@ -6,7 +6,7 @@
 
 #include "../define.hpp"
 
-#define DPM_MATHFUNC(tgt) DPM_PURE DPM_VECTORCALL DPM_TARGET(tgt)
+#define DPM_MATHFUNC DPM_PURE DPM_VECTORCALL
 
 #ifdef DPM_HANDLE_ERRORS
 #ifndef DPM_USE_IMPORT

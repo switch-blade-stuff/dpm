@@ -54,8 +54,8 @@
 #ifdef __AVX2__
 #define DPM_HAS_AVX2
 
-/* If __FMA__ is not defined by the compiler but AVX2 is supported, enable FMA as well. */
-#ifndef DPM_HAS_FMA
+/* On MSVC, AVX2 includes support for FMA */
+#if !defined(DPM_HAS_FMA) && defined(_MSC_VER)
 #define DPM_HAS_FMA
 #endif
 #endif

@@ -85,11 +85,11 @@ namespace dpm::detail
 #endif
 
 	template<typename T, typename V>
-	[[nodiscard]] DPM_FORCEINLINE V inc(V x) noexcept { return add(x, fill<V>(static_cast<T>(1))); }
+	[[nodiscard]] DPM_FORCEINLINE V inc(V x) noexcept { return add<T>(x, fill<V>(T{1})); }
 	template<typename T, typename V>
-	[[nodiscard]] DPM_FORCEINLINE V dec(V x) noexcept { return sub(x, fill<V>(static_cast<T>(1))); }
+	[[nodiscard]] DPM_FORCEINLINE V dec(V x) noexcept { return sub<T>(x, fill<V>(T{1})); }
 	template<std::floating_point T, typename V>
-	[[nodiscard]] DPM_FORCEINLINE V negate(V x) noexcept { return bit_xor(x, fill<V>(static_cast<T>(-0.0))); }
+	[[nodiscard]] DPM_FORCEINLINE V negate(V x) noexcept { return bit_xor(x, fill<V>(T{-0.0})); }
 	template<std::integral T, typename V>
-	[[nodiscard]] DPM_FORCEINLINE V negate(V x) noexcept { return sub(setzero<V>(), x); }
+	[[nodiscard]] DPM_FORCEINLINE V negate(V x) noexcept { return sub<T>(setzero<V>(), x); }
 }

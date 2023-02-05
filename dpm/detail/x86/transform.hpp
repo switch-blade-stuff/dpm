@@ -81,15 +81,12 @@ namespace dpm::detail
 #endif
 	}
 
-	template<typename T, typename V, std::size_t I, std::size_t... Is, std::size_t E = sizeof(V) / sizeof(T)>
-	concept sequence_shuffle = ((I / E == Is / E) && ...) && is_sequential<-1, I, I, Is...>::value;
+	template<typename T, typename V, std::size_t I, std::size_t... Is>
+	concept sequence_shuffle = ((I / (sizeof(V) / sizeof(T)) == Is / (sizeof(V) / sizeof(T))) && ...) && is_sequential<-1, I, I, Is...>::value;
 
 	/* If all indices are from the same vector, no shuffle is needed. */
 	template<typename T, std::size_t I, std::size_t... Is, typename V>
-	[[nodiscard]] DPM_FORCEINLINE V shuffle(std::index_sequence<I, Is...>, const V *x) requires sequence_shuffle<T, V, I, Is...>
-	{
-		return x[I / (sizeof(V) / sizeof(T))];
-	}
+	[[nodiscard]] DPM_FORCEINLINE V shuffle(std::index_sequence<I, Is...>, const V *x) noexcept requires sequence_shuffle<T, V, I, Is...> { return x[I / (sizeof(V) / sizeof(T))]; }
 
 	template<typename T, std::size_t I3, std::size_t I2, std::size_t I1, std::size_t I0, typename V>
 	[[nodiscard]] DPM_FORCEINLINE V shuffle(std::index_sequence<I3, I2, I1, I0>, const V *x) noexcept requires (!sequence_shuffle<T, V, I3, I2, I1, I0> && sizeof(T) == 4 && sizeof(V) == 16)

@@ -34,8 +34,10 @@ namespace dpm::detail
 	template<integral_of_size<8> T, int N>
 	[[nodiscard]] DPM_FORCEINLINE __m128i bit_shiftr(__m128i x) noexcept { return _mm_srli_epi64(x, N); }
 
-	/* Emulate AVX2 32-bit shifts via scalar shifts. These are only used internally. */
-	[[nodiscard]] DPM_FORCEINLINE __m128i bit_shiftl32_sse(__m128i a, __m128i b) noexcept
+	/* Emulate AVX2 64-bit shifts by shifting individual elements. */
+#ifndef DPM_HAS_AVX2
+	template<integral_of_size<4> T>
+	[[nodiscard]] DPM_FORCEINLINE __m128i bit_shiftl(__m128i a, __m128i b) noexcept
 	{
 		auto b_data = reinterpret_cast<const alias_t<std::uint32_t> *>(&b);
 		auto a_data = reinterpret_cast<alias_t<std::uint32_t> *>(&a);
@@ -45,7 +47,8 @@ namespace dpm::detail
 		a_data[3] <<= b_data[3];
 		return a;
 	}
-	[[nodiscard]] DPM_FORCEINLINE __m128i bit_shiftr32_sse(__m128i a, __m128i b) noexcept
+	template<integral_of_size<4> T>
+	[[nodiscard]] DPM_FORCEINLINE __m128i bit_shiftr(__m128i a, __m128i b) noexcept
 	{
 		auto b_data = reinterpret_cast<const alias_t<std::uint32_t> *>(&b);
 		auto a_data = reinterpret_cast<alias_t<std::uint32_t> *>(&a);
@@ -55,28 +58,22 @@ namespace dpm::detail
 		a_data[3] >>= b_data[3];
 		return a;
 	}
-
-	/* Emulate AVX2 64-bit shifts by shifting individual elements. */
-	[[nodiscard]] DPM_FORCEINLINE __m128i bit_shiftl64_sse(__m128i a, __m128i b) noexcept
+	template<integral_of_size<8> T>
+	[[nodiscard]] DPM_FORCEINLINE __m128i bit_shiftl(__m128i a, __m128i b) noexcept
 	{
 		const auto bh = _mm_unpackhi_epi64(b, b);
 		const auto sl = std::bit_cast<__m128d>(_mm_sll_epi64(a, b));
 		const auto sh = std::bit_cast<__m128d>(_mm_sll_epi64(a, bh));
 		return std::bit_cast<__m128i>(_mm_shuffle_pd(sl, sh, 0b10));
 	}
-	[[nodiscard]] DPM_FORCEINLINE __m128i bit_shiftr64_sse(__m128i a, __m128i b) noexcept
+	template<integral_of_size<8> T>
+	[[nodiscard]] DPM_FORCEINLINE __m128i bit_shiftr(__m128i a, __m128i b) noexcept
 	{
 		const auto bh = _mm_unpackhi_epi64(b, b);
 		const auto sl = std::bit_cast<__m128d>(_mm_srl_epi64(a, b));
 		const auto sh = std::bit_cast<__m128d>(_mm_srl_epi64(a, bh));
 		return std::bit_cast<__m128i>(_mm_shuffle_pd(sl, sh, 0b10));
 	}
-
-#ifndef DPM_HAS_AVX2
-	template<integral_of_size<8> T>
-	[[nodiscard]] DPM_FORCEINLINE __m128i bit_shiftl(__m128i a, __m128i b) noexcept { return bit_shiftl64_sse(a, b); }
-	template<integral_of_size<8> T>
-	[[nodiscard]] DPM_FORCEINLINE __m128i bit_shiftr(__m128i a, __m128i b) noexcept { return bit_shiftr64_sse(a, b); }
 #endif
 #endif
 
@@ -157,15 +154,25 @@ namespace dpm::detail
 	template<integral_of_size<8> T, int N>
 	[[nodiscard]] DPM_FORCEINLINE __m256i bit_shiftr(__m256i x) noexcept { return mux_128x2<__m256i>([](auto x) { return bit_shiftr<T, N>(x); }, x); }
 
+	template<integral_of_size<4> T>
+	[[nodiscard]] DPM_FORCEINLINE __m256i bit_shiftl(__m256i a, __m256i b) noexcept
+	{
+		return mux_128x2<__m256i>([](auto a, auto b) { return bit_shiftl<T>(a, b); }, a, b);
+	}
+	template<integral_of_size<4> T>
+	[[nodiscard]] DPM_FORCEINLINE __m256i bit_shiftr(__m256i a, __m256i b) noexcept
+	{
+		return mux_128x2<__m256i>([](auto a, auto b) { return bit_shiftr<T>(a, b); }, a, b);
+	}
 	template<integral_of_size<8> T>
 	[[nodiscard]] DPM_FORCEINLINE __m256i bit_shiftl(__m256i a, __m256i b) noexcept
 	{
-		return mux_128x2<__m256i>([](auto a, auto b) { return bit_shiftl64_sse(a, b); }, a, b);
+		return mux_128x2<__m256i>([](auto a, auto b) { return bit_shiftl<T>(a, b); }, a, b);
 	}
 	template<integral_of_size<8> T>
 	[[nodiscard]] DPM_FORCEINLINE __m256i bit_shiftr(__m256i a, __m256i b) noexcept
 	{
-		return mux_128x2<__m256i>([](auto a, auto b) { return bit_shiftr64_sse(a, b); }, a, b);
+		return mux_128x2<__m256i>([](auto a, auto b) { return bit_shiftr<T>(a, b); }, a, b);
 	}
 #endif
 #endif

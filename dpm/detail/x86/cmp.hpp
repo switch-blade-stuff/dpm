@@ -52,6 +52,15 @@ namespace dpm::detail
 #endif
 	}
 
+	[[nodiscard]] DPM_FORCEINLINE bool testz(__m128i x) noexcept
+	{
+#ifdef DPM_HAS_SSE4_1
+		return _mm_testz_si128(x, x);
+#else
+		return !_mm_movemask_epi8(cmp_eq<std::int32_t>(x, setzero<__m128i>()));
+#endif
+	}
+
 	template<signed_integral_of_size<1> T>
 	[[nodiscard]] DPM_FORCEINLINE __m128i cmp_gt(__m128i a, __m128i b) noexcept { return _mm_cmpgt_epi8(a, b); }
 	template<signed_integral_of_size<2> T>
@@ -62,21 +71,41 @@ namespace dpm::detail
 	template<signed_integral_of_size<8> T>
 	[[nodiscard]] DPM_FORCEINLINE __m128i cmp_gt(__m128i a, __m128i b) noexcept { return _mm_cmpgt_epi64(a, b); }
 #endif
+
+	template<integral_of_size<4> T>
+	[[nodiscard]] DPM_FORCEINLINE __m128i cmp_gt_h(__m128i a, __m128i b) noexcept
+	{
+		return cmp_gt<T>(a, b);
+	}
+	template<integral_of_size<8> T>
+	[[nodiscard]] DPM_FORCEINLINE __m128i cmp_gt_h(__m128i a, __m128i b) noexcept
+	{
+#ifdef DPM_HAS_SSE4_1
+		return _mm_cmpgt_epi64(a, b);
+#else
+		const auto c32 = std::bit_cast<__m128>(_mm_cmpgt_epi32(a, b));
+#ifdef DPM_HAS_SSE3
+		return std::bit_cast<__m128i>(_mm_shuffle_ps(c32, c32, (shuffle4_mask<3, 3, 1, 1>())));
+#else
+		return std::bit_cast<__m128i>(_mm_movehdup_ps(c32));
+#endif
+#endif
+	}
 #endif
 
 #ifdef DPM_HAS_AVX
 	template<std::same_as<float> T>
-	[[nodiscard]] DPM_FORCEINLINE __m256 cmp_eq(__m256 a, __m256 b) noexcept { return _mm256_cmp_ps(a, b, _CMP_EQ_OS); }
+	[[nodiscard]] DPM_FORCEINLINE __m256 cmp_eq(__m256 a, __m256 b) noexcept { return _mm256_cmp_ps(a, b, _CMP_EQ_OQ); }
 	template<std::same_as<float> T>
-	[[nodiscard]] DPM_FORCEINLINE __m256 cmp_gt(__m256 a, __m256 b) noexcept { return _mm256_cmp_pd(a, b, _CMP_GT_OS); }
+	[[nodiscard]] DPM_FORCEINLINE __m256 cmp_gt(__m256 a, __m256 b) noexcept { return _mm256_cmp_ps(a, b, _CMP_GT_OQ); }
 	template<std::same_as<float> T>
-	[[nodiscard]] DPM_FORCEINLINE __m256 cmp_lt(__m256 a, __m256 b) noexcept { return _mm256_cmp_pd(a, b, _CMP_LT_OS); }
+	[[nodiscard]] DPM_FORCEINLINE __m256 cmp_lt(__m256 a, __m256 b) noexcept { return _mm256_cmp_ps(a, b, _CMP_LT_OQ); }
 	template<std::same_as<float> T>
-	[[nodiscard]] DPM_FORCEINLINE __m256 cmp_ge(__m256 a, __m256 b) noexcept { return _mm256_cmp_pd(a, b, _CMP_GE_OS); }
+	[[nodiscard]] DPM_FORCEINLINE __m256 cmp_ge(__m256 a, __m256 b) noexcept { return _mm256_cmp_ps(a, b, _CMP_GE_OQ); }
 	template<std::same_as<float> T>
-	[[nodiscard]] DPM_FORCEINLINE __m256 cmp_le(__m256 a, __m256 b) noexcept { return _mm256_cmp_pd(a, b, _CMP_LE_OS); }
+	[[nodiscard]] DPM_FORCEINLINE __m256 cmp_le(__m256 a, __m256 b) noexcept { return _mm256_cmp_ps(a, b, _CMP_LE_OQ); }
 	template<std::same_as<float> T>
-	[[nodiscard]] DPM_FORCEINLINE __m256 cmp_ne(__m256 a, __m256 b) noexcept { return _mm256_cmp_pd(a, b, _CMP_NEQ_OS); }
+	[[nodiscard]] DPM_FORCEINLINE __m256 cmp_ne(__m256 a, __m256 b) noexcept { return _mm256_cmp_ps(a, b, _CMP_NEQ_OQ); }
 
 	template<std::same_as<double> T>
 	[[nodiscard]] DPM_FORCEINLINE __m256d cmp_eq(__m256d a, __m256d b) noexcept { return _mm256_cmp_pd(a, b, _CMP_EQ_OQ); }
@@ -90,6 +119,15 @@ namespace dpm::detail
 	[[nodiscard]] DPM_FORCEINLINE __m256d cmp_le(__m256d a, __m256d b) noexcept { return _mm256_cmp_pd(a, b, _CMP_LE_OQ); }
 	template<std::same_as<double> T>
 	[[nodiscard]] DPM_FORCEINLINE __m256d cmp_ne(__m256d a, __m256d b) noexcept { return _mm256_cmp_pd(a, b, _CMP_NEQ_OQ); }
+
+	[[nodiscard]] DPM_FORCEINLINE bool testz(__m256i x) noexcept
+	{
+#ifdef DPM_HAS_SSE4_1
+		return _mm256_testz_si256(x, x);
+#else
+		return !_mm256_movemask_ps(cmp_eq<float>(std::bit_cast<__m256>(x), setzero<__m256>()));
+#endif
+	}
 
 #ifdef DPM_HAS_AVX2
 	template<integral_of_size<1> T>
@@ -115,6 +153,11 @@ namespace dpm::detail
 	template<std::integral T>
 	[[nodiscard]] DPM_FORCEINLINE __m256i cmp_gt(__m256i a, __m256i b) noexcept { return mux_128x2<__m256i>([](auto a, auto b) { return cmp_gt<T>(a, b); }, a, b); }
 #endif
+
+	template<integral_of_size<4> T>
+	[[nodiscard]] DPM_FORCEINLINE __m256i cmp_gt_h(__m256i a, __m256i b) noexcept { return cmp_gt<T>(a, b); }
+	template<integral_of_size<8> T>
+	[[nodiscard]] DPM_FORCEINLINE __m256i cmp_gt_h(__m256i a, __m256i b) noexcept { return cmp_gt<T>(a, b); }
 #endif
 
 	template<std::integral T, typename V>

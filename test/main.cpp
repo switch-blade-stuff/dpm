@@ -301,6 +301,44 @@ int main()
 		TEST_ASSERT(std::abs(dpm::cos(b)[1] - dpm::cos(d)[0]) < 0.0001);
 	}
 	{
+		std::array<float, 5> a_data = {0.1234, 12.7, 800.5, -1022.9999, std::numeric_limits<float>::quiet_NaN()};
+		std::array<float, 5> b_data = {-1.0, 50.0, 100.0, 222.0, 0.0};
+
+		dpm::simd<float, dpm::simd_abi::packed_buffer<5>> a, b;
+		a.copy_from(a_data.data(), dpm::element_aligned);
+		b.copy_from(b_data.data(), dpm::element_aligned);
+		dpm::simd<float, dpm::simd_abi::fixed_size<5>> c, d;
+		c.copy_from(a_data.data(), dpm::element_aligned);
+		d.copy_from(b_data.data(), dpm::element_aligned);
+
+		a = dpm::fdim(a, b);
+		c = dpm::fdim(c, d);
+		TEST_ASSERT(a[0] == c[0]);
+		TEST_ASSERT(a[1] == c[1]);
+		TEST_ASSERT(a[2] == c[2]);
+		TEST_ASSERT(a[3] == c[3]);
+		TEST_ASSERT(std::isnan(a[4]) && std::isnan(c[4]));
+	}
+	{
+		std::array<double, 5> a_data = {0.1234, 12.7, 800.5, -1022.9999, std::numeric_limits<double>::quiet_NaN()};
+		std::array<double, 5> b_data = {-1.0, 50.0, 100.0, 222.0, 0.0};
+
+		dpm::simd<double, dpm::simd_abi::packed_buffer<5>> a, b;
+		a.copy_from(a_data.data(), dpm::element_aligned);
+		b.copy_from(b_data.data(), dpm::element_aligned);
+		dpm::simd<double, dpm::simd_abi::fixed_size<5>> c, d;
+		c.copy_from(a_data.data(), dpm::element_aligned);
+		d.copy_from(b_data.data(), dpm::element_aligned);
+
+		a = dpm::fdim(a, b);
+		c = dpm::fdim(c, d);
+		TEST_ASSERT(a[0] == c[0]);
+		TEST_ASSERT(a[1] == c[1]);
+		TEST_ASSERT(a[2] == c[2]);
+		TEST_ASSERT(a[3] == c[3]);
+		TEST_ASSERT(std::isnan(a[4]) && std::isnan(c[4]));
+	}
+	{
 		const std::array<std::int16_t, 16> a_data = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15};
 		dpm::fixed_size_simd<std::int16_t, 16> a;
 		a.copy_from(a_data.data(), dpm::element_aligned);
