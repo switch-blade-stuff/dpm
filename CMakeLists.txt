@@ -22,6 +22,11 @@ if (${DPM_PROPAGATE_NAN})
     add_compile_definitions(DPM_PROPAGATE_NAN)
 endif ()
 
+option(DPM_USE_SVML "Enables use of math functions provided by SVML" OFF)
+if (${DPM_USE_SVML})
+    add_compile_definitions(DPM_PROPAGATE_NAN)
+endif ()
+
 option(DPM_USE_IPO "Toggles support for inter-procedural optimization" ON)
 option(BUILD_SHARED_LIBS "Build DPM as a shared library" OFF)
 

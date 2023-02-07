@@ -50,6 +50,12 @@ On architectures without SIMD intrinsic support, vectorization is emulated via s
     <td>Toggles guaranteed propagation of NaN (see notes)</td>
   </tr>
   <tr>
+    <td>DPM_USE_SVML</td>
+    <td>-DDPM_USE_SVML</td>
+    <td>OFF</td>
+    <td>Enables use of math functions provided by SVML (see notes)</td>
+  </tr>
+  <tr>
     <td>N/A</td>
     <td>-DDPM_USE_IPO</td>
     <td>ON</td>
@@ -129,7 +135,7 @@ DPM provides the following extensions to the standard API:
     * `simd rcp(const simd &)`
     * `simd rsqrt(const simd &)`
 * Trigonometric functions
-  * `simd cot(const simd &)`
+    * `simd cot(const simd &)`
 * Other utilities
     * `cpuid`
 
@@ -161,3 +167,10 @@ CPUs. See the following articles for details:
 - [https://lemire.me/blog/2018/09/07/avx-512-when-and-how-to-use-these-new-instructions/](https://lemire.me/blog/2018/09/07/avx-512-when-and-how-to-use-these-new-instructions/)
 - [https://news.ycombinator.com/item?id=21031905](https://news.ycombinator.com/item?id=21031905)
 - [https://www.phoronix.com/news/Linus-Torvalds-On-AVX-512](https://www.phoronix.com/news/Linus-Torvalds-On-AVX-512)
+
+### SVML
+
+When the `DPM_USE_SVML` is enabled, DPM will use mathematical functions provided by SVML for trigonometric, hyperbolic,
+exponential and error functions instead of the built-in implementation. Inlined functions will still use the internal
+implementation. Note that if `DPM_USE_SVML` is enabled, NaN propagation and error handling options are ignored for
+affected functions, any error handling is left to SVML.

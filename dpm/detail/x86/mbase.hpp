@@ -179,35 +179,35 @@ namespace dpm
 
 		[[nodiscard]] DPM_FORCEINLINE __m256 fmadd(__m256 a, __m256 b, __m256 c) noexcept
 		{
-		#ifdef DPM_HAS_FMA
+#ifdef DPM_HAS_FMA
 			return _mm256_fmadd_ps(a, b, c);
-		#else
+#else
 			return fmadd_avx(a, b, c);
-		#endif
+#endif
 		}
 		[[nodiscard]] DPM_FORCEINLINE __m256 fmsub(__m256 a, __m256 b, __m256 c) noexcept
 		{
-		#ifdef DPM_HAS_FMA
+#ifdef DPM_HAS_FMA
 			return _mm256_fmsub_ps(a, b, c);
-		#else
+#else
 			return fmsub_avx(a, b, c);
-		#endif
+#endif
 		}
 		[[nodiscard]] DPM_FORCEINLINE __m256 fnmadd(__m256 a, __m256 b, __m256 c) noexcept
 		{
-		#ifdef DPM_HAS_FMA
+#ifdef DPM_HAS_FMA
 			return _mm256_fnmadd_ps(a, b, c);
-		#else
+#else
 			return fnmadd_avx(a, b, c);
-		#endif
+#endif
 		}
 		[[nodiscard]] DPM_FORCEINLINE __m256 fnmsub(__m256 a, __m256 b, __m256 c) noexcept
 		{
-		#ifdef DPM_HAS_FMA
+#ifdef DPM_HAS_FMA
 			return _mm256_fnmsub_ps(a, b, c);
-		#else
+#else
 			return fnmsub_avx(a, b, c);
-		#endif
+#endif
 		}
 
 		[[nodiscard]] DPM_FORCEINLINE __m256d fmadd(__m256d a, __m256d b, __m256d c) noexcept
@@ -280,10 +280,7 @@ namespace dpm
 	}
 	/** @copydoc abs */
 	template<std::floating_point T, std::size_t N, std::size_t A>
-	[[nodiscard]] DPM_FORCEINLINE detail::x86_simd<T, N, A> fabs(const detail::x86_simd<T, N, A> &x) noexcept requires detail::x86_overload_any<T, N, A>
-	{
-		return abs(x);
-	}
+	[[nodiscard]] DPM_FORCEINLINE detail::x86_simd<T, N, A> fabs(const detail::x86_simd<T, N, A> &x) noexcept requires detail::x86_overload_any<T, N, A> { return abs(x); }
 
 	/** Calculates the maximum of elements in \a a and \a b, respecting the NaN propagation
 	 * as specified in IEC 60559 (ordered values are always selected over unordered). */
@@ -364,11 +361,7 @@ namespace dpm
 	{
 		/** Returns a result of fused multiply-add operation on elements of \a a, \a b, and \a c. Equivalent to `a * b + c`. */
 		template<std::floating_point T, std::size_t N, std::size_t A>
-		[[nodiscard]] DPM_FORCEINLINE detail::x86_simd<T, N, A> fmadd(
-				const detail::x86_simd<T, N, A> &a,
-				const detail::x86_simd<T, N, A> &b,
-				const detail::x86_simd<T, N, A> &c)
-		noexcept requires detail::x86_overload_any<T, N, A>
+		[[nodiscard]] DPM_FORCEINLINE detail::x86_simd<T, N, A> fmadd(const detail::x86_simd<T, N, A> &a, const detail::x86_simd<T, N, A> &b, const detail::x86_simd<T, N, A> &c) noexcept requires detail::x86_overload_any<T, N, A>
 		{
 			detail::x86_simd<T, N, A> result = {};
 			detail::vectorize([](auto &res, auto a, auto b, auto c) { res = detail::fmadd(a, b, c); }, result, a, b, c);
@@ -376,11 +369,7 @@ namespace dpm
 		}
 		/** Returns a result of fused multiply-sub operation on elements of \a a, \a b, and \a c. Equivalent to `a * b - c`. */
 		template<std::floating_point T, std::size_t N, std::size_t A>
-		[[nodiscard]] DPM_FORCEINLINE detail::x86_simd<T, N, A> fmsub(
-				const detail::x86_simd<T, N, A> &a,
-				const detail::x86_simd<T, N, A> &b,
-				const detail::x86_simd<T, N, A> &c)
-		noexcept requires detail::x86_overload_any<T, N, A>
+		[[nodiscard]] DPM_FORCEINLINE detail::x86_simd<T, N, A> fmsub(const detail::x86_simd<T, N, A> &a, const detail::x86_simd<T, N, A> &b, const detail::x86_simd<T, N, A> &c) noexcept requires detail::x86_overload_any<T, N, A>
 		{
 			detail::x86_simd<T, N, A> result = {};
 			detail::vectorize([](auto &res, auto a, auto b, auto c) { res = detail::fmsub(a, b, c); }, result, a, b, c);
@@ -388,11 +377,7 @@ namespace dpm
 		}
 		/** Returns a result of fused negate-multiply-add operation on elements of \a a, \a b, and \a c. Equivalent to `-(a * b) + c`. */
 		template<std::floating_point T, std::size_t N, std::size_t A>
-		[[nodiscard]] DPM_FORCEINLINE detail::x86_simd<T, N, A> fnmadd(
-				const detail::x86_simd<T, N, A> &a,
-				const detail::x86_simd<T, N, A> &b,
-				const detail::x86_simd<T, N, A> &c)
-		noexcept requires detail::x86_overload_any<T, N, A>
+		[[nodiscard]] DPM_FORCEINLINE detail::x86_simd<T, N, A> fnmadd(const detail::x86_simd<T, N, A> &a, const detail::x86_simd<T, N, A> &b, const detail::x86_simd<T, N, A> &c) noexcept requires detail::x86_overload_any<T, N, A>
 		{
 			detail::x86_simd<T, N, A> result = {};
 			detail::vectorize([](auto &res, auto a, auto b, auto c) { res = detail::fnmadd(a, b, c); }, result, a, b, c);
@@ -400,11 +385,7 @@ namespace dpm
 		}
 		/** Returns a result of fused negate-multiply-sub operation on elements of \a a, \a b, and \a c. Equivalent to `-(a * b) - c`. */
 		template<std::floating_point T, std::size_t N, std::size_t A>
-		[[nodiscard]] DPM_FORCEINLINE detail::x86_simd<T, N, A> fnmsub(
-				const detail::x86_simd<T, N, A> &a,
-				const detail::x86_simd<T, N, A> &b,
-				const detail::x86_simd<T, N, A> &c)
-		noexcept requires detail::x86_overload_any<T, N, A>
+		[[nodiscard]] DPM_FORCEINLINE detail::x86_simd<T, N, A> fnmsub(const detail::x86_simd<T, N, A> &a, const detail::x86_simd<T, N, A> &b, const detail::x86_simd<T, N, A> &c) noexcept requires detail::x86_overload_any<T, N, A>
 		{
 			detail::x86_simd<T, N, A> result = {};
 			detail::vectorize([](auto &res, auto a, auto b, auto c) { res = detail::fnmsub(a, b, c); }, result, a, b, c);
@@ -414,11 +395,7 @@ namespace dpm
 
 	/** Returns a result of fused multiply-add operation on elements of \a a, \a b, and \a c. Equivalent to `a * b + c`. */
 	template<std::floating_point T, std::size_t N, std::size_t A>
-	[[nodiscard]] DPM_FORCEINLINE detail::x86_simd<T, N, A> fma(
-			const detail::x86_simd<T, N, A> &a,
-			const detail::x86_simd<T, N, A> &b,
-			const detail::x86_simd<T, N, A> &c)
-	noexcept requires detail::x86_overload_any<T, N, A>
+	[[nodiscard]] DPM_FORCEINLINE detail::x86_simd<T, N, A> fma(const detail::x86_simd<T, N, A> &a, const detail::x86_simd<T, N, A> &b, const detail::x86_simd<T, N, A> &c) noexcept requires detail::x86_overload_any<T, N, A>
 	{
 		return ext::fmadd(a, b, c);
 	}

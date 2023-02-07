@@ -301,11 +301,7 @@ namespace dpm
 
 		/** Replaces elements of mask \a a with elements of mask \a b using mask \a m. Elements of \a b are selected if the corresponding element of \a m evaluates to `true`. */
 		template<typename T, std::size_t N, std::size_t A>
-		[[nodiscard]] DPM_FORCEINLINE detail::x86_mask<T, N, A> blend(
-				const detail::x86_mask<T, N, A> &a,
-				const detail::x86_mask<T, N, A> &b,
-				const detail::x86_mask<T, N, A> &m)
-		noexcept requires detail::x86_overload_any<T, N, A>
+		[[nodiscard]] DPM_FORCEINLINE detail::x86_mask<T, N, A> blend(const detail::x86_mask<T, N, A> &a, const detail::x86_mask<T, N, A> &b, const detail::x86_mask<T, N, A> &m) noexcept requires detail::x86_overload_any<T, N, A>
 		{
 			detail::x86_mask<T, N, A> result = {};
 			auto result_data = to_native_data(result);
@@ -320,8 +316,7 @@ namespace dpm
 
 		/** Shuffles elements of mask \a x into a new mask according to the specified indices. */
 		template<std::size_t... Is, typename T, std::size_t N, std::size_t A, std::size_t M = sizeof...(Is)>
-		[[nodiscard]] DPM_FORCEINLINE detail::x86_mask<T, M, A> shuffle(const detail::x86_mask<T, N, A> &x) noexcept
-		requires (DPM_NOT_SSSE3(sizeof(T) >= 4 &&) detail::x86_overload_any<T, N, A> && detail::x86_overload_any<T, M, A>)
+		[[nodiscard]] DPM_FORCEINLINE detail::x86_mask<T, M, A> shuffle(const detail::x86_mask<T, N, A> &x) noexcept requires DPM_NOT_SSSE3(sizeof(T) >= 4 &&) detail::x86_overload_any<T, N, A> && detail::x86_overload_any<T, M, A>
 		{
 			detail::x86_mask<T, M, A> result = {};
 			auto result_data = to_native_data(result).data();
@@ -951,11 +946,7 @@ namespace dpm
 
 		/** Replaces elements of vector \a a with elements of vector \a b using mask \a m. Elements of \a b are selected if the corresponding element of \a m evaluates to `true`. */
 		template<typename T, std::size_t N, std::size_t A>
-		[[nodiscard]] DPM_FORCEINLINE detail::x86_simd<T, N, A> blend(
-				const detail::x86_simd<T, N, A> &a,
-				const detail::x86_simd<T, N, A> &b,
-				const detail::x86_mask<T, N, A> &m)
-		noexcept requires detail::x86_overload_any<T, N, A>
+		[[nodiscard]] DPM_FORCEINLINE detail::x86_simd<T, N, A> blend(const detail::x86_simd<T, N, A> &a, const detail::x86_simd<T, N, A> &b, const detail::x86_mask<T, N, A> &m) noexcept requires detail::x86_overload_any<T, N, A>
 		{
 			detail::x86_simd<T, N, A> result = {};
 			auto result_data = to_native_data(result);
@@ -970,8 +961,7 @@ namespace dpm
 
 		/** Shuffles elements of vector \a x into a new vector according to the specified indices. */
 		template<std::size_t... Is, typename T, std::size_t N, std::size_t A, std::size_t M = sizeof...(Is)>
-		[[nodiscard]] DPM_FORCEINLINE detail::x86_simd<T, M, A> shuffle(const detail::x86_simd<T, N, A> &x) noexcept
-		requires (DPM_NOT_SSSE3(sizeof(T) >= 4 &&) detail::x86_overload_any<T, N, A> && detail::x86_overload_any<T, M, A>)
+		[[nodiscard]] DPM_FORCEINLINE detail::x86_simd<T, M, A> shuffle(const detail::x86_simd<T, N, A> &x) noexcept requires DPM_NOT_SSSE3(sizeof(T) >= 4 &&) detail::x86_overload_any<T, N, A> && detail::x86_overload_any<T, M, A>
 		{
 			detail::x86_simd<T, M, A> result = {};
 			auto result_data = to_native_data(result).data();
@@ -1751,20 +1741,13 @@ namespace dpm
 
 	/** Returns a pair of SIMD vectors of minimum and maximum elements of \a a and \a b. */
 	template<std::floating_point T, std::size_t N, std::size_t A>
-	[[nodiscard]] DPM_FORCEINLINE std::pair<detail::x86_simd<T, N, A>, detail::x86_simd<T, N, A>> minmax(
-			const detail::x86_simd<T, N, A> &a,
-			const detail::x86_simd<T, N, A> &b)
-	noexcept requires detail::x86_overload_any<T, N, A>
+	[[nodiscard]] DPM_FORCEINLINE std::pair<detail::x86_simd<T, N, A>, detail::x86_simd<T, N, A>> minmax(const detail::x86_simd<T, N, A> &a, const detail::x86_simd<T, N, A> &b) noexcept requires detail::x86_overload_any<T, N, A>
 	{
 		return {min(a, b), max(a, b)};
 	}
 	/** Clamps elements \f \a x between corresponding elements of \a min and \a max. */
 	template<std::floating_point T, std::size_t N, std::size_t A>
-	[[nodiscard]] DPM_FORCEINLINE detail::x86_simd<T, N, A> clamp(
-			const detail::x86_simd<T, N, A> &x,
-			const detail::x86_simd<T, N, A> &min,
-			const detail::x86_simd<T, N, A> &max)
-	noexcept requires detail::x86_overload_any<T, N, A>
+	[[nodiscard]] DPM_FORCEINLINE detail::x86_simd<T, N, A> clamp(const detail::x86_simd<T, N, A> &x, const detail::x86_simd<T, N, A> &min, const detail::x86_simd<T, N, A> &max) noexcept requires detail::x86_overload_any<T, N, A>
 	{
 		detail::x86_simd<T, N, A> result = {};
 		detail::vectorize([](auto &res, auto x, auto min, auto max) { res = detail::min<T>(detail::max<T>(x, min), max); }, result, x, min, max);
@@ -1790,20 +1773,13 @@ namespace dpm
 	}
 	/** @copydoc minmax */
 	template<std::integral T, std::size_t N, std::size_t A>
-	[[nodiscard]] DPM_FORCEINLINE std::pair<detail::x86_simd<T, N, A>, detail::x86_simd<T, N, A>> minmax(
-			const detail::x86_simd<T, N, A> &a,
-			const detail::x86_simd<T, N, A> &b)
-	noexcept requires (detail::x86_overload_any<T, N, A> && sizeof(T) < 8)
+	[[nodiscard]] DPM_FORCEINLINE std::pair<detail::x86_simd<T, N, A>, detail::x86_simd<T, N, A>> minmax(const detail::x86_simd<T, N, A> &a, const detail::x86_simd<T, N, A> &b) noexcept requires (detail::x86_overload_any<T, N, A> && sizeof(T) < 8)
 	{
 		return {min(a, b), max(a, b)};
 	}
 	/** @copydoc clamp */
 	template<std::integral T, std::size_t N, std::size_t A>
-	[[nodiscard]] DPM_FORCEINLINE detail::x86_simd<T, N, A> clamp(
-			const detail::x86_simd<T, N, A> &x,
-			const detail::x86_simd<T, N, A> &min,
-			const detail::x86_simd<T, N, A> &max)
-	noexcept requires (detail::x86_overload_any<T, N, A> && sizeof(T) < 8)
+	[[nodiscard]] DPM_FORCEINLINE detail::x86_simd<T, N, A> clamp(const detail::x86_simd<T, N, A> &x, const detail::x86_simd<T, N, A> &min, const detail::x86_simd<T, N, A> &max) noexcept requires (detail::x86_overload_any<T, N, A> && sizeof(T) < 8)
 	{
 		detail::x86_simd<T, N, A> result = {};
 		detail::vectorize([](auto &res, auto x, auto min, auto max) { res = detail::min<T>(detail::max<T>(x, min), max); }, result, x, min, max);
@@ -1830,19 +1806,14 @@ namespace dpm
 	}
 	/** @copydoc minmax */
 	template<std::integral T, std::size_t N, std::size_t A>
-	[[nodiscard]] DPM_FORCEINLINE std::pair<detail::x86_simd<T, N, A>, detail::x86_simd<T, N, A>> minmax(
-			const detail::x86_simd<T, N, A> &a,
-			const detail::x86_simd<T, N, A> &b)
+	[[nodiscard]] DPM_FORCEINLINE std::pair<detail::x86_simd<T, N, A>, detail::x86_simd<T, N, A>> minmax(const detail::x86_simd<T, N, A> &a, const detail::x86_simd<T, N, A> &b)
 	noexcept requires (detail::x86_overload_any<T, N, A> && (detail::unsigned_integral_of_size<T, 1> || detail::signed_integral_of_size<T, 2>))
 	{
 		return {min(a, b), max(a, b)};
 	}
 	/** @copydoc clamp */
 	template<std::integral T, std::size_t N, std::size_t A>
-	[[nodiscard]] DPM_FORCEINLINE detail::x86_simd<T, N, A> clamp(
-			const detail::x86_simd<T, N, A> &x,
-			const detail::x86_simd<T, N, A> &min,
-			const detail::x86_simd<T, N, A> &max)
+	[[nodiscard]] DPM_FORCEINLINE detail::x86_simd<T, N, A> clamp(const detail::x86_simd<T, N, A> &x, const detail::x86_simd<T, N, A> &min, const detail::x86_simd<T, N, A> &max)
 	noexcept requires (detail::x86_overload_any<T, N, A> && (detail::unsigned_integral_of_size<T, 1> || detail::signed_integral_of_size<T, 2>))
 	{
 		detail::x86_simd<T, N, A> result = {};
@@ -1869,20 +1840,13 @@ namespace dpm
 	}
 	/** @copydoc minmax */
 	template<detail::integral_of_size<8> T, std::size_t N, std::size_t A>
-	[[nodiscard]] DPM_FORCEINLINE std::pair<detail::x86_simd<T, N, A>, detail::x86_simd<T, N, A>> minmax(
-			const detail::x86_simd<T, N, A> &a,
-			const detail::x86_simd<T, N, A> &b)
-	noexcept requires detail::x86_overload_any<T, N, A>
+	[[nodiscard]] DPM_FORCEINLINE std::pair<detail::x86_simd<T, N, A>, detail::x86_simd<T, N, A>> minmax(const detail::x86_simd<T, N, A> &a, const detail::x86_simd<T, N, A> &b) noexcept requires detail::x86_overload_any<T, N, A>
 	{
 		return {min(a, b), max(a, b)};
 	}
 	/** @copydoc clamp */
 	template<detail::integral_of_size<8> T, std::size_t N, std::size_t A>
-	[[nodiscard]] DPM_FORCEINLINE detail::x86_simd<T, N, A> clamp(
-			const detail::x86_simd<T, N, A> &x,
-			const detail::x86_simd<T, N, A> &min,
-			const detail::x86_simd<T, N, A> &max)
-	noexcept requires detail::x86_overload_any<T, N, A>
+	[[nodiscard]] DPM_FORCEINLINE detail::x86_simd<T, N, A> clamp(const detail::x86_simd<T, N, A> &x, const detail::x86_simd<T, N, A> &min, const detail::x86_simd<T, N, A> &max) noexcept requires detail::x86_overload_any<T, N, A>
 	{
 		detail::x86_simd<T, N, A> result = {};
 		detail::vectorize([](auto &res, auto x, auto min, auto max) { res = detail::min<T>(detail::max<T>(x, min), max); }, result, x, min, max);
@@ -2041,10 +2005,7 @@ namespace dpm
 #pragma region "simd casts"
 	/** Implicitly converts elements of SIMD vector \a x to the `To` type, where `To` is either `typename T::value_type` or `T` if `T` is a scalar. */
 	template<typename T, typename U, std::size_t N, std::size_t A, typename To = typename detail::deduce_cast<T>::type>
-	[[nodiscard]] DPM_FORCEINLINE auto simd_cast(const simd<U, detail::avec<N, A>> &x) noexcept
-	requires (detail::valid_simd_cast<T, U, detail::avec<N, A>> &&
-	          detail::x86_overload_any<To, N, A> &&
-	          detail::x86_overload_any<U, N, A>)
+	[[nodiscard]] DPM_FORCEINLINE auto simd_cast(const simd<U, detail::avec<N, A>> &x) noexcept requires detail::valid_simd_cast<T, U, detail::avec<N, A>> && detail::x86_overload_any<To, N, A> && detail::x86_overload_any<U, N, A>
 	{
 		detail::cast_return_t<T, U, detail::avec<N, A>, simd<U, detail::avec<N, A>>::size()> result = {};
 		detail::cast_impl(result, x);
@@ -2052,10 +2013,7 @@ namespace dpm
 	}
 	/** Explicitly converts elements of SIMD vector \a x to the `To` type, where `To` is either `typename T::value_type` or `T` if `T` is a scalar. */
 	template<typename T, typename U, std::size_t N, std::size_t A, typename To = typename detail::deduce_cast<T>::type>
-	[[nodiscard]] DPM_FORCEINLINE auto static_simd_cast(const simd<U, detail::avec<N, A>> &x) noexcept
-	requires (detail::valid_simd_cast<T, U, detail::avec<N, A>> &&
-	          detail::x86_overload_any<To, N, A> &&
-	          detail::x86_overload_any<U, N, A>)
+	[[nodiscard]] DPM_FORCEINLINE auto static_simd_cast(const simd<U, detail::avec<N, A>> &x) noexcept requires detail::valid_simd_cast<T, U, detail::avec<N, A>> && detail::x86_overload_any<To, N, A> && detail::x86_overload_any<U, N, A>
 	{
 		detail::static_cast_return_t<T, U, detail::avec<N, A>, simd<U, detail::avec<N, A>>::size()> result = {};
 		detail::cast_impl(result, x);

@@ -809,8 +809,4 @@ namespace dpm
 		return typename Promoted::mask_type{isunordered(Promoted{a}, Promoted{b})};
 	}
 #pragma endregion
-
-	DPM_DECLARE_EXT_NAMESPACE
-	{
-	}
 }
