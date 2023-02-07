@@ -260,6 +260,9 @@ int main()
 		TEST_ASSERT(std::abs(dpm::cos(a)[1] - dpm::cos(c)[0]) < 0.0001);
 		TEST_ASSERT(std::abs(dpm::cos(b)[0] - dpm::cos(d)[0]) < 0.0001);
 		TEST_ASSERT(std::abs(dpm::cos(b)[1] - dpm::cos(d)[0]) < 0.0001);
+
+		a = {0.0}, c = {0.0};
+		TEST_ASSERT(dpm::sin(a)[0] == dpm::sin(c)[0]);
 	}
 	{
 		dpm::simd<double, dpm::simd_abi::fixed_size<4>> a = {0.1234}, b = {12.7};
@@ -273,6 +276,9 @@ int main()
 		TEST_ASSERT(std::abs(dpm::cos(a)[1] - dpm::cos(c)[0]) < 0.0001);
 		TEST_ASSERT(std::abs(dpm::cos(b)[0] - dpm::cos(d)[0]) < 0.0001);
 		TEST_ASSERT(std::abs(dpm::cos(b)[1] - dpm::cos(d)[0]) < 0.0001);
+
+		a = {0.0}, c = {0.0};
+		TEST_ASSERT(dpm::sin(a)[0] == dpm::sin(c)[0]);
 	}
 	{
 		dpm::simd<float, dpm::simd_abi::fixed_size<4>> a = {0.1234}, b = {12.7};
@@ -286,6 +292,9 @@ int main()
 		TEST_ASSERT(std::abs(dpm::cos(a)[1] - dpm::cos(c)[0]) < 0.0001);
 		TEST_ASSERT(std::abs(dpm::cos(b)[0] - dpm::cos(d)[0]) < 0.0001);
 		TEST_ASSERT(std::abs(dpm::cos(b)[1] - dpm::cos(d)[0]) < 0.0001);
+
+		a = {0.0}, c = {0.0};
+		TEST_ASSERT(dpm::sin(a)[0] == dpm::sin(c)[0]);
 	}
 	{
 		dpm::simd<double, dpm::simd_abi::fixed_size<2>> a = {0.1234}, b = {12.7};
@@ -299,6 +308,9 @@ int main()
 		TEST_ASSERT(std::abs(dpm::cos(a)[1] - dpm::cos(c)[0]) < 0.0001);
 		TEST_ASSERT(std::abs(dpm::cos(b)[0] - dpm::cos(d)[0]) < 0.0001);
 		TEST_ASSERT(std::abs(dpm::cos(b)[1] - dpm::cos(d)[0]) < 0.0001);
+
+		a = {0.0}, c = {0.0};
+		TEST_ASSERT(dpm::sin(a)[0] == dpm::sin(c)[0]);
 	}
 	{
 		dpm::simd<float, dpm::simd_abi::fixed_size<8>> a = {0.1234}, b = {12.7};

@@ -64,11 +64,6 @@ namespace dpm::detail
 		if (movemask<T>(nan_mask) == fill_bits<extent_bits>()) [[unlikely]]
 			return return_sincos<Mask>(nan, nan);
 #endif
-#ifdef DPM_HANDLE_ERRORS
-		const auto zero_mask = cmp_eq<T>(abs_x, setzero<V>());
-		if (movemask<T>(zero_mask) == fill_bits<extent_bits>()) [[unlikely]]
-			return return_sincos<Mask>(x, fill<V>(T{1.0}));
-#endif
 
 		/* y = |x| * 4 / Pi */
 		auto y = mul<T>(abs_x, fill<V>(fopi<T>));
@@ -119,10 +114,6 @@ namespace dpm::detail
 			/* p_sin = nan_mask ? NaN : p_sin */
 			p_sin = blendv<T>(p_sin, fill<V>(std::numeric_limits<T>::quiet_NaN()), nan_mask);
 #endif
-#ifdef DPM_HANDLE_ERRORS
-			/* p_sin = zero_mask ? x : p_sin */
-			p_sin = blendv<T>(p_sin, x, zero_mask);
-#endif
 		}
 		if constexpr (Mask & sincos_op::OP_COS)
 		{
@@ -135,12 +126,7 @@ namespace dpm::detail
 			/* p_cos = nan_mask ? NaN : p_cos */
 			p_cos = blendv<T>(p_cos, fill<V>(std::numeric_limits<T>::quiet_NaN()), nan_mask);
 #endif
-#ifdef DPM_HANDLE_ERRORS
-			/* p_cos = zero_mask ? 1.0 : p_cos */
-			p_cos = blendv<T>(p_cos, fill<V>(T{1.0}), zero_mask);
-#endif
 		}
-
 		return return_sincos<Mask>(p_sin, p_cos);
 	}
 
