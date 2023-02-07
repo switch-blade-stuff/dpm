@@ -20,33 +20,6 @@ namespace dpm::detail
 {
 	enum tancot_op { OP_TAN, OP_COT };
 
-	template<std::same_as<double> T, typename V>
-	[[nodiscard]] DPM_FORCEINLINE V tancot_poly(V abs_x, V x) noexcept
-	{
-		x = fmadd(x, fill<V>(dp_tancotd[2]), fmadd(x, fill<V>(dp_tancotd[1]), fmadd(x, fill<V>(dp_tancotd[0]), abs_x)));
-		const auto x2 = mul<T>(x, x);
-		if (const auto p_mask = cmp_gt<T>(x2, fill<V>(1.0e-14)); movemask<T>(p_mask))
-		{
-			const auto p0 = mul<T>(polevl(x2, std::span{tancot_pd}), x2);
-			const auto p1 = polevl(x2, std::span{tancot_qd});
-			const auto px = add<T>(x, mul<T>(x, div<T>(p0, p1)));
-			x = blendv<T>(x, px, p_mask);
-		}
-		return x;
-	}
-	template<std::same_as<float> T, typename V>
-	[[nodiscard]] DPM_FORCEINLINE V tancot_poly(V abs_x, V x) noexcept
-	{
-		x = fmadd(x, fill<V>(dp_tancotf[2]), fmadd(x, fill<V>(dp_tancotf[1]), fmadd(x, fill<V>(dp_tancotf[0]), abs_x)));
-		const auto x2 = mul<T>(x, x);
-		if (const auto p_mask = cmp_gt<T>(x2, fill<V>(1.0e-4f)); movemask<T>(p_mask))
-		{
-			const auto px = fmadd(mul<T>(polevl(x2, std::span{tancot_pf}), x2), x, x);
-			x = blendv<T>(x, px, p_mask);
-		}
-		return x;
-	}
-
 	template<typename T, tancot_op Op, typename V, typename I = int_of_size_t<sizeof(T)>>
 	[[nodiscard]] DPM_FORCEINLINE V impl_tancot(V x) noexcept
 	{
@@ -92,7 +65,14 @@ namespace dpm::detail
 		_mm_setcsr(old_csr);
 
 		/* Calculate result polynomial. */
-		y = tancot_poly<T>(abs_x, y);
+		y = fmadd(x, fill<V>(dp_tancot<T>[2]), fmadd(y, fill<V>(dp_tancot<T>[1]), fmadd(y, fill<V>(dp_tancot<T>[0]), abs_x)));
+		const auto y2 = mul<T>(y, y);
+		if (const auto p_mask = cmp_gt<T>(y2, fill<V>(tancot_pmin<T>)); movemask<T>(p_mask))
+		{
+			const auto p0 = mul<T>(polevl(y2, std::span{tancot_p<T>}), y2);
+			const auto p1 = polevl(y2, std::span{tancot_q<T>});
+			y = blendv<T>(y, add<T>(y, mul<T>(y, div<T>(p0, p1))), p_mask);
+		}
 
 		/* Adjust result polynomial for tangent or cotangent. */
 		const auto j2_mask = cmp_eq<I>(bit_and(i, fill<decltype(i)>(I{2})), setzero<decltype(i)>());

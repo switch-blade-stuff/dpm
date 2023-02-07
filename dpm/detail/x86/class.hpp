@@ -125,7 +125,6 @@ namespace dpm
 		detail::vectorize([](auto &res, auto x) { res = detail::isunord(x, x); }, result, x);
 		return result;
 	}
-
 	/** Determines is elements of \a x are normal and returns the resulting mask. */
 	template<std::floating_point T, std::size_t N, std::size_t A>
 	[[nodiscard]] DPM_FORCEINLINE detail::x86_mask<T, N, A> isnormal(const detail::x86_simd<T, N, A> &x) noexcept requires detail::x86_overload_any<T, N, A>
@@ -134,7 +133,6 @@ namespace dpm
 		detail::vectorize([](auto &res, auto x) { res = detail::isnormal(x); }, result, x);
 		return result;
 	}
-
 	/** Extracts a vector mask filled with sign bits of elements from vector \a x. */
 	template<std::floating_point T, std::size_t N, std::size_t A>
 	[[nodiscard]] DPM_FORCEINLINE detail::x86_mask<T, N, A> signbit(const detail::x86_simd<T, N, A> &x) noexcept requires detail::x86_overload_any<T, N, A>

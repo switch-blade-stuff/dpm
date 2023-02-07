@@ -112,42 +112,6 @@ namespace dpm::detail
 		return static_cast<std::size_t>(_mm_movemask_pd(std::bit_cast<__m128d>(x)));
 	}
 
-	template<std::same_as<float> T, signed_integral_of_size<4> U>
-	DPM_FORCEINLINE void cast_copy(__m128i &dst, const __m128 &src) noexcept { dst = _mm_cvtps_epi32(src); }
-	template<signed_integral_of_size<4> T, std::same_as<float> U>
-	DPM_FORCEINLINE void cast_copy(__m128 &dst, const __m128i &src) noexcept { dst = _mm_cvtepi32_ps(src); }
-	template<std::same_as<float> T, unsigned_integral_of_size<4> U>
-	DPM_FORCEINLINE void cast_copy(__m128i &dst, const __m128 &src) noexcept { dst = cvt_f32_u32(src); }
-	template<unsigned_integral_of_size<4> T, std::same_as<float> U>
-	DPM_FORCEINLINE void cast_copy(__m128 &dst, const __m128i &src) noexcept { dst = cvt_u32_f32(src); }
-
-	template<std::same_as<float> T, signed_integral_of_size<4> U>
-	DPM_FORCEINLINE void cast_copy(__m128 &dst, const __m128i &src) noexcept { dst = _mm_cvtepi32_ps(src); }
-	template<signed_integral_of_size<4> T, std::same_as<float> U>
-	DPM_FORCEINLINE void cast_copy(__m128i &dst, const __m128 &src) noexcept { dst = _mm_cvtps_epi32(src); }
-	template<std::same_as<float> T, unsigned_integral_of_size<4> U>
-	DPM_FORCEINLINE void cast_copy(__m128 &dst, const __m128i &src) noexcept { dst = cvt_u32_f32(src); }
-	template<unsigned_integral_of_size<4> T, std::same_as<float> U>
-	DPM_FORCEINLINE void cast_copy(__m128i &dst, const __m128 &src) noexcept { dst = cvt_f32_u32(src); }
-
-	template<std::same_as<double> T, signed_integral_of_size<8> U>
-	DPM_FORCEINLINE void cast_copy(__m128i &dst, const __m128d &src) noexcept { dst = cvt_f64_i64(src); }
-	template<signed_integral_of_size<8> T, std::same_as<double> U>
-	DPM_FORCEINLINE void cast_copy(__m128d &dst, const __m128i &src) noexcept { dst = cvt_i64_f64(src); }
-	template<std::same_as<double> T, unsigned_integral_of_size<8> U>
-	DPM_FORCEINLINE void cast_copy(__m128i &dst, const __m128d &src) noexcept { dst = cvt_f64_u64(src); }
-	template<unsigned_integral_of_size<8> T, std::same_as<double> U>
-	DPM_FORCEINLINE void cast_copy(__m128d &dst, const __m128i &src) noexcept { dst = cvt_u64_f64(src); }
-
-	template<std::same_as<double> T, signed_integral_of_size<8> U>
-	DPM_FORCEINLINE void cast_copy(__m128d &dst, const __m128i &src) noexcept { dst = cvt_i64_f64(src); }
-	template<signed_integral_of_size<8> T, std::same_as<double> U>
-	DPM_FORCEINLINE void cast_copy(__m128i &dst, const __m128d &src) noexcept { dst = cvt_f64_i64(src); }
-	template<std::same_as<double> T, unsigned_integral_of_size<8> U>
-	DPM_FORCEINLINE void cast_copy(__m128d &dst, const __m128i &src) noexcept { dst = cvt_u64_f64(src); }
-	template<unsigned_integral_of_size<8> T, std::same_as<double> U>
-	DPM_FORCEINLINE void cast_copy(__m128i &dst, const __m128d &src) noexcept { dst = cvt_f64_u64(src); }
-
 	template<typename V, typename T, typename M>
 	DPM_FORCEINLINE void maskstoreu(T *dst, V src, M mask) noexcept
 	{
@@ -300,41 +264,8 @@ namespace dpm::detail
 		return static_cast<std::size_t>(_mm256_movemask_pd(std::bit_cast<__m256d>(x)));
 	}
 
-	template<std::same_as<float> T, signed_integral_of_size<4> U>
-	DPM_FORCEINLINE void cast_copy(__m256i &dst, const __m256 &src) noexcept { dst = _mm256_cvtps_epi32(src); }
-	template<signed_integral_of_size<4> T, std::same_as<float> U>
-	DPM_FORCEINLINE void cast_copy(__m256 &dst, const __m256i &src) noexcept { dst = _mm256_cvtepi32_ps(src); }
-	template<std::same_as<float> T, unsigned_integral_of_size<4> U>
-	DPM_FORCEINLINE void cast_copy(__m256i &dst, const __m256 &src) noexcept { dst = cvt_f32_u32(src); }
-	template<unsigned_integral_of_size<4> T, std::same_as<float> U>
-	DPM_FORCEINLINE void cast_copy(__m256 &dst, const __m256i &src) noexcept { dst = cvt_u32_f32(src); }
-
-	template<std::same_as<float> T, signed_integral_of_size<4> U>
-	DPM_FORCEINLINE void cast_copy(__m256 &dst, const __m256i &src) noexcept { dst = _mm256_cvtepi32_ps(src); }
-	template<signed_integral_of_size<4> T, std::same_as<float> U>
-	DPM_FORCEINLINE void cast_copy(__m256i &dst, const __m256 &src) noexcept { dst = _mm256_cvtps_epi32(src); }
-	template<std::same_as<float> T, unsigned_integral_of_size<4> U>
-	DPM_FORCEINLINE void cast_copy(__m256 &dst, const __m256i &src) noexcept { dst = cvt_u32_f32(src); }
-	template<unsigned_integral_of_size<4> T, std::same_as<float> U>
-	DPM_FORCEINLINE void cast_copy(__m256i &dst, const __m256 &src) noexcept { dst = cvt_f32_u32(src); }
-
-	template<std::same_as<double> T, signed_integral_of_size<8> U>
-	DPM_FORCEINLINE void cast_copy(__m256i &dst, const __m256d &src) noexcept { dst = cvt_f64_i64(src); }
-	template<signed_integral_of_size<8> T, std::same_as<double> U>
-	DPM_FORCEINLINE void cast_copy(__m256d &dst, const __m256i &src) noexcept { dst = cvt_i64_f64(src); }
-	template<std::same_as<double> T, unsigned_integral_of_size<8> U>
-	DPM_FORCEINLINE void cast_copy(__m256i &dst, const __m256d &src) noexcept { dst = cvt_f64_u64(src); }
-	template<unsigned_integral_of_size<8> T, std::same_as<double> U>
-	DPM_FORCEINLINE void cast_copy(__m256d &dst, const __m256i &src) noexcept { dst = cvt_u64_f64(src); }
-
-	template<std::same_as<double> T, signed_integral_of_size<8> U>
-	DPM_FORCEINLINE void cast_copy(__m256d &dst, const __m256i &src) noexcept { dst = cvt_i64_f64(src); }
-	template<signed_integral_of_size<8> T, std::same_as<double> U>
-	DPM_FORCEINLINE void cast_copy(__m256i &dst, const __m256d &src) noexcept { dst = cvt_f64_i64(src); }
-	template<std::same_as<double> T, unsigned_integral_of_size<8> U>
-	DPM_FORCEINLINE void cast_copy(__m256d &dst, const __m256i &src) noexcept { dst = cvt_u64_f64(src); }
-	template<unsigned_integral_of_size<8> T, std::same_as<double> U>
-	DPM_FORCEINLINE void cast_copy(__m256i &dst, const __m256d &src) noexcept { dst = cvt_f64_u64(src); }
+	template<typename To, typename From, typename VTo, typename VFrom>
+	DPM_FORCEINLINE void cast_copy(VTo &dst, const VFrom &src) noexcept requires (sizeof(VTo) == 16 && sizeof(VFrom) == 32) { dst = cvt<To, From>(src); }
 
 	template<typename V, typename T>
 	DPM_FORCEINLINE V maskload(const T *src, __m128i mask) noexcept requires (sizeof(T) == 4)
@@ -395,22 +326,27 @@ namespace dpm::detail
 	}
 #endif
 
-	template<typename T, typename U, typename V0, typename V1>
-	DPM_FORCEINLINE void cast_copy(V0 &dst, const V1 &src) noexcept requires (std::same_as<T, U> || (std::integral<T> && std::integral<U> && sizeof(T) == sizeof(U)))
+	template<typename To, typename From, typename VTo, typename VFrom>
+	DPM_FORCEINLINE void cast_copy(VTo &dst, const VFrom &src) noexcept requires (!std::same_as<To, From> && !(std::integral<To> && std::integral<From> && sizeof(To) == sizeof(From)))
+	{
+		dst = cvt<To, From>(src);
+	}
+	template<typename To, typename From, typename VTo, typename VFrom>
+	DPM_FORCEINLINE void cast_copy(VTo &dst, const VFrom &src) noexcept requires (std::same_as<To, From> || (std::integral<To> && std::integral<From> && sizeof(To) == sizeof(From)))
 	{
 		dst = src;
 	}
-	template<typename U, typename T, typename V>
-	DPM_FORCEINLINE void cast_copy(U *dst, const V &src) noexcept
+	template<typename To, typename From, typename VFrom>
+	DPM_FORCEINLINE void cast_copy(To *dst, const VFrom &src) noexcept
 	{
-		using dst_vector = select_vector_t<U, sizeof(V)>;
-		cast_copy<T, U>(*reinterpret_cast<dst_vector *>(dst), src);
+		using dst_vector = select_vector_t<To, sizeof(VFrom)>;
+		cast_copy<To, From>(*reinterpret_cast<dst_vector *>(dst), src);
 	}
-	template<typename T, typename U, typename V>
-	DPM_FORCEINLINE void cast_copy(V &dst, const U *src) noexcept
+	template<typename To, typename From, typename VTo>
+	DPM_FORCEINLINE void cast_copy(VTo &dst, const From *src) noexcept
 	{
-		using src_vector = select_vector_t<U, sizeof(V)>;
-		cast_copy<T, U>(dst, *reinterpret_cast<const src_vector *>(src));
+		using src_vector = select_vector_t<From, sizeof(VTo)>;
+		cast_copy<To, From>(dst, *reinterpret_cast<const src_vector *>(src));
 	}
 
 	template<typename V, typename T0, std::convertible_to<T0>... Ts>
@@ -425,7 +361,7 @@ namespace dpm::detail
 	[[nodiscard]] DPM_FORCEINLINE std::size_t movemask_l(V x, std::size_t n) noexcept
 	{
 		constexpr std::size_t extent = sizeof(V) / sizeof(T);
-		auto bits = detail::movemask<T>(x) << (std::numeric_limits<std::size_t>::digits - extent * movemask_bits_v < T > );
+		auto bits = detail::movemask<T>(x) << (std::numeric_limits<std::size_t>::digits - extent * movemask_bits_v<T>);
 		if (n < extent) for (n = extent - n; n--;) bits <<= movemask_bits_v<T>;
 		return bits;
 	}

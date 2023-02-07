@@ -2,6 +2,7 @@
  * Created by switchblade on 2022-12-31.
  */
 
+#include "../alias.hpp"
 #include "cpuid.hpp"
 
 #ifdef DPM_ARCH_X86
@@ -53,9 +54,7 @@ namespace dpm
 #elif defined(__clang__) || defined(__GNUC__)
 		static void DPM_FORCEINLINE platform_cpuid(std::uint32_t leaf, cpuid_regs &regs) noexcept
 		{
-			__asm("xchgq  %%rbx,%q1\n"
-			      "\tcpuid\n"
-			      "\txchgq  %%rbx,%q1"
+			__asm("xchgq  %%rbx,%q1\n\tcpuid\n\txchgq  %%rbx,%q1"
 					: "=a"(regs[0]), "=r" (regs[1]), "=c"(regs[2]), "=d"(regs[3])
 					: "0"(leaf));
 		}
@@ -85,16 +84,15 @@ namespace dpm
 				cpuid_regs regs = {0};
 				platform_cpuid(0, regs);
 
-				/* Check the vendor string to see if we are Intel or AMD */
-				char vendor[13] = {0};
-				reinterpret_cast<std::uint32_t &>(vendor[0]) = regs[1];
-				reinterpret_cast<std::uint32_t &>(vendor[4]) = regs[3];
-				reinterpret_cast<std::uint32_t &>(vendor[8]) = regs[2];
+				/* Check the vendor string. */
+				char vendor[12] = {0};
+				reinterpret_cast<detail::alias_t<std::uint32_t> &>(vendor[0]) = regs[1];
+				reinterpret_cast<detail::alias_t<std::uint32_t> &>(vendor[4]) = regs[3];
+				reinterpret_cast<detail::alias_t<std::uint32_t> &>(vendor[8]) = regs[2];
 
-				if (const auto sv = std::string_view{vendor}; sv == "GenuineIntel"sv)
-					m_is_intel = true;
-				else if (sv == "AuthenticAMD"sv)
-					m_is_amd = true;
+				const auto sv = std::string_view{vendor, 12};
+				m_is_intel = sv == "GenuineIntel"sv;
+				m_is_amd = sv == "AuthenticAMD"sv;
 
 				/* Initialize extension flags. */
 				const auto max_leaf = regs[0];
@@ -111,7 +109,7 @@ namespace dpm
 				}
 			}
 
-			/* Check for extension OS support. If XSAVE is used, check via XCR0. */
+			/* Check for extension support using either XCR0 when XSAVE is used, or OS-specific method. */
 			if (detail::test_bit(m_flags_l1_ecx, xsave_bit))
 			{
 				const auto xcr0 = platrofm_xcr0();
@@ -171,7 +169,7 @@ namespace dpm
 							pos = sv.find_first_not_of("\t :"sv, pos + 5);
 							if (pos == std::string_view::npos) continue;
 
-							sse_mask |= sv.find("m128"sv, pos) != std::string_view::npos;
+							sse_mask |= sv.find("sse"sv, pos) != std::string_view::npos;
 							sse2_mask |= sv.find("sse2"sv, pos) != std::string_view::npos;
 							sse3_mask |= sv.find("pni"sv, pos) != std::string_view::npos;
 							ssse3_mask |= sv.find("ssse3"sv, pos) != std::string_view::npos;
