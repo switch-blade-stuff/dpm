@@ -46,6 +46,23 @@ namespace dpm
 		return Promoted{fmod(Promoted{a}, Promoted{b})};
 	}
 
+	/** Calculates floating-point remainder of elements in \a a divided by scalar \a b. */
+	template<std::floating_point T, typename Abi>
+	[[nodiscard]] inline simd<T, Abi> fmod(const simd<T, Abi> &a, T b) noexcept
+	{
+		simd<T, Abi> result = {};
+		for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i)
+			result[i] = std::fmod(a[i], b);
+		return result;
+	}
+	/** @copydoc fmod
+	 * @note Arguments and return type are promoted to `double`, or `long double` if one of the arguments is `long double`. */
+	template<typename T0, typename T1, typename Abi, typename Promoted = rebind_simd_t<detail::promote_t<T0, T1>, simd<T0, Abi>>>
+	[[nodiscard]] DPM_FORCEINLINE Promoted fmod(const simd<T0, Abi> &a, T1 b) noexcept
+	{
+		return Promoted{fmod(Promoted{a}, detail::promote_t<T0, T1>{b})};
+	}
+
 	/** Calculates IEEE remainder of elements in \a a divided by elements in vector \a b. */
 	template<typename T, typename Abi>
 	[[nodiscard]] inline simd<T, Abi> remainder(const simd<T, Abi> &a, const simd<T, Abi> &b) noexcept
@@ -61,6 +78,23 @@ namespace dpm
 	[[nodiscard]] DPM_FORCEINLINE Promoted remainder(const simd<T0, Abi> &a, const simd<T1, Abi> &b) noexcept
 	{
 		return Promoted{remainder(Promoted{a}, Promoted{b})};
+	}
+
+	/** Calculates IEEE remainder of elements in \a a divided by scalar \a b. */
+	template<std::floating_point T, typename Abi>
+	[[nodiscard]] inline simd<T, Abi> remainder(const simd<T, Abi> &a, T b) noexcept
+	{
+		simd<T, Abi> result = {};
+		for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i)
+			result[i] = std::remainder(a[i], b);
+		return result;
+	}
+	/** @copydoc remainder
+	 * @note Arguments and return type are promoted to `double`, or `long double` if one of the arguments is `long double`. */
+	template<typename T0, typename T1, typename Abi, typename Promoted = rebind_simd_t<detail::promote_t<T0, T1>, simd<T0, Abi>>>
+	[[nodiscard]] DPM_FORCEINLINE Promoted remainder(const simd<T0, Abi> &a, T1 b) noexcept
+	{
+		return Promoted{remainder(Promoted{a}, detail::promote_t<T0, T1>{b})};
 	}
 
 	/** Calculates IEEE remainder of elements in \a a divided by elements in vector \a b, and stores the sign and
@@ -98,7 +132,6 @@ namespace dpm
 	{
 		return Promoted{fmax(Promoted{a}, Promoted{b})};
 	}
-
 	/** Calculates the minimum of elements in \a a and \a b, respecting the NaN propagation
 	 * as specified in IEC 60559 (ordered values are always selected over unordered). */
 	template<typename T, typename Abi>
@@ -117,7 +150,42 @@ namespace dpm
 		return Promoted{fmin(Promoted{a}, Promoted{b})};
 	}
 
-	/** Returns the positive difference between x and y. Equivalent to `max(a - b, simd<T, Abi>{0})`. */
+	/** Calculates the maximum of elements in \a a and scalar \a b, respecting the NaN propagation
+	 * as specified in IEC 60559 (ordered values are always selected over unordered). */
+	template<typename T, typename Abi>
+	[[nodiscard]] inline simd<T, Abi> fmax(const simd<T, Abi> &a, T b) noexcept
+	{
+		simd<T, Abi> result = {};
+		for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i)
+			result[i] = std::fmax(a[i], b);
+		return result;
+	}
+	/** @copydoc fmax
+	 * @note Arguments and return type are promoted to `double`, or `long double` if one of the arguments is `long double`. */
+	template<typename T0, typename T1, typename Abi, typename Promoted = rebind_simd_t<detail::promote_t<T0, T1>, simd<T0, Abi>>>
+	[[nodiscard]] DPM_FORCEINLINE Promoted fmax(const simd<T0, Abi> &a, T1 b) noexcept
+	{
+		return Promoted{fmax(Promoted{a}, detail::promote_t<T0, T1>{b})};
+	}
+	/** Calculates the minimum of elements in \a a and scalar \a b, respecting the NaN propagation
+	 * as specified in IEC 60559 (ordered values are always selected over unordered). */
+	template<typename T, typename Abi>
+	[[nodiscard]] inline simd<T, Abi> fmin(const simd<T, Abi> &a, T b) noexcept
+	{
+		simd<T, Abi> result = {};
+		for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i)
+			result[i] = std::fmin(a[i], b[i]);
+		return result;
+	}
+	/** @copydoc fmin
+	 * @note Arguments and return type are promoted to `double`, or `long double` if one of the arguments is `long double`. */
+	template<typename T0, typename T1, typename Abi, typename Promoted = rebind_simd_t<detail::promote_t<T0, T1>, simd<T0, Abi>>>
+	[[nodiscard]] DPM_FORCEINLINE Promoted fmin(const simd<T0, Abi> &a, T1 b) noexcept
+	{
+		return Promoted{fmin(Promoted{a}, detail::promote_t<T0, T1>{b})};
+	}
+
+	/** Returns the positive difference between elements of vectors \a a and \a b. Equivalent to `max(simd<T, Abi>{0}, a - b)`. */
 	template<typename T, typename Abi>
 	[[nodiscard]] inline simd<T, Abi> fdim(const simd<T, Abi> &a, const simd<T, Abi> &b) noexcept
 	{
@@ -132,6 +200,23 @@ namespace dpm
 	[[nodiscard]] DPM_FORCEINLINE Promoted fdim(const simd<T0, Abi> &a, const simd<T1, Abi> &b) noexcept
 	{
 		return Promoted{fdim(Promoted{a}, Promoted{b})};
+	}
+
+	/** Returns the positive difference between elements of vector \a a and scalar \a b. Equivalent to `max(simd<T, Abi>{0}, a - b)`. */
+	template<typename T, typename Abi>
+	[[nodiscard]] inline simd<T, Abi> fdim(const simd<T, Abi> &a, T b) noexcept
+	{
+		simd<T, Abi> result = {};
+		for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i)
+			result[i] = std::fdim(a[i], b);
+		return result;
+	}
+	/** @copydoc fdim
+	 * @note Arguments and return type are promoted to `double`, or `long double` if one of the arguments is `long double`. */
+	template<typename T0, typename T1, typename Abi, typename Promoted = rebind_simd_t<detail::promote_t<T0, T1>, simd<T0, Abi>>>
+	[[nodiscard]] DPM_FORCEINLINE Promoted fdim(const simd<T0, Abi> &a, T1 b) noexcept
+	{
+		return Promoted{fdim(Promoted{a}, detail::promote_t<T0, T1>{b})};
 	}
 
 	/** Preforms linear interpolation or extrapolation between elements of vectors \a a and \a b using factor \a f */
@@ -149,6 +234,23 @@ namespace dpm
 	[[nodiscard]] DPM_FORCEINLINE Promoted lerp(const simd<T0, Abi> &a, const simd<T1, Abi> &b, const simd<T2, Abi> &f) noexcept
 	{
 		return Promoted{lerp(Promoted{a}, Promoted{b}, Promoted{f})};
+	}
+
+	/** Preforms linear interpolation or extrapolation between elements of vectors \a a and \a b using scalar factor \a f */
+	template<typename T, typename Abi>
+	[[nodiscard]] inline simd<T, Abi> lerp(const simd<T, Abi> &a, const simd<T, Abi> &b, T f) noexcept
+	{
+		simd<T, Abi> result = {};
+		for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i)
+			result[i] = std::lerp(a[i], b[i], f);
+		return result;
+	}
+	/** @copydoc lerp
+	 * @note Arguments and return type are promoted to `double`, or `long double` if one of the arguments is `long double`. */
+	template<typename T0, typename T1, typename T2, typename Abi, typename Promoted = rebind_simd_t<detail::promote_t<T0, T1, T2>, simd<T0, Abi>>>
+	[[nodiscard]] DPM_FORCEINLINE Promoted lerp(const simd<T0, Abi> &a, const simd<T1, Abi> &b, T2 f) noexcept
+	{
+		return Promoted{lerp(Promoted{a}, Promoted{b}, detail::promote_t<T0, T1, T2>{f})};
 	}
 
 	DPM_DECLARE_EXT_NAMESPACE
@@ -264,6 +366,20 @@ namespace dpm
 	 * @note Arguments and return type are promoted to `double`, or `long double` if one of the arguments is `long double`. */
 	template<typename T0, typename T1, typename Abi, typename Promoted = rebind_simd_t<detail::promote_t<T0, T1>, simd<T0, Abi>>>
 	[[nodiscard]] DPM_FORCEINLINE Promoted pow(const simd<T0, Abi> &x, const simd<T1, Abi> &p) noexcept { return Promoted{pow(Promoted{x}, Promoted{p})}; }
+
+	/** Raises elements of vector \a x to power \a p, and returns the resulting vector. */
+	template<std::floating_point T, typename Abi>
+	[[nodiscard]] inline simd<T, Abi> pow(const simd<T, Abi> &x, T p) noexcept
+	{
+		simd<T, Abi> result = {};
+		for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i)
+			result[i] = std::pow(x[i], p);
+		return result;
+	}
+	/** @copydoc pow
+	 * @note Arguments and return type are promoted to `double`, or `long double` if one of the arguments is `long double`. */
+	template<typename T0, typename T1, typename Abi, typename Promoted = rebind_simd_t<detail::promote_t<T0, T1>, simd<T0, Abi>>>
+	[[nodiscard]] DPM_FORCEINLINE Promoted pow(const simd<T0, Abi> &x, T1 p) noexcept { return Promoted{pow(Promoted{x}, detail::promote_t<T0, T1>{p})}; }
 
 	/** Calculates square root of elements in vector \a x, and returns the resulting vector. */
 	template<std::floating_point T, typename Abi>
@@ -460,7 +576,7 @@ namespace dpm
 #pragma endregion
 
 #pragma region "floating-point manipulation"
-	/** Copies sign from elements of vector \a sign to elements of vector \a x, and returns the resulting vector. */
+	/** Copies sign bit from elements of vector \a sign to elements of vector \a x, and returns the resulting vector. */
 	template<std::floating_point T, typename Abi>
 	[[nodiscard]] inline simd<T, Abi> copysign(const simd<T, Abi> &x, const simd<T, Abi> &sign) noexcept
 	{
@@ -475,6 +591,23 @@ namespace dpm
 	[[nodiscard]] DPM_FORCEINLINE Promoted copysign(const simd<T0, Abi> &x, const simd<T1, Abi> &sign) noexcept
 	{
 		return Promoted{copysign(Promoted{x}, Promoted{sign})};
+	}
+
+	/** Copies sign bit from \a sign to elements of vector \a x, and returns the resulting vector. */
+	template<std::floating_point T, typename Abi>
+	[[nodiscard]] inline simd<T, Abi> copysign(const simd<T, Abi> &x, T sign) noexcept
+	{
+		simd<T, Abi> result = {};
+		for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i)
+			result[i] = std::copysign(x[i], sign);
+		return result;
+	}
+	/** @copydoc isnan
+	 * @note Arguments and return type are promoted to `double`, or `long double` if one of the arguments is `long double`. */
+	template<typename T0, typename T1, typename Abi, typename Promoted = rebind_simd_t<detail::promote_t<T0, T1>, simd<T0, Abi>>>
+	[[nodiscard]] DPM_FORCEINLINE Promoted copysign(const simd<T0, Abi> &x, T1 sign) noexcept
+	{
+		return Promoted{copysign(Promoted{x}, detail::promote_t<T0, T1>{sign})};
 	}
 #pragma endregion
 

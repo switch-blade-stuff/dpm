@@ -320,7 +320,8 @@ namespace dpm
 
 		/** Shuffles elements of mask \a x into a new mask according to the specified indices. */
 		template<std::size_t... Is, typename T, std::size_t N, std::size_t A, std::size_t M = sizeof...(Is)>
-		[[nodiscard]] DPM_FORCEINLINE detail::x86_mask<T, M, A> shuffle(const detail::x86_mask<T, N, A> &x) noexcept requires detail::x86_overload_any<T, N, A> && detail::x86_overload_any<T, M, A>
+		[[nodiscard]] DPM_FORCEINLINE detail::x86_mask<T, M, A> shuffle(const detail::x86_mask<T, N, A> &x) noexcept
+		requires (DPM_NOT_SSSE3(sizeof(T) >= 4 &&) detail::x86_overload_any<T, N, A> && detail::x86_overload_any<T, M, A>)
 		{
 			detail::x86_mask<T, M, A> result = {};
 			auto result_data = to_native_data(result).data();
@@ -353,7 +354,6 @@ namespace dpm
 		detail::vectorize([](auto &res, auto a, auto b) { res = detail::bit_or(a, b); }, result, a, b);
 		return result;
 	}
-
 	template<typename T, std::size_t N, std::size_t A>
 	[[nodiscard]] DPM_FORCEINLINE detail::x86_mask<T, N, A> &operator&=(detail::x86_mask<T, N, A> &a, const detail::x86_mask<T, N, A> &b) noexcept requires detail::x86_overload_any<T, N, A>
 	{
@@ -971,9 +971,7 @@ namespace dpm
 		/** Shuffles elements of vector \a x into a new vector according to the specified indices. */
 		template<std::size_t... Is, typename T, std::size_t N, std::size_t A, std::size_t M = sizeof...(Is)>
 		[[nodiscard]] DPM_FORCEINLINE detail::x86_simd<T, M, A> shuffle(const detail::x86_simd<T, N, A> &x) noexcept
-		requires (DPM_NOT_SSSE3(sizeof(T) >= 4 &&)
-				detail::x86_overload_any<T, N, A> &&
-				detail::x86_overload_any<T, M, A>)
+		requires (DPM_NOT_SSSE3(sizeof(T) >= 4 &&) detail::x86_overload_any<T, N, A> && detail::x86_overload_any<T, M, A>)
 		{
 			detail::x86_simd<T, M, A> result = {};
 			auto result_data = to_native_data(result).data();
@@ -1052,6 +1050,37 @@ namespace dpm
 		return a;
 	}
 
+	template<typename T, std::size_t N, std::size_t A>
+	[[nodiscard]] DPM_FORCEINLINE detail::x86_simd<T, N, A> operator+(const detail::x86_simd<T, N, A> &a, T b) noexcept requires detail::x86_overload_any<T, N, A>
+	{
+		detail::x86_simd<T, N, A> result = {};
+		const auto b_vec = detail::fill<ext::native_data_type_t<detail::x86_simd<T, N, A>>>(b);
+		detail::vectorize([b = b_vec](auto &res, auto a) { res = detail::add<T>(a, b); }, result, a);
+		return result;
+	}
+	template<typename T, std::size_t N, std::size_t A>
+	[[nodiscard]] DPM_FORCEINLINE detail::x86_simd<T, N, A> operator-(const detail::x86_simd<T, N, A> &a, T b) noexcept requires detail::x86_overload_any<T, N, A>
+	{
+		detail::x86_simd<T, N, A> result = {};
+		const auto b_vec = detail::fill<ext::native_data_type_t<detail::x86_simd<T, N, A>>>(b);
+		detail::vectorize([b = b_vec](auto &res, auto a) { res = detail::sub<T>(a, b); }, result, a);
+		return result;
+	}
+	template<typename T, std::size_t N, std::size_t A>
+	DPM_FORCEINLINE detail::x86_simd<T, N, A> &operator+=(detail::x86_simd<T, N, A> &a, T b) noexcept requires detail::x86_overload_any<T, N, A>
+	{
+		const auto b_vec = detail::fill<ext::native_data_type_t<detail::x86_simd<T, N, A>>>(b);
+		detail::vectorize([b = b_vec](auto &a) { a = detail::add<T>(a, b); }, a);
+		return a;
+	}
+	template<typename T, std::size_t N, std::size_t A>
+	DPM_FORCEINLINE detail::x86_simd<T, N, A> &operator-=(detail::x86_simd<T, N, A> &a, T b) noexcept requires detail::x86_overload_any<T, N, A>
+	{
+		const auto b_vec = detail::fill<ext::native_data_type_t<detail::x86_simd<T, N, A>>>(b);
+		detail::vectorize([b = b_vec](auto &a) { a = detail::sub<T>(a, b); }, a);
+		return a;
+	}
+
 	template<std::floating_point T, std::size_t N, std::size_t A>
 	[[nodiscard]] DPM_FORCEINLINE detail::x86_simd<T, N, A> operator*(const detail::x86_simd<T, N, A> &a, const detail::x86_simd<T, N, A> &b) noexcept requires detail::x86_overload_any<T, N, A>
 	{
@@ -1079,6 +1108,37 @@ namespace dpm
 		return a;
 	}
 
+	template<std::floating_point T, std::size_t N, std::size_t A>
+	[[nodiscard]] DPM_FORCEINLINE detail::x86_simd<T, N, A> operator*(const detail::x86_simd<T, N, A> &a, T b) noexcept requires detail::x86_overload_any<T, N, A>
+	{
+		detail::x86_simd<T, N, A> result = {};
+		const auto b_vec = detail::fill<ext::native_data_type_t<detail::x86_simd<T, N, A>>>(b);
+		detail::vectorize([b = b_vec](auto &res, auto a) { res = detail::mul<T>(a, b); }, result, a);
+		return result;
+	}
+	template<std::floating_point  T, std::size_t N, std::size_t A>
+	[[nodiscard]] DPM_FORCEINLINE detail::x86_simd<T, N, A> operator/(const detail::x86_simd<T, N, A> &a, T b) noexcept requires detail::x86_overload_any<T, N, A>
+	{
+		detail::x86_simd<T, N, A> result = {};
+		const auto b_vec = detail::fill<ext::native_data_type_t<detail::x86_simd<T, N, A>>>(b);
+		detail::vectorize([b = b_vec](auto &res, auto a) { res = detail::div<T>(a, b); }, result, a);
+		return result;
+	}
+	template<std::floating_point T, std::size_t N, std::size_t A>
+	DPM_FORCEINLINE detail::x86_simd<T, N, A> &operator*=(detail::x86_simd<T, N, A> &a, T b) noexcept requires detail::x86_overload_any<T, N, A>
+	{
+		const auto b_vec = detail::fill<ext::native_data_type_t<detail::x86_simd<T, N, A>>>(b);
+		detail::vectorize([b = b_vec](auto &a) { a = detail::mul<T>(a, b); }, a);
+		return a;
+	}
+	template<std::floating_point T, std::size_t N, std::size_t A>
+	DPM_FORCEINLINE detail::x86_simd<T, N, A> &operator/=(detail::x86_simd<T, N, A> &a, T b) noexcept requires detail::x86_overload_any<T, N, A>
+	{
+		const auto b_vec = detail::fill<ext::native_data_type_t<detail::x86_simd<T, N, A>>>(b);
+		detail::vectorize([b = b_vec](auto &a) { a = detail::div<T>(a, b); }, a);
+		return a;
+	}
+
 	template<detail::integral_of_size<2> T, std::size_t N, std::size_t A>
 	[[nodiscard]] DPM_FORCEINLINE detail::x86_simd<T, N, A> operator*(const detail::x86_simd<T, N, A> &a, const detail::x86_simd<T, N, A> &b) noexcept requires detail::x86_overload_any<T, N, A>
 	{
@@ -1090,6 +1150,22 @@ namespace dpm
 	DPM_FORCEINLINE detail::x86_simd<T, N, A> &operator*=(detail::x86_simd<T, N, A> &a, const detail::x86_simd<T, N, A> &b) noexcept requires detail::x86_overload_any<T, N, A>
 	{
 		detail::vectorize([](auto &a, auto b) { a = detail::mul<T>(a, b); }, a, b);
+		return a;
+	}
+
+	template<detail::integral_of_size<2> T, std::size_t N, std::size_t A>
+	[[nodiscard]] DPM_FORCEINLINE detail::x86_simd<T, N, A> operator*(const detail::x86_simd<T, N, A> &a, T b) noexcept requires detail::x86_overload_any<T, N, A>
+	{
+		detail::x86_simd<T, N, A> result = {};
+		const auto b_vec = detail::fill<ext::native_data_type_t<detail::x86_simd<T, N, A>>>(b);
+		detail::vectorize([b = b_vec](auto &res, auto a) { res = detail::mul<T>(a, b); }, result, a);
+		return result;
+	}
+	template<detail::integral_of_size<2> T, std::size_t N, std::size_t A>
+	DPM_FORCEINLINE detail::x86_simd<T, N, A> &operator*=(detail::x86_simd<T, N, A> &a, T b) noexcept requires detail::x86_overload_any<T, N, A>
+	{
+		const auto b_vec = detail::fill<ext::native_data_type_t<detail::x86_simd<T, N, A>>>(b);
+		detail::vectorize([b = b_vec](auto &a) { a = detail::mul<T>(a, b); }, a);
 		return a;
 	}
 
@@ -1105,6 +1181,22 @@ namespace dpm
 	DPM_FORCEINLINE detail::x86_simd<T, N, A> &operator*=(detail::x86_simd<T, N, A> &a, const detail::x86_simd<T, N, A> &b) noexcept requires detail::x86_overload_any<T, N, A>
 	{
 		detail::vectorize([](auto &a, auto b) { a = detail::mul<T>(a, b); }, a, b);
+		return a;
+	}
+
+	template<detail::integral_of_size<4> T, std::size_t N, std::size_t A>
+	[[nodiscard]] DPM_FORCEINLINE detail::x86_simd<T, N, A> operator*(const detail::x86_simd<T, N, A> &a, T b) noexcept requires detail::x86_overload_any<T, N, A>
+	{
+		detail::x86_simd<T, N, A> result = {};
+		const auto b_vec = detail::fill<ext::native_data_type_t<detail::x86_simd<T, N, A>>>(b);
+		detail::vectorize([b = b_vec](auto &res, auto a) { res = detail::mul<T>(a, b); }, result, a);
+		return result;
+	}
+	template<detail::integral_of_size<4> T, std::size_t N, std::size_t A>
+	DPM_FORCEINLINE detail::x86_simd<T, N, A> &operator*=(detail::x86_simd<T, N, A> &a, T b) noexcept requires detail::x86_overload_any<T, N, A>
+	{
+		const auto b_vec = detail::fill<ext::native_data_type_t<detail::x86_simd<T, N, A>>>(b);
+		detail::vectorize([b = b_vec](auto &a) { a = detail::mul<T>(a, b); }, a);
 		return a;
 	}
 #endif
@@ -1149,6 +1241,52 @@ namespace dpm
 		return a;
 	}
 
+	template<std::integral T, std::size_t N, std::size_t A>
+	[[nodiscard]] DPM_FORCEINLINE detail::x86_simd<T, N, A> operator&(const detail::x86_simd<T, N, A> &a, T b) noexcept requires detail::x86_overload_any<T, N, A>
+	{
+		detail::x86_simd<T, N, A> result = {};
+		const auto b_vec = detail::fill<ext::native_data_type_t<detail::x86_simd<T, N, A>>>(b);
+		detail::vectorize([b = b_vec](auto &res, auto a) { res = detail::bit_and(a, b); }, result, a);
+		return result;
+	}
+	template<std::integral T, std::size_t N, std::size_t A>
+	[[nodiscard]] DPM_FORCEINLINE detail::x86_simd<T, N, A> operator^(const detail::x86_simd<T, N, A> &a, T b) noexcept requires detail::x86_overload_any<T, N, A>
+	{
+		detail::x86_simd<T, N, A> result = {};
+		const auto b_vec = detail::fill<ext::native_data_type_t<detail::x86_simd<T, N, A>>>(b);
+		detail::vectorize([b = b_vec](auto &res, auto a) { res = detail::bit_xor(a, b); }, result, a);
+		return result;
+	}
+	template<std::integral T, std::size_t N, std::size_t A>
+	[[nodiscard]] DPM_FORCEINLINE detail::x86_simd<T, N, A> operator|(const detail::x86_simd<T, N, A> &a, T b) noexcept requires detail::x86_overload_any<T, N, A>
+	{
+		detail::x86_simd<T, N, A> result = {};
+		const auto b_vec = detail::fill<ext::native_data_type_t<detail::x86_simd<T, N, A>>>(b);
+		detail::vectorize([b = b_vec](auto &res, auto a) { res = detail::bit_or(a, b); }, result, a);
+		return result;
+	}
+	template<std::integral T, std::size_t N, std::size_t A>
+	DPM_FORCEINLINE detail::x86_simd<T, N, A> &operator&=(detail::x86_simd<T, N, A> &a, T b) noexcept requires detail::x86_overload_any<T, N, A>
+	{
+		const auto b_vec = detail::fill<ext::native_data_type_t<detail::x86_simd<T, N, A>>>(b);
+		detail::vectorize([b = b_vec](auto &a) { a = detail::bit_and(a, b); }, a);
+		return a;
+	}
+	template<std::integral T, std::size_t N, std::size_t A>
+	DPM_FORCEINLINE detail::x86_simd<T, N, A> &operator^=(detail::x86_simd<T, N, A> &a, T b) noexcept requires detail::x86_overload_any<T, N, A>
+	{
+		const auto b_vec = detail::fill<ext::native_data_type_t<detail::x86_simd<T, N, A>>>(b);
+		detail::vectorize([b = b_vec](auto &a) { a = detail::bit_xor(a, b); }, a);
+		return a;
+	}
+	template<std::integral T, std::size_t N, std::size_t A>
+	DPM_FORCEINLINE detail::x86_simd<T, N, A> &operator|=(detail::x86_simd<T, N, A> &a, T b) noexcept requires detail::x86_overload_any<T, N, A>
+	{
+		const auto b_vec = detail::fill<ext::native_data_type_t<detail::x86_simd<T, N, A>>>(b);
+		detail::vectorize([b = b_vec](auto &a) { a = detail::bit_or(a, b); }, a);
+		return a;
+	}
+
 	template<detail::integral_of_size<8> T, std::size_t N, std::size_t A>
 	[[nodiscard]] DPM_FORCEINLINE detail::x86_simd<T, N, A> operator<<(const detail::x86_simd<T, N, A> &a, const detail::x86_simd<T, N, A> &b) noexcept requires detail::x86_overload_any<T, N, A>
 	{
@@ -1173,6 +1311,37 @@ namespace dpm
 	DPM_FORCEINLINE detail::x86_simd<T, N, A> &operator>>=(detail::x86_simd<T, N, A> &a, const detail::x86_simd<T, N, A> &b) noexcept requires detail::x86_overload_any<T, N, A>
 	{
 		detail::vectorize([](auto &a, auto b) { a = detail::bit_shiftr<T>(a, b); }, a, b);
+		return a;
+	}
+
+	template<detail::integral_of_size<8> T, std::size_t N, std::size_t A>
+	[[nodiscard]] DPM_FORCEINLINE detail::x86_simd<T, N, A> operator<<(const detail::x86_simd<T, N, A> &a, T n) noexcept requires detail::x86_overload_any<T, N, A>
+	{
+		detail::x86_simd<T, N, A> result = {};
+		const auto n_vec = detail::fill<ext::native_data_type_t<detail::x86_simd<T, N, A>>>(n);
+		detail::vectorize([n = n_vec](auto &res, auto a) { res = detail::bit_shiftl<T>(a, n); }, result, a);
+		return result;
+	}
+	template<detail::integral_of_size<8> T, std::size_t N, std::size_t A>
+	[[nodiscard]] DPM_FORCEINLINE detail::x86_simd<T, N, A> operator>>(const detail::x86_simd<T, N, A> &a, T n) noexcept requires detail::x86_overload_any<T, N, A>
+	{
+		detail::x86_simd<T, N, A> result = {};
+		const auto n_vec = detail::fill<ext::native_data_type_t<detail::x86_simd<T, N, A>>>(n);
+		detail::vectorize([n = n_vec](auto &res, auto a) { res = detail::bit_shiftr<T>(a, n); }, result, a);
+		return result;
+	}
+	template<detail::integral_of_size<8> T, std::size_t N, std::size_t A>
+	DPM_FORCEINLINE detail::x86_simd<T, N, A> &operator<<=(detail::x86_simd<T, N, A> &a, T n) noexcept requires detail::x86_overload_any<T, N, A>
+	{
+		const auto n_vec = detail::fill<ext::native_data_type_t<detail::x86_simd<T, N, A>>>(n);
+		detail::vectorize([n = n_vec](auto &a) { a = detail::bit_shiftl<T>(a, n); }, a);
+		return a;
+	}
+	template<detail::integral_of_size<8> T, std::size_t N, std::size_t A>
+	DPM_FORCEINLINE detail::x86_simd<T, N, A> &operator>>=(detail::x86_simd<T, N, A> &a, T n) noexcept requires detail::x86_overload_any<T, N, A>
+	{
+		const auto n_vec = detail::fill<ext::native_data_type_t<detail::x86_simd<T, N, A>>>(n);
+		detail::vectorize([n = n_vec](auto &a) { a = detail::bit_shiftr<T>(a, n); }, a);
 		return a;
 	}
 
@@ -1203,6 +1372,37 @@ namespace dpm
 		detail::vectorize([](auto &a, auto b) { a = detail::bit_shiftr<T>(a, b); }, a, b);
 		return a;
 	}
+
+	template<detail::integral_of_size<4> T, std::size_t N, std::size_t A>
+	[[nodiscard]] DPM_FORCEINLINE detail::x86_simd<T, N, A> operator<<(const detail::x86_simd<T, N, A> &a, T n) noexcept requires detail::x86_overload_any<T, N, A>
+	{
+		detail::x86_simd<T, N, A> result = {};
+		const auto n_vec = detail::fill<ext::native_data_type_t<detail::x86_simd<T, N, A>>>(n);
+		detail::vectorize([n = n_vec](auto &res, auto a) { res = detail::bit_shiftl<T>(a, n); }, result, a);
+		return result;
+	}
+	template<detail::integral_of_size<4> T, std::size_t N, std::size_t A>
+	[[nodiscard]] DPM_FORCEINLINE detail::x86_simd<T, N, A> operator>>(const detail::x86_simd<T, N, A> &a, T n) noexcept requires detail::x86_overload_any<T, N, A>
+	{
+		detail::x86_simd<T, N, A> result = {};
+		const auto n_vec = detail::fill<ext::native_data_type_t<detail::x86_simd<T, N, A>>>(n);
+		detail::vectorize([n = n_vec](auto &res, auto a) { res = detail::bit_shiftr<T>(a, n); }, result, a);
+		return result;
+	}
+	template<detail::integral_of_size<4> T, std::size_t N, std::size_t A>
+	DPM_FORCEINLINE detail::x86_simd<T, N, A> &operator<<=(detail::x86_simd<T, N, A> &a, T n) noexcept requires detail::x86_overload_any<T, N, A>
+	{
+		const auto n_vec = detail::fill<ext::native_data_type_t<detail::x86_simd<T, N, A>>>(n);
+		detail::vectorize([n = n_vec](auto &a) { a = detail::bit_shiftl<T>(a, n); }, a);
+		return a;
+	}
+	template<detail::integral_of_size<4> T, std::size_t N, std::size_t A>
+	DPM_FORCEINLINE detail::x86_simd<T, N, A> &operator>>=(detail::x86_simd<T, N, A> &a, T n) noexcept requires detail::x86_overload_any<T, N, A>
+	{
+		const auto n_vec = detail::fill<ext::native_data_type_t<detail::x86_simd<T, N, A>>>(n);
+		detail::vectorize([n = n_vec](auto &a) { a = detail::bit_shiftr<T>(a, n); }, a);
+		return a;
+	}
 #endif
 
 #if defined(DPM_HAS_AVX512DQ) && defined(DPM_HAS_AVX512LV)
@@ -1217,6 +1417,22 @@ namespace dpm
 	DPM_FORCEINLINE detail::x86_simd<T, N, A> &operator*=(detail::x86_simd<T, N, A> &a, const detail::x86_simd<T, N, A> &b) noexcept requires detail::x86_overload_any<T, N, A>
 	{
 		detail::vectorize([](auto &a, auto b) { a = detail::mul<T>(a, b); }, a, b);
+		return a;
+	}
+
+	template<detail::integral_of_size<8> T, std::size_t N, std::size_t A>
+	[[nodiscard]] DPM_FORCEINLINE detail::x86_simd<T, N, A> operator*(const detail::x86_simd<T, N, A> &a, T b) noexcept requires detail::x86_overload_any<T, N, A>
+	{
+		detail::x86_simd<T, N, A> result = {};
+		const auto b_vec = detail::fill<ext::native_data_type_t<detail::x86_simd<T, N, A>>>(b);
+		detail::vectorize([b = b_vec](auto &res, auto a) { res = detail::mul<T>(a, b); }, result, a);
+		return result;
+	}
+	template<detail::integral_of_size<8> T, std::size_t N, std::size_t A>
+	DPM_FORCEINLINE detail::x86_simd<T, N, A> &operator*=(detail::x86_simd<T, N, A> &a, T b) noexcept requires detail::x86_overload_any<T, N, A>
+	{
+		const auto b_vec = detail::fill<ext::native_data_type_t<detail::x86_simd<T, N, A>>>(b);
+		detail::vectorize([b = b_vec](auto &a) { a = detail::mul<T>(a, b); }, a);
 		return a;
 	}
 #endif
@@ -1246,6 +1462,37 @@ namespace dpm
 	DPM_FORCEINLINE detail::x86_simd<T, N, A> &operator>>=(detail::x86_simd<T, N, A> &a, const detail::x86_simd<T, N, A> &b) noexcept requires detail::x86_overload_any<T, N, A>
 	{
 		detail::vectorize([](auto &a, auto b) { a = detail::bit_shiftr<T>(a, b); }, a, b);
+		return a;
+	}
+
+	template<detail::integral_of_size<2> T, std::size_t N, std::size_t A>
+	[[nodiscard]] DPM_FORCEINLINE detail::x86_simd<T, N, A> operator<<(const detail::x86_simd<T, N, A> &a, T n) noexcept requires detail::x86_overload_any<T, N, A>
+	{
+		detail::x86_simd<T, N, A> result = {};
+		const auto n_vec = detail::fill<ext::native_data_type_t<detail::x86_simd<T, N, A>>>(n);
+		detail::vectorize([n = n_vec](auto &res, auto a) { res = detail::bit_shiftl<T>(a, n); }, result, a);
+		return result;
+	}
+	template<detail::integral_of_size<2> T, std::size_t N, std::size_t A>
+	[[nodiscard]] DPM_FORCEINLINE detail::x86_simd<T, N, A> operator>>(const detail::x86_simd<T, N, A> &a, T n) noexcept requires detail::x86_overload_any<T, N, A>
+	{
+		detail::x86_simd<T, N, A> result = {};
+		const auto n_vec = detail::fill<ext::native_data_type_t<detail::x86_simd<T, N, A>>>(n);
+		detail::vectorize([n = n_vec](auto &res, auto a) { res = detail::bit_shiftr<T>(a, n); }, result, a);
+		return result;
+	}
+	template<detail::integral_of_size<2> T, std::size_t N, std::size_t A>
+	DPM_FORCEINLINE detail::x86_simd<T, N, A> &operator<<=(detail::x86_simd<T, N, A> &a, T n) noexcept requires detail::x86_overload_any<T, N, A>
+	{
+		const auto n_vec = detail::fill<ext::native_data_type_t<detail::x86_simd<T, N, A>>>(n);
+		detail::vectorize([n = n_vec](auto &a) { a = detail::bit_shiftl<T>(a, n); }, a);
+		return a;
+	}
+	template<detail::integral_of_size<2> T, std::size_t N, std::size_t A>
+	DPM_FORCEINLINE detail::x86_simd<T, N, A> &operator>>=(detail::x86_simd<T, N, A> &a, T n) noexcept requires detail::x86_overload_any<T, N, A>
+	{
+		const auto n_vec = detail::fill<ext::native_data_type_t<detail::x86_simd<T, N, A>>>(n);
+		detail::vectorize([n = n_vec](auto &a) { a = detail::bit_shiftr<T>(a, n); }, a);
 		return a;
 	}
 #endif
@@ -1487,10 +1734,7 @@ namespace dpm
 #pragma region "simd algorithms"
 	/** Returns an SIMD vector of minimum elements of \a a and \a b. */
 	template<std::floating_point T, std::size_t N, std::size_t A>
-	[[nodiscard]] DPM_FORCEINLINE detail::x86_simd<T, N, A> min(
-			const detail::x86_simd<T, N, A> &a,
-			const detail::x86_simd<T, N, A> &b)
-	noexcept requires detail::x86_overload_any<T, N, A>
+	[[nodiscard]] DPM_FORCEINLINE detail::x86_simd<T, N, A> min(const detail::x86_simd<T, N, A> &a, const detail::x86_simd<T, N, A> &b) noexcept requires detail::x86_overload_any<T, N, A>
 	{
 		detail::x86_simd<T, N, A> result = {};
 		detail::vectorize([](auto &res, auto a, auto b) { res = detail::min<T>(a, b); }, result, a, b);
@@ -1498,10 +1742,7 @@ namespace dpm
 	}
 	/** Returns an SIMD vector of maximum elements of \a a and \a b. */
 	template<std::floating_point T, std::size_t N, std::size_t A>
-	[[nodiscard]] DPM_FORCEINLINE detail::x86_simd<T, N, A> max(
-			const detail::x86_simd<T, N, A> &a,
-			const detail::x86_simd<T, N, A> &b)
-	noexcept requires detail::x86_overload_any<T, N, A>
+	[[nodiscard]] DPM_FORCEINLINE detail::x86_simd<T, N, A> max(const detail::x86_simd<T, N, A> &a, const detail::x86_simd<T, N, A> &b) noexcept requires detail::x86_overload_any<T, N, A>
 	{
 		detail::x86_simd<T, N, A> result = {};
 		detail::vectorize([](auto &res, auto a, auto b) { res = detail::max<T>(a, b); }, result, a, b);
@@ -1517,7 +1758,7 @@ namespace dpm
 	{
 		return {min(a, b), max(a, b)};
 	}
-	/** Clamps elements \f \a x between corresponding elements of \a ming and \a max. */
+	/** Clamps elements \f \a x between corresponding elements of \a min and \a max. */
 	template<std::floating_point T, std::size_t N, std::size_t A>
 	[[nodiscard]] DPM_FORCEINLINE detail::x86_simd<T, N, A> clamp(
 			const detail::x86_simd<T, N, A> &x,
@@ -1533,10 +1774,7 @@ namespace dpm
 #if defined(DPM_HAS_SSE4_1)
 	/** @copydoc min */
 	template<std::integral T, std::size_t N, std::size_t A>
-	[[nodiscard]] DPM_FORCEINLINE detail::x86_simd<T, N, A> min(
-			const detail::x86_simd<T, N, A> &a,
-			const detail::x86_simd<T, N, A> &b)
-	noexcept requires (detail::x86_overload_any<T, N, A> && sizeof(T) < 8)
+	[[nodiscard]] DPM_FORCEINLINE detail::x86_simd<T, N, A> min(const detail::x86_simd<T, N, A> &a, const detail::x86_simd<T, N, A> &b) noexcept requires (detail::x86_overload_any<T, N, A> && sizeof(T) < 8)
 	{
 		detail::x86_simd<T, N, A> result = {};
 		detail::vectorize([](auto &res, auto a, auto b) { res = detail::min<T>(a, b); }, result, a, b);
@@ -1544,10 +1782,7 @@ namespace dpm
 	}
 	/** @copydoc max */
 	template<std::integral T, std::size_t N, std::size_t A>
-	[[nodiscard]] DPM_FORCEINLINE detail::x86_simd<T, N, A> max(
-			const detail::x86_simd<T, N, A> &a,
-			const detail::x86_simd<T, N, A> &b)
-	noexcept requires (detail::x86_overload_any<T, N, A> && sizeof(T) < 8)
+	[[nodiscard]] DPM_FORCEINLINE detail::x86_simd<T, N, A> max(const detail::x86_simd<T, N, A> &a, const detail::x86_simd<T, N, A> &b) noexcept requires (detail::x86_overload_any<T, N, A> && sizeof(T) < 8)
 	{
 		detail::x86_simd<T, N, A> result = {};
 		detail::vectorize([](auto &res, auto a, auto b) { res = detail::min<T>(a, b); }, result, a, b);
@@ -1618,10 +1853,7 @@ namespace dpm
 #if defined(DPM_HAS_AVX512F) && defined(DPM_HAS_AVX512LV)
 	/** @copydoc min */
 	template<detail::integral_of_size<8> T, std::size_t N, std::size_t A>
-	[[nodiscard]] DPM_FORCEINLINE detail::x86_simd<T, N, A> min(
-			const detail::x86_simd<T, N, A> &a,
-			const detail::x86_simd<T, N, A> &b)
-	noexcept requires detail::x86_overload_any<T, N, A>
+	[[nodiscard]] DPM_FORCEINLINE detail::x86_simd<T, N, A> min(const detail::x86_simd<T, N, A> &a, const detail::x86_simd<T, N, A> &b) noexcept requires detail::x86_overload_any<T, N, A>
 	{
 		detail::x86_simd<T, N, A> result = {};
 		detail::vectorize([](auto &res, auto a, auto b) { res = detail::min<T>(a, b); }, result, a, b);
@@ -1629,10 +1861,7 @@ namespace dpm
 	}
 	/** @copydoc max */
 	template<detail::integral_of_size<8> T, std::size_t N, std::size_t A>
-	[[nodiscard]] DPM_FORCEINLINE detail::x86_simd<T, N, A> max(
-			const detail::x86_simd<T, N, A> &a,
-			const detail::x86_simd<T, N, A> &b)
-	noexcept requires detail::x86_overload_any<T, N, A>
+	[[nodiscard]] DPM_FORCEINLINE detail::x86_simd<T, N, A> max(const detail::x86_simd<T, N, A> &a, const detail::x86_simd<T, N, A> &b) noexcept requires detail::x86_overload_any<T, N, A>
 	{
 		detail::x86_simd<T, N, A> result = {};
 		detail::vectorize([](auto &res, auto a, auto b) { res = detail::max<T>(a, b); }, result, a, b);
@@ -1657,6 +1886,153 @@ namespace dpm
 	{
 		detail::x86_simd<T, N, A> result = {};
 		detail::vectorize([](auto &res, auto x, auto min, auto max) { res = detail::min<T>(detail::max<T>(x, min), max); }, result, x, min, max);
+		return result;
+	}
+#endif
+
+	/** Returns an SIMD vector of minimum elements of \a a and scalar \a b. */
+	template<std::floating_point T, std::size_t N, std::size_t A>
+	[[nodiscard]] DPM_FORCEINLINE detail::x86_simd<T, N, A> min(const detail::x86_simd<T, N, A> &a, T b) noexcept requires detail::x86_overload_any<T, N, A>
+	{
+		detail::x86_simd<T, N, A> result = {};
+		const auto b_vec = detail::fill<ext::native_data_type_t<detail::x86_simd<T, N, A>>>(b);
+		detail::vectorize([b = b_vec](auto &res, auto a) { res = detail::min<T>(a, b); }, result, a);
+		return result;
+	}
+	/** Returns an SIMD vector of maximum elements of \a a and scalar \a b. */
+	template<std::floating_point T, std::size_t N, std::size_t A>
+	[[nodiscard]] DPM_FORCEINLINE detail::x86_simd<T, N, A> max(const detail::x86_simd<T, N, A> &a, T b) noexcept requires detail::x86_overload_any<T, N, A>
+	{
+		detail::x86_simd<T, N, A> result = {};
+		const auto b_vec = detail::fill<ext::native_data_type_t<detail::x86_simd<T, N, A>>>(b);
+		detail::vectorize([b = b_vec](auto &res, auto a) { res = detail::max<T>(a, b); }, result, a);
+		return result;
+	}
+	/** Returns a pair of SIMD vectors of minimum and maximum elements of \a a and scalar \a b. */
+	template<std::floating_point T, std::size_t N, std::size_t A>
+	[[nodiscard]] DPM_FORCEINLINE std::pair<detail::x86_simd<T, N, A>, detail::x86_simd<T, N, A>> minmax(const detail::x86_simd<T, N, A> &a, T b) noexcept requires detail::x86_overload_any<T, N, A>
+	{
+		return {min(a, b), max(a, b)};
+	}
+	/** Clamps elements \f \a x between \a min and \a max. */
+	template<std::floating_point T, std::size_t N, std::size_t A>
+	[[nodiscard]] DPM_FORCEINLINE detail::x86_simd<T, N, A> clamp(const detail::x86_simd<T, N, A> &x, T min, T max) noexcept requires detail::x86_overload_any<T, N, A>
+	{
+		detail::x86_simd<T, N, A> result = {};
+		const auto min_vec = detail::fill<ext::native_data_type_t<detail::x86_simd<T, N, A>>>(min);
+		const auto max_vec = detail::fill<ext::native_data_type_t<detail::x86_simd<T, N, A>>>(max);
+		detail::vectorize([min = min_vec, max = max_vec](auto &res, auto x) { res = detail::min<T>(detail::max<T>(x, min), max); }, result, x);
+		return result;
+	}
+
+#if defined(DPM_HAS_SSE4_1)
+	/** @copydoc min */
+	template<std::integral T, std::size_t N, std::size_t A>
+	[[nodiscard]] DPM_FORCEINLINE detail::x86_simd<T, N, A> min(const detail::x86_simd<T, N, A> &a, T b) noexcept requires (detail::x86_overload_any<T, N, A> && sizeof(T) < 8)
+	{
+		detail::x86_simd<T, N, A> result = {};
+		const auto b_vec = detail::fill<ext::native_data_type_t<detail::x86_simd<T, N, A>>>(b);
+		detail::vectorize([b = b_vec](auto &res, auto a) { res = detail::min<T>(a, b); }, result, a);
+		return result;
+	}
+	/** @copydoc max */
+	template<std::integral T, std::size_t N, std::size_t A>
+	[[nodiscard]] DPM_FORCEINLINE detail::x86_simd<T, N, A> max(const detail::x86_simd<T, N, A> &a, T b) noexcept requires (detail::x86_overload_any<T, N, A> && sizeof(T) < 8)
+	{
+		detail::x86_simd<T, N, A> result = {};
+		const auto b_vec = detail::fill<ext::native_data_type_t<detail::x86_simd<T, N, A>>>(b);
+		detail::vectorize([b = b_vec](auto &res, auto a) { res = detail::max<T>(a, b); }, result, a);
+		return result;
+	}
+	/** @copydoc minmax */
+	template<std::integral T, std::size_t N, std::size_t A>
+	[[nodiscard]] DPM_FORCEINLINE std::pair<detail::x86_simd<T, N, A>, detail::x86_simd<T, N, A>> minmax(const detail::x86_simd<T, N, A> &a, T b) noexcept requires (detail::x86_overload_any<T, N, A> && sizeof(T) < 8)
+	{
+		return {min(a, b), max(a, b)};
+	}
+	/** @copydoc clamp */
+	template<std::integral T, std::size_t N, std::size_t A>
+	[[nodiscard]] DPM_FORCEINLINE detail::x86_simd<T, N, A> clamp(const detail::x86_simd<T, N, A> &x, T min, T max) noexcept requires (detail::x86_overload_any<T, N, A> && sizeof(T) < 8)
+	{
+		detail::x86_simd<T, N, A> result = {};
+		const auto min_vec = detail::fill<ext::native_data_type_t<detail::x86_simd<T, N, A>>>(min);
+		const auto max_vec = detail::fill<ext::native_data_type_t<detail::x86_simd<T, N, A>>>(max);
+		detail::vectorize([min = min_vec, max = max_vec](auto &res, auto x) { res = detail::min<T>(detail::max<T>(x, min), max); }, result, x);
+		return result;
+	}
+#elif defined(DPM_HAS_SSSE3)
+	/** @copydoc min */
+	template<std::integral T, std::size_t N, std::size_t A>
+	[[nodiscard]] DPM_FORCEINLINE detail::x86_simd<T, N, A> min(const detail::x86_simd<T, N, A> &a, T b)
+	noexcept requires (detail::x86_overload_any<T, N, A> && (detail::unsigned_integral_of_size<T, 1> || detail::signed_integral_of_size<T, 2>))
+	{
+		detail::x86_simd<T, N, A> result = {};
+		const auto b_vec = detail::fill<ext::native_data_type_t<detail::x86_simd<T, N, A>>>(b);
+		detail::vectorize([b = b_vec](auto &res, auto a) { res = detail::min<T>(a, b); }, result, a);
+		return result;
+	}
+	/** @copydoc max */
+	template<std::integral T, std::size_t N, std::size_t A>
+	[[nodiscard]] DPM_FORCEINLINE detail::x86_simd<T, N, A> max(const detail::x86_simd<T, N, A> &a, T b)
+	noexcept requires (detail::x86_overload_any<T, N, A> && (detail::unsigned_integral_of_size<T, 1> || detail::signed_integral_of_size<T, 2>))
+	{
+		detail::x86_simd<T, N, A> result = {};
+		const auto b_vec = detail::fill<ext::native_data_type_t<detail::x86_simd<T, N, A>>>(b);
+		detail::vectorize([b = b_vec](auto &res, auto a) { res = detail::max<T>(a, b); }, result, a);
+		return result;
+	}
+	/** @copydoc minmax */
+	template<std::integral T, std::size_t N, std::size_t A>
+	[[nodiscard]] DPM_FORCEINLINE std::pair<detail::x86_simd<T, N, A>, detail::x86_simd<T, N, A>> minmax(const detail::x86_simd<T, N, A> &a, T b)
+	noexcept requires (detail::x86_overload_any<T, N, A> && (detail::unsigned_integral_of_size<T, 1> || detail::signed_integral_of_size<T, 2>))
+	{
+		return {min(a, b), max(a, b)};
+	}
+	/** @copydoc clamp */
+	template<std::integral T, std::size_t N, std::size_t A>
+	[[nodiscard]] DPM_FORCEINLINE detail::x86_simd<T, N, A> clamp(const detail::x86_simd<T, N, A> &x, T min, T max)
+	noexcept requires (detail::x86_overload_any<T, N, A> && (detail::unsigned_integral_of_size<T, 1> || detail::signed_integral_of_size<T, 2>))
+	{
+		detail::x86_simd<T, N, A> result = {};
+		const auto min_vec = detail::fill<ext::native_data_type_t<detail::x86_simd<T, N, A>>>(min);
+		const auto max_vec = detail::fill<ext::native_data_type_t<detail::x86_simd<T, N, A>>>(max);
+		detail::vectorize([min = min_vec, max = max_vec](auto &res, auto x) { res = detail::min<T>(detail::max<T>(x, min), max); }, result, x);
+		return result;
+	}
+#endif
+#if defined(DPM_HAS_AVX512F) && defined(DPM_HAS_AVX512LV)
+	/** @copydoc min */
+	template<detail::integral_of_size<8> T, std::size_t N, std::size_t A>
+	[[nodiscard]] DPM_FORCEINLINE detail::x86_simd<T, N, A> min(const detail::x86_simd<T, N, A> &a, T b) noexcept requires detail::x86_overload_any<T, N, A>
+	{
+		detail::x86_simd<T, N, A> result = {};
+		const auto b_vec = detail::fill<ext::native_data_type_t<detail::x86_simd<T, N, A>>>(b);
+		detail::vectorize([b = b_vec](auto &res, auto a) { res = detail::min<T>(a, b); }, result, a);
+		return result;
+	}
+	/** @copydoc max */
+	template<detail::integral_of_size<8> T, std::size_t N, std::size_t A>
+	[[nodiscard]] DPM_FORCEINLINE detail::x86_simd<T, N, A> max(const detail::x86_simd<T, N, A> &a, T b) noexcept requires detail::x86_overload_any<T, N, A>
+	{
+		detail::x86_simd<T, N, A> result = {};
+		const auto b_vec = detail::fill<ext::native_data_type_t<detail::x86_simd<T, N, A>>>(b);
+		detail::vectorize([b = b_vec](auto &res, auto a) { res = detail::max<T>(a, b); }, result, a);
+		return result;
+	}
+	/** @copydoc minmax */
+	template<detail::integral_of_size<8> T, std::size_t N, std::size_t A>
+	[[nodiscard]] DPM_FORCEINLINE std::pair<detail::x86_simd<T, N, A>, detail::x86_simd<T, N, A>> minmax(const detail::x86_simd<T, N, A> &a, T b) noexcept requires detail::x86_overload_any<T, N, A>
+	{
+		return {min(a, b), max(a, b)};
+	}
+	/** @copydoc clamp */
+	template<detail::integral_of_size<8> T, std::size_t N, std::size_t A>
+	[[nodiscard]] DPM_FORCEINLINE detail::x86_simd<T, N, A> clamp(const detail::x86_simd<T, N, A> &x, T min, T max) noexcept requires detail::x86_overload_any<T, N, A>
+	{
+		detail::x86_simd<T, N, A> result = {};
+		const auto min_vec = detail::fill<ext::native_data_type_t<detail::x86_simd<T, N, A>>>(min);
+		const auto max_vec = detail::fill<ext::native_data_type_t<detail::x86_simd<T, N, A>>>(max);
+		detail::vectorize([min = min_vec, max = max_vec](auto &res, auto x) { res = detail::min<T>(detail::max<T>(x, min), max); }, result, x);
 		return result;
 	}
 #endif

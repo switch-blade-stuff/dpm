@@ -10,90 +10,94 @@ namespace dpm
 {
 	namespace detail
 	{
-		[[nodiscard]] DPM_FORCEINLINE __m128 isinf(__m128 x) noexcept
+		[[nodiscard]] DPM_FORCEINLINE __m128 isinf_abs(__m128 x) noexcept
+		{
+			return _mm_cmpeq_ps(x, _mm_set1_ps(std::numeric_limits<float>::infinity()));
+		}
+		[[nodiscard]] DPM_FORCEINLINE __m128 isfinite_abs(__m128 x) noexcept
 		{
 			const auto inf = _mm_set1_ps(std::numeric_limits<float>::infinity());
-			return _mm_cmpeq_ps(abs(x), inf);
+		#ifdef DPM_HAS_AVX
+			return _mm_cmp_ps(x, inf, _CMP_NEQ_OQ);
+		#else
+			return bit_and(_mm_cmpord_ps(x, inf), _mm_cmpneq_ps(x, inf));
+		#endif
 		}
-		[[nodiscard]] DPM_FORCEINLINE __m128 isfinite(__m128 x) noexcept
+		[[nodiscard]] DPM_FORCEINLINE __m128 isnormal_abs(__m128 x) noexcept
 		{
-			const auto inf = _mm_set1_ps(std::numeric_limits<float>::infinity());
-#ifdef DPM_HAS_AVX
-			return _mm_cmp_ps(abs(x), inf, _CMP_NEQ_OQ);
-#else
-			const auto abs_x = abs(x);
-			return bit_and(_mm_cmpord_ps(abs_x, inf), _mm_cmpneq_ps(abs_x, inf));
-#endif
-		}
-		[[nodiscard]] DPM_FORCEINLINE __m128 isnormal(__m128 x) noexcept
-		{
-			const auto abs_x = abs(x);
 			const auto norm_min = _mm_set1_ps(std::bit_cast<float>(0x00800000));
 			const auto inf = _mm_set1_ps(std::numeric_limits<float>::infinity());
-			return bit_and(_mm_cmpnle_ps(inf, abs_x), _mm_cmpnlt_ps(abs_x, norm_min));
+			return bit_and(_mm_cmpnle_ps(inf, x), _mm_cmpnlt_ps(x, norm_min));
 		}
+
+		[[nodiscard]] DPM_FORCEINLINE __m128 isinf(__m128 x) noexcept { return isinf_abs(abs<float>(x)); }
+		[[nodiscard]] DPM_FORCEINLINE __m128 isfinite(__m128 x) noexcept { return isfinite_abs(abs<float>(x)); }
+		[[nodiscard]] DPM_FORCEINLINE __m128 isnormal(__m128 x) noexcept { return isnormal_abs(abs<float>(x)); }
 
 #ifdef DPM_HAS_SSE2
-		[[nodiscard]] DPM_FORCEINLINE __m128d isinf(__m128d x) noexcept
+		[[nodiscard]] DPM_FORCEINLINE __m128d isinf_abs(__m128d x) noexcept
 		{
-			const auto inf = _mm_set1_pd(std::numeric_limits<double>::infinity());
-			return _mm_cmpeq_pd(abs(x), inf);
+			return _mm_cmpeq_pd(x, _mm_set1_pd(std::numeric_limits<double>::infinity()));
 		}
-		[[nodiscard]] DPM_FORCEINLINE __m128d isfinite(__m128d x) noexcept
+		[[nodiscard]] DPM_FORCEINLINE __m128d isfinite_abs(__m128d x) noexcept
 		{
 			const auto inf = _mm_set1_pd(std::numeric_limits<double>::infinity());
 #ifdef DPM_HAS_AVX
-			return _mm_cmp_pd(abs(x), inf, _CMP_NEQ_OQ);
+			return _mm_cmp_pd(x, inf, _CMP_NEQ_OQ);
 #else
-			const auto abs_x = abs(x);
-			return bit_and(_mm_cmpord_pd(abs_x, inf), _mm_cmpneq_pd(abs_x, inf));
+			return bit_and(_mm_cmpord_pd(x, inf), _mm_cmpneq_pd(x, inf));
 #endif
 		}
-		[[nodiscard]] DPM_FORCEINLINE __m128d isnormal(__m128d x) noexcept
+		[[nodiscard]] DPM_FORCEINLINE __m128d isnormal_abs(__m128d x) noexcept
 		{
-			const auto abs_x = abs(x);
 			const auto norm_min = _mm_set1_pd(std::bit_cast<double>(0x10'0000'0000'0000));
 			const auto inf = _mm_set1_pd(std::numeric_limits<double>::infinity());
-			return bit_and(_mm_cmpnle_pd(inf, abs_x), _mm_cmpnlt_pd(abs_x, norm_min));
+			return bit_and(_mm_cmpnle_pd(inf, x), _mm_cmpnlt_pd(x, norm_min));
 		}
+
+		[[nodiscard]] DPM_FORCEINLINE __m128d isinf(__m128d x) noexcept { return isinf_abs(abs<double>(x)); }
+		[[nodiscard]] DPM_FORCEINLINE __m128d isfinite(__m128d x) noexcept { return isfinite_abs(abs<double>(x)); }
+		[[nodiscard]] DPM_FORCEINLINE __m128d isnormal(__m128d x) noexcept { return isnormal_abs(abs<double>(x)); }
 #endif
 
 #ifdef DPM_HAS_AVX
-		[[nodiscard]] DPM_FORCEINLINE __m256 isinf(__m256 x) noexcept
+		[[nodiscard]] DPM_FORCEINLINE __m256 isinf_abs(__m256 x) noexcept
 		{
-			const auto inf = _mm256_set1_ps(std::numeric_limits<float>::infinity());
-			return cmp_eq<float>(abs(x), inf);
+			return cmp_eq<float>(x, _mm256_set1_ps(std::numeric_limits<float>::infinity()));
 		}
-		[[nodiscard]] DPM_FORCEINLINE __m256 isfinite(__m256 x) noexcept
+		[[nodiscard]] DPM_FORCEINLINE __m256 isfinite_abs(__m256 x) noexcept
 		{
-			const auto inf = _mm256_set1_ps(std::numeric_limits<float>::infinity());
-			return _mm256_cmp_ps(abs(x), inf, _CMP_NEQ_OQ);
+			return _mm256_cmp_ps(x, _mm256_set1_ps(std::numeric_limits<float>::infinity()), _CMP_NEQ_OQ);
 		}
-		[[nodiscard]] DPM_FORCEINLINE __m256 isnormal(__m256 x) noexcept
+		[[nodiscard]] DPM_FORCEINLINE __m256 isnormal_abs(__m256 x) noexcept
 		{
-			const auto abs_x = abs(x);
 			const auto norm_min = _mm256_set1_ps(std::bit_cast<float>(0x00800000));
 			const auto inf = _mm256_set1_ps(std::numeric_limits<float>::infinity());
-			return bit_and(_mm256_cmp_ps(inf, abs_x, _CMP_NLE_UQ), _mm256_cmp_ps(abs_x, norm_min, _CMP_NLT_UQ));
+			return bit_and(_mm256_cmp_ps(inf, x, _CMP_NLE_UQ), _mm256_cmp_ps(x, norm_min, _CMP_NLT_UQ));
 		}
 
-		[[nodiscard]] DPM_FORCEINLINE __m256d isinf(__m256d x) noexcept
+		[[nodiscard]] DPM_FORCEINLINE __m256 isinf(__m256 x) noexcept { return isinf_abs(abs<float>(x)); }
+		[[nodiscard]] DPM_FORCEINLINE __m256 isfinite(__m256 x) noexcept { return isfinite_abs(abs<float>(x)); }
+		[[nodiscard]] DPM_FORCEINLINE __m256 isnormal(__m256 x) noexcept { return isnormal_abs(abs<float>(x)); }
+
+		[[nodiscard]] DPM_FORCEINLINE __m256d isinf_abs(__m256d x) noexcept
 		{
-			const auto inf = _mm256_set1_pd(std::numeric_limits<double>::infinity());
-			return cmp_eq<double>(abs(x), inf);
+			return cmp_eq<double>(x, _mm256_set1_pd(std::numeric_limits<double>::infinity()));
 		}
-		[[nodiscard]] DPM_FORCEINLINE __m256d isfinite(__m256d x) noexcept
+		[[nodiscard]] DPM_FORCEINLINE __m256d isfinite_abs(__m256d x) noexcept
 		{
-			const auto inf = _mm256_set1_pd(std::numeric_limits<double>::infinity());
-			return _mm256_cmp_pd(abs(x), inf, _CMP_NEQ_OQ);
+			return _mm256_cmp_pd(x, _mm256_set1_pd(std::numeric_limits<double>::infinity()), _CMP_NEQ_OQ);
 		}
-		[[nodiscard]] DPM_FORCEINLINE __m256d isnormal(__m256d x) noexcept
+		[[nodiscard]] DPM_FORCEINLINE __m256d isnormal_abs(__m256d x) noexcept
 		{
-			const auto abs_x = abs(x);
 			const auto norm_min = _mm256_set1_pd(std::bit_cast<double>(0x10'0000'0000'0000));
 			const auto inf = _mm256_set1_pd(std::numeric_limits<double>::infinity());
-			return bit_and(_mm256_cmp_pd(inf, abs_x, _CMP_NLE_UQ), _mm256_cmp_pd(abs_x, norm_min, _CMP_NLT_UQ));
+			return bit_and(_mm256_cmp_pd(inf, x, _CMP_NLE_UQ), _mm256_cmp_pd(x, norm_min, _CMP_NLT_UQ));
 		}
+
+		[[nodiscard]] DPM_FORCEINLINE __m256d isinf(__m256d x) noexcept { return isinf_abs(abs<double>(x)); }
+		[[nodiscard]] DPM_FORCEINLINE __m256d isfinite(__m256d x) noexcept { return isfinite_abs(abs<double>(x)); }
+		[[nodiscard]] DPM_FORCEINLINE __m256d isnormal(__m256d x) noexcept { return isnormal_abs(abs<double>(x)); }
 #endif
 	}
 

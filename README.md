@@ -133,6 +133,8 @@ DPM provides the following extensions to the standard API:
 * Other utilities
     * `cpuid`
 
+Additionally, versions of some operators and math functions accepting a scalar as one of the arguments are provided.
+
 All extensions are available from the `dpm::ext` and `dpm::simd_abi::ext` namespaces. If `DPM_INLINE_EXTENSIONS` option
 is enabled, the `ext` namespaces are declared as inline.
 

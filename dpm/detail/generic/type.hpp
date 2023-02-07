@@ -893,19 +893,51 @@ namespace dpm
 			result[i] = a[i] - b[i];
 		return result;
 	}
-
-	/** Adds elements of vector \a b to elements of vector \a a, and returns reference to \a. */
+	/** Adds elements of vector \a b to elements of vector \a a, and returns reference to \a a. */
 	template<typename T, typename Abi>
 	inline simd<T, Abi> &operator+=(simd<T, Abi> &a, const simd<T, Abi> &b) noexcept requires (requires(T l, T r){ l += r; })
 	{
 		for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i) a[i] += b[i];
 		return a;
 	}
-	/** Subtracts elements of vector \a b from elements of vector \a a, and returns reference to \a. */
+	/** Subtracts elements of vector \a b from elements of vector \a a, and returns reference to \a a. */
 	template<typename T, typename Abi>
 	inline simd<T, Abi> &operator-=(simd<T, Abi> &a, const simd<T, Abi> &b) noexcept requires (requires(T l, T r){ l -= r; })
 	{
 		for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i) a[i] -= b[i];
+		return a;
+	}
+
+	/** Adds scalar \a b to elements of vector \a a, and returns the resulting vector. */
+	template<typename T, typename Abi>
+	[[nodiscard]] inline simd<T, Abi> operator+(const simd<T, Abi> &a, T b) noexcept requires (requires(T l, T r){ l + r; })
+	{
+		simd<T, Abi> result = {};
+		for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i)
+			result[i] = a[i] + b;
+		return result;
+	}
+	/** Subtracts scalar \a b from elements of vector \a a, and returns the resulting vector. */
+	template<typename T, typename Abi>
+	[[nodiscard]] inline simd<T, Abi> operator-(const simd<T, Abi> &a, T b) noexcept requires (requires(T l, T r){ l - r; })
+	{
+		simd<T, Abi> result = {};
+		for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i)
+			result[i] = a[i] - b;
+		return result;
+	}
+	/** Adds scalar \a b to elements of vector \a a, and returns reference to \a a. */
+	template<typename T, typename Abi>
+	inline simd<T, Abi> &operator+=(simd<T, Abi> &a, T b) noexcept requires (requires(T l, T r){ l += r; })
+	{
+		for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i) a[i] = a[i] + b;
+		return a;
+	}
+	/** Subtracts scalar \a b from elements of vector \a a, and returns reference to \a a. */
+	template<typename T, typename Abi>
+	inline simd<T, Abi> &operator-=(simd<T, Abi> &a, T b) noexcept requires (requires(T l, T r){ l -= r; })
+	{
+		for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i) a[i] = a[i] - b;
 		return a;
 	}
 
@@ -936,26 +968,74 @@ namespace dpm
 			result[i] = a[i] % b[i];
 		return result;
 	}
-
-	/** Multiplies elements of vector \a a by elements of vector \a b, and returns reference to \a. */
+	/** Multiplies elements of vector \a a by elements of vector \a b, and returns reference to \a a. */
 	template<typename T, typename Abi>
 	inline simd<T, Abi> &operator*=(simd<T, Abi> &a, const simd<T, Abi> &b) noexcept requires (requires(T l, T r){ l *= r; })
 	{
 		for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i) a[i] *= b[i];
 		return a;
 	}
-	/** Divides elements of vector \a a by elements of vector \a b, and returns reference to \a. */
+	/** Divides elements of vector \a a by elements of vector \a b, and returns reference to \a a. */
 	template<typename T, typename Abi>
 	inline simd<T, Abi> &operator/=(simd<T, Abi> &a, const simd<T, Abi> &b) noexcept requires (requires(T l, T r){ l /= r; })
 	{
 		for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i) a[i] /= b[i];
 		return a;
 	}
-	/** Preforms a modulo operation of elements of vector \a a by elements of vector \a b, and returns reference to \a. */
+	/** Preforms a modulo operation of elements of vector \a a by elements of vector \a b, and returns reference to \a a. */
 	template<typename T, typename Abi>
 	inline simd<T, Abi> &operator%=(simd<T, Abi> &a, const simd<T, Abi> &b) noexcept requires (requires(T l, T r){ l %= r; })
 	{
 		for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i) a[i] %= b[i];
+		return a;
+	}
+
+	/** Multiplies elements of vector \a a by scalar \a b, and returns the resulting vector. */
+	template<typename T, typename Abi>
+	[[nodiscard]] inline simd<T, Abi> operator*(const simd<T, Abi> &a, T b) noexcept requires (requires(T l, T r){ l * r; })
+	{
+		simd<T, Abi> result = {};
+		for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i)
+			result[i] = a[i] * b;
+		return result;
+	}
+	/** Divides elements of vector \a a by scalar \a b, and returns the resulting vector. */
+	template<typename T, typename Abi>
+	[[nodiscard]] inline simd<T, Abi> operator/(const simd<T, Abi> &a, T b) noexcept requires (requires(T l, T r){ l / r; })
+	{
+		simd<T, Abi> result = {};
+		for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i)
+			result[i] = a[i] / b;
+		return result;
+	}
+	/** Preforms a modulo operation of elements of vector \a a by scalar \a b, and returns the resulting vector. */
+	template<typename T, typename Abi>
+	[[nodiscard]] inline simd<T, Abi> operator%(const simd<T, Abi> &a, T b) noexcept requires (requires(T l, T r){ l % r; })
+	{
+		simd<T, Abi> result = {};
+		for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i)
+			result[i] = a[i] % b;
+		return result;
+	}
+	/** Multiplies elements of vector \a a by scalar \a b, and returns reference to \a a. */
+	template<typename T, typename Abi>
+	inline simd<T, Abi> &operator*=(simd<T, Abi> &a, T b) noexcept requires (requires(T l, T r){ l *= r; })
+	{
+		for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i) a[i] *= b;
+		return a;
+	}
+	/** Divides elements of vector \a a by scalar \a b, and returns reference to \a a. */
+	template<typename T, typename Abi>
+	inline simd<T, Abi> &operator/=(simd<T, Abi> &a, T b) noexcept requires (requires(T l, T r){ l /= r; })
+	{
+		for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i) a[i] /= b;
+		return a;
+	}
+	/** Preforms a modulo operation of elements of vector \a a by scalar \a b, and returns reference to \a a. */
+	template<typename T, typename Abi>
+	inline simd<T, Abi> &operator%=(simd<T, Abi> &a, T b) noexcept requires (requires(T l, T r){ l %= r; })
+	{
+		for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i) a[i] %= b;
 		return a;
 	}
 
@@ -994,26 +1074,74 @@ namespace dpm
 			result[i] = a[i] ^ b[i];
 		return result;
 	}
-
-	/** Preforms a bitwise AND between elements of vector \a a and elements of vector \a b, and returns reference to \a. */
+	/** Preforms a bitwise AND between elements of vector \a a and elements of vector \a b, and returns reference to \a a. */
 	template<typename T, typename Abi>
 	inline simd<T, Abi> &operator&=(simd<T, Abi> &a, const simd<T, Abi> &b) noexcept requires (requires(T l, T r){ l &= r; })
 	{
 		for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i) a[i] &= b[i];
 		return a;
 	}
-	/** Preforms a bitwise OR between elements of vector \a a and elements of vector \a b, and returns reference to \a. */
+	/** Preforms a bitwise OR between elements of vector \a a and elements of vector \a b, and returns reference to \a a. */
 	template<typename T, typename Abi>
 	inline simd<T, Abi> &operator|=(simd<T, Abi> &a, const simd<T, Abi> &b) noexcept requires (requires(T l, T r){ l |= r; })
 	{
 		for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i) a[i] |= b[i];
 		return a;
 	}
-	/** Preforms a bitwise XOR between elements of vector \a a and elements of vector \a b, and returns reference to \a. */
+	/** Preforms a bitwise XOR between elements of vector \a a and elements of vector \a b, and returns reference to \a a. */
 	template<typename T, typename Abi>
 	inline simd<T, Abi> &operator^=(simd<T, Abi> &a, const simd<T, Abi> &b) noexcept requires (requires(T l, T r){ l ^= r; })
 	{
 		for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i) a[i] ^= b[i];
+		return a;
+	}
+
+	/** Preforms a bitwise AND between elements of vector \a a and scalar \a b, and returns the resulting vector. */
+	template<typename T, typename Abi>
+	[[nodiscard]] inline simd<T, Abi> operator&(const simd<T, Abi> &a, T b) noexcept requires (requires(T l, T r){ l & r; })
+	{
+		simd<T, Abi> result = {};
+		for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i)
+			result[i] = a[i] & b;
+		return result;
+	}
+	/** Preforms a bitwise OR between elements of vector \a a and scalar \a b, and returns the resulting vector. */
+	template<typename T, typename Abi>
+	[[nodiscard]] inline simd<T, Abi> operator|(const simd<T, Abi> &a, T b) noexcept requires (requires(T l, T r){ l | r; })
+	{
+		simd<T, Abi> result = {};
+		for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i)
+			result[i] = a[i] | b;
+		return result;
+	}
+	/** Preforms a bitwise XOR between elements of vector \a a and scalar \a b, and returns the resulting vector. */
+	template<typename T, typename Abi>
+	[[nodiscard]] inline simd<T, Abi> operator^(const simd<T, Abi> &a, T b) noexcept requires (requires(T l, T r){ l ^ r; })
+	{
+		simd<T, Abi> result = {};
+		for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i)
+			result[i] = a[i] ^ b;
+		return result;
+	}
+	/** Preforms a bitwise AND between elements of vector \a a and scalar \a b, and returns reference to \a a. */
+	template<typename T, typename Abi>
+	inline simd<T, Abi> &operator&=(simd<T, Abi> &a, T b) noexcept requires (requires(T l, T r){ l &= r; })
+	{
+		for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i) a[i] &= b;
+		return a;
+	}
+	/** Preforms a bitwise OR between elements of vector \a a and scalar \a b, and returns reference to \a a. */
+	template<typename T, typename Abi>
+	inline simd<T, Abi> &operator|=(simd<T, Abi> &a, T b) noexcept requires (requires(T l, T r){ l |= r; })
+	{
+		for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i) a[i] |= b;
+		return a;
+	}
+	/** Preforms a bitwise XOR between elements of vector \a a and scalar \a b, and returns reference to \a a. */
+	template<typename T, typename Abi>
+	inline simd<T, Abi> &operator^=(simd<T, Abi> &a, T b) noexcept requires (requires(T l, T r){ l ^= r; })
+	{
+		for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i) a[i] ^= b;
 		return a;
 	}
 
@@ -1035,15 +1163,14 @@ namespace dpm
 			result[i] = a[i] >> b[i];
 		return result;
 	}
-
-	/** Shifts elements of vector \a a left by the amount specified by elements of vector \a b, and returns reference to \a. */
+	/** Shifts elements of vector \a a left by the amount specified by elements of vector \a b, and returns reference to \a a. */
 	template<typename T, typename Abi>
 	inline simd<T, Abi> &operator<<=(simd<T, Abi> &a, const simd<T, Abi> &b) noexcept requires (requires(T l, T r){ l <<= r; })
 	{
 		for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i) a[i] <<= b[i];
 		return a;
 	}
-	/** Shifts elements of vector \a a right by the amount specified by elements of vector \a b, and returns reference to \a. */
+	/** Shifts elements of vector \a a right by the amount specified by elements of vector \a b, and returns reference to \a a. */
 	template<typename T, typename Abi>
 	inline simd<T, Abi> &operator>>=(simd<T, Abi> &a, const simd<T, Abi> &b) noexcept requires (requires(T l, T r){ l >>= r; })
 	{
@@ -1052,36 +1179,35 @@ namespace dpm
 	}
 
 	/** Shifts elements of vector \a a left by \a n, and returns the resulting vector. */
-	template<typename T, typename Abi>
-	[[nodiscard]] inline simd<T, Abi> operator<<(const simd<T, Abi> &a, int n) noexcept requires (requires(T l, int r){ l << r; })
+	template<typename T, typename Abi, std::integral I>
+	[[nodiscard]] inline simd<T, Abi> operator<<(const simd<T, Abi> &a, I n) noexcept requires (requires(T l, I r){ l << r; })
 	{
 		simd<T, Abi> result = {};
 		for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i)
 			result[i] = a[i] << n;
 		return result;
 	}
-	/** Shifts elements of vector \a a rught by \a n, and returns the resulting vector. */
-	template<typename T, typename Abi>
-	[[nodiscard]] inline simd<T, Abi> operator>>(const simd<T, Abi> &a, int n) noexcept requires (requires(T l, int r){ l >> r; })
+	/** Shifts elements of vector \a a right by \a n, and returns the resulting vector. */
+	template<typename T, typename Abi, std::integral I>
+	[[nodiscard]] inline simd<T, Abi> operator>>(const simd<T, Abi> &a, I n) noexcept requires (requires(T l, I r){ l >> r; })
 	{
 		simd<T, Abi> result = {};
 		for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i)
 			result[i] = a[i] >> n;
 		return result;
 	}
-
-	/** Shifts elements of vector \a a left by \a n, and returns reference to \a. */
-	template<typename T, typename Abi>
-	inline simd<T, Abi> &operator<<=(simd<T, Abi> &a, int n) noexcept requires (requires(T l, int r){ l <<= r; })
-	{
-		for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i) a[i] <<= n;
-		return a;
-	}
-	/** Shifts elements of vector \a a right by \a n, and returns reference to \a. */
-	template<typename T, typename Abi>
-	inline simd<T, Abi> &operator>>=(simd<T, Abi> &a, int n) noexcept requires (requires(T l, int r){ l >>= r; })
+	/** Shifts elements of vector \a a right by \a n, and returns reference to \a a. */
+	template<typename T, typename Abi, std::integral I>
+	inline simd<T, Abi> &operator>>=(simd<T, Abi> &a, I n) noexcept requires (requires(T l, I r){ l >>= r; })
 	{
 		for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i) a[i] >>= n;
+		return a;
+	}
+	/** Shifts elements of vector \a a left by \a n, and returns reference to \a a. */
+	template<typename T, typename Abi, std::integral I>
+	inline simd<T, Abi> &operator<<=(simd<T, Abi> &a, I n) noexcept requires (requires(T l, I r){ l <<= r; })
+	{
+		for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i) a[i] <<= n;
 		return a;
 	}
 
@@ -1387,6 +1513,26 @@ namespace dpm
 			result[i] = std::max(a[i], b[i]);
 		return result;
 	}
+
+	/** Returns an SIMD vector of minimum elements of \a a and scalar \a b. */
+	template<typename T, typename Abi>
+	[[nodiscard]] inline simd<T, Abi> min(const simd<T, Abi> &a, T b) noexcept
+	{
+		simd<T, Abi> result = {};
+		for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i)
+			result[i] = std::min(a[i], b);
+		return result;
+	}
+	/** Returns an SIMD vector of maximum elements of \a a and scalar \a b. */
+	template<typename T, typename Abi>
+	[[nodiscard]] inline simd<T, Abi> max(const simd<T, Abi> &a, T b) noexcept
+	{
+		simd<T, Abi> result = {};
+		for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i)
+			result[i] = std::max(a[i], b);
+		return result;
+	}
+
 	/** Returns a pair of SIMD vectors of minimum and maximum elements of \a a and \a b. */
 	template<typename T, typename Abi>
 	[[nodiscard]] inline std::pair<simd<T, Abi>, simd<T, Abi>> minmax(const simd<T, Abi> &a, const simd<T, Abi> &b) noexcept
@@ -1400,13 +1546,36 @@ namespace dpm
 		}
 		return result;
 	}
-	/** Clamps elements of \a x between corresponding elements of \a ming and \a max. */
+	/** Returns a pair of SIMD vectors of minimum and maximum elements of \a a and scalar \a b. */
+	template<typename T, typename Abi>
+	[[nodiscard]] inline std::pair<simd<T, Abi>, simd<T, Abi>> minmax(const simd<T, Abi> &a, T b) noexcept
+	{
+		std::pair<simd<T, Abi>, simd<T, Abi>> result = {};
+		for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i)
+		{
+			const auto [min, max] = std::minmax(a[i], b);
+			result.first[i] = min;
+			result.second[i] = max;
+		}
+		return result;
+	}
+
+	/** Clamps elements of \a x between corresponding elements of \a min and \a max. */
 	template<typename T, typename Abi>
 	[[nodiscard]] inline simd<T, Abi> clamp(const simd<T, Abi> &x, const simd<T, Abi> &min, const simd<T, Abi> &max) noexcept
 	{
 		simd<T, Abi> result = {};
 		for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i)
 			result[i] = std::clamp(x[i], min[i], max[i]);
+		return result;
+	}
+	/** Clamps elements of \a x between \a min and \a max. */
+	template<typename T, typename Abi>
+	[[nodiscard]] inline simd<T, Abi> clamp(const simd<T, Abi> &x, T min, T max) noexcept
+	{
+		simd<T, Abi> result = {};
+		for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i)
+			result[i] = std::clamp(x[i], min, max);
 		return result;
 	}
 #pragma endregion

@@ -2,9 +2,6 @@
  * Created by switchblade on 2023-02-05.
  */
 
-#include <immintrin.h>
-#include <cmath>
-
 #include "../fconst.hpp"
 #include "math.hpp"
 
@@ -48,7 +45,7 @@ namespace dpm::detail
 		{
 			std::feraiseexcept(FE_INVALID);
 			errno = EDOM;
-			return std::numeric_limits<T>::infinity();
+			return std::numeric_limits<T>::quiet_NaN();
 		}
 
 		/* y = |x| * 4 / Pi */
@@ -76,7 +73,7 @@ namespace dpm::detail
 		{
 			std::feraiseexcept(FE_INVALID);
 			errno = EDOM;
-			return std::numeric_limits<long double>::infinity();
+			return std::numeric_limits<long double>::quiet_NaN();
 		}
 
 		/* y = |x| * 4 / Pi */

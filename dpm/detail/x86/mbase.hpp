@@ -62,7 +62,9 @@ namespace dpm
 		}
 
 		[[nodiscard]] DPM_FORCEINLINE __m128 isunord(__m128 a, __m128 b) noexcept { return _mm_cmpunord_ps(a, b); }
-		[[nodiscard]] DPM_FORCEINLINE __m128 abs(__m128 x) noexcept { return _mm_and_ps(x, _mm_set1_ps(std::bit_cast<float>(0x7fff'ffff))); }
+
+		template<std::same_as<float> T>
+		[[nodiscard]] DPM_FORCEINLINE __m128 abs(__m128 x) noexcept { return _mm_and_ps(x, _mm_set1_ps(std::bit_cast<T>(0x7fff'ffff))); }
 
 #ifdef DPM_HAS_SSE2
 		[[maybe_unused]] [[nodiscard]] DPM_FORCEINLINE __m128d fmadd_sse(__m128d a, __m128d b, __m128d c) noexcept
@@ -116,7 +118,28 @@ namespace dpm
 		}
 
 		[[nodiscard]] DPM_FORCEINLINE __m128d isunord(__m128d a, __m128d b) noexcept { return _mm_cmpunord_pd(a, b); }
-		[[nodiscard]] DPM_FORCEINLINE __m128d abs(__m128d x) noexcept { return _mm_and_pd(x, _mm_set1_pd(std::bit_cast<double>(0x7fff'ffff'ffff'ffff))); }
+
+		template<std::same_as<double> T>
+		[[nodiscard]] DPM_FORCEINLINE __m128d abs(__m128d x) noexcept { return _mm_and_pd(x, _mm_set1_pd(std::bit_cast<T>(0x7fff'ffff'ffff'ffff))); }
+		template<std::integral T, typename V>
+		[[nodiscard]] DPM_FORCEINLINE V abs(V x) noexcept
+		{
+			const auto t = bit_shiftr<T, std::numeric_limits<T>::digits - 1>(x);
+			return sub<T>(bit_xor(x, t), t);
+		}
+
+#ifdef DPM_HAS_SSSE3
+		template<integral_of_size<1> T>
+		[[nodiscard]] DPM_FORCEINLINE __m128i abs(__m128i x) noexcept { return _mm_abs_epi8(x); }
+		template<integral_of_size<2> T>
+		[[nodiscard]] DPM_FORCEINLINE __m128i abs(__m128i x) noexcept { return _mm_abs_epi16(x); }
+		template<integral_of_size<4> T>
+		[[nodiscard]] DPM_FORCEINLINE __m128i abs(__m128i x) noexcept { return _mm_abs_epi32(x); }
+#endif
+#if defined(DPM_HAS_AVX512F) && defined(DPM_HAS_AVX512LV)
+		template<integral_of_size<8> T>
+		[[nodiscard]] DPM_FORCEINLINE __m128i abs(__m128i x) noexcept { return _mm_abs_epi64(x); }
+#endif
 #endif
 
 #ifdef DPM_HAS_AVX
@@ -137,42 +160,6 @@ namespace dpm
 			return _mm256_sub_ps(_mm256_setzero_ps(), fmadd_avx(a, b, c));
 		}
 
-		[[nodiscard]] DPM_FORCEINLINE __m256 fmadd(__m256 a, __m256 b, __m256 c) noexcept
-		{
-#ifdef DPM_HAS_FMA
-			return _mm256_fmadd_ps(a, b, c);
-#else
-			return fmadd_avx(a, b, c);
-#endif
-		}
-		[[nodiscard]] DPM_FORCEINLINE __m256 fmsub(__m256 a, __m256 b, __m256 c) noexcept
-		{
-#ifdef DPM_HAS_FMA
-			return _mm256_fmsub_ps(a, b, c);
-#else
-			return fmsub_avx(a, b, c);
-#endif
-		}
-		[[nodiscard]] DPM_FORCEINLINE __m256 fnmadd(__m256 a, __m256 b, __m256 c) noexcept
-		{
-#ifdef DPM_HAS_FMA
-			return _mm256_fnmadd_ps(a, b, c);
-#else
-			return fnmadd_avx(a, b, c);
-#endif
-		}
-		[[nodiscard]] DPM_FORCEINLINE __m256 fnmsub(__m256 a, __m256 b, __m256 c) noexcept
-		{
-#ifdef DPM_HAS_FMA
-			return _mm256_fnmsub_ps(a, b, c);
-#else
-			return fnmsub_avx(a, b, c);
-#endif
-		}
-
-		[[nodiscard]] DPM_FORCEINLINE __m256 isunord(__m256 a, __m256 b) noexcept { return _mm256_cmp_ps(a, b, _CMP_UNORD_Q); }
-		[[nodiscard]] DPM_FORCEINLINE __m256 abs(__m256 x) noexcept { return _mm256_and_ps(x, _mm256_set1_ps(std::bit_cast<float>(0x7fff'ffff))); }
-
 		[[maybe_unused]] [[nodiscard]] DPM_FORCEINLINE __m256d fmadd_avx(__m256d a, __m256d b, __m256d c) noexcept
 		{
 			return _mm256_add_pd(_mm256_mul_pd(a, b), c);
@@ -188,6 +175,39 @@ namespace dpm
 		[[maybe_unused]] [[nodiscard]] DPM_FORCEINLINE __m256d fnmsub_avx(__m256d a, __m256d b, __m256d c) noexcept
 		{
 			return _mm256_sub_pd(_mm256_setzero_pd(), fmadd_avx(a, b, c));
+		}
+
+		[[nodiscard]] DPM_FORCEINLINE __m256 fmadd(__m256 a, __m256 b, __m256 c) noexcept
+		{
+		#ifdef DPM_HAS_FMA
+			return _mm256_fmadd_ps(a, b, c);
+		#else
+			return fmadd_avx(a, b, c);
+		#endif
+		}
+		[[nodiscard]] DPM_FORCEINLINE __m256 fmsub(__m256 a, __m256 b, __m256 c) noexcept
+		{
+		#ifdef DPM_HAS_FMA
+			return _mm256_fmsub_ps(a, b, c);
+		#else
+			return fmsub_avx(a, b, c);
+		#endif
+		}
+		[[nodiscard]] DPM_FORCEINLINE __m256 fnmadd(__m256 a, __m256 b, __m256 c) noexcept
+		{
+		#ifdef DPM_HAS_FMA
+			return _mm256_fnmadd_ps(a, b, c);
+		#else
+			return fnmadd_avx(a, b, c);
+		#endif
+		}
+		[[nodiscard]] DPM_FORCEINLINE __m256 fnmsub(__m256 a, __m256 b, __m256 c) noexcept
+		{
+		#ifdef DPM_HAS_FMA
+			return _mm256_fnmsub_ps(a, b, c);
+		#else
+			return fnmsub_avx(a, b, c);
+		#endif
 		}
 
 		[[nodiscard]] DPM_FORCEINLINE __m256d fmadd(__m256d a, __m256d b, __m256d c) noexcept
@@ -223,8 +243,27 @@ namespace dpm
 #endif
 		}
 
+		[[nodiscard]] DPM_FORCEINLINE __m256 isunord(__m256 a, __m256 b) noexcept { return _mm256_cmp_ps(a, b, _CMP_UNORD_Q); }
 		[[nodiscard]] DPM_FORCEINLINE __m256d isunord(__m256d a, __m256d b) noexcept { return _mm256_cmp_ps(a, b, _CMP_UNORD_Q); }
-		[[nodiscard]] DPM_FORCEINLINE __m256d abs(__m256d x) noexcept { return _mm256_and_pd(x, _mm256_set1_pd(std::bit_cast<double>(0x7fff'ffff'ffff'ffff))); }
+
+		template<std::same_as<float> T>
+		[[nodiscard]] DPM_FORCEINLINE __m256 abs(__m256 x) noexcept { return _mm256_and_ps(x, _mm256_set1_ps(std::bit_cast<T>(0x7fff'ffff))); }
+		template<std::same_as<double> T>
+		[[nodiscard]] DPM_FORCEINLINE __m256d abs(__m256d x) noexcept { return _mm256_and_pd(x, _mm256_set1_pd(std::bit_cast<T>(0x7fff'ffff'ffff'ffff))); }
+
+#ifdef DPM_HAS_AVX2
+		template<integral_of_size<1> T>
+		[[nodiscard]] DPM_FORCEINLINE __m256i abs(__m256i x) noexcept { return _mm256_abs_epi8(x); }
+		template<integral_of_size<2> T>
+		[[nodiscard]] DPM_FORCEINLINE __m256i abs(__m256i x) noexcept { return _mm256_abs_epi16(x); }
+		template<integral_of_size<4> T>
+		[[nodiscard]] DPM_FORCEINLINE __m256i abs(__m256i x) noexcept { return _mm256_abs_epi32(x); }
+
+#if defined(DPM_HAS_AVX512F) && defined(DPM_HAS_AVX512LV)
+		template<integral_of_size<8> T>
+		[[nodiscard]] DPM_FORCEINLINE __m256i abs(__m256i x) noexcept { return _mm256_abs_epi64(x); }
+#endif
+#endif
 #endif
 	}
 
@@ -232,12 +271,18 @@ namespace dpm
 	 * a lot of branches and loops, which makes them generally unsuitable for efficient vectorization. */
 
 	/** Calculates absolute value of elements in vector \a x. */
+	template<typename T, std::size_t N, std::size_t A>
+	[[nodiscard]] DPM_FORCEINLINE detail::x86_simd<T, N, A> abs(const detail::x86_simd<T, N, A> &x) noexcept requires detail::x86_overload_any<T, N, A>
+	{
+		detail::x86_simd<T, N, A> result = {};
+		detail::vectorize([](auto &res, auto x) { res = detail::abs<T>(x); }, result, x);
+		return result;
+	}
+	/** @copydoc abs */
 	template<std::floating_point T, std::size_t N, std::size_t A>
 	[[nodiscard]] DPM_FORCEINLINE detail::x86_simd<T, N, A> fabs(const detail::x86_simd<T, N, A> &x) noexcept requires detail::x86_overload_any<T, N, A>
 	{
-		detail::x86_simd<T, N, A> result = {};
-		detail::vectorize([](auto &res, auto x) { res = detail::abs(x); }, result, x);
-		return result;
+		return abs(x);
 	}
 
 	/** Calculates the maximum of elements in \a a and \a b, respecting the NaN propagation
@@ -258,7 +303,7 @@ namespace dpm
 		detail::vectorize([](auto &res, auto a, auto b) { res = detail::blendv<T>(detail::min<T>(a, b), b, detail::isunord(a)); }, result, a, b);
 		return result;
 	}
-	/** Returns the positive difference between x and y. Equivalent to `max(simd<T, Abi>{0}, a - b)`. */
+	/** Returns the positive difference between elements of vectors \a a and \a b. Equivalent to `max(simd<T, Abi>{0}, a - b)`. */
 	template<std::floating_point T, std::size_t N, std::size_t A>
 	[[nodiscard]] DPM_FORCEINLINE detail::x86_simd<T, N, A> fdim(const detail::x86_simd<T, N, A> &a, const detail::x86_simd<T, N, A> &b) noexcept requires detail::x86_overload_any<T, N, A>
 	{
@@ -267,16 +312,51 @@ namespace dpm
 		return result;
 	}
 
+	/** Calculates the maximum of elements in \a a and scalar \a b, respecting the NaN propagation
+	 * as specified in IEC 60559 (ordered values are always selected over unordered). */
+	template<std::floating_point T, std::size_t N, std::size_t A>
+	[[nodiscard]] DPM_FORCEINLINE detail::x86_simd<T, N, A> fmax(const detail::x86_simd<T, N, A> &a, T b) noexcept requires detail::x86_overload_any<T, N, A>
+	{
+		detail::x86_simd<T, N, A> result = {};
+		const auto b_vec = detail::fill<ext::native_data_type_t<detail::x86_simd<T, N, A>>>(b);
+		detail::vectorize([b = b_vec](auto &res, auto a) { res = detail::blendv<T>(detail::max<T>(a, b), b, detail::isunord(a)); }, result, a);
+		return result;
+	}
+	/** Calculates the minimum of elements in \a a and scalar \a b, respecting the NaN propagation
+	 * as specified in IEC 60559 (ordered values are always selected over unordered). */
+	template<std::floating_point T, std::size_t N, std::size_t A>
+	[[nodiscard]] DPM_FORCEINLINE detail::x86_simd<T, N, A> fmin(const detail::x86_simd<T, N, A> &a, T b) noexcept requires detail::x86_overload_any<T, N, A>
+	{
+		detail::x86_simd<T, N, A> result = {};
+		const auto b_vec = detail::fill<ext::native_data_type_t<detail::x86_simd<T, N, A>>>(b);
+		detail::vectorize([b = b_vec](auto &res, auto a) { res = detail::blendv<T>(detail::min<T>(a, b), b, detail::isunord(a)); }, result, a);
+		return result;
+	}
+	/** Returns the positive difference between elements of vectors \a a and scalar \a b. Equivalent to `max(simd<T, Abi>{0}, a - b)`. */
+	template<std::floating_point T, std::size_t N, std::size_t A>
+	[[nodiscard]] DPM_FORCEINLINE detail::x86_simd<T, N, A> fdim(const detail::x86_simd<T, N, A> &a, T b) noexcept requires detail::x86_overload_any<T, N, A>
+	{
+		detail::x86_simd<T, N, A> result = {};
+		const auto b_vec = detail::fill<ext::native_data_type_t<detail::x86_simd<T, N, A>>>(b);
+		detail::vectorize([b = b_vec]<typename V>(V &res, V a) { res = detail::max<T>(detail::setzero<V>(), detail::sub<T>(a, b)); }, result, a);
+		return result;
+	}
+
 	/** Preforms linear interpolation or extrapolation between elements of vectors \a a and \a b using factor \a f */
 	template<std::floating_point T, std::size_t N, std::size_t A>
-	[[nodiscard]] inline detail::x86_simd<T, N, A> lerp(
-			const detail::x86_simd<T, N, A> &a,
-			const detail::x86_simd<T, N, A> &b,
-			const detail::x86_simd<T, N, A> &f)
-	noexcept requires detail::x86_overload_any<T, N, A>
+	[[nodiscard]] DPM_FORCEINLINE detail::x86_simd<T, N, A> lerp(const detail::x86_simd<T, N, A> &a, const detail::x86_simd<T, N, A> &b, const detail::x86_simd<T, N, A> &f) noexcept requires detail::x86_overload_any<T, N, A>
 	{
 		detail::x86_simd<T, N, A> result = {};
 		detail::vectorize([](auto &res, auto a, auto b, auto f) { res = detail::fmadd(detail::sub<T>(b, a), f, a); }, result, a, b, f);
+		return result;
+	}
+	/** Preforms linear interpolation or extrapolation between elements of vectors \a a and \a b using factor \a f */
+	template<std::floating_point T, std::size_t N, std::size_t A>
+	[[nodiscard]] DPM_FORCEINLINE detail::x86_simd<T, N, A> lerp(const detail::x86_simd<T, N, A> &a, const detail::x86_simd<T, N, A> &b, T f) noexcept requires detail::x86_overload_any<T, N, A>
+	{
+		detail::x86_simd<T, N, A> result = {};
+		const auto f_vec = detail::fill<ext::native_data_type_t<detail::x86_simd<T, N, A>>>(f);
+		detail::vectorize([f = f_vec](auto &res, auto a, auto b) { res = detail::fmadd(detail::sub<T>(b, a), f, a); }, result, a, b);
 		return result;
 	}
 

@@ -45,7 +45,7 @@ namespace dpm::detail
 	DPM_FORCEINLINE auto impl_sincos(V x) noexcept
 	{
 		constexpr auto extent_bits = movemask_bits_v<T> * sizeof(V) / sizeof(T);
-		const auto abs_x = abs(x);
+		const auto abs_x = abs<T>(x);
 
 		/* Check for infinity, NaN & errors. */
 #ifdef DPM_PROPAGATE_NAN
@@ -53,10 +53,8 @@ namespace dpm::detail
 		auto nan_mask = isunord(x, x);
 
 #ifdef DPM_HANDLE_ERRORS
-		const auto inf = fill<V>(std::numeric_limits<T>::infinity());
-		const auto inf_mask = cmp_eq<T>(abs_x, inf);
+		const auto inf_mask = isinf_abs(abs_x);
 		nan_mask = bit_or(nan_mask, inf_mask);
-
 		if (movemask<T>(inf_mask)) [[unlikely]]
 		{
 			std::feraiseexcept(FE_INVALID);
@@ -158,7 +156,6 @@ namespace dpm::detail
 	std::pair<__m256, __m256> DPM_PUBLIC DPM_MATHFUNC sincos(__m256 x) noexcept { return impl_sincos<float, sincos_op::OP_SINCOS>(x); }
 	__m256 DPM_PUBLIC DPM_MATHFUNC sin(__m256 x) noexcept { return impl_sincos<float, sincos_op::OP_SIN>(x); }
 	__m256 DPM_PUBLIC DPM_MATHFUNC cos(__m256 x) noexcept { return impl_sincos<float, sincos_op::OP_COS>(x); }
-	__m256 DPM_PUBLIC DPM_MATHFUNC tan(__m256 x) noexcept;
 
 	std::pair<__m256d, __m256d> DPM_PUBLIC DPM_MATHFUNC sincos(__m256d x) noexcept { return impl_sincos<double, sincos_op::OP_SINCOS>(x); }
 	__m256d DPM_PUBLIC DPM_MATHFUNC sin(__m256d x) noexcept { return impl_sincos<double, sincos_op::OP_SIN>(x); }
