@@ -329,7 +329,11 @@ namespace dpm::detail
 		const auto va = std::bit_cast<__m128d>(a);
 		const auto vb = std::bit_cast<__m128d>(b);
 		const auto vm = std::bit_cast<__m128d>(m);
+#ifdef DPM_HAS_SSE4_1
 		return std::bit_cast<V>(_mm_blendv_pd(va, vb, vm));
+#else
+		return std::bit_cast<V>(_mm_or_pd(_mm_andnot_pd(vm, va), _mm_and_pd(vm, vb)));
+#endif
 	}
 
 	template<typename T, std::size_t I1, std::size_t I0, typename V>

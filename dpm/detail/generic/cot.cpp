@@ -45,7 +45,7 @@ namespace dpm::detail
 		}
 
 		/* y = |x| * 4 / Pi */
-		auto y = abs_x * fopi<T>;
+		auto y = abs_x / pio4<T>;
 
 		/* j = isodd(y) ? y + 1 : y */
 		auto j = I{};

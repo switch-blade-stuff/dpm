@@ -4,7 +4,6 @@
 
 #pragma once
 
-#include "define.hpp"
 #include "utility.hpp"
 
 #ifndef DPM_USE_IMPORT

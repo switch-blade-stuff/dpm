@@ -49,20 +49,13 @@ namespace dpm::detail
 #endif
 
 		/* y = |x| * 4 / Pi */
-		auto y = mul<T>(abs_x, fill<V>(fopi<T>));
-
-		/* Set rounding mode to truncation. */
-		const auto old_csr = _mm_getcsr();
-		_mm_setcsr((old_csr & ~_MM_ROUND_MASK) | _MM_ROUND_TOWARD_ZERO);
+		auto y = div<T>(abs_x, fill<V>(pio4<T>));
 
 		/* i = isodd(y) ? y + 1 : y */
-		auto i = cvt<I, T>(y);
+		auto i = cvtt<I, T>(y);
 		i = add<I>(i, fill<decltype(i)>(I{1}));
 		i = bit_and(i, fill<decltype(i)>(I{~1ll}));
 		y = cvt<T, I>(i);
-
-		/* Restore mxcsr */
-		_mm_setcsr(old_csr);
 
 		/* Calculate result polynomial. */
 		y = fmadd(x, fill<V>(dp_tancot<T>[2]), fmadd(y, fill<V>(dp_tancot<T>[1]), fmadd(y, fill<V>(dp_tancot<T>[0]), abs_x)));

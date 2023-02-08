@@ -6,8 +6,8 @@
 
 #include "../../flags.hpp"
 #include "../where_expr.hpp"
-#include "../alias.hpp"
 #include "../assert.hpp"
+#include "../alias.hpp"
 
 #include "abi.hpp"
 

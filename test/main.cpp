@@ -88,6 +88,40 @@ static inline void test_mask() noexcept
 	}
 }
 
+template<typename T, typename Abi, std::size_t N, typename F>
+static inline void test_func1(F f, T epsilon, std::span<const T, N> vals) noexcept
+{
+	dpm::simd<T, dpm::simd_abi::deduce_t<T, N, Abi>> v;
+	v.copy_from(vals.data(), dpm::element_aligned);
+	v = f(v);
+
+	for (std::size_t i = 0; i < vals.size(); ++i)
+	{
+		const auto a = f(dpm::simd<T, dpm::simd_abi::scalar>{vals[i]});
+		TEST_ASSERT(std::abs(v[i] - a[0]) < epsilon || (std::isnan(v[i]) && std::isnan(a[0])));
+	}
+}
+template<typename T, typename Abi>
+static inline void test_trig_hyp() noexcept
+{
+	const auto vals = std::array{
+			T{12.54}, T{0.1234}, T{-0.34}, T{12299.99}, T{0.0},
+			std::numbers::pi_v<T> * 2, std::numbers::pi_v<T> / 2,
+			std::numbers::pi_v<T> * 2, std::numbers::pi_v<T> / 4,
+			std::numbers::pi_v<T> * 3, std::numbers::pi_v<T> / 3,
+			std::numbers::pi_v<T> * 5, std::numbers::pi_v<T> / 5,
+			std::numbers::pi_v<T>, std::numeric_limits<T>::quiet_NaN()
+	};
+	test_func1<T, Abi>([](auto x) { return dpm::sin(x); }, T{0.001}, std::span{vals});
+	test_func1<T, Abi>([](auto x) { return dpm::cos(x); }, T{0.001}, std::span{vals});
+	test_func1<T, Abi>([](auto x) { return dpm::tan(x); }, T{0.001}, std::span{vals});
+	test_func1<T, Abi>([](auto x) { return dpm::cot(x); }, T{0.001}, std::span{vals});
+	//test_func1([](auto x) { return tan2(x); }, T{0.001}, std::span{vals});
+	//test_func1([](auto x) { return asin(x); }, T{0.001}, std::span{vals});
+	//test_func1([](auto x) { return acos(x); }, T{0.001}, std::span{vals});
+	//test_func1([](auto x) { return atan(x); }, T{0.001}, std::span{vals});
+}
+
 #include <cmath>
 
 int main()
@@ -101,6 +135,16 @@ int main()
 	test_mask<float, dpm::simd_abi::ext::aligned_vector<8, 16>>();
 	test_mask<float, dpm::simd_abi::ext::aligned_vector<16, 16>>();
 	test_mask<float, dpm::simd_abi::ext::aligned_vector<32, 16>>();
+
+	test_mask<double, dpm::simd_abi::scalar>();
+	test_mask<double, dpm::simd_abi::fixed_size<4>>();
+	test_mask<double, dpm::simd_abi::fixed_size<8>>();
+	test_mask<double, dpm::simd_abi::fixed_size<16>>();
+	test_mask<double, dpm::simd_abi::fixed_size<32>>();
+	test_mask<double, dpm::simd_abi::ext::aligned_vector<4, 16>>();
+	test_mask<double, dpm::simd_abi::ext::aligned_vector<8, 16>>();
+	test_mask<double, dpm::simd_abi::ext::aligned_vector<16, 16>>();
+	test_mask<double, dpm::simd_abi::ext::aligned_vector<32, 16>>();
 
 	{
 		dpm::simd<float, dpm::simd_abi::fixed_size<4>> a = {1.0f}, b = {-1.0f}, d = {0.0f};
@@ -249,122 +293,6 @@ int main()
 		TEST_ASSERT(dpm::all_of(!c == !!decltype(c){}));
 	}
 	{
-		dpm::simd<float, dpm::simd_abi::fixed_size<8>> a = {0.1234}, b = {12.7};
-		dpm::simd<float, dpm::simd_abi::scalar> c = {0.1234}, d = {12.7};
-
-		TEST_ASSERT(std::abs(dpm::sin(a)[0] - dpm::sin(c)[0]) < 0.0001);
-		TEST_ASSERT(std::abs(dpm::sin(a)[1] - dpm::sin(c)[0]) < 0.0001);
-		TEST_ASSERT(std::abs(dpm::sin(b)[0] - dpm::sin(d)[0]) < 0.0001);
-		TEST_ASSERT(std::abs(dpm::sin(b)[1] - dpm::sin(d)[0]) < 0.0001);
-		TEST_ASSERT(std::abs(dpm::cos(a)[0] - dpm::cos(c)[0]) < 0.0001);
-		TEST_ASSERT(std::abs(dpm::cos(a)[1] - dpm::cos(c)[0]) < 0.0001);
-		TEST_ASSERT(std::abs(dpm::cos(b)[0] - dpm::cos(d)[0]) < 0.0001);
-		TEST_ASSERT(std::abs(dpm::cos(b)[1] - dpm::cos(d)[0]) < 0.0001);
-
-		a = {0.0}, c = {0.0};
-		TEST_ASSERT(dpm::sin(a)[0] == dpm::sin(c)[0]);
-	}
-	{
-		dpm::simd<double, dpm::simd_abi::fixed_size<4>> a = {0.1234}, b = {12.7};
-		dpm::simd<double, dpm::simd_abi::scalar> c = {0.1234}, d = {12.7};
-
-		TEST_ASSERT(std::abs(dpm::sin(a)[0] - dpm::sin(c)[0]) < 0.0001);
-		TEST_ASSERT(std::abs(dpm::sin(a)[1] - dpm::sin(c)[0]) < 0.0001);
-		TEST_ASSERT(std::abs(dpm::sin(b)[0] - dpm::sin(d)[0]) < 0.0001);
-		TEST_ASSERT(std::abs(dpm::sin(b)[1] - dpm::sin(d)[0]) < 0.0001);
-		TEST_ASSERT(std::abs(dpm::cos(a)[0] - dpm::cos(c)[0]) < 0.0001);
-		TEST_ASSERT(std::abs(dpm::cos(a)[1] - dpm::cos(c)[0]) < 0.0001);
-		TEST_ASSERT(std::abs(dpm::cos(b)[0] - dpm::cos(d)[0]) < 0.0001);
-		TEST_ASSERT(std::abs(dpm::cos(b)[1] - dpm::cos(d)[0]) < 0.0001);
-
-		a = {0.0}, c = {0.0};
-		TEST_ASSERT(dpm::sin(a)[0] == dpm::sin(c)[0]);
-	}
-	{
-		dpm::simd<float, dpm::simd_abi::fixed_size<4>> a = {0.1234}, b = {12.7};
-		dpm::simd<float, dpm::simd_abi::scalar> c = {0.1234}, d = {12.7};
-
-		TEST_ASSERT(std::abs(dpm::sin(a)[0] - dpm::sin(c)[0]) < 0.0001);
-		TEST_ASSERT(std::abs(dpm::sin(a)[1] - dpm::sin(c)[0]) < 0.0001);
-		TEST_ASSERT(std::abs(dpm::sin(b)[0] - dpm::sin(d)[0]) < 0.0001);
-		TEST_ASSERT(std::abs(dpm::sin(b)[1] - dpm::sin(d)[0]) < 0.0001);
-		TEST_ASSERT(std::abs(dpm::cos(a)[0] - dpm::cos(c)[0]) < 0.0001);
-		TEST_ASSERT(std::abs(dpm::cos(a)[1] - dpm::cos(c)[0]) < 0.0001);
-		TEST_ASSERT(std::abs(dpm::cos(b)[0] - dpm::cos(d)[0]) < 0.0001);
-		TEST_ASSERT(std::abs(dpm::cos(b)[1] - dpm::cos(d)[0]) < 0.0001);
-
-		a = {0.0}, c = {0.0};
-		TEST_ASSERT(dpm::sin(a)[0] == dpm::sin(c)[0]);
-	}
-	{
-		dpm::simd<double, dpm::simd_abi::fixed_size<2>> a = {0.1234}, b = {12.7};
-		dpm::simd<double, dpm::simd_abi::scalar> c = {0.1234}, d = {12.7};
-
-		TEST_ASSERT(std::abs(dpm::sin(a)[0] - dpm::sin(c)[0]) < 0.0001);
-		TEST_ASSERT(std::abs(dpm::sin(a)[1] - dpm::sin(c)[0]) < 0.0001);
-		TEST_ASSERT(std::abs(dpm::sin(b)[0] - dpm::sin(d)[0]) < 0.0001);
-		TEST_ASSERT(std::abs(dpm::sin(b)[1] - dpm::sin(d)[0]) < 0.0001);
-		TEST_ASSERT(std::abs(dpm::cos(a)[0] - dpm::cos(c)[0]) < 0.0001);
-		TEST_ASSERT(std::abs(dpm::cos(a)[1] - dpm::cos(c)[0]) < 0.0001);
-		TEST_ASSERT(std::abs(dpm::cos(b)[0] - dpm::cos(d)[0]) < 0.0001);
-		TEST_ASSERT(std::abs(dpm::cos(b)[1] - dpm::cos(d)[0]) < 0.0001);
-
-		a = {0.0}, c = {0.0};
-		TEST_ASSERT(dpm::sin(a)[0] == dpm::sin(c)[0]);
-	}
-	{
-		dpm::simd<float, dpm::simd_abi::fixed_size<8>> a = {0.1234}, b = {12.7};
-		dpm::simd<float, dpm::simd_abi::scalar> c = {0.1234}, d = {12.7};
-
-		TEST_ASSERT(std::abs(dpm::tan(a)[0] - dpm::tan(c)[0]) < 0.0001);
-		TEST_ASSERT(std::abs(dpm::tan(a)[1] - dpm::tan(c)[0]) < 0.0001);
-		TEST_ASSERT(std::abs(dpm::tan(b)[0] - dpm::tan(d)[0]) < 0.0001);
-		TEST_ASSERT(std::abs(dpm::tan(b)[1] - dpm::tan(d)[0]) < 0.0001);
-		TEST_ASSERT(std::abs(dpm::tan(a)[0] - dpm::tan(c)[0]) < 0.0001);
-		TEST_ASSERT(std::abs(dpm::tan(a)[1] - dpm::tan(c)[0]) < 0.0001);
-		TEST_ASSERT(std::abs(dpm::tan(b)[0] - dpm::tan(d)[0]) < 0.0001);
-		TEST_ASSERT(std::abs(dpm::tan(b)[1] - dpm::tan(d)[0]) < 0.0001);
-	}
-	{
-		dpm::simd<double, dpm::simd_abi::fixed_size<4>> a = {0.1234}, b = {12.7};
-		dpm::simd<double, dpm::simd_abi::scalar> c = {0.1234}, d = {12.7};
-
-		TEST_ASSERT(std::abs(dpm::tan(a)[0] - dpm::tan(c)[0]) < 0.0001);
-		TEST_ASSERT(std::abs(dpm::tan(a)[1] - dpm::tan(c)[0]) < 0.0001);
-		TEST_ASSERT(std::abs(dpm::tan(b)[0] - dpm::tan(d)[0]) < 0.0001);
-		TEST_ASSERT(std::abs(dpm::tan(b)[1] - dpm::tan(d)[0]) < 0.0001);
-		TEST_ASSERT(std::abs(dpm::tan(a)[0] - dpm::tan(c)[0]) < 0.0001);
-		TEST_ASSERT(std::abs(dpm::tan(a)[1] - dpm::tan(c)[0]) < 0.0001);
-		TEST_ASSERT(std::abs(dpm::tan(b)[0] - dpm::tan(d)[0]) < 0.0001);
-		TEST_ASSERT(std::abs(dpm::tan(b)[1] - dpm::tan(d)[0]) < 0.0001);
-	}
-	{
-		dpm::simd<float, dpm::simd_abi::fixed_size<8>> a = {0.1234}, b = {12.7};
-		dpm::simd<float, dpm::simd_abi::scalar> c = {0.1234}, d = {12.7};
-
-		TEST_ASSERT(std::abs(dpm::cot(a)[0] - dpm::cot(c)[0]) < 0.001);
-		TEST_ASSERT(std::abs(dpm::cot(a)[1] - dpm::cot(c)[0]) < 0.001);
-		TEST_ASSERT(std::abs(dpm::cot(b)[0] - dpm::cot(d)[0]) < 0.001);
-		TEST_ASSERT(std::abs(dpm::cot(b)[1] - dpm::cot(d)[0]) < 0.001);
-		TEST_ASSERT(std::abs(dpm::cot(a)[0] - dpm::cot(c)[0]) < 0.001);
-		TEST_ASSERT(std::abs(dpm::cot(a)[1] - dpm::cot(c)[0]) < 0.001);
-		TEST_ASSERT(std::abs(dpm::cot(b)[0] - dpm::cot(d)[0]) < 0.001);
-		TEST_ASSERT(std::abs(dpm::cot(b)[1] - dpm::cot(d)[0]) < 0.001);
-	}
-	{
-		dpm::simd<double, dpm::simd_abi::fixed_size<4>> a = {0.1234}, b = {12.7};
-		dpm::simd<double, dpm::simd_abi::scalar> c = {0.1234}, d = {12.7};
-
-		TEST_ASSERT(std::abs(dpm::cot(a)[0] - dpm::cot(c)[0]) < 0.0001);
-		TEST_ASSERT(std::abs(dpm::cot(a)[1] - dpm::cot(c)[0]) < 0.0001);
-		TEST_ASSERT(std::abs(dpm::cot(b)[0] - dpm::cot(d)[0]) < 0.0001);
-		TEST_ASSERT(std::abs(dpm::cot(b)[1] - dpm::cot(d)[0]) < 0.0001);
-		TEST_ASSERT(std::abs(dpm::cot(a)[0] - dpm::cot(c)[0]) < 0.0001);
-		TEST_ASSERT(std::abs(dpm::cot(a)[1] - dpm::cot(c)[0]) < 0.0001);
-		TEST_ASSERT(std::abs(dpm::cot(b)[0] - dpm::cot(d)[0]) < 0.0001);
-		TEST_ASSERT(std::abs(dpm::cot(b)[1] - dpm::cot(d)[0]) < 0.0001);
-	}
-	{
 		std::array<float, 5> a_data = {0.1234, 12.7, 800.5, -1022.9999, std::numeric_limits<float>::quiet_NaN()};
 		std::array<float, 5> b_data = {-1.0, 50.0, 100.0, 222.0, 0.0};
 
@@ -431,4 +359,22 @@ int main()
 		dpm::where(m, a).copy_from(c_data.data(), dpm::vector_aligned);
 		TEST_ASSERT(dpm::all_of(a == b));
 	}
+
+	test_trig_hyp<float, dpm::simd_abi::fixed_size<4>>();
+	test_trig_hyp<float, dpm::simd_abi::fixed_size<8>>();
+	test_trig_hyp<float, dpm::simd_abi::fixed_size<16>>();
+	test_trig_hyp<float, dpm::simd_abi::fixed_size<32>>();
+	test_trig_hyp<float, dpm::simd_abi::ext::aligned_vector<4, 16>>();
+	test_trig_hyp<float, dpm::simd_abi::ext::aligned_vector<8, 16>>();
+	test_trig_hyp<float, dpm::simd_abi::ext::aligned_vector<16, 16>>();
+	test_trig_hyp<float, dpm::simd_abi::ext::aligned_vector<32, 16>>();
+
+	test_trig_hyp<double, dpm::simd_abi::fixed_size<4>>();
+	test_trig_hyp<double, dpm::simd_abi::fixed_size<8>>();
+	test_trig_hyp<double, dpm::simd_abi::fixed_size<16>>();
+	test_trig_hyp<double, dpm::simd_abi::fixed_size<32>>();
+	test_trig_hyp<double, dpm::simd_abi::ext::aligned_vector<4, 16>>();
+	test_trig_hyp<double, dpm::simd_abi::ext::aligned_vector<8, 16>>();
+	test_trig_hyp<double, dpm::simd_abi::ext::aligned_vector<16, 16>>();
+	test_trig_hyp<double, dpm::simd_abi::ext::aligned_vector<32, 16>>();
 }

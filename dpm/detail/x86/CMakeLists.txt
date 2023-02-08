@@ -16,6 +16,7 @@ list(APPEND DPM_INTERFACE_SOURCES
         ${CMAKE_CURRENT_LIST_DIR}/mbase.hpp
         ${CMAKE_CURRENT_LIST_DIR}/power.hpp
         ${CMAKE_CURRENT_LIST_DIR}/class.hpp
+        ${CMAKE_CURRENT_LIST_DIR}/round.hpp
         ${CMAKE_CURRENT_LIST_DIR}/fmanip.hpp
         ${CMAKE_CURRENT_LIST_DIR}/polevl.hpp
         ${CMAKE_CURRENT_LIST_DIR}/trig.hpp

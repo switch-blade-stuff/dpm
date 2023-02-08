@@ -21,10 +21,8 @@
 
 #ifdef __SSSE3__
 #define DPM_HAS_SSSE3
-#define DPM_IF_SSSE3(x) x
 #define DPM_NOT_SSSE3(x)
 #else
-#define DPM_IF_SSSE3(x)
 #define DPM_NOT_SSSE3(x) x
 #endif
 
@@ -39,7 +37,7 @@
 #define DPM_HAS_AVX
 
 /* MSVC does not define SSE3+ macros, so we need to emulate them. AVX CPUs should support all other SSE levels. */
-#if defined(_MSC_VER)
+#ifdef _MSC_VER
 #define DPM_HAS_SSE3
 #define DPM_HAS_SSSE3
 #define DPM_HAS_SSE4_1
@@ -88,5 +86,4 @@
 #if defined(__ARM_NEON__) || defined(__ARM_NEON)
 #define DPM_HAS_NEON
 #endif
-
 #endif

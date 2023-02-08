@@ -32,7 +32,7 @@ namespace dpm::detail
 	using sincos_ret_t = typename sincos_ret<T, Mask>::type;
 
 	template<sincos_op Mask, typename V>
-	DPM_FORCEINLINE sincos_ret_t<V, Mask> return_sincos(V sin, V cos) noexcept
+	[[nodiscard]] DPM_FORCEINLINE sincos_ret_t<V, Mask> return_sincos(V sin, V cos) noexcept
 	{
 		if constexpr (Mask == sincos_op::OP_SINCOS)
 			return {sin, cos};
@@ -42,10 +42,11 @@ namespace dpm::detail
 			return cos;
 	}
 	template<typename T, sincos_op Mask, typename V, typename I = int_of_size_t<sizeof(T)>>
-	DPM_FORCEINLINE auto impl_sincos(V x) noexcept
+	[[nodiscard]] DPM_FORCEINLINE auto impl_sincos(V x) noexcept
 	{
-		constexpr auto extent_bits = movemask_bits_v<T> * sizeof(V) / sizeof(T);
-		const auto abs_x = abs<T>(x);
+		constexpr auto extent = sizeof(V) / sizeof(T);
+		const auto x_sign = masksign(x);
+		const auto abs_x = bit_xor(x, x_sign);
 
 		/* Check for infinity, NaN & errors. */
 #ifdef DPM_PROPAGATE_NAN
@@ -61,35 +62,32 @@ namespace dpm::detail
 			errno = EDOM;
 		}
 #endif
-		if (movemask<T>(nan_mask) == fill_bits<extent_bits>()) [[unlikely]]
+		if (movemask<T>(nan_mask) == fill_bits<extent>()) [[unlikely]]
 			return return_sincos<Mask>(nan, nan);
 #endif
 
 		/* y = |x| * 4 / Pi */
-		auto y = mul<T>(abs_x, fill<V>(fopi<T>));
-
-		/* Set rounding mode to truncation. */
-		const auto old_csr = _mm_getcsr();
-		_mm_setcsr((old_csr & ~_MM_ROUND_MASK) | _MM_ROUND_TOWARD_ZERO);
+		auto y = div<T>(abs_x, fill<V>(pio4<T>));
 
 		/* i = isodd(y) ? y + 1 : y */
-		auto i = cvt<I, T>(y);
+		auto i = cvtt<I, T>(y);
 		i = add<I>(i, fill<decltype(i)>(I{1}));
 		i = bit_and(i, fill<decltype(i)>(I{~1ll}));
 		y = cvt<T, I>(i);
 
-		/* Restore mxcsr */
-		_mm_setcsr(old_csr);
-
 		/* Extract sign bit mask */
-		const auto flip_sign = bit_shiftl<I, sizeof(T) * 8 - 3>(bit_and(i, fill<decltype(i)>(I{4})));
-		const auto sign = bit_xor(masksign(x), std::bit_cast<V>(flip_sign));
-		/* Polynomial selection mask */
-		const auto p_mask = cmp_eq<T>(std::bit_cast<V>(bit_and(i, fill<decltype(i)>(I{2}))), setzero<V>());
+		const auto bit4 = bit_shiftl<I, sizeof(I) * 8 - 3>(bit_and(i, fill<decltype(i)>(I{4})));
+		const auto bit2 = bit_shiftl<I, sizeof(I) * 8 - 2>(bit_and(i, fill<decltype(i)>(I{2})));
+		[[maybe_unused]] V sign_sin = {}, sign_cos = {};
+		if constexpr (Mask & OP_COS) sign_sin = bit_xor(std::bit_cast<V>(bit4), std::bit_cast<V>(bit2));
+		if constexpr (Mask & OP_SIN) sign_sin = bit_xor(std::bit_cast<V>(bit4), x_sign);
 
-		auto z = fnmadd(y, fill<V>(dp_sincos<T>[0]), x);
-		z = fnmadd(y, fill<V>(dp_sincos<T>[1]), z);
-		z = fnmadd(y, fill<V>(dp_sincos<T>[2]), z);
+		/* Polynomial selection mask !(i & 2) */
+		const auto p_mask = std::bit_cast<V>(cmp_eq<I>(bit2, setzero<decltype(i)>()));
+
+		auto z = fmadd(y, fill<V>(dp_sincos<T>[0]), abs_x);
+		z = fmadd(y, fill<V>(dp_sincos<T>[1]), z);
+		z = fmadd(y, fill<V>(dp_sincos<T>[2]), z);
 		const auto zz = mul<T>(z, z);
 
 		/* p1 (0 <= a <= Pi/4) */
@@ -106,8 +104,8 @@ namespace dpm::detail
 		if constexpr (Mask & sincos_op::OP_SIN)
 		{
 			/* Select between p1 and p2 & restore sign */
-			p_sin = blendv<T>(p2, p1, p_mask);  /* p_sin = p_mask ? p2 : p1 */
-			p_sin = bit_xor(p_sin, sign);       /* p_sin = sign ? -p_sin : p_sin */
+			p_sin = blendv<T>(p2, p1, p_mask);  /* p_sin = p_mask ? p1 : p2 */
+			p_sin = bit_xor(p_sin, sign_sin);   /* p_sin = sign_sin ? -p_sin : p_sin */
 
 			/* Handle errors & propagate NaN. */
 #ifdef DPM_PROPAGATE_NAN
@@ -118,8 +116,8 @@ namespace dpm::detail
 		if constexpr (Mask & sincos_op::OP_COS)
 		{
 			/* Select between p1 and p2 & restore sign */
-			p_cos = blendv<T>(p1, p2, p_mask);  /* p_cos = p_mask ? p1 : p2 */
-			p_cos = bit_xor(p_cos, sign);       /* p_cos = sign ? -p_cos : p_cos */
+			p_cos = blendv<T>(p1, p2, p_mask);  /* p_cos = p_mask ? p2 : p1 */
+			p_cos = bit_xor(p_cos, sign_cos);   /* p_cos = sign_cos ? -p_cos : p_cos */
 
 			/* Handle errors & propagate NaN. */
 #ifdef DPM_PROPAGATE_NAN
