@@ -33,8 +33,8 @@ namespace dpm
 	template<std::floating_point T, typename Abi>
 	[[nodiscard]] inline simd<T, Abi> abs(const simd<T, Abi> &x) noexcept
 	{
-		simd < T, Abi > result = {};
-		for (std::size_t i = 0; i < simd < T, Abi > ::size(); ++i)
+		simd<T, Abi> result = {};
+		for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i)
 			result[i] = std::abs(x[i]);
 		return result;
 	}
@@ -46,8 +46,8 @@ namespace dpm
 	template<std::floating_point T, typename Abi>
 	[[nodiscard]] inline simd<T, Abi> fmod(const simd<T, Abi> &a, const simd<T, Abi> &b) noexcept
 	{
-		simd < T, Abi > result = {};
-		for (std::size_t i = 0; i < simd < T, Abi > ::size(); ++i)
+		simd<T, Abi> result = {};
+		for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i)
 			result[i] = std::fmod(a[i], b[i]);
 		return result;
 	}
@@ -55,8 +55,8 @@ namespace dpm
 	template<typename T, typename Abi>
 	[[nodiscard]] inline simd<T, Abi> remainder(const simd<T, Abi> &a, const simd<T, Abi> &b) noexcept
 	{
-		simd < T, Abi > result = {};
-		for (std::size_t i = 0; i < simd < T, Abi > ::size(); ++i)
+		simd<T, Abi> result = {};
+		for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i)
 			result[i] = std::remainder(a[i], b[i]);
 		return result;
 	}
@@ -65,8 +65,8 @@ namespace dpm
 	template<typename T, typename Abi, typename QAbi>
 	[[nodiscard]] inline simd<T, Abi> remquo(const simd<T, Abi> &a, const simd<T, Abi> &b, simd<int, QAbi> *quo) noexcept
 	{
-		simd < T, Abi > result = {};
-		for (std::size_t i = 0; i < simd < T, Abi > ::size(); ++i)
+		simd<T, Abi> result = {};
+		for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i)
 			result[i] = std::remquo(a[i], b[i], &((*quo)[i]));
 		return result;
 	}
@@ -75,8 +75,8 @@ namespace dpm
 	template<typename T, typename Abi>
 	[[nodiscard]] inline simd<T, Abi> fmax(const simd<T, Abi> &a, const simd<T, Abi> &b) noexcept
 	{
-		simd < T, Abi > result = {};
-		for (std::size_t i = 0; i < simd < T, Abi > ::size(); ++i)
+		simd<T, Abi> result = {};
+		for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i)
 			result[i] = std::fmax(a[i], b[i]);
 		return result;
 	}
@@ -85,8 +85,8 @@ namespace dpm
 	template<typename T, typename Abi>
 	[[nodiscard]] inline simd<T, Abi> fmin(const simd<T, Abi> &a, const simd<T, Abi> &b) noexcept
 	{
-		simd < T, Abi > result = {};
-		for (std::size_t i = 0; i < simd < T, Abi > ::size(); ++i)
+		simd<T, Abi> result = {};
+		for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i)
 			result[i] = std::fmin(a[i], b[i]);
 		return result;
 	}
@@ -94,8 +94,8 @@ namespace dpm
 	template<typename T, typename Abi>
 	[[nodiscard]] inline simd<T, Abi> fdim(const simd<T, Abi> &a, const simd<T, Abi> &b) noexcept
 	{
-		simd < T, Abi > result = {};
-		for (std::size_t i = 0; i < simd < T, Abi > ::size(); ++i)
+		simd<T, Abi> result = {};
+		for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i)
 			result[i] = std::fdim(a[i], b[i]);
 		return result;
 	}
@@ -103,8 +103,8 @@ namespace dpm
 	template<typename T, typename Abi>
 	[[nodiscard]] inline simd<T, Abi> lerp(const simd<T, Abi> &a, const simd<T, Abi> &b, const simd<T, Abi> &f) noexcept
 	{
-		simd < T, Abi > result = {};
-		for (std::size_t i = 0; i < simd < T, Abi > ::size(); ++i)
+		simd<T, Abi> result = {};
+		for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i)
 			result[i] = std::lerp(a[i], b[i], f[i]);
 		return result;
 	}
@@ -142,8 +142,8 @@ namespace dpm
 	template<std::floating_point T, typename Abi>
 	[[nodiscard]] inline simd<T, Abi> fmod(const simd<T, Abi> &a, T b) noexcept
 	{
-		simd < T, Abi > result = {};
-		for (std::size_t i = 0; i < simd < T, Abi > ::size(); ++i)
+		simd<T, Abi> result = {};
+		for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i)
 			result[i] = std::fmod(a[i], b);
 		return result;
 	}
@@ -151,8 +151,8 @@ namespace dpm
 	template<std::floating_point T, typename Abi>
 	[[nodiscard]] inline simd<T, Abi> remainder(const simd<T, Abi> &a, T b) noexcept
 	{
-		simd < T, Abi > result = {};
-		for (std::size_t i = 0; i < simd < T, Abi > ::size(); ++i)
+		simd<T, Abi> result = {};
+		for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i)
 			result[i] = std::remainder(a[i], b);
 		return result;
 	}
@@ -161,8 +161,8 @@ namespace dpm
 	template<typename T, typename Abi>
 	[[nodiscard]] inline simd<T, Abi> fmax(const simd<T, Abi> &a, T b) noexcept
 	{
-		simd < T, Abi > result = {};
-		for (std::size_t i = 0; i < simd < T, Abi > ::size(); ++i)
+		simd<T, Abi> result = {};
+		for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i)
 			result[i] = std::fmax(a[i], b);
 		return result;
 	}
@@ -171,8 +171,8 @@ namespace dpm
 	template<typename T, typename Abi>
 	[[nodiscard]] inline simd<T, Abi> fmin(const simd<T, Abi> &a, T b) noexcept
 	{
-		simd < T, Abi > result = {};
-		for (std::size_t i = 0; i < simd < T, Abi > ::size(); ++i)
+		simd<T, Abi> result = {};
+		for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i)
 			result[i] = std::fmin(a[i], b[i]);
 		return result;
 	}
@@ -180,8 +180,8 @@ namespace dpm
 	template<typename T, typename Abi>
 	[[nodiscard]] inline simd<T, Abi> fdim(const simd<T, Abi> &a, T b) noexcept
 	{
-		simd < T, Abi > result = {};
-		for (std::size_t i = 0; i < simd < T, Abi > ::size(); ++i)
+		simd<T, Abi> result = {};
+		for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i)
 			result[i] = std::fdim(a[i], b);
 		return result;
 	}
@@ -189,8 +189,8 @@ namespace dpm
 	template<typename T, typename Abi>
 	[[nodiscard]] inline simd<T, Abi> lerp(const simd<T, Abi> &a, const simd<T, Abi> &b, T f) noexcept
 	{
-		simd < T, Abi > result = {};
-		for (std::size_t i = 0; i < simd < T, Abi > ::size(); ++i)
+		simd<T, Abi> result = {};
+		for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i)
 			result[i] = std::lerp(a[i], b[i], f);
 		return result;
 	}
@@ -266,11 +266,11 @@ namespace dpm
 		[[nodiscard]] DPM_FORCEINLINE simd<T, Abi> nan(const char *str) noexcept
 		{
 			if constexpr (std::same_as<T, double>)
-				return simd < T, Abi > {std::nan(str)};
+				return simd<T, Abi>{std::nan(str)};
 			else if constexpr (std::same_as<T, float>)
-				return simd < T, Abi > {std::nanf(str)};
+				return simd<T, Abi>{std::nanf(str)};
 			else
-				return simd < T, Abi > {std::nanl(str)};
+				return simd<T, Abi>{std::nanl(str)};
 		}
 	}
 
@@ -288,8 +288,8 @@ namespace dpm
 	template<std::floating_point T, typename Abi>
 	[[nodiscard]] inline simd<T, Abi> sqrt(const simd<T, Abi> &x) noexcept
 	{
-		simd < T, Abi > result = {};
-		for (std::size_t i = 0; i < simd < T, Abi > ::size(); ++i)
+		simd<T, Abi> result = {};
+		for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i)
 			result[i] = std::sqrt(x[i]);
 		return result;
 	}
@@ -297,8 +297,8 @@ namespace dpm
 	template<std::floating_point T, typename Abi>
 	[[nodiscard]] inline simd<T, Abi> cbrt(const simd<T, Abi> &x) noexcept
 	{
-		simd < T, Abi > result = {};
-		for (std::size_t i = 0; i < simd < T, Abi > ::size(); ++i)
+		simd<T, Abi> result = {};
+		for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i)
 			result[i] = std::cbrt(x[i]);
 		return result;
 	}
@@ -306,8 +306,8 @@ namespace dpm
 	template<std::floating_point T, typename Abi>
 	[[nodiscard]] inline simd<T, Abi> hypot(const simd<T, Abi> &a, const simd<T, Abi> &b) noexcept
 	{
-		simd < T, Abi > result = {};
-		for (std::size_t i = 0; i < simd < T, Abi > ::size(); ++i)
+		simd<T, Abi> result = {};
+		for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i)
 			result[i] = std::hypot(a[i], b[i]);
 		return result;
 	}
@@ -315,8 +315,8 @@ namespace dpm
 	template<std::floating_point T, typename Abi>
 	[[nodiscard]] inline simd<T, Abi> pow(const simd<T, Abi> &x, const simd<T, Abi> &p) noexcept
 	{
-		simd < T, Abi > result = {};
-		for (std::size_t i = 0; i < simd < T, Abi > ::size(); ++i)
+		simd<T, Abi> result = {};
+		for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i)
 			result[i] = std::pow(x[i], p[i]);
 		return result;
 	}
@@ -324,8 +324,8 @@ namespace dpm
 	template<std::floating_point T, typename Abi>
 	[[nodiscard]] inline simd<T, Abi> pow(const simd<T, Abi> &x, T p) noexcept
 	{
-		simd < T, Abi > result = {};
-		for (std::size_t i = 0; i < simd < T, Abi > ::size(); ++i)
+		simd<T, Abi> result = {};
+		for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i)
 			result[i] = std::pow(x[i], p);
 		return result;
 	}
@@ -355,7 +355,7 @@ namespace dpm
 	{
 		/** Calculates reciprocal of elements in vector \a x, and returns the resulting vector. */
 		template<std::floating_point T, typename Abi>
-		[[nodiscard]] DPM_FORCEINLINE simd<T, Abi> rcp(const simd<T, Abi> &x) noexcept { return simd < T, Abi > {T{1}} / x; }
+		[[nodiscard]] DPM_FORCEINLINE simd<T, Abi> rcp(const simd<T, Abi> &x) noexcept { return simd<T, Abi>{T{1}} / x; }
 		/** @copydoc rcp
 		 * @note Arguments and return type are promoted to `double`, or `long double` if one of the arguments is `long double`. */
 		template<typename T, typename Abi, typename Promoted = rebind_simd_t<detail::promote_t<T>, simd<T, Abi>>>
@@ -383,8 +383,8 @@ namespace dpm
 	template<std::floating_point T, typename Abi>
 	[[nodiscard]] inline simd<T, Abi> sin(const simd<T, Abi> &x) noexcept
 	{
-		simd < T, Abi > result = {};
-		for (std::size_t i = 0; i < simd < T, Abi > ::size(); ++i)
+		simd<T, Abi> result = {};
+		for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i)
 			result[i] = std::sin(x[i]);
 		return result;
 	}
@@ -392,8 +392,8 @@ namespace dpm
 	template<std::floating_point T, typename Abi>
 	[[nodiscard]] inline simd<T, Abi> cos(const simd<T, Abi> &x) noexcept
 	{
-		simd < T, Abi > result = {};
-		for (std::size_t i = 0; i < simd < T, Abi > ::size(); ++i)
+		simd<T, Abi> result = {};
+		for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i)
 			result[i] = std::cos(x[i]);
 		return result;
 	}
@@ -401,8 +401,8 @@ namespace dpm
 	template<std::floating_point T, typename Abi>
 	[[nodiscard]] inline simd<T, Abi> tan(const simd<T, Abi> &x) noexcept
 	{
-		simd < T, Abi > result = {};
-		for (std::size_t i = 0; i < simd < T, Abi > ::size(); ++i)
+		simd<T, Abi> result = {};
+		for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i)
 			result[i] = std::tan(x[i]);
 		return result;
 	}
@@ -410,8 +410,8 @@ namespace dpm
 	template<std::floating_point T, typename Abi>
 	[[nodiscard]] inline simd<T, Abi> asin(const simd<T, Abi> &x) noexcept
 	{
-		simd < T, Abi > result = {};
-		for (std::size_t i = 0; i < simd < T, Abi > ::size(); ++i)
+		simd<T, Abi> result = {};
+		for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i)
 			result[i] = std::asin(x[i]);
 		return result;
 	}
@@ -419,8 +419,8 @@ namespace dpm
 	template<std::floating_point T, typename Abi>
 	[[nodiscard]] inline simd<T, Abi> acos(const simd<T, Abi> &x) noexcept
 	{
-		simd < T, Abi > result = {};
-		for (std::size_t i = 0; i < simd < T, Abi > ::size(); ++i)
+		simd<T, Abi> result = {};
+		for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i)
 			result[i] = std::acos(x[i]);
 		return result;
 	}
@@ -428,8 +428,8 @@ namespace dpm
 	template<std::floating_point T, typename Abi>
 	[[nodiscard]] inline simd<T, Abi> atan(const simd<T, Abi> &x) noexcept
 	{
-		simd < T, Abi > result = {};
-		for (std::size_t i = 0; i < simd < T, Abi > ::size(); ++i)
+		simd<T, Abi> result = {};
+		for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i)
 			result[i] = std::atan(x[i]);
 		return result;
 	}
@@ -437,8 +437,8 @@ namespace dpm
 	template<std::floating_point T, typename Abi>
 	[[nodiscard]] inline simd<T, Abi> atan2(const simd<T, Abi> &a, const simd<T, Abi> &b) noexcept
 	{
-		simd < T, Abi > result = {};
-		for (std::size_t i = 0; i < simd < T, Abi > ::size(); ++i)
+		simd<T, Abi> result = {};
+		for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i)
 			result[i] = std::atan2(a[i], b[i]);
 		return result;
 	}
@@ -486,8 +486,8 @@ namespace dpm
 		template<std::floating_point T, typename Abi>
 		[[nodiscard]] inline simd<T, Abi> cot(const simd<T, Abi> &x) noexcept
 		{
-			simd < T, Abi > result = {};
-			for (std::size_t i = 0; i < simd < T, Abi > ::size(); ++i)
+			simd<T, Abi> result = {};
+			for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i)
 				result[i] = detail::cot(x[i]);
 			return result;
 		}
@@ -503,8 +503,8 @@ namespace dpm
 	template<std::floating_point T, typename Abi>
 	[[nodiscard]] inline simd<T, Abi> sinh(const simd<T, Abi> &x) noexcept
 	{
-		simd < T, Abi > result = {};
-		for (std::size_t i = 0; i < simd < T, Abi > ::size(); ++i)
+		simd<T, Abi> result = {};
+		for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i)
 			result[i] = std::sinh(x[i]);
 		return result;
 	}
@@ -512,8 +512,8 @@ namespace dpm
 	template<std::floating_point T, typename Abi>
 	[[nodiscard]] inline simd<T, Abi> cosh(const simd<T, Abi> &x) noexcept
 	{
-		simd < T, Abi > result = {};
-		for (std::size_t i = 0; i < simd < T, Abi > ::size(); ++i)
+		simd<T, Abi> result = {};
+		for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i)
 			result[i] = std::cosh(x[i]);
 		return result;
 	}
@@ -521,8 +521,8 @@ namespace dpm
 	template<std::floating_point T, typename Abi>
 	[[nodiscard]] inline simd<T, Abi> tanh(const simd<T, Abi> &x) noexcept
 	{
-		simd < T, Abi > result = {};
-		for (std::size_t i = 0; i < simd < T, Abi > ::size(); ++i)
+		simd<T, Abi> result = {};
+		for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i)
 			result[i] = std::tanh(x[i]);
 		return result;
 	}
@@ -530,8 +530,8 @@ namespace dpm
 	template<std::floating_point T, typename Abi>
 	[[nodiscard]] inline simd<T, Abi> asinh(const simd<T, Abi> &x) noexcept
 	{
-		simd < T, Abi > result = {};
-		for (std::size_t i = 0; i < simd < T, Abi > ::size(); ++i)
+		simd<T, Abi> result = {};
+		for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i)
 			result[i] = std::asinh(x[i]);
 		return result;
 	}
@@ -539,8 +539,8 @@ namespace dpm
 	template<std::floating_point T, typename Abi>
 	[[nodiscard]] inline simd<T, Abi> acosh(const simd<T, Abi> &x) noexcept
 	{
-		simd < T, Abi > result = {};
-		for (std::size_t i = 0; i < simd < T, Abi > ::size(); ++i)
+		simd<T, Abi> result = {};
+		for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i)
 			result[i] = std::acosh(x[i]);
 		return result;
 	}
@@ -548,8 +548,8 @@ namespace dpm
 	template<std::floating_point T, typename Abi>
 	[[nodiscard]] inline simd<T, Abi> atanh(const simd<T, Abi> &x) noexcept
 	{
-		simd < T, Abi > result = {};
-		for (std::size_t i = 0; i < simd < T, Abi > ::size(); ++i)
+		simd<T, Abi> result = {};
+		for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i)
 			result[i] = std::atanh(x[i]);
 		return result;
 	}
@@ -580,13 +580,161 @@ namespace dpm
 	[[nodiscard]] DPM_FORCEINLINE Promoted atanh(const simd<T, Abi> &x) noexcept { return Promoted{atanh(Promoted{x})}; }
 #pragma endregion
 
+#pragma region "nearest integer functions"
+	/** Rounds elements of vector \a x to nearest integer not less than the element's value, and returns the resulting vector. */
+	template<std::floating_point T, typename Abi>
+	[[nodiscard]] inline simd<T, Abi> ceil(const simd<T, Abi> &x) noexcept
+	{
+		simd<T, Abi> result = {};
+		for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i)
+			result[i] = std::ceil(x[i]);
+		return result;
+	}
+	/** Rounds elements of vector \a x to nearest integer not greater than the element's value, and returns the resulting vector. */
+	template<std::floating_point T, typename Abi>
+	[[nodiscard]] inline simd<T, Abi> floor(const simd<T, Abi> &x) noexcept
+	{
+		simd<T, Abi> result = {};
+		for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i)
+			result[i] = std::floor(x[i]);
+		return result;
+	}
+	/** Rounds elements of vector \a x to integer with truncation, and returns the resulting vector. */
+	template<std::floating_point T, typename Abi>
+	[[nodiscard]] inline simd<T, Abi> trunc(const simd<T, Abi> &x) noexcept
+	{
+		simd<T, Abi> result = {};
+		for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i)
+			result[i] = std::trunc(x[i]);
+		return result;
+	}
+	/** Rounds elements of vector \a x to integer using current rounding mode, and returns the resulting vector. */
+	template<std::floating_point T, typename Abi>
+	[[nodiscard]] inline simd<T, Abi> nearbyint(const simd<T, Abi> &x) noexcept
+	{
+		simd<T, Abi> result = {};
+		for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i)
+			result[i] = std::nearbyint(x[i]);
+		return result;
+	}
+
+	/** Rounds elements of vector \a x to nearest integer rounding away from zero, and returns the resulting vector. */
+	template<std::floating_point T, typename Abi>
+	[[nodiscard]] inline simd<T, Abi> round(const simd<T, Abi> &x) noexcept
+	{
+		simd <T, Abi> result = {};
+		for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i)
+			result[i] = std::round(x[i]);
+		return result;
+	}
+	/** Casts elements of vector \a x to `long` rounding away from zero, and returns the resulting integer vector. */
+	template<std::floating_point T, typename Abi>
+	[[nodiscard]] inline rebind_simd_t<long, simd<T, Abi>> lround(const simd<T, Abi> &x) noexcept
+	{
+		rebind_simd_t<long, simd<T, Abi>> result = {};
+		for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i)
+			result[i] = std::lround(x[i]);
+		return result;
+	}
+	/** Casts elements of vector \a x to `long long` rounding away from zero, and returns the resulting integer vector. */
+	template<std::floating_point T, typename Abi>
+	[[nodiscard]] inline rebind_simd_t<long long, simd<T, Abi>> llround(const simd<T, Abi> &x) noexcept
+	{
+		rebind_simd_t<long, simd<T, Abi>> result = {};
+		for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i)
+			result[i] = std::llround(x[i]);
+		return result;
+	}
+
+	/** Rounds elements of vector \a x to nearest integer using current rounding mode with exceptions, and returns the resulting vector. */
+	template<std::floating_point T, typename Abi>
+	[[nodiscard]] inline simd<T, Abi> rint(const simd<T, Abi> &x) noexcept
+	{
+		simd <T, Abi> result = {};
+		for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i)
+			result[i] = std::rint(x[i]);
+		return result;
+	}
+	/** Casts elements of vector \a x to `long` using current rounding mode with exceptions, and returns the resulting integer vector. */
+	template<std::floating_point T, typename Abi>
+	[[nodiscard]] inline rebind_simd_t<long, simd<T, Abi>> lrint(const simd<T, Abi> &x) noexcept
+	{
+		rebind_simd_t<long, simd<T, Abi>> result = {};
+		for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i)
+			result[i] = std::lrint(x[i]);
+		return result;
+	}
+	/** Casts elements of vector \a x to `long long` using current rounding mode with exceptions, and returns the resulting integer vector. */
+	template<std::floating_point T, typename Abi>
+	[[nodiscard]] inline rebind_simd_t<long long, simd<T, Abi>> llrint(const simd<T, Abi> &x) noexcept
+	{
+		rebind_simd_t<long, simd<T, Abi>> result = {};
+		for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i)
+			result[i] = std::llrint(x[i]);
+		return result;
+	}
+
+	DPM_DECLARE_EXT_NAMESPACE
+	{
+		/** Casts elements of vector \a x to integer of type \a I rounding away from zero, and returns the resulting integer vector. */
+		template<std::signed_integral I, std::floating_point T, typename Abi>
+		[[nodiscard]] inline rebind_simd_t<I, simd<T, Abi>> iround(const simd<T, Abi> &x) noexcept
+		{
+			rebind_simd_t<I, simd<T, Abi>> result = {};
+			for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i)
+			{
+				if constexpr (sizeof(I) <= sizeof(long))
+					result[i] = static_cast<I>(std::lround(x[i]));
+				else if constexpr (!std::same_as<I, long long>)
+					result[i] = static_cast<I>(std::round(x[i]));
+				else
+					result[i] = std::llround(x[i]);
+			}
+			return result;
+		}
+
+		/** Casts elements of vector \a x to integer of type \a I using current rounding mode with exceptions, and returns the resulting integer vector. */
+		template<std::signed_integral I, std::floating_point T, typename Abi>
+		[[nodiscard]] inline rebind_simd_t<I, simd<T, Abi>> irint(const simd<T, Abi> &x) noexcept
+		{
+			rebind_simd_t<I, simd<T, Abi>> result = {};
+			for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i)
+			{
+				if constexpr (sizeof(I) <= sizeof(long))
+					result[i] = static_cast<I>(std::lrint(x[i]));
+				else if constexpr (!std::same_as<I, long long>)
+					result[i] = static_cast<I>(std::rint(x[i]));
+				else
+					result[i] = std::llrint(x[i]);
+			}
+			return result;
+		}
+
+		/** Casts elements of vector \a x to signed integer type \a I with truncation, and returns the resulting vector. */
+		template<std::signed_integral I, std::floating_point T, typename Abi>
+		[[nodiscard]] inline rebind_simd_t<I, simd<T, Abi>> itrunc(const simd<T, Abi> &x) noexcept
+		{
+			rebind_simd_t <I, simd<T, Abi>> result = {};
+			for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i)
+				result[i] = static_cast<I>(std::trunc(x[i]));
+			return result;
+		}
+		/** Casts elements of vector \a x to `long` with truncation, and returns the resulting vector. */
+		template<std::floating_point T, typename Abi>
+		[[nodiscard]] DPM_FORCEINLINE rebind_simd_t<long, simd<T, Abi>> ltrunc(const simd<T, Abi> &x) noexcept { return itrunc<long>(x); }
+		/** Casts elements of vector \a x to `long long` with truncation, and returns the resulting vector. */
+		template<std::floating_point T, typename Abi>
+		[[nodiscard]] DPM_FORCEINLINE rebind_simd_t<long long, simd<T, Abi>> lltrunc(const simd<T, Abi> &x) noexcept { return itrunc<long long>(x); }
+	}
+#pragma endregion
+
 #pragma region "floating-point manipulation"
 	/** Copies sign bit from elements of vector \a sign to elements of vector \a x, and returns the resulting vector. */
 	template<std::floating_point T, typename Abi>
 	[[nodiscard]] inline simd<T, Abi> copysign(const simd<T, Abi> &x, const simd<T, Abi> &sign) noexcept
 	{
-		simd < T, Abi > result = {};
-		for (std::size_t i = 0; i < simd < T, Abi > ::size(); ++i)
+		simd <T, Abi> result = {};
+		for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i)
 			result[i] = std::copysign(x[i], sign[i]);
 		return result;
 	}
@@ -594,8 +742,8 @@ namespace dpm
 	template<std::floating_point T, typename Abi>
 	[[nodiscard]] inline simd<T, Abi> copysign(const simd<T, Abi> &x, T sign) noexcept
 	{
-		simd < T, Abi > result = {};
-		for (std::size_t i = 0; i < simd < T, Abi > ::size(); ++i)
+		simd <T, Abi> result = {};
+		for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i)
 			result[i] = std::copysign(x[i], sign);
 		return result;
 	}
@@ -607,7 +755,7 @@ namespace dpm
 	/** @copydoc isnan
 	 * @note Arguments and return type are promoted to `double`, or `long double` if one of the arguments is `long double`. */
 	template<typename T0, typename T1, typename Abi, typename Promoted = rebind_simd_t<detail::promote_t<T0, T1>, simd<T0, Abi>>>
-	[[nodiscard]] DPM_FORCEINLINE Promoted copysign(const simd<T0, Abi> &x, T1 sign) noexcept { return Promoted{copysign(Promoted{x}, detail::promote_t<T0, T1>{sign})}; }
+	[[nodiscard]] DPM_FORCEINLINE Promoted copysign(const simd<T0, Abi> &x, T1 sign) noexcept { return Promoted{copysign(Promoted{x}, detail::promote_t < T0, T1 > {sign})}; }
 #pragma endregion
 
 #pragma region "classification"
@@ -616,7 +764,7 @@ namespace dpm
 	[[nodiscard]] inline rebind_simd_t<int, simd<T, Abi>> fpclassify(const simd<T, Abi> &x) noexcept
 	{
 		rebind_simd_t<int, simd<T, Abi>> result = {};
-		for (std::size_t i = 0; i < simd < T, Abi > ::size(); ++i)
+		for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i)
 			result[i] = std::fpclassify(x[i]);
 		return result;
 	}
@@ -625,7 +773,7 @@ namespace dpm
 	[[nodiscard]] inline typename simd<T, Abi>::mask_type isfinite(const simd<T, Abi> &x) noexcept
 	{
 		typename simd<T, Abi>::mask_type result = {};
-		for (std::size_t i = 0; i < simd < T, Abi > ::size(); ++i)
+		for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i)
 			result[i] = std::isfinite(x[i]);
 		return result;
 	}
@@ -634,7 +782,7 @@ namespace dpm
 	[[nodiscard]] inline typename simd<T, Abi>::mask_type isinf(const simd<T, Abi> &x) noexcept
 	{
 		typename simd<T, Abi>::mask_type result = {};
-		for (std::size_t i = 0; i < simd < T, Abi > ::size(); ++i)
+		for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i)
 			result[i] = std::isinf(x[i]);
 		return result;
 	}
@@ -643,7 +791,7 @@ namespace dpm
 	[[nodiscard]] inline typename simd<T, Abi>::mask_type isnan(const simd<T, Abi> &x) noexcept
 	{
 		typename simd<T, Abi>::mask_type result = {};
-		for (std::size_t i = 0; i < simd < T, Abi > ::size(); ++i)
+		for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i)
 			result[i] = std::isnan(x[i]);
 		return result;
 	}
@@ -652,7 +800,7 @@ namespace dpm
 	[[nodiscard]] inline typename simd<T, Abi>::mask_type isnormal(const simd<T, Abi> &x) noexcept
 	{
 		typename simd<T, Abi>::mask_type result = {};
-		for (std::size_t i = 0; i < simd < T, Abi > ::size(); ++i)
+		for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i)
 			result[i] = std::isnormal(x[i]);
 		return result;
 	}
@@ -661,7 +809,7 @@ namespace dpm
 	[[nodiscard]] inline typename simd<T, Abi>::mask_type signbit(const simd<T, Abi> &x) noexcept
 	{
 		typename simd<T, Abi>::mask_type result = {};
-		for (std::size_t i = 0; i < simd < T, Abi > ::size(); ++i)
+		for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i)
 			result[i] = std::signbit(x[i]);
 		return result;
 	}
@@ -669,7 +817,7 @@ namespace dpm
 	/** @copydoc fpclassify
 	 * @note Arguments and return type are promoted to `double`, or `long double` if one of the arguments is `long double`. */
 	template<typename T, typename Abi, typename Promoted = rebind_simd_t<detail::promote_t<T>, simd<T, Abi>>>
-	[[nodiscard]] DPM_FORCEINLINE rebind_simd_t<int, Promoted> fpclassify(const simd<T, Abi> &x) noexcept { return rebind_simd_t<int, Promoted>{fpclassify(Promoted{x})}; }
+	[[nodiscard]] DPM_FORCEINLINE rebind_simd_t<int, Promoted> fpclassify(const simd<T, Abi> &x) noexcept { return rebind_simd_t < int, Promoted > {fpclassify(Promoted{x})}; }
 	/** @copydoc isfinite
 	 * @note Arguments and return type are promoted to `double`, or `long double` if one of the arguments is `long double`. */
 	template<typename T, typename Abi, typename Promoted = rebind_simd_t<detail::promote_t<T>, simd<T, Abi>>>
@@ -696,7 +844,7 @@ namespace dpm
 	[[nodiscard]] inline typename simd<T, Abi>::mask_type isgreater(const simd<T, Abi> &a, const simd<T, Abi> &b) noexcept
 	{
 		typename simd<T, Abi>::mask_type result = {};
-		for (std::size_t i = 0; i < simd < T, Abi > ::size(); ++i)
+		for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i)
 			result[i] = std::isgreater(a[i], b[i]);
 		return result;
 	}
@@ -705,7 +853,7 @@ namespace dpm
 	[[nodiscard]] inline typename simd<T, Abi>::mask_type isgreaterequal(const simd<T, Abi> &a, const simd<T, Abi> &b) noexcept
 	{
 		typename simd<T, Abi>::mask_type result = {};
-		for (std::size_t i = 0; i < simd < T, Abi > ::size(); ++i)
+		for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i)
 			result[i] = std::isgreaterequal(a[i], b[i]);
 		return result;
 	}
@@ -714,7 +862,7 @@ namespace dpm
 	[[nodiscard]] inline typename simd<T, Abi>::mask_type isless(const simd<T, Abi> &a, const simd<T, Abi> &b) noexcept
 	{
 		typename simd<T, Abi>::mask_type result = {};
-		for (std::size_t i = 0; i < simd < T, Abi > ::size(); ++i)
+		for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i)
 			result[i] = std::isless(a[i], b[i]);
 		return result;
 	}
@@ -723,7 +871,7 @@ namespace dpm
 	[[nodiscard]] inline typename simd<T, Abi>::mask_type islessequal(const simd<T, Abi> &a, const simd<T, Abi> &b) noexcept
 	{
 		typename simd<T, Abi>::mask_type result = {};
-		for (std::size_t i = 0; i < simd < T, Abi > ::size(); ++i)
+		for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i)
 			result[i] = std::islessequal(a[i], b[i]);
 		return result;
 	}
@@ -732,7 +880,7 @@ namespace dpm
 	[[nodiscard]] inline typename simd<T, Abi>::mask_type islessgreater(const simd<T, Abi> &a, const simd<T, Abi> &b) noexcept
 	{
 		typename simd<T, Abi>::mask_type result = {};
-		for (std::size_t i = 0; i < simd < T, Abi > ::size(); ++i)
+		for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i)
 			result[i] = std::islessgreater(a[i], b[i]);
 		return result;
 	}
@@ -741,7 +889,7 @@ namespace dpm
 	[[nodiscard]] inline typename simd<T, Abi>::mask_type isunordered(const simd<T, Abi> &a, const simd<T, Abi> &b) noexcept
 	{
 		typename simd<T, Abi>::mask_type result = {};
-		for (std::size_t i = 0; i < simd < T, Abi > ::size(); ++i)
+		for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i)
 			result[i] = std::isunordered(a[i], b[i]);
 		return result;
 	}

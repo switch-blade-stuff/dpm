@@ -109,6 +109,8 @@ namespace dpm::detail
 #endif
 	}
 
+	template<signed_integral_of_size<4> To, std::same_as<double> From>
+	[[nodiscard]] DPM_FORCEINLINE __m128i cvtt(__m128d x) noexcept { return _mm_cvttpd_epi32(x); }
 	template<signed_integral_of_size<8> To, std::same_as<double> From>
 	[[nodiscard]] DPM_FORCEINLINE __m128i cvtt(__m128d x) noexcept
 	{
@@ -228,7 +230,7 @@ namespace dpm::detail
 	[[nodiscard]] DPM_FORCEINLINE __m256d cvt_i64_f64(__m256i x) noexcept
 	{
 #if defined(DPM_HAS_AVX512DQ) && defined(DPM_HAS_AVX512VL)
-		return _mm_cvtepi64_pd(x);
+		return _mm256_cvtepi64_pd(x);
 #else
 		return cvt_i64_f64_avx(x);
 #endif
@@ -236,7 +238,7 @@ namespace dpm::detail
 	[[nodiscard]] DPM_FORCEINLINE __m256i cvt_f64_u64(__m256d x) noexcept
 	{
 #if defined(DPM_HAS_AVX512DQ) && defined(DPM_HAS_AVX512VL)
-		return _mm_cvtpd_epu64(x);
+		return _mm256_cvtpd_epu64(x);
 #else
 		return cvt_f64_u64_avx(x);
 #endif
@@ -244,17 +246,19 @@ namespace dpm::detail
 	[[nodiscard]] DPM_FORCEINLINE __m256i cvt_f64_i64(__m256d x) noexcept
 	{
 #if defined(DPM_HAS_AVX512DQ) && defined(DPM_HAS_AVX512VL)
-		return _mm_cvtpd_epi64(x);
+		return _mm256_cvtpd_epi64(x);
 #else
 		return cvt_f64_i64_avx(x);
 #endif
 	}
 
+	template<signed_integral_of_size<4> To, std::same_as<double> From>
+	[[nodiscard]] DPM_FORCEINLINE __m128i cvtt(__m256d x) noexcept { return _mm256_cvttpd_epi32(x); }
 	template<signed_integral_of_size<8> To, std::same_as<double> From>
 	[[nodiscard]] DPM_FORCEINLINE __m256i cvtt(__m256d x) noexcept
 	{
 #if defined(DPM_HAS_AVX512DQ) && defined(DPM_HAS_AVX512VL)
-		return _mm256_cvtpd_epi64(x);
+		return _mm256_cvttpd_epi64(x);
 #else
 		/* Set rounding mode to truncation. */
 		const auto old_csr = _mm_getcsr();
