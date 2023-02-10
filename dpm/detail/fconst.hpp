@@ -19,6 +19,8 @@ namespace dpm::detail
 	template<std::floating_point T>
 	static constexpr T five_eights = 0.625;
 	template<std::floating_point T>
+	static constexpr T sign_bit = -0.0;
+	template<std::floating_point T>
 	static constexpr T half = 0.5;
 	template<std::floating_point T>
 	static constexpr T one = 1.0;

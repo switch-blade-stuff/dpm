@@ -96,7 +96,7 @@ namespace dpm::detail
 	[[nodiscard]] DPM_FORCEINLINE auto impl_sincos(V x) noexcept
 	{
 		constexpr auto extent = sizeof(V) / sizeof(T);
-		const auto sign_x = masksign(x);
+		const auto sign_x = masksign<T>(x);
 		auto abs_x = bit_xor(x, sign_x);
 
 		/* Check for domain & NaN. */

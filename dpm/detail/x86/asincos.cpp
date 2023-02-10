@@ -49,7 +49,7 @@ namespace dpm::detail
 	[[nodiscard]] DPM_FORCEINLINE V impl_asin(V x) noexcept
 	{
 		constexpr auto extent = sizeof(V) / sizeof(T);
-		const auto x_sign = masksign(x);
+		const auto x_sign = masksign<T>(x);
 		const auto abs_x = bit_xor(x, x_sign);
 
 #if defined(DPM_HANDLE_ERRORS) || defined(DPM_PROPAGATE_NAN)
@@ -80,7 +80,7 @@ namespace dpm::detail
 	[[nodiscard]] DPM_FORCEINLINE V impl_acos(V x) noexcept
 	{
 		constexpr auto extent = sizeof(V) / sizeof(T);
-		const auto x_sign = masksign(x);
+		const auto x_sign = masksign<T>(x);
 		const auto abs_x = bit_xor(x, x_sign);
 		const auto v_pio4 = fill<V>(pio4<T>);
 

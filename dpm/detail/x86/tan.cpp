@@ -22,7 +22,7 @@ namespace dpm::detail
 	[[nodiscard]] DPM_FORCEINLINE V impl_tan(V x) noexcept
 	{
 		constexpr auto extent = sizeof(V) / sizeof(T);
-		const auto sign_x = masksign(x);
+		const auto sign_x = masksign<T>(x);
 		const auto abs_x = bit_xor(x, sign_x);
 
 #if defined(DPM_HANDLE_ERRORS) || defined(DPM_PROPAGATE_NAN)

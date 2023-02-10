@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include "../fconst.hpp"
 #include "bitwise.hpp"
 
 namespace dpm::detail
@@ -89,7 +90,7 @@ namespace dpm::detail
 	template<typename T, typename V>
 	[[nodiscard]] DPM_FORCEINLINE V dec(V x) noexcept { return sub<T>(x, fill<V>(T{1})); }
 	template<std::floating_point T, typename V>
-	[[nodiscard]] DPM_FORCEINLINE V negate(V x) noexcept { return bit_xor(x, fill<V>(-0.0)); }
+	[[nodiscard]] DPM_FORCEINLINE V negate(V x) noexcept { return bit_xor(x, fill<V>(sign_bit<T>)); }
 	template<std::integral T, typename V>
 	[[nodiscard]] DPM_FORCEINLINE V negate(V x) noexcept { return sub<T>(setzero<V>(), x); }
 }
