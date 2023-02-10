@@ -47,8 +47,11 @@
 #define DPM_PURE
 #endif
 
-#if !defined(NDEBUG) || defined(DPM_DEBUG)
+#if !defined(NDEBUG) && !defined(DPM_DEBUG)
 #define DPM_DEBUG
+#endif
+
+#ifdef DPM_DEBUG
 
 namespace dpm::detail
 {
