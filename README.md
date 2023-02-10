@@ -134,13 +134,16 @@ DPM provides the following extensions to the standard API:
     * `rebind_simd_t<I, simd>  itrunc<I>(const simd &)`
     * `rebind_simd_t<long, simd>  ltrunc(const simd &)`
     * `rebind_simd_t<long long, simd>  lltrunc(const simd &)`
-* Debugging & optimization hints
-    * `#define DPM_ASSERT_MSG(cnd, msg)`
-    * `#define DPM_ASSERT(cnd)`
+* Optimization hints
     * `#define DPM_UNREACHABLE()`
     * `#define DPM_NEVER_INLINE`
     * `#define DPM_FORCEINLINE`
     * `#define DPM_ASSUME(cnd)`
+* Assertions
+  * `#define DPM_ASSERT_MSG_ALWAYS(cnd, msg)`
+  * `#define DPM_ASSERT_MSG(cnd, msg)`
+  * `#define DPM_ASSERT_ALWAYS(cnd)`
+  * `#define DPM_ASSERT(cnd)`
 * Other utilities
     * `class cpuid`
 
