@@ -87,7 +87,7 @@ In order to use the library as a CMake link dependency, you must link to one of 
 
 ### Extensions
 
-DPM provides the following extensions to the standard API:
+DPM provides the following utilities and extensions to the standard API:
 
 * ABI tags
     * `struct aligned_vector`
@@ -140,10 +140,10 @@ DPM provides the following extensions to the standard API:
     * `#define DPM_FORCEINLINE`
     * `#define DPM_ASSUME(cnd)`
 * Assertions
-  * `#define DPM_ASSERT_MSG_ALWAYS(cnd, msg)`
-  * `#define DPM_ASSERT_MSG(cnd, msg)`
-  * `#define DPM_ASSERT_ALWAYS(cnd)`
-  * `#define DPM_ASSERT(cnd)`
+    * `#define DPM_ASSERT_MSG_ALWAYS(cnd, msg)`
+    * `#define DPM_ASSERT_MSG(cnd, msg)`
+    * `#define DPM_ASSERT_ALWAYS(cnd)`
+    * `#define DPM_ASSERT(cnd)`
 * Other utilities
     * `class cpuid`
 
