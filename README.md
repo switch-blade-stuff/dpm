@@ -174,7 +174,7 @@ CPUs. See the following articles for details:
 
 ### SVML
 
-When the `DPM_USE_SVML` is enabled, DPM will use mathematical functions provided by SVML for trigonometric, hyperbolic,
-exponential and error functions instead of the built-in implementation. Inlined functions will still use the internal
+When `DPM_USE_SVML` is enabled, DPM will use mathematical functions provided by SVML for trigonometric, hyperbolic,
+exponential, nearest integer and error functions instead of the built-in implementation. Inlined functions will still use the internal
 implementation. Note that if `DPM_USE_SVML` is enabled, NaN propagation and error handling options are ignored for
 affected functions, any error handling is left to SVML.
