@@ -6,9 +6,7 @@
 
 #if defined(DPM_ARCH_X86) && defined(DPM_HAS_SSE2) && !defined(DPM_USE_SVML)
 
-#include "../fconst.hpp"
 #include "polevl.hpp"
-#include "power.hpp"
 
 #ifdef DPM_HANDLE_ERRORS
 #ifndef _MSC_VER /* MSVC does not support STDC pragmas */

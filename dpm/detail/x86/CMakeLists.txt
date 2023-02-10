@@ -1,6 +1,5 @@
 
-list(APPEND DPM_INTERFACE_SOURCES
-        ${CMAKE_CURRENT_LIST_DIR}/cpuid.hpp
+target_sources(${DPM_PROJECT} INTERFACE
         ${CMAKE_CURRENT_LIST_DIR}/abi.hpp
         ${CMAKE_CURRENT_LIST_DIR}/type_fwd.hpp
         ${CMAKE_CURRENT_LIST_DIR}/utility.hpp
@@ -14,15 +13,18 @@ list(APPEND DPM_INTERFACE_SOURCES
         ${CMAKE_CURRENT_LIST_DIR}/type.hpp
         ${CMAKE_CURRENT_LIST_DIR}/math_fwd.hpp
         ${CMAKE_CURRENT_LIST_DIR}/mbase.hpp
-        ${CMAKE_CURRENT_LIST_DIR}/power.hpp
         ${CMAKE_CURRENT_LIST_DIR}/class.hpp
         ${CMAKE_CURRENT_LIST_DIR}/round.hpp
         ${CMAKE_CURRENT_LIST_DIR}/fmanip.hpp
-        ${CMAKE_CURRENT_LIST_DIR}/polevl.hpp
-        ${CMAKE_CURRENT_LIST_DIR}/trig.hpp
         ${CMAKE_CURRENT_LIST_DIR}/math.hpp)
 
-list(APPEND DPM_PRIVATE_SOURCES
+target_sources(${DPM_PROJECT} PUBLIC
+        ${CMAKE_CURRENT_LIST_DIR}/cpuid.hpp
+        ${CMAKE_CURRENT_LIST_DIR}/power.hpp
+        ${CMAKE_CURRENT_LIST_DIR}/trig.hpp)
+
+target_sources(${DPM_PROJECT} PRIVATE
+        ${CMAKE_CURRENT_LIST_DIR}/polevl.hpp
         ${CMAKE_CURRENT_LIST_DIR}/cpuid.cpp
         ${CMAKE_CURRENT_LIST_DIR}/sincos.cpp
         ${CMAKE_CURRENT_LIST_DIR}/tan.cpp

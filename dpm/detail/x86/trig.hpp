@@ -9,7 +9,6 @@
 
 #if defined(DPM_ARCH_X86) && defined(DPM_HAS_SSE2)
 
-#include "mbase.hpp"
 #include "class.hpp"
 
 namespace dpm

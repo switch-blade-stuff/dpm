@@ -35,20 +35,14 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib CACHE STRING "")
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin CACHE STRING "")
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin CACHE STRING "")
 
-# Include library source subdirectory
-set(DPM_SOURCE_DIR ${CMAKE_CURRENT_LIST_DIR}/dpm)
-include(${DPM_SOURCE_DIR}/CMakeLists.txt)
-
 # Add project targets & include directories
 set(DPM_PROJECT ${PROJECT_NAME})
-add_library(${DPM_PROJECT}-interface INTERFACE ${DPM_INTERFACE_SOURCES})
 add_library(${DPM_PROJECT})
 
-target_sources(${DPM_PROJECT} INTERFACE ${DPM_INTERFACE_SOURCES})
-target_sources(${DPM_PROJECT} PRIVATE ${DPM_PRIVATE_SOURCES})
-target_sources(${DPM_PROJECT} PUBLIC ${DPM_PUBLIC_SOURCES})
-
+# Include library source subdirectory
 set(DPM_LIBRARY_PATH $<TARGET_FILE:${DPM_PROJECT}>)
+set(DPM_SOURCE_DIR ${CMAKE_CURRENT_LIST_DIR}/dpm)
+include(${DPM_SOURCE_DIR}/CMakeLists.txt)
 
 # Set symbol visibility
 set_target_properties(${DPM_PROJECT} PROPERTIES C_VISIBILITY_PRESET hidden)
