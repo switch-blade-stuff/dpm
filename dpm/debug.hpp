@@ -6,9 +6,7 @@
 
 #include "detail/api.hpp"
 
-#if defined(__has_cpp_attribute) && __has_cpp_attribute(assume)
-#define DPM_ASSUME(x)
-#elif defined(_MSC_VER)
+#if defined(_MSC_VER)
 #define DPM_ASSUME(x) __assume(x)
 #elif 0 && defined(__clang__) /* See https://github.com/llvm/llvm-project/issues/55636 and https://github.com/llvm/llvm-project/issues/45902 */
 #define DPM_ASSUME(x) __builtin_assume(x)
