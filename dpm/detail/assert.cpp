@@ -3,7 +3,6 @@
  */
 
 #include "../debug.hpp"
-#include "define.hpp"
 
 #include <cstdio>
 
