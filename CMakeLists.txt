@@ -57,6 +57,8 @@ set_target_properties(${DPM_PROJECT} PROPERTIES DEFINE_SYMBOL "DPM_EXPORT")
 #    target_compile_features(${DPM_PROJECT} PUBLIC cxx_std_20)
 #endif ()
 
+target_compile_features(${DPM_PROJECT} PUBLIC cxx_std_20)
+
 # Enable max error reporting
 if (MSVC)
     target_compile_options(${PROJECT_NAME} PRIVATE /W3 /WX)
