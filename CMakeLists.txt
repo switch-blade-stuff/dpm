@@ -2,10 +2,10 @@ cmake_minimum_required(VERSION 3.20)
 project(dpm)
 
 # Library options
-option(DPM_USE_MODULES "Toggles support for C++20 modules" OFF)
-if (${DPM_USE_MODULES})
-    add_compile_definitions(DPM_USE_MODULES)
-endif ()
+#option(DPM_USE_MODULES "Toggles support for C++20 modules" OFF)
+#if (${DPM_USE_MODULES})
+#    add_compile_definitions(DPM_USE_MODULES)
+#endif ()
 
 option(DPM_INLINE_EXTENSIONS "Toggles inlining of the library extension namespace" ON)
 if (${DPM_INLINE_EXTENSIONS})
@@ -50,12 +50,12 @@ set_target_properties(${DPM_PROJECT} PROPERTIES CXX_VISIBILITY_PRESET hidden)
 set_target_properties(${DPM_PROJECT} PROPERTIES VISIBILITY_INLINES_HIDDEN ON)
 set_target_properties(${DPM_PROJECT} PROPERTIES DEFINE_SYMBOL "DPM_EXPORT")
 
-# On MSVC, use c++latest instead of c++20 for experimental module support
-if (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC" AND DPM_USE_MODULES)
-    target_compile_features(${DPM_PROJECT} PUBLIC cxx_std_23)
-else ()
-    target_compile_features(${DPM_PROJECT} PUBLIC cxx_std_20)
-endif ()
+## On MSVC, use c++latest instead of c++20 for experimental module support
+#if (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC" AND DPM_USE_MODULES)
+#    target_compile_features(${DPM_PROJECT} PUBLIC cxx_std_23)
+#else ()
+#    target_compile_features(${DPM_PROJECT} PUBLIC cxx_std_20)
+#endif ()
 
 # Enable max error reporting
 if (MSVC)

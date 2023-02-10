@@ -8,8 +8,8 @@
 #define DPM_DEBUG
 #endif
 
-/* Define DPM_USE_IMPORT only if modules are enabled and supported by the compiler. */
-#if defined(DPM_USE_MODULES) && defined(__cpp_modules)
+/* Modules are currently not supported */
+#if defined(DPM_USE_MODULES) && defined(__cpp_modules) && 0
 #define DPM_USE_IMPORT
 #endif
 

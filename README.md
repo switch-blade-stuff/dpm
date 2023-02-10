@@ -26,12 +26,6 @@ On architectures without SIMD intrinsic support, vectorization is emulated via s
 <table>
   <tr><th>#define macro</th><th>CMake option</th><th>Default value</th><th>Description</th></tr>
   <tr>
-    <td>DPM_USE_MODULES</td>
-    <td>-DDPM_USE_MODULES</td>
-    <td>OFF</td>
-    <td>Toggles support for C++20 modules</td>
-  </tr>
-  <tr>
     <td>DPM_INLINE_EXTENSIONS</td>
     <td>-DDPM_INLINE_EXTENSIONS</td>
     <td>ON</td>
@@ -140,6 +134,9 @@ DPM provides the following extensions to the standard API:
     * `rebind_simd_t<I, simd>  itrunc<I>(const simd &)`
     * `rebind_simd_t<long, simd>  ltrunc(const simd &)`
     * `rebind_simd_t<long long, simd>  lltrunc(const simd &)`
+* Optimization hint macros
+    * `#define DPM_UNREACHABLE()`
+    * `#define DPM_ASSUME(cnd)`
 * Other utilities
     * `void assert_trap(bool, const char *, const char *, const char *, std::size_t, const char *)`
     * `#define DPM_ASSERT_MSG(cnd, msg)`

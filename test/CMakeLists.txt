@@ -14,10 +14,3 @@ if (MSVC)
 else ()
     target_compile_options(${PROJECT_NAME} PUBLIC -Wall -Wextra -Wpedantic -Werror -Wno-unknown-pragmas -Wno-logical-not-parentheses)
 endif ()
-
-# On MSVC, use c++latest instead of c++20 for experimental module support
-if (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC" AND DPM_USE_MODULES)
-    target_compile_features(${DPM_PROJECT} PUBLIC cxx_std_23)
-else ()
-    target_compile_features(${DPM_PROJECT} PUBLIC cxx_std_20)
-endif ()
