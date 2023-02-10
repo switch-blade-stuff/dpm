@@ -1,10 +1,10 @@
 /*
- * Created by switchblade on 2023-01-03.
+ * Created by switch_blade on 2023-02-10.
  */
 
 #pragma once
 
-#include "define.hpp"
+#include "detail/define.hpp"
 
 #if !defined(NDEBUG) || defined(DPM_DEBUG)
 
