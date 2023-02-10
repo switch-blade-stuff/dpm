@@ -144,6 +144,7 @@ DPM provides the following utilities and extensions to the standard API:
     * `#define DPM_ASSERT_MSG(cnd, msg)`
     * `#define DPM_ASSERT_ALWAYS(cnd)`
     * `#define DPM_ASSERT(cnd)`
+    * `#define DPM_DEBUGTRAP()`
 * Other utilities
     * `class cpuid`
 

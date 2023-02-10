@@ -49,29 +49,25 @@
 
 namespace dpm::detail
 {
-#if defined(_MSC_VER)
-	[[noreturn]] DPM_FORCEINLINE void assert_trap() noexcept { __debugbreak(); }
-#elif defined(__clang__) && defined(__has_builtin) && __has_builtin(__builtin_debugtrap)
-	[[noreturn]] DPM_FORCEINLINE void assert_trap() noexcept { __builtin_debugtrap(); }
-#elif defined(__GNUC__)
-	[[noreturn]] DPM_FORCEINLINE void assert_trap() noexcept { __builtin_trap(); }
-#else
-	[[noreturn]] DPM_PUBLIC void assert_trap() noexcept;
-#endif
-
 	DPM_PUBLIC void assert_err(const char *file, unsigned long line, const char *func, const char *cnd, const char *msg) noexcept;
 
-	DPM_FORCEINLINE void assert(bool cnd, const char *file, unsigned long line, const char *func, const char *cnd_str, const char *msg) noexcept
-	{
-		if (!cnd) [[unlikely]]
-		{
-			assert_err(file, line, func, cnd_str, msg);
-			assert_trap();
-		}
-	}
+#if defined(_MSC_VER)
+#define DPM_DEBUGTRAP() __debugbreak()
+#elif defined(__clang__) && defined(__has_builtin) && __has_builtin(__builtin_debugtrap)
+#define DPM_DEBUGTRAP() __builtin_debugtrap()
+#elif defined(__GNUC__)
+#define DPM_DEBUGTRAP() __builtin_trap()
+#else
+	[[noreturn]] DPM_PUBLIC void assert_trap() noexcept;
+#define DPM_DEBUGTRAP() dpm::detail::assert_trap()
+#endif
 }
 
-#define DPM_ASSERT_MSG_ALWAYS(cnd, msg) do { dpm::detail::assert((cnd), (__FILE__), (__LINE__), (DPM_FUNCNAME), (#cnd), (msg)); DPM_ASSUME(cnd); } while(false)
+#define DPM_ASSERT_MSG_ALWAYS(cnd, msg)                                                 \
+    do { if (!(cnd)) [[unlikely]] {                                                     \
+        dpm::detail::assert_err((__FILE__), (__LINE__), (DPM_FUNCNAME), (#cnd), (msg)); \
+        DPM_DEBUGTRAP();                                                                \
+    }} while(false)
 #define DPM_ASSERT_ALWAYS(cnd) DPM_ASSERT_MSG_ALWAYS(cnd, nullptr)
 
 #ifndef NDEBUG
