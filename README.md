@@ -134,15 +134,14 @@ DPM provides the following extensions to the standard API:
     * `rebind_simd_t<I, simd>  itrunc<I>(const simd &)`
     * `rebind_simd_t<long, simd>  ltrunc(const simd &)`
     * `rebind_simd_t<long long, simd>  lltrunc(const simd &)`
-* Optimization hint macros
+* Debugging & optimization hints
+    * `#define DPM_ASSERT_MSG(cnd, msg)`
+    * `#define DPM_ASSERT(cnd)`
     * `#define DPM_UNREACHABLE()`
     * `#define DPM_NEVER_INLINE`
     * `#define DPM_FORCEINLINE`
     * `#define DPM_ASSUME(cnd)`
 * Other utilities
-    * `void assert_trap(bool, const char *, const char *, const char *, std::size_t, const char *)`
-    * `#define DPM_ASSERT_MSG(cnd, msg)`
-    * `#define DPM_ASSERT(cnd)`
     * `class cpuid`
 
 Additionally, versions of some operators and math functions accepting a scalar as one of the arguments are provided.

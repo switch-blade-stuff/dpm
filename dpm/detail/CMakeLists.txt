@@ -11,3 +11,6 @@ target_sources(${DPM_PROJECT} INTERFACE
         ${CMAKE_CURRENT_LIST_DIR}/where_expr.hpp
         ${CMAKE_CURRENT_LIST_DIR}/fconst.hpp)
 
+target_sources(${DPM_PROJECT} PRIVATE
+        ${CMAKE_CURRENT_LIST_DIR}/assert.cpp)
+

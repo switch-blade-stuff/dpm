@@ -5,7 +5,7 @@
 #pragma once
 
 #include "../../flags.hpp"
-#include "../../assert.hpp"
+#include "../../debug.hpp"
 #include "../where_expr.hpp"
 #include "../alias.hpp"
 
