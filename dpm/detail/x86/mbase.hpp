@@ -244,7 +244,7 @@ namespace dpm
 		}
 
 		[[nodiscard]] DPM_FORCEINLINE __m256 isunord(__m256 a, __m256 b) noexcept { return _mm256_cmp_ps(a, b, _CMP_UNORD_Q); }
-		[[nodiscard]] DPM_FORCEINLINE __m256d isunord(__m256d a, __m256d b) noexcept { return _mm256_cmp_ps(a, b, _CMP_UNORD_Q); }
+		[[nodiscard]] DPM_FORCEINLINE __m256d isunord(__m256d a, __m256d b) noexcept { return _mm256_cmp_pd(a, b, _CMP_UNORD_Q); }
 
 		template<std::same_as<float> T>
 		[[nodiscard]] DPM_FORCEINLINE __m256 abs(__m256 x) noexcept { return _mm256_and_ps(x, _mm256_set1_ps(std::bit_cast<T>(0x7fff'ffff))); }

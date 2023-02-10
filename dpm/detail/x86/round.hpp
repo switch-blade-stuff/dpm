@@ -90,7 +90,7 @@ namespace dpm
 		[[nodiscard]] DPM_FORCEINLINE __m128d trunc(__m128d x) noexcept
 		{
 #if defined(DPM_HAS_SSE4_1)
-			return _mm_round_ps(x, _MM_FROUND_TO_ZERO | _MM_FROUND_NO_EXC);
+			return _mm_round_pd(x, _MM_FROUND_TO_ZERO | _MM_FROUND_NO_EXC);
 #elif defined(DPM_USE_SVML)
 			return _mm_trunc_pd(x);
 #else
@@ -100,7 +100,7 @@ namespace dpm
 		[[nodiscard]] DPM_FORCEINLINE __m128d nearbyint(__m128d x) noexcept
 		{
 #ifdef DPM_HAS_SSE4_1
-			return _mm_round_ps(x, _MM_FROUND_NO_EXC | _MM_FROUND_CUR_DIRECTION);
+			return _mm_round_pd(x, _MM_FROUND_NO_EXC | _MM_FROUND_CUR_DIRECTION);
 #else
 			return mask_domain(x, _mm_cvtepi32_pd(_mm_cvtpd_epi32(x)));
 #endif
@@ -115,9 +115,9 @@ namespace dpm
 			dst[1] = _mm_cvttps_epi64(_mm_movehl_ps(x, x));
 			dst[0] = _mm_cvttps_epi64(x);
 #else
-			const auto tmp = cvtt<std::int32_t, float>(x);
-			dst[0] = std::bit_cast<__m128i>(_mm_unpacklo_ps(std::bit_cast<__m128>(tmp), _mm_setzero_ps()));
-			dst[1] = std::bit_cast<__m128i>(_mm_unpackhi_ps(std::bit_cast<__m128>(tmp), _mm_setzero_ps()));
+			const auto tmp = std::bit_cast<__m128>(cvtt<std::int32_t, float>(x));
+			dst[0] = std::bit_cast<__m128i>(_mm_unpacklo_ps(tmp, _mm_setzero_ps()));
+			dst[1] = std::bit_cast<__m128i>(_mm_unpackhi_ps(tmp, _mm_setzero_ps()));
 #endif
 		}
 
@@ -145,10 +145,10 @@ namespace dpm
 			dst[1] = _mm_add_epi64(th, _mm_cvttps_epi64(_mm_movehl_ps(rem, rem)));
 			dst[0] = _mm_add_epi64(tl, _mm_cvttps_epi64(rem));
 #else
-			__m128i tmp;
-			round<std::int32_t>(x, &tmp);
-			dst[0] = std::bit_cast<__m128i>(_mm_unpacklo_ps(std::bit_cast<__m128>(tmp), _mm_setzero_ps()));
-			dst[1] = std::bit_cast<__m128i>(_mm_unpackhi_ps(std::bit_cast<__m128>(tmp), _mm_setzero_ps()));
+			__m128 tmp;
+			round<std::int32_t>(x, reinterpret_cast<__m128i *>(&tmp));
+			dst[0] = std::bit_cast<__m128i>(_mm_unpacklo_ps(tmp, _mm_setzero_ps()));
+			dst[1] = std::bit_cast<__m128i>(_mm_unpackhi_ps(tmp, _mm_setzero_ps()));
 #endif
 		}
 		template<std::same_as<float> T>
@@ -177,7 +177,7 @@ namespace dpm
 			dst[1] = _mm_cvtps_epi64(_mm_movehl_ps(x, x));
 			dst[0] = _mm_cvtps_epi64(x);
 #else
-			const auto tmp = _mm_cvtps_epi32(x);
+			const auto tmp = std::bit_cast<__m128>(_mm_cvtps_epi32(x));
 			dst[0] = std::bit_cast<__m128i>(_mm_unpacklo_ps(tmp, _mm_setzero_ps()));
 			dst[1] = std::bit_cast<__m128i>(_mm_unpackhi_ps(tmp, _mm_setzero_ps()));
 #endif
@@ -222,10 +222,10 @@ namespace dpm
 			const auto rem = _mm_mul_pd(_mm_sub_pd(x, tx), near2);
 			*dst = _mm_add_epi64(ix, _mm_cvttpd_epi64(rem));
 #else
-			__m128i tmp;
-			round<std::int32_t>(x, &tmp);
-			dst[0] = std::bit_cast<__m128i>(_mm_unpacklo_ps(std::bit_cast<__m128>(tmp), _mm_setzero_ps()));
-			dst[1] = std::bit_cast<__m128i>(_mm_unpackhi_ps(std::bit_cast<__m128>(tmp), _mm_setzero_ps()));
+			__m128 tmp;
+			round<std::int32_t>(x, reinterpret_cast<__m128i *>(&tmp));
+			dst[0] = std::bit_cast<__m128i>(_mm_unpacklo_ps(tmp, _mm_setzero_ps()));
+			dst[1] = std::bit_cast<__m128i>(_mm_unpackhi_ps(tmp, _mm_setzero_ps()));
 #endif
 		}
 		template<std::same_as<double> T>
@@ -379,10 +379,10 @@ namespace dpm
 			const auto rem = _mm256_mul_pd(_mm256_sub_pd(x, tx), near2);
 			*dst = _mm256_add_epi64(ix, _mm256_cvttpd_epi64(rem));
 #else
-			__m128i tmp;
-			round<std::int32_t>(x, &tmp);
-			reinterpret_cast<__m128 *>(dst)[0] = _mm_unpacklo_ps(std::bit_cast<__m128>(tmp), _mm_setzero_ps());
-			reinterpret_cast<__m128 *>(dst)[1] = _mm_unpackhi_ps(std::bit_cast<__m128>(tmp), _mm_setzero_ps());
+			__m128 tmp;
+			round<std::int32_t>(x, reinterpret_cast<__m128i *>(&tmp));
+			reinterpret_cast<__m128 *>(dst)[0] = _mm_unpacklo_ps(tmp, _mm_setzero_ps());
+			reinterpret_cast<__m128 *>(dst)[1] = _mm_unpackhi_ps(tmp, _mm_setzero_ps());
 #endif
 		}
 		template<std::same_as<double> T>

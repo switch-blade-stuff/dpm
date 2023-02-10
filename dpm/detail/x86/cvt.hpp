@@ -60,7 +60,7 @@ namespace dpm::detail
 		const auto mask = _mm_set1_epi64x(static_cast<std::int64_t>(0xffff'0000'0000'0000));
 		const auto b = _mm_or_si128(_mm_and_si128(mask, exp52), _mm_andnot_si128(mask, x));
 #else
-		const auto a = _mm_blend_epi16(_mm_setzero_pd(), _mm_srai_epi32(x, 16), 0x33);
+		const auto a = _mm_blend_epi16(_mm_setzero_si128(), _mm_srai_epi32(x, 16), 0x33);
 		const auto b = _mm_blend_epi16(x, exp52, 0x88);
 #endif
 		return _mm_add_pd(_mm_sub_pd(std::bit_cast<__m128d>(_mm_add_epi64(a, exp67m3)), adjust), std::bit_cast<__m128d>(b));
@@ -193,7 +193,7 @@ namespace dpm::detail
 		const auto exp52 = std::bit_cast<__m256i>(_mm256_set1_pd(0x0010'0000'0000'0000));    /* 2^52 */
 		const auto adjust = _mm256_set1_pd(442726361368656609280.);                          /* 2^67 * 3 + 2^52 */
 
-		const auto a = _mm256_blend_epi32(_mm256_setzero_pd(), _mm256_srai_epi32(x, 16), 0xaa);
+		const auto a = _mm256_blend_epi32(_mm256_setzero_si256(), _mm256_srai_epi32(x, 16), 0xaa);
 		const auto b = _mm256_blend_epi16(x, exp52, 0x88);
 		return _mm256_add_pd(_mm256_sub_pd(std::bit_cast<__m256d>(_mm256_add_epi64(a, exp67m3)), adjust), std::bit_cast<__m256d>(b));
 #else

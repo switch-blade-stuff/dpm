@@ -129,12 +129,12 @@ static inline void test_trig() noexcept
 			std::numbers::pi_v<T> * 5, std::numbers::pi_v<T> / 5,
 			std::numbers::pi_v<T>, std::numeric_limits<T>::quiet_NaN()
 	};
-	invoke_test([](auto x) { return dpm::sin(x); }, std::span{test_vals}, 1.0e-3, 4.8e-7);
-	invoke_test([](auto x) { return dpm::cos(x); }, std::span{test_vals}, 1.0e-3, 4.8e-7);
-	invoke_test([](auto x) { return dpm::tan(x); }, std::span{test_vals}, 1.0e-3, 4.8e-7);
+	invoke_test([](auto x) { return dpm::sin(x); }, std::span{test_vals}, T{1.0e-3}, T{4.8e-7});
+	invoke_test([](auto x) { return dpm::cos(x); }, std::span{test_vals}, T{1.0e-3}, T{4.8e-7});
+	invoke_test([](auto x) { return dpm::tan(x); }, std::span{test_vals}, T{1.0e-3}, T{4.8e-7});
 	//test_func1<T, Abi>([](auto x) { return tan2(x); }, T{0.001}, std::span{vals});
-	invoke_test([](auto x) { return asin(x); }, std::span{test_vals}, 1.0e-3, 1.0e-7);
-	invoke_test([](auto x) { return acos(x); }, std::span{test_vals}, 1.0e-3, 1.0e-7);
+	invoke_test([](auto x) { return asin(x); }, std::span{test_vals}, T{1.0e-3}, T{1.0e-7});
+	invoke_test([](auto x) { return acos(x); }, std::span{test_vals}, T{1.0e-3}, T{1.0e-7});
 	//test_func1<T, Abi>([](auto x) { return atan(x); }, T{0.001}, std::span{vals});
 }
 
@@ -309,8 +309,8 @@ int main()
 		TEST_ASSERT(dpm::all_of(!c == !!decltype(c){}));
 	}
 	{
-		std::array<float, 5> a_data = {0.1234, 12.7, 800.5, -1022.9999, std::numeric_limits<float>::quiet_NaN()};
-		std::array<float, 5> b_data = {-1.0, 50.0, 100.0, 222.0, 0.0};
+		std::array<float, 5> a_data = {0.1234f, 12.7f, 800.5f, -1022.9999f, std::numeric_limits<float>::quiet_NaN()};
+		std::array<float, 5> b_data = {-1.0f, 50.0f, 100.0f, 222.0f, 0.0f};
 
 		dpm::simd<float, dpm::simd_abi::packed_buffer<5>> a, b;
 		a.copy_from(a_data.data(), dpm::element_aligned);

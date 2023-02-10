@@ -69,5 +69,5 @@ namespace dpm::detail
 	template<std::floating_point T>
 	static constexpr T asin_pmin = std::same_as<T, float> ? T{1.0e-4} : T{1.0e-8};
 	template<std::floating_point T>
-	static constexpr T asin_off = 6.123233995736765886130e-17;
+	static constexpr T asin_off = T{6.123233995736765886130e-17};
 }
