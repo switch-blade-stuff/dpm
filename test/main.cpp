@@ -8,6 +8,18 @@
 
 #define TEST_ASSERT(x) assert(x)
 
+template<typename T>
+static inline bool almost_equal(T a, T b, T rel_eps, T eps)
+{
+	const auto diff = std::abs(a - b);
+	if (diff <= eps) return true;
+
+	a = std::abs(a);
+	b = std::abs(b);
+	const auto largest = std::max(a, b);
+	return diff <= largest * rel_eps;
+}
+
 template<typename T, typename Abi, typename mask_t = dpm::simd_mask<T, Abi>>
 static inline void test_mask() noexcept
 {
@@ -88,40 +100,28 @@ static inline void test_mask() noexcept
 	}
 }
 
-template<typename T>
-static inline bool almost_equal(T a, T b, T rel_eps, T eps)
-{
-	const auto diff = std::abs(a - b);
-	if (diff <= eps) return true;
-
-	a = std::abs(a);
-	b = std::abs(b);
-	const auto largest = std::max(a, b);
-	return diff <= largest * rel_eps;
-}
-
-template<typename T, typename Abi, std::size_t N, typename F>
-static inline void test_func1(F f, std::span<const T, N> vals, T rel_eps, T eps = std::numeric_limits<T>::epsilon()) noexcept
-{
-	constexpr auto simd_size = dpm::simd_size_v<T, Abi>;
-	dpm::simd<T, Abi> vs[N / simd_size + (N % simd_size ? 1 : 0)];
-	for (std::size_t i = 0; i < N;)
-	{
-		auto &v = vs[i / simd_size];
-		v.copy_from(vals.data() + i, dpm::element_aligned);
-		v = f(v);
-
-		for (std::size_t j = 0; i < N && j < simd_size; ++j, ++i)
-		{
-			const auto a = f(dpm::simd<T, dpm::simd_abi::scalar>{vals[i]});
-			TEST_ASSERT(almost_equal(v[j], a[0], rel_eps, eps) || (std::isnan(v[j]) && std::isnan(a[0])));
-		}
-	}
-}
 template<typename T, typename Abi>
 static inline void test_trig() noexcept
 {
-	const auto vals = std::array{
+	constexpr auto invoke_test = []<std::size_t N>(auto f, std::span<const T, N> vals, T rel_eps, T eps)
+	{
+		constexpr auto simd_size = dpm::simd_size_v<T, Abi>;
+		dpm::simd<T, Abi> vs[N / simd_size + (N % simd_size ? 1 : 0)];
+		for (std::size_t i = 0; i < N;)
+		{
+			auto &v = vs[i / simd_size];
+			v.copy_from(vals.data() + i, dpm::element_aligned);
+			v = f(v);
+
+			for (std::size_t j = 0; i < N && j < simd_size; ++j, ++i)
+			{
+				const auto a = f(dpm::simd<T, dpm::simd_abi::scalar>{vals[i]});
+				TEST_ASSERT(almost_equal(v[j], a[0], rel_eps, eps) || (std::isnan(v[j]) && std::isnan(a[0])));
+			}
+		}
+	};
+
+	const auto test_vals = std::array{
 			T{12.54}, T{0.1234}, T{-0.34}, T{12299.99}, T{0.0},
 			std::numbers::pi_v<T> * 2, std::numbers::pi_v<T> / 4,
 			std::numbers::pi_v<T> * 4, std::numbers::pi_v<T> / 6,
@@ -129,12 +129,12 @@ static inline void test_trig() noexcept
 			std::numbers::pi_v<T> * 5, std::numbers::pi_v<T> / 5,
 			std::numbers::pi_v<T>, std::numeric_limits<T>::quiet_NaN()
 	};
-	test_func1<T, Abi>([](auto x) { return dpm::sin(x); }, std::span{vals}, 1.0e-3, 4.8e-7);
-	test_func1<T, Abi>([](auto x) { return dpm::cos(x); }, std::span{vals}, 1.0e-3, 4.8e-7);
-	test_func1<T, Abi>([](auto x) { return dpm::tan(x); }, std::span{vals}, 1.0e-3, 4.8e-7);
+	invoke_test([](auto x) { return dpm::sin(x); }, std::span{test_vals}, 1.0e-3, 4.8e-7);
+	invoke_test([](auto x) { return dpm::cos(x); }, std::span{test_vals}, 1.0e-3, 4.8e-7);
+	invoke_test([](auto x) { return dpm::tan(x); }, std::span{test_vals}, 1.0e-3, 4.8e-7);
 	//test_func1<T, Abi>([](auto x) { return tan2(x); }, T{0.001}, std::span{vals});
-	test_func1<T, Abi>([](auto x) { return asin(x); }, std::span{vals}, 1.0e-3, 1.0e-7);
-	test_func1<T, Abi>([](auto x) { return acos(x); }, std::span{vals}, 1.0e-3, 1.0e-7);
+	invoke_test([](auto x) { return asin(x); }, std::span{test_vals}, 1.0e-3, 1.0e-7);
+	invoke_test([](auto x) { return acos(x); }, std::span{test_vals}, 1.0e-3, 1.0e-7);
 	//test_func1<T, Abi>([](auto x) { return atan(x); }, T{0.001}, std::span{vals});
 }
 
