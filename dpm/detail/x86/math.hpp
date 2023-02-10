@@ -14,7 +14,8 @@
 #if defined(DPM_ARCH_X86) && defined(DPM_HAS_SSE)
 
 #include "mbase.hpp"
-#include "power.hpp"
+#include "pow.hpp"
+#include "exp.hpp"
 #include "trig.hpp"
 #include "round.hpp"
 #include "fmanip.hpp"

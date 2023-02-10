@@ -15,6 +15,23 @@ namespace dpm::detail
 	[[nodiscard]] DPM_FORCEINLINE __m128 sub(__m128 a, __m128 b) noexcept { return _mm_sub_ps(a, b); }
 
 #ifdef DPM_HAS_SSE2
+	template<signed_integral_of_size<1> T>
+	[[nodiscard]] DPM_FORCEINLINE __m128i adds(__m128i a, __m128i b) noexcept { return _mm_adds_epi8(a, b); }
+	template<signed_integral_of_size<1> T>
+	[[nodiscard]] DPM_FORCEINLINE __m128i subs(__m128i a, __m128i b) noexcept { return _mm_subs_epi8(a, b); }
+	template<unsigned_integral_of_size<1> T>
+	[[nodiscard]] DPM_FORCEINLINE __m128i adds(__m128i a, __m128i b) noexcept { return _mm_adds_epu8(a, b); }
+	template<unsigned_integral_of_size<1> T>
+	[[nodiscard]] DPM_FORCEINLINE __m128i subs(__m128i a, __m128i b) noexcept { return _mm_subs_epu8(a, b); }
+	template<signed_integral_of_size<2> T>
+	[[nodiscard]] DPM_FORCEINLINE __m128i adds(__m128i a, __m128i b) noexcept { return _mm_adds_epi16(a, b); }
+	template<signed_integral_of_size<2> T>
+	[[nodiscard]] DPM_FORCEINLINE __m128i subs(__m128i a, __m128i b) noexcept { return _mm_subs_epi16(a, b); }
+	template<unsigned_integral_of_size<2> T>
+	[[nodiscard]] DPM_FORCEINLINE __m128i adds(__m128i a, __m128i b) noexcept { return _mm_adds_epu16(a, b); }
+	template<unsigned_integral_of_size<2> T>
+	[[nodiscard]] DPM_FORCEINLINE __m128i subs(__m128i a, __m128i b) noexcept { return _mm_subs_epu16(a, b); }
+
 	template<std::same_as<double> T>
 	[[nodiscard]] DPM_FORCEINLINE __m128d add(__m128d a, __m128d b) noexcept { return _mm_add_pd(a, b); }
 	template<std::same_as<double> T>
@@ -49,6 +66,23 @@ namespace dpm::detail
 	[[nodiscard]] DPM_FORCEINLINE __m256d sub(__m256d a, __m256d b) noexcept { return _mm256_sub_pd(a, b); }
 
 #ifdef DPM_HAS_AVX2
+	template<signed_integral_of_size<1> T>
+	[[nodiscard]] DPM_FORCEINLINE __m256i adds(__m256i a, __m256i b) noexcept { return _mm256_adds_epi8(a, b); }
+	template<signed_integral_of_size<1> T>
+	[[nodiscard]] DPM_FORCEINLINE __m256i subs(__m256i a, __m256i b) noexcept { return _mm256_subs_epi8(a, b); }
+	template<unsigned_integral_of_size<1> T>
+	[[nodiscard]] DPM_FORCEINLINE __m256i adds(__m256i a, __m256i b) noexcept { return _mm256_adds_epu8(a, b); }
+	template<unsigned_integral_of_size<1> T>
+	[[nodiscard]] DPM_FORCEINLINE __m256i subs(__m256i a, __m256i b) noexcept { return _mm256_subs_epu8(a, b); }
+	template<signed_integral_of_size<2> T>
+	[[nodiscard]] DPM_FORCEINLINE __m256i adds(__m256i a, __m256i b) noexcept { return _mm256_adds_epi16(a, b); }
+	template<signed_integral_of_size<2> T>
+	[[nodiscard]] DPM_FORCEINLINE __m256i subs(__m256i a, __m256i b) noexcept { return _mm256_subs_epi16(a, b); }
+	template<unsigned_integral_of_size<2> T>
+	[[nodiscard]] DPM_FORCEINLINE __m256i adds(__m256i a, __m256i b) noexcept { return _mm256_adds_epu16(a, b); }
+	template<unsigned_integral_of_size<2> T>
+	[[nodiscard]] DPM_FORCEINLINE __m256i subs(__m256i a, __m256i b) noexcept { return _mm256_subs_epu16(a, b); }
+
 	template<integral_of_size<1> T>
 	[[nodiscard]] DPM_FORCEINLINE __m256i add(__m256i a, __m256i b) noexcept { return _mm256_add_epi8(a, b); }
 	template<integral_of_size<1> T>
@@ -66,8 +100,25 @@ namespace dpm::detail
 	template<integral_of_size<8> T>
 	[[nodiscard]] DPM_FORCEINLINE __m256i sub(__m256i a, __m256i b) noexcept { return _mm256_sub_epi64(a, b); }
 #else
+	template<signed_integral_of_size<1> T>
+	[[nodiscard]] DPM_FORCEINLINE __m256i adds(__m256i a, __m256i b) noexcept { return mux_128x2<__m256i>([](auto a, auto b){return adds<T>(a, b); }, a, b); }
+	template<signed_integral_of_size<1> T>
+	[[nodiscard]] DPM_FORCEINLINE __m256i subs(__m256i a, __m256i b) noexcept { return mux_128x2<__m256i>([](auto a, auto b){return subs<T>(a, b); }, a, b); }
+	template<unsigned_integral_of_size<1> T>
+	[[nodiscard]] DPM_FORCEINLINE __m256i adds(__m256i a, __m256i b) noexcept { return mux_128x2<__m256i>([](auto a, auto b){return adds<T>(a, b); }, a, b); }
+	template<unsigned_integral_of_size<1> T>
+	[[nodiscard]] DPM_FORCEINLINE __m256i subs(__m256i a, __m256i b) noexcept { return mux_128x2<__m256i>([](auto a, auto b){return subs<T>(a, b); }, a, b); }
+	template<signed_integral_of_size<2> T>
+	[[nodiscard]] DPM_FORCEINLINE __m256i adds(__m256i a, __m256i b) noexcept { return mux_128x2<__m256i>([](auto a, auto b){return adds<T>(a, b); }, a, b); }
+	template<signed_integral_of_size<2> T>
+	[[nodiscard]] DPM_FORCEINLINE __m256i subs(__m256i a, __m256i b) noexcept { return mux_128x2<__m256i>([](auto a, auto b){return subs<T>(a, b); }, a, b); }
+	template<unsigned_integral_of_size<2> T>
+	[[nodiscard]] DPM_FORCEINLINE __m256i adds(__m256i a, __m256i b) noexcept { return mux_128x2<__m256i>([](auto a, auto b){return adds<T>(a, b); }, a, b); }
+	template<unsigned_integral_of_size<2> T>
+	[[nodiscard]] DPM_FORCEINLINE __m256i subs(__m256i a, __m256i b) noexcept { return mux_128x2<__m256i>([](auto a, auto b){return subs<T>(a, b); }, a, b); }
+
 	template<integral_of_size<1> T>
-	[[nodiscard]] DPM_FORCEINLINE __m256i add(__m256i a, __m256i b) noexcept { return mux_128x2<__m256i>([](auto a, auto b){return add<T>(a, b); } , a, b); }
+	[[nodiscard]] DPM_FORCEINLINE __m256i add(__m256i a, __m256i b) noexcept { return mux_128x2<__m256i>([](auto a, auto b){return add<T>(a, b); }, a, b); }
 	template<integral_of_size<1> T>
 	[[nodiscard]] DPM_FORCEINLINE __m256i sub(__m256i a, __m256i b) noexcept { return mux_128x2<__m256i>([](auto a, auto b){return sub<T>(a, b); }, a, b); }
 	template<integral_of_size<2> T>

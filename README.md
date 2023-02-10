@@ -157,9 +157,10 @@ is enabled, the `ext` namespaces are declared as inline.
 
 The standard specifies that floating-point math functions such as `sin`, `cos`, etc. must report math errors via the
 mechanism specified in [math_errhandling](https://en.cppreference.com/w/cpp/numeric/math/math_errhandling).
-When `DPM_HANDLE_ERRORS` option is enabled, DPM catches and reports errors as specified by the standard, however this
+When `DPM_HANDLE_ERRORS` option is enabled, DPM catches and reports errors as specified by the standard, 
+however this
 does reduce efficiency of math functions due to the additional safety checks. If performance is preferred over accuracy,
-disable `DPM_HANDLE_ERRORS`.
+disable `DPM_HANDLE_ERRORS`. Note that if error handling is disabled, domain checks will not be preformed.
 
 Additionally, if `DPM_PROPAGATE_NAN` option is enabled, the library guarantees that math functions will propagate any
 NaN inputs, which may be used as a form of error handling. If `DPM_PROPAGATE_NAN` is disabled, invoking math functions

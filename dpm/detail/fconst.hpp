@@ -15,6 +15,11 @@
 
 namespace dpm::detail
 {
+	template<typename T>
+	constexpr static int mant_bits = std::same_as<T, double> ? 52 : 23;
+	template<typename T>
+	constexpr static int exp_bits = std::same_as<T, double> ? 11 : 8;
+
 	/* In some cases x86 intrinsics generate extraneous casts if literals are used with intrinsics. As such, define commonly used values here. */
 	template<std::floating_point T>
 	static constexpr T five_eights = 0.625;

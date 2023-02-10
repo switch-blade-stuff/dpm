@@ -20,10 +20,12 @@ target_sources(${DPM_PROJECT} INTERFACE
 
 target_sources(${DPM_PROJECT} PUBLIC
         ${CMAKE_CURRENT_LIST_DIR}/cpuid.hpp
-        ${CMAKE_CURRENT_LIST_DIR}/power.hpp
+        ${CMAKE_CURRENT_LIST_DIR}/pow.hpp
+        ${CMAKE_CURRENT_LIST_DIR}/exp.hpp
         ${CMAKE_CURRENT_LIST_DIR}/trig.hpp)
 
 target_sources(${DPM_PROJECT} PRIVATE
+        ${CMAKE_CURRENT_LIST_DIR}/exp.cpp
         ${CMAKE_CURRENT_LIST_DIR}/polevl.hpp
         ${CMAKE_CURRENT_LIST_DIR}/cpuid.cpp
         ${CMAKE_CURRENT_LIST_DIR}/sincos.cpp
