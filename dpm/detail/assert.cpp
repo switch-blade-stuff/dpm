@@ -10,28 +10,22 @@
 
 #include <csignal>
 
-namespace dpm::detail
+[[noreturn]] DPM_PUBLIC void dpm::detail::assert_trap() noexcept
 {
-	[[noreturn]] DPM_PUBLIC void assert_trap() noexcept
-	{
 #ifdef SIGTRAP
-		std::raise(SIGTRAP);
+	std::raise(SIGTRAP);
 #else
-		std::raise(SIGABRT);
+	std::raise(SIGABRT);
 #endif
-	}
 }
 
 #endif
 
-namespace dpm::detail
+DPM_PUBLIC void dpm::detail::assert_err(const char *file, unsigned long line, const char *func, const char *cnd, const char *msg) noexcept
 {
-	DPM_PUBLIC void assert_err(const char *file, unsigned long line, const char *func, const char *cnd, const char *msg) noexcept
-	{
-		std::fprintf(stderr, "%s:%lu: %s: Assertion `%s` failed", file, line, func, cnd);
-		if (msg != nullptr)
-			std::fprintf(stderr, " - %s\n", msg);
-		else
-			std::fputc('.', stderr);
-	}
+	std::fprintf(stderr, "%s:%lu: %s: Assertion `%s` failed", file, line, func, cnd);
+	if (msg != nullptr)
+		std::fprintf(stderr, " - %s\n", msg);
+	else
+		std::fputc('.', stderr);
 }
