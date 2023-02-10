@@ -94,7 +94,7 @@ namespace dpm
 #elif defined(DPM_USE_SVML)
 			return _mm_trunc_pd(x);
 #else
-			return mask_domain(x, _mm_cvtepi32_pd(_mm_cvttpd_epi32(x)));
+			return trunc_sse(x);
 #endif
 		}
 		[[nodiscard]] DPM_FORCEINLINE __m128d nearbyint(__m128d x) noexcept

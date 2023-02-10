@@ -109,6 +109,13 @@ namespace dpm::detail
 #endif
 	}
 
+	[[nodiscard]] DPM_FORCEINLINE __m128d trunc_sse(__m128d x) noexcept
+	{
+		const auto exp52 = _mm_set1_pd(0x0010'0000'0000'0000);  /* 2^52 */
+		const auto exp52s = _mm_or_pd(exp52, _mm_and_pd(_mm_set1_pd(-0.0), x));
+		return _mm_sub_pd(_mm_add_pd(x, exp52s), exp52s);
+	}
+
 	template<signed_integral_of_size<4> To, std::same_as<double> From>
 	[[nodiscard]] DPM_FORCEINLINE __m128i cvtt(__m128d x) noexcept { return _mm_cvttpd_epi32(x); }
 	template<signed_integral_of_size<8> To, std::same_as<double> From>
@@ -117,16 +124,8 @@ namespace dpm::detail
 #if defined(DPM_HAS_AVX512DQ) && defined(DPM_HAS_AVX512VL)
 		return _mm_cvtpd_epi64(x);
 #else
-		/* Set rounding mode to truncation. */
-		const auto old_csr = _mm_getcsr();
-		_MM_SET_ROUNDING_MODE(_MM_ROUND_TOWARD_ZERO);
-
-		/* Round down. */
-		const auto ix = cvt_f64_i64_sse(x);
-
-		/* Restore mxcsr */
-		_mm_setcsr(old_csr);
-		return ix;
+		/* Truncate, then convert. */
+		return cvt_f64_i64_sse(trunc_sse(x));
 #endif
 	}
 
@@ -260,16 +259,8 @@ namespace dpm::detail
 #if defined(DPM_HAS_AVX512DQ) && defined(DPM_HAS_AVX512VL)
 		return _mm256_cvttpd_epi64(x);
 #else
-		/* Set rounding mode to truncation. */
-		const auto old_csr = _mm_getcsr();
-		_MM_SET_ROUNDING_MODE(_MM_ROUND_TOWARD_ZERO);
-
-		/* Round down. */
-		const auto ix = cvt_f64_i64_avx(x);
-
-		/* Restore mxcsr */
-		_mm_setcsr(old_csr);
-		return ix;
+		/* Truncate, then convert. */
+		return cvt_f64_i64_avx(_mm256_round_pd(x, _MM_FROUND_TO_ZERO | _MM_FROUND_NO_EXC));
 #endif
 	}
 
