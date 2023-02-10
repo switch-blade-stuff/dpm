@@ -136,6 +136,8 @@ DPM provides the following extensions to the standard API:
     * `rebind_simd_t<long long, simd>  lltrunc(const simd &)`
 * Optimization hint macros
     * `#define DPM_UNREACHABLE()`
+    * `#define DPM_NEVER_INLINE`
+    * `#define DPM_FORCEINLINE`
     * `#define DPM_ASSUME(cnd)`
 * Other utilities
     * `void assert_trap(bool, const char *, const char *, const char *, std::size_t, const char *)`
