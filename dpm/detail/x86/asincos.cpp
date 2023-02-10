@@ -116,16 +116,16 @@ namespace dpm::detail
 #endif
 	}
 
-	__m128 DPM_PUBLIC DPM_MATHFUNC asin(__m128 x) noexcept { return impl_asin<float>(x); }
-	__m128 DPM_PUBLIC DPM_MATHFUNC acos(__m128 x) noexcept { return impl_acos<float>(x); }
-	__m128d DPM_PUBLIC DPM_MATHFUNC asin(__m128d x) noexcept { return impl_asin<double>(x); }
-	__m128d DPM_PUBLIC DPM_MATHFUNC acos(__m128d x) noexcept { return impl_acos<double>(x); }
+	__m128 DPM_API_PUBLIC DPM_MATHFUNC asin(__m128 x) noexcept { return impl_asin<float>(x); }
+	__m128 DPM_API_PUBLIC DPM_MATHFUNC acos(__m128 x) noexcept { return impl_acos<float>(x); }
+	__m128d DPM_API_PUBLIC DPM_MATHFUNC asin(__m128d x) noexcept { return impl_asin<double>(x); }
+	__m128d DPM_API_PUBLIC DPM_MATHFUNC acos(__m128d x) noexcept { return impl_acos<double>(x); }
 
 #ifdef DPM_HAS_AVX
-	__m256 DPM_PUBLIC DPM_MATHFUNC asin(__m256 x) noexcept { return impl_asin<float>(x); }
-	__m256 DPM_PUBLIC DPM_MATHFUNC acos(__m256 x) noexcept { return impl_acos<float>(x); }
-	__m256d DPM_PUBLIC DPM_MATHFUNC asin(__m256d x) noexcept { return impl_asin<double>(x); }
-	__m256d DPM_PUBLIC DPM_MATHFUNC acos(__m256d x) noexcept { return impl_acos<double>(x); }
+	__m256 DPM_API_PUBLIC DPM_MATHFUNC asin(__m256 x) noexcept { return impl_asin<float>(x); }
+	__m256 DPM_API_PUBLIC DPM_MATHFUNC acos(__m256 x) noexcept { return impl_acos<float>(x); }
+	__m256d DPM_API_PUBLIC DPM_MATHFUNC asin(__m256d x) noexcept { return impl_asin<double>(x); }
+	__m256d DPM_API_PUBLIC DPM_MATHFUNC acos(__m256d x) noexcept { return impl_acos<double>(x); }
 #endif
 }
 

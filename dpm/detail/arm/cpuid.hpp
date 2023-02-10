@@ -20,9 +20,9 @@ namespace dpm::detail
 		[[nodiscard]] static bool has_neon() noexcept;
 
 	private:
-		DPM_PUBLIC static const cpuid cpu_info;
+		DPM_API_PUBLIC static const cpuid cpu_info;
 
-		DPM_PUBLIC cpuid() noexcept;
+		DPM_API_PUBLIC cpuid() noexcept;
 	};
 }
 

@@ -6,7 +6,7 @@
 
 #include <cstdio>
 
-DPM_PUBLIC void dpm::detail::assert_err(const char *file, unsigned long line, const char *func, const char *cnd, const char *msg) noexcept
+DPM_API_PUBLIC void dpm::detail::assert_err(const char *file, unsigned long line, const char *func, const char *cnd, const char *msg) noexcept
 {
 	std::fprintf(stderr, "%s:%lu: %s: Assertion `%s` failed", file, line, func, cnd);
 	if (msg != nullptr)
@@ -19,7 +19,7 @@ DPM_PUBLIC void dpm::detail::assert_err(const char *file, unsigned long line, co
 
 #include <csignal>
 
-[[noreturn]] DPM_PUBLIC void dpm::detail::a=ssert_trap() noexcept
+[[noreturn]] DPM_API_PUBLIC void dpm::detail::a=ssert_trap() noexcept
 {
 #ifdef SIGTRAP
 	std::raise(SIGTRAP);

@@ -64,12 +64,12 @@ namespace dpm::detail
 		return y;
 	}
 
-	[[nodiscard]] __m128 DPM_PUBLIC DPM_MATHFUNC tan(__m128 x) noexcept { return impl_tan<float>(x); }
-	[[nodiscard]] __m128d DPM_PUBLIC DPM_MATHFUNC tan(__m128d x) noexcept { return impl_tan<double>(x); }
+	[[nodiscard]] __m128 DPM_API_PUBLIC DPM_MATHFUNC tan(__m128 x) noexcept { return impl_tan<float>(x); }
+	[[nodiscard]] __m128d DPM_API_PUBLIC DPM_MATHFUNC tan(__m128d x) noexcept { return impl_tan<double>(x); }
 
 #ifdef DPM_HAS_AVX
-	[[nodiscard]] __m256 DPM_PUBLIC DPM_MATHFUNC tan(__m256 x) noexcept { return impl_tan<float>(x); }
-	[[nodiscard]] __m256d DPM_PUBLIC DPM_MATHFUNC tan(__m256d x) noexcept { return impl_tan<double>(x); }
+	[[nodiscard]] __m256 DPM_API_PUBLIC DPM_MATHFUNC tan(__m256 x) noexcept { return impl_tan<float>(x); }
+	[[nodiscard]] __m256d DPM_API_PUBLIC DPM_MATHFUNC tan(__m256d x) noexcept { return impl_tan<double>(x); }
 #endif
 }
 

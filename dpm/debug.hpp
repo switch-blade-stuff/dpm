@@ -49,7 +49,7 @@
 
 namespace dpm::detail
 {
-	DPM_PUBLIC void assert_err(const char *file, unsigned long line, const char *func, const char *cnd, const char *msg) noexcept;
+	DPM_API_PUBLIC void assert_err(const char *file, unsigned long line, const char *func, const char *cnd, const char *msg) noexcept;
 
 #if defined(_MSC_VER)
 #define DPM_DEBUGTRAP() __debugbreak()
@@ -58,7 +58,7 @@ namespace dpm::detail
 #elif defined(__GNUC__)
 #define DPM_DEBUGTRAP() __builtin_trap()
 #else
-	[[noreturn]] DPM_PUBLIC void assert_trap() noexcept;
+	[[noreturn]] DPM_API_PUBLIC void assert_trap() noexcept;
 #define DPM_DEBUGTRAP() dpm::detail::assert_trap()
 #endif
 }
