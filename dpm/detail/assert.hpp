@@ -10,7 +10,7 @@
 
 #include <cstdio>
 
-#if defined(__MSC_VER)
+#if defined(_MSC_VER)
 #define DPM_FUNCNAME __FUNCSIG__
 #elif defined(__clang__) || defined(__GNUC__)
 #define DPM_FUNCNAME __PRETTY_FUNCTION__
