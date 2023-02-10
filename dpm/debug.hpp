@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include "detail/api.hpp"
+
 #if defined(__has_cpp_attribute) && __has_cpp_attribute(assume)
 #define DPM_ASSUME(x)
 #elif defined(_MSC_VER)
@@ -47,12 +49,6 @@
 #define DPM_PURE
 #endif
 
-#if !defined(NDEBUG) && !defined(DPM_DEBUG)
-#define DPM_DEBUG
-#endif
-
-#ifdef DPM_DEBUG
-
 namespace dpm::detail
 {
 #if defined(_MSC_VER)
@@ -62,25 +58,28 @@ namespace dpm::detail
 #elif defined(__GNUC__)
 	[[noreturn]] DPM_FORCEINLINE void assert_trap() noexcept { __builtin_trap(); }
 #else
-	[[noreturn]] extern void assert_trap() noexcept;
+	[[noreturn]] DPM_PUBLIC void assert_trap() noexcept;
 #endif
 
-	extern void assert_err(const char *file, unsigned long line, const char *func, const char *cnd, const char *msg) noexcept;
+	DPM_PUBLIC void assert_err(const char *file, unsigned long line, const char *func, const char *cnd, const char *msg) noexcept;
 
 	DPM_FORCEINLINE void assert(bool cnd, const char *file, unsigned long line, const char *func, const char *cnd_str, const char *msg) noexcept
 	{
-		if (cnd) [[likely]] return;
-
-		/* Print assertion failure message to stderr. */
-		assert_err(file, line, func, cnd_str, msg);
-		/* Trigger a debugger trap. */
-		assert_trap();
+		if (!cnd) [[unlikely]]
+		{
+			assert_err(file, line, func, cnd_str, msg);
+			assert_trap();
+		}
 	}
 }
 
-#define DPM_ASSERT_MSG(cnd, msg) do { dpm::detail::assert((cnd), (__FILE__), (__LINE__), (DPM_FUNCNAME), (#cnd), (msg)); DPM_ASSUME(cnd); } while(false)
+#define DPM_ASSERT_MSG_ALWAYS(cnd, msg) do { dpm::detail::assert((cnd), (__FILE__), (__LINE__), (DPM_FUNCNAME), (#cnd), (msg)); DPM_ASSUME(cnd); } while(false)
+#define DPM_ASSERT_ALWAYS(cnd) DPM_ASSERT_MSG_ALWAYS(cnd, nullptr)
+
+#ifndef NDEBUG
+#define DPM_ASSERT_MSG(cnd, msg) DPM_ASSERT_MSG_ALWAYS(cnd, msg)
+#define DPM_ASSERT(cnd) DPM_ASSERT_ALWAYS(cnd)
 #else
 #define DPM_ASSERT_MSG(cnd, msg) DPM_ASSUME(cnd)
+#define DPM_ASSERT(cnd) DPM_ASSUME(cnd)
 #endif
-
-#define DPM_ASSERT(cnd) DPM_ASSERT_MSG(cnd, nullptr)

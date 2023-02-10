@@ -2,11 +2,9 @@
  * Created by switchblade on 2023-01-01.
  */
 
-#define DPM_DEBUG
-
 #include <dpm/simd.hpp>
 
-#define TEST_ASSERT(x) DPM_ASSERT(x)
+#define TEST_ASSERT(x) DPM_ASSERT_ALWAYS(x)
 
 template<typename T>
 static inline bool almost_equal(T a, T b, T rel_eps, T eps)
