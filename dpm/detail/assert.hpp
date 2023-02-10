@@ -35,9 +35,9 @@ namespace dpm::detail
 #elif defined(__GNUC__)
 		__builtin_trap();
 #elif defined(SIGTRAP)
-		 std::raise(SIGTRAP);
+		std::raise(SIGTRAP);
 #else
-		 std::raise(SIGABRT);
+		std::raise(SIGABRT);
 #endif
 	}
 }
