@@ -17,15 +17,10 @@ namespace dpm
 	namespace detail
 	{
 #ifndef DPM_HAS_SSE4_1
-		[[nodiscard]] DPM_FORCEINLINE __m128 mask_domain(__m128 x, __m128 result) noexcept
+		[[nodiscard]] DPM_FORCEINLINE auto mask_domain(auto x, auto result) noexcept
 		{
 			const auto fin_mask = isfinite(x);
-			return _mm_or_ps(_mm_andnot_ps(fin_mask, x), _mm_and_ps(fin_mask, result));
-		}
-		[[nodiscard]] DPM_FORCEINLINE __m128d mask_domain(__m128d x, __m128d result) noexcept
-		{
-			const auto fin_mask = isfinite(x);
-			return _mm_or_pd(_mm_andnot_pd(fin_mask, x), _mm_and_pd(fin_mask, result));
+			return bit_or(bit_andnot(fin_mask, x), bit_and(fin_mask, result));
 		}
 #endif
 

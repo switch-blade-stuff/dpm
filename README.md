@@ -134,8 +134,6 @@ DPM provides the following extensions to the standard API:
 * Power math functions
     * `simd rcp(const simd &)`
     * `simd rsqrt(const simd &)`
-* Trigonometric functions
-    * `simd cot(const simd &)`
 * Nearest integer functions
     * `rebind_simd_t<I, simd>  iround<I>(const simd &)`
     * `rebind_simd_t<I, simd>  irint<I>(const simd &)`

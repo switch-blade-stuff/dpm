@@ -25,6 +25,6 @@ list(APPEND DPM_INTERFACE_SOURCES
 list(APPEND DPM_PRIVATE_SOURCES
         ${CMAKE_CURRENT_LIST_DIR}/cpuid.cpp
         ${CMAKE_CURRENT_LIST_DIR}/sincos.cpp
-        ${CMAKE_CURRENT_LIST_DIR}/tancot.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/tan.cpp
         ${CMAKE_CURRENT_LIST_DIR}/asincos.cpp
         ${CMAKE_CURRENT_LIST_DIR}/atan.cpp)

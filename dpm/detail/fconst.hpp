@@ -15,8 +15,20 @@
 
 namespace dpm::detail
 {
+	/* In some cases x86 intrinsics generate extraneous casts if literals are used with intrinsics. As such, define commonly used values here. */
+	template<std::floating_point T>
+	static constexpr T five_eights = 0.625;
+	template<std::floating_point T>
+	static constexpr T half = 0.5;
+	template<std::floating_point T>
+	static constexpr T one = 1.0;
+	template<std::floating_point T>
+	static constexpr T two = 2.0;
+
 	template<std::floating_point T>
 	static constexpr T dp_sincos[] = {T{-7.85398125648498535156e-1}, T{-3.77489470793079817668e-8}, T{-2.69515142907905952645e-15}};
+	template<std::floating_point T>
+	static constexpr T pio32 = std::numbers::pi_v<T> / T{32.0};
 	template<std::floating_point T>
 	static constexpr T pio4 = std::numbers::pi_v<T> / T{4.0};
 
@@ -34,13 +46,7 @@ namespace dpm::detail
 	};
 
 	template<std::floating_point T>
-	static constexpr T dp_tancot[] = {T{-7.853981554508209228515625e-1L}, T{-7.853981554508209228515625e-9L}, T{-7.853981554508209228515625e-17L}};
-	template<std::floating_point T>
-	static constexpr T tancot_q[] = {T{1.00000000000000000000e0L}, T{1.3681296347069295467845e4L}, T{-1.3208923444021096744731e6L}, T{2.5008380182335791583922e7L}, T{-5.3869575592945462988123e7L}};
-	template<std::floating_point T>
-	static constexpr T tancot_p[] = {T{-1.3093693918138377764608e4L}, T{1.1535166483858741613983e6L}, T{-1.7956525197648487798769e7L}};
-	template<std::floating_point T>
-	static constexpr T tancot_pmin = std::same_as<T, float> ? T{1.0e-4} : std::same_as<T, double> ? T{1.0e-14} : T{1.0e-20L};
+	static constexpr T tancof[] = {T{1.0}, T{3.3333333332780246e-1}, T{1.3333333883976731e-1}, T{5.3966541627173827e-2}, T{2.2079624737833755e-2}};
 
 	template<std::floating_point T>
 	static constexpr T asin_r[] = {T{2.967721961301243206100e-3}, T{-5.634242780008963776856e-1}, T{6.968710824104713396794e0}, T{-2.556901049652824852289e1}, T{2.853665548261061424989e1}};
@@ -61,5 +67,5 @@ namespace dpm::detail
 	template<std::floating_point T>
 	static constexpr T asin_pmin = std::same_as<T, float> ? T{1.0e-4} : T{1.0e-8};
 	template<std::floating_point T>
-	static constexpr T asin_off = T{6.123233995736765886130e-17};
+	static constexpr T asin_off = 6.123233995736765886130e-17;
 }

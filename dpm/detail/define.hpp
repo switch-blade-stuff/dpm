@@ -127,8 +127,3 @@ import std;
 #else
 #define DPM_DECLARE_EXT_NAMESPACE namespace ext
 #endif
-
-#ifndef NDEBUG
-#undef DPM_FORCEINLINE
-#define DPM_FORCEINLINE inline
-#endif

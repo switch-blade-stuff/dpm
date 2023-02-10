@@ -24,11 +24,11 @@ namespace dpm::detail
 		const auto v_pio4 = fill<V>(pio4<T>);
 
 		/* Polynomial selection mask */
+		const auto p_mask = cmp_gt<T>(abs_x, fill<V>(five_eights<T>));
 		const auto x_mask = cmp_lt<T>(abs_x, fill<V>(asin_pmin<T>));
-		const auto p_mask = cmp_gt<T>(abs_x, fill<V>(T{0.625}));
 
 		/* p1: abs(x) > 0.625 */
-		auto a1 = sub<T>(fill<V>(T{1.0}), abs_x);
+		auto a1 = sub<T>(fill<V>(one<T>), abs_x);
 		auto p1 = mul<T>(a1, div<T>(polevl(a1, std::span{asin_r<T>}), polevl(a1, std::span{asin_s<T>})));
 		a1 = sqrt(add<T>(a1, a1));
 		auto b1 = sub<T>(v_pio4, a1);
@@ -54,7 +54,7 @@ namespace dpm::detail
 
 #if defined(DPM_HANDLE_ERRORS) || defined(DPM_PROPAGATE_NAN)
 #ifdef DPM_HANDLE_ERRORS
-		const auto dom_mask = cmp_gt<T>(abs_x, fill<V>(T{1.0}));
+		const auto dom_mask = cmp_gt<T>(abs_x, fill<V>(one<T>));
 		if (movemask<T>(dom_mask)) [[unlikely]]
 		{
 			std::feraiseexcept(FE_INVALID);
@@ -83,11 +83,10 @@ namespace dpm::detail
 		const auto x_sign = masksign(x);
 		const auto abs_x = bit_xor(x, x_sign);
 		const auto v_pio4 = fill<V>(pio4<T>);
-		const auto half = fill<V>(T{0.5});
 
 #if defined(DPM_HANDLE_ERRORS) || defined(DPM_PROPAGATE_NAN)
 #ifdef DPM_HANDLE_ERRORS
-		const auto dom_mask = cmp_gt<T>(abs_x, fill<V>(T{1.0}));
+		const auto dom_mask = cmp_gt<T>(abs_x, fill<V>(one<T>));
 		if (movemask<T>(dom_mask)) [[unlikely]]
 		{
 			std::feraiseexcept(FE_INVALID);
@@ -102,12 +101,11 @@ namespace dpm::detail
 #endif
 
 		/* c_mask = x > 0.5 */
-		const auto c_mask = cmp_gt<T>(x, half);
+		const auto c_mask = cmp_gt<T>(x, fill<V>(half<T>));
 		/* acos1: x > 0.5 */
-		const auto acos1 = do_asin<T>(sqrt(fmadd(x, fill<V>(T{-0.5}), half)), setzero<V>());
+		const auto acos1 = mul<T>(fill<V>(two<T>), do_asin<T>(sqrt(fmadd(x, fill<V>(-half<T>), fill<V>(half<T>))), setzero<V>()));
 		/* acos2: x <= 0.5 */
-		auto acos2 = sub<T>(v_pio4, do_asin<T>(abs_x, x_sign));
-		acos2 = add<T>(add<T>(acos2, fill<V>(asin_off<T>)), v_pio4);
+		const auto acos2 = add<T>(add<T>(sub<T>(v_pio4, do_asin<T>(abs_x, x_sign)), fill<V>(asin_off<T>)), v_pio4);
 
 		/* Select result. */
 		const auto r = blendv<T>(acos2, acos1, c_mask);

@@ -372,13 +372,6 @@ namespace dpm
 #pragma endregion
 
 #pragma region "trigonometric functions"
-	namespace detail
-	{
-		[[nodiscard]] float DPM_PUBLIC DPM_MATHFUNC cot(float x) noexcept;
-		[[nodiscard]] double DPM_PUBLIC DPM_MATHFUNC cot(double x) noexcept;
-		[[nodiscard]] long double DPM_PUBLIC DPM_MATHFUNC cot(long double x) noexcept;
-	}
-
 	/** Calculates sine of elements in vector \a x, and returns the resulting vector. */
 	template<std::floating_point T, typename Abi>
 	[[nodiscard]] inline simd<T, Abi> sin(const simd<T, Abi> &x) noexcept
@@ -481,20 +474,6 @@ namespace dpm
 			out_sin = sin(x);
 			out_cos = cos(x);
 		}
-
-		/** Calculates cotangent of elements in vector \a x, and returns the resulting vector. */
-		template<std::floating_point T, typename Abi>
-		[[nodiscard]] inline simd<T, Abi> cot(const simd<T, Abi> &x) noexcept
-		{
-			simd<T, Abi> result = {};
-			for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i)
-				result[i] = detail::cot(x[i]);
-			return result;
-		}
-		/** @copydoc cot
-		 * @note Arguments and return type are promoted to `double`, or `long double` if one of the arguments is `long double`. */
-		template<typename T, typename Abi, typename Promoted = rebind_simd_t<detail::promote_t<T>, simd<T, Abi>>>
-		[[nodiscard]] DPM_FORCEINLINE Promoted cot(const simd<T, Abi> &x) noexcept { return Promoted{atan(Promoted{x})}; }
 	}
 #pragma endregion
 

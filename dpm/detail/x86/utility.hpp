@@ -29,7 +29,7 @@ namespace dpm::detail
 	template<std::same_as<__m128> V>
 	[[nodiscard]] DPM_FORCEINLINE V set(const float (&vals)[4]) noexcept { return _mm_set_ps(vals[3], vals[2], vals[1], vals[0]); }
 	template<std::same_as<__m128> V>
-	[[nodiscard]] DPM_FORCEINLINE V fill(float value) noexcept { return _mm_set1_ps(value); }
+	[[nodiscard]] DPM_FORCEINLINE V fill(auto value) noexcept { return _mm_set1_ps(value); }
 	template<std::same_as<__m128> V>
 	[[nodiscard]] DPM_FORCEINLINE V undefined() noexcept { return _mm_undefined_ps(); }
 
@@ -86,7 +86,7 @@ namespace dpm::detail
 	}
 
 	template<std::same_as<__m128d> V>
-	[[nodiscard]] DPM_FORCEINLINE V fill(double value) noexcept { return _mm_set1_pd(value); }
+	[[nodiscard]] DPM_FORCEINLINE V fill(auto value) noexcept { return _mm_set1_pd(value); }
 	template<std::same_as<__m128i> V, integral_of_size<1> T>
 	[[nodiscard]] DPM_FORCEINLINE V fill(T value) noexcept { return _mm_set1_epi8(static_cast<std::int8_t>(value)); }
 	template<std::same_as<__m128i> V, integral_of_size<2> T>
@@ -223,9 +223,9 @@ namespace dpm::detail
 	}
 
 	template<std::same_as<__m256> V>
-	[[nodiscard]] DPM_FORCEINLINE V fill(float value) noexcept { return _mm256_set1_ps(value); }
+	[[nodiscard]] DPM_FORCEINLINE V fill(auto value) noexcept { return _mm256_set1_ps(value); }
 	template<std::same_as<__m256d> V>
-	[[nodiscard]] DPM_FORCEINLINE V fill(double value) noexcept { return _mm256_set1_pd(value); }
+	[[nodiscard]] DPM_FORCEINLINE V fill(auto value) noexcept { return _mm256_set1_pd(value); }
 	template<std::same_as<__m256i> V, integral_of_size<1> T>
 	[[nodiscard]] DPM_FORCEINLINE V fill(T value) noexcept { return _mm256_set1_epi8(static_cast<std::int8_t>(value)); }
 	template<std::same_as<__m256i> V, integral_of_size<2> T>

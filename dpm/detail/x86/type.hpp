@@ -316,7 +316,7 @@ namespace dpm
 
 		/** Shuffles elements of mask \a x into a new mask according to the specified indices. */
 		template<std::size_t... Is, typename T, std::size_t N, std::size_t A, std::size_t M = sizeof...(Is)>
-		[[nodiscard]] DPM_FORCEINLINE detail::x86_mask<T, M, A> shuffle(const detail::x86_mask<T, N, A> &x) noexcept requires DPM_NOT_SSSE3(sizeof(T) >= 4 &&) detail::x86_overload_any<T, N, A> && detail::x86_overload_any<T, M, A>
+		[[nodiscard]] DPM_FORCEINLINE detail::x86_mask<T, M, A> shuffle(const detail::x86_mask<T, N, A> &x) noexcept requires (DPM_NOT_SSSE3(sizeof(T) >= 4 &&) detail::x86_overload_any<T, N, A> && detail::x86_overload_any<T, M, A>)
 		{
 			detail::x86_mask<T, M, A> result = {};
 			auto result_data = to_native_data(result).data();
@@ -961,7 +961,7 @@ namespace dpm
 
 		/** Shuffles elements of vector \a x into a new vector according to the specified indices. */
 		template<std::size_t... Is, typename T, std::size_t N, std::size_t A, std::size_t M = sizeof...(Is)>
-		[[nodiscard]] DPM_FORCEINLINE detail::x86_simd<T, M, A> shuffle(const detail::x86_simd<T, N, A> &x) noexcept requires DPM_NOT_SSSE3(sizeof(T) >= 4 &&) detail::x86_overload_any<T, N, A> && detail::x86_overload_any<T, M, A>
+		[[nodiscard]] DPM_FORCEINLINE detail::x86_simd<T, M, A> shuffle(const detail::x86_simd<T, N, A> &x) noexcept requires (DPM_NOT_SSSE3(sizeof(T) >= 4 &&) detail::x86_overload_any<T, N, A> && detail::x86_overload_any<T, M, A>)
 		{
 			detail::x86_simd<T, M, A> result = {};
 			auto result_data = to_native_data(result).data();
