@@ -96,17 +96,17 @@ In order to use the library as a CMake link dependency, you must link to one of 
 DPM provides the following extensions to the standard API:
 
 * ABI tags
-    * `aligned_vector`
-    * `packed_buffer`
-    * `common`
+    * `struct aligned_vector`
+    * `using packed_buffer = implementation-defined`
+    * `using common = implementation-defined`
     * x86
-        * `sse`
-        * `avx`
+        * `using sse = implementation-defined`
+        * `using avx = implementation-defined`
     * ARM
-        * `neon`
+        * `using neon = implementation-defined`
 * Storage traits & accessors
-    * `native_data_type`
-    * `native_data_size`
+    * `struct native_data_type`
+    * `struct native_data_size`
     * `std::span to_native_data(simd &)`
     * `std::span to_native_data(const simd &)`
     * `std::span to_native_data(simd_mask &)`
@@ -141,7 +141,10 @@ DPM provides the following extensions to the standard API:
     * `rebind_simd_t<long, simd>  ltrunc(const simd &)`
     * `rebind_simd_t<long long, simd>  lltrunc(const simd &)`
 * Other utilities
-    * `cpuid`
+    * `void assert_trap(bool, const char *, const char *, const char *, std::size_t, const char *)`
+    * `#define DPM_ASSERT_MSG(cnd, msg)`
+    * `#define DPM_ASSERT(cnd)`
+    * `class cpuid`
 
 Additionally, versions of some operators and math functions accepting a scalar as one of the arguments are provided.
 
@@ -175,6 +178,7 @@ CPUs. See the following articles for details:
 ### SVML
 
 When `DPM_USE_SVML` is enabled, DPM will use mathematical functions provided by SVML for trigonometric, hyperbolic,
-exponential, nearest integer and error functions instead of the built-in implementation. Inlined functions will still use the internal
+exponential, nearest integer and error functions instead of the built-in implementation. Inlined functions will still
+use the internal
 implementation. Note that if `DPM_USE_SVML` is enabled, NaN propagation and error handling options are ignored for
 affected functions, any error handling is left to SVML.

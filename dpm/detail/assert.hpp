@@ -21,28 +21,41 @@
 
 #endif
 
-namespace dpm::detail
+namespace dpm
 {
-	DPM_FORCEINLINE void trap_assert(bool cnd, const char *msg, const char *file, std::size_t line, const char *func) noexcept
+	DPM_DECLARE_EXT_NAMESPACE
 	{
-		if (cnd) [[likely]] return;
+		/** Triggers a runtime debugger trap if \a cnd evaluates to `false`. If neither debug trap intrinsics nor `SIGTRAP` are supported, falls back to `raise(SIGABRT)` */
+		DPM_FORCEINLINE void assert_trap(bool cnd, const char *cnd_str, const char *msg, const char *file, std::size_t line, const char *func) noexcept
+		{
+			if (cnd) [[likely]] return;
 
-		fprintf(stderr, "%s:%zu: %s: Assertion `%s` failed.\n", file, line, func, msg);
+			/* Print assertion message to stderr. */
+			std::fprintf(stderr, "%s:%zu: %s: Assertion `%s` failed", file, line, func, cnd_str);
+			if (msg != nullptr)
+				std::fprintf(stderr, " - %s\n", msg);
+			else
+				std::fputc('.', stderr);
+
+			/* Trigger a debugger trap. */
 #if defined(_MSC_VER)
-		__debugbreak();
+			__debugbreak();
 #elif defined(__clang__) && defined(__has_builtin) && __has_builtin(__builtin_debugtrap)
-		__builtin_debugtrap();
+			__builtin_debugtrap();
 #elif defined(__GNUC__)
-		__builtin_trap();
+			__builtin_trap();
 #elif defined(SIGTRAP)
-		std::raise(SIGTRAP);
+			std::raise(SIGTRAP);
 #else
-		std::raise(SIGABRT);
+			std::raise(SIGABRT);
 #endif
+		}
 	}
 }
 
-#define DPM_ASSERT(cnd) do { dpm::detail::trap_assert((cnd), (#cnd), (__FILE__), (__LINE__), (DPM_FUNCNAME)); DPM_ASSUME(cnd); } while(false)
+#define DPM_ASSERT_MSG(cnd, msg) do { dpm::ext::assert_trap((cnd), (#cnd), (msg), (__FILE__), (__LINE__), (DPM_FUNCNAME)); DPM_ASSUME(cnd); } while(false)
 #else
-#define DPM_ASSERT(cnd) DPM_ASSUME(cnd)
+#define DPM_ASSERT_MSG(cnd, msg) DPM_ASSUME(cnd)
 #endif
+
+#define DPM_ASSERT(cnd) DPM_ASSERT_MSG(cnd, nullptr)
