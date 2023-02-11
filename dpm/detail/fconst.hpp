@@ -16,6 +16,10 @@
 namespace dpm::detail
 {
 	template<typename T>
+	constexpr static int exp_mask = std::same_as<T, double> ? 0x7ff : 0xff;
+	template<typename T>
+	constexpr static int exp_off = std::same_as<T, double> ? 1023 : 127;
+	template<typename T>
 	constexpr static int mant_bits = std::same_as<T, double> ? 52 : 23;
 	template<typename T>
 	constexpr static int exp_bits = std::same_as<T, double> ? 11 : 8;

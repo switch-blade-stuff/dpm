@@ -56,14 +56,6 @@ namespace dpm
 			return mask_domain(x, _mm_cvtepi32_ps(_mm_cvttps_epi32(x)));
 #endif
 		}
-		[[nodiscard]] DPM_FORCEINLINE __m128 nearbyint(__m128 x) noexcept
-		{
-#ifdef DPM_HAS_SSE4_1
-			return _mm_round_ps(x, _MM_FROUND_NO_EXC | _MM_FROUND_CUR_DIRECTION);
-#else
-			return mask_domain(x, _mm_cvtepi32_ps(_mm_cvtps_epi32(x)));
-#endif
-		}
 
 		[[nodiscard]] DPM_FORCEINLINE __m128d ceil(__m128d x) noexcept
 		{
@@ -95,14 +87,6 @@ namespace dpm
 			return _mm_trunc_pd(x);
 #else
 			return trunc_sse2(x);
-#endif
-		}
-		[[nodiscard]] DPM_FORCEINLINE __m128d nearbyint(__m128d x) noexcept
-		{
-#ifdef DPM_HAS_SSE4_1
-			return _mm_round_pd(x, _MM_FROUND_NO_EXC | _MM_FROUND_CUR_DIRECTION);
-#else
-			return mask_domain(x, _mm_cvtepi32_pd(_mm_cvtpd_epi32(x)));
 #endif
 		}
 
@@ -198,6 +182,17 @@ namespace dpm
 #endif
 		}
 
+		[[nodiscard]] DPM_FORCEINLINE __m128 nearbyint(__m128 x) noexcept
+		{
+#ifdef DPM_HAS_SSE4_1
+			return _mm_round_ps(x, _MM_FROUND_NO_EXC | _MM_FROUND_CUR_DIRECTION);
+#else
+			const auto exc = _MM_GET_EXCEPTION_STATE();
+			rint<float>(x, &x);
+			_MM_SET_EXCEPTION_STATE(exc);
+#endif
+		}
+
 		template<integral_of_size<4> T>
 		DPM_FORCEINLINE void itrunc(__m128d x, __m128i *dst) noexcept { *dst = cvtt<T, double>(x); }
 		template<integral_of_size<8> T>
@@ -262,6 +257,18 @@ namespace dpm
 			const auto tmp_mask = _mm_cmpge_pd(abs_x, x_offset);
 			const auto tmp = _mm_or_pd(_mm_sub_pd(_mm_add_pd(abs_x, x_offset), x_offset), sign_x);
 			*dst = _mm_or_pd(_mm_andnot_pd(tmp_mask, tmp), _mm_and_pd(tmp_mask, tmp));
+#endif
+		}
+
+		[[nodiscard]] DPM_FORCEINLINE __m128d nearbyint(__m128d x) noexcept
+		{
+			return x;
+#ifdef DPM_HAS_SSE4_1
+			return _mm_round_pd(x, _MM_FROUND_NO_EXC | _MM_FROUND_CUR_DIRECTION);
+#else
+			const auto exc = _MM_GET_EXCEPTION_STATE();
+			rint<double>(x, &x);
+			_MM_SET_EXCEPTION_STATE(exc);
 #endif
 		}
 
