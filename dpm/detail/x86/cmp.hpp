@@ -84,7 +84,7 @@ namespace dpm::detail
 		return _mm_cmpgt_epi64(a, b);
 #else
 		const auto c32 = std::bit_cast<__m128>(_mm_cmpgt_epi32(a, b));
-#ifdef DPM_HAS_SSE3
+#ifndef DPM_HAS_SSE3
 		return std::bit_cast<__m128i>(_mm_shuffle_ps(c32, c32, (shuffle4_mask<3, 3, 1, 1>())));
 #else
 		return std::bit_cast<__m128i>(_mm_movehdup_ps(c32));

@@ -109,11 +109,27 @@ namespace dpm::detail
 #endif
 	}
 
-	[[nodiscard]] DPM_FORCEINLINE __m128d trunc_sse(__m128d x) noexcept
+	[[nodiscard]] DPM_FORCEINLINE __m128d trunc_sse2(__m128d x) noexcept
 	{
-		const auto exp52 = _mm_set1_pd(0x0010'0000'0000'0000);  /* 2^52 */
-		const auto exp52s = _mm_or_pd(exp52, _mm_and_pd(_mm_set1_pd(-0.0), x));
-		return _mm_sub_pd(_mm_add_pd(x, exp52s), exp52s);
+		auto ix = std::bit_cast<__m128i>(x);
+		auto e = _mm_srli_epi64(ix, 52);
+		e = _mm_and_si128(e, _mm_set1_epi64x(0x7ff));
+		e = _mm_sub_epi64(e, _mm_set1_epi64x(0x3ff));
+		e = _mm_add_epi64(e, _mm_set1_epi64x(12));
+
+		auto small_e = _mm_cmpgt_epi32(_mm_set1_epi64x(12), e);
+#ifndef DPM_HAS_SSE3
+		small_e = std::bit_cast<__m128i>(_mm_shuffle_ps(small_e, small_e, (shuffle4_mask<3, 3, 1, 1>())));
+#else
+		small_e = _mm_moveldup_ps(small_e);
+#endif
+		const auto minus_one = _mm_set1_epi64x(-1);
+		auto shift = _mm_or_si128(_mm_andnot_si128(small_e, e), _mm_and_si128(small_e, _mm_set1_epi64x(1)));
+		const auto sh = std::bit_cast<__m128d>(_mm_srl_epi64(minus_one, _mm_unpackhi_epi64(shift, shift)));
+		const auto sl = std::bit_cast<__m128d>(_mm_srl_epi64(minus_one, shift));
+		shift = std::bit_cast<__m128i>(_mm_shuffle_pd(sl, sh, 0b10));
+
+		return std::bit_cast<__m128d>(_mm_andnot_si128(_mm_andnot_si128(_mm_setzero_si128(), shift), ix));
 	}
 
 	template<signed_integral_of_size<4> To, std::same_as<double> From>
@@ -125,7 +141,7 @@ namespace dpm::detail
 		return _mm_cvtpd_epi64(x);
 #else
 		/* Truncate, then convert. */
-		return cvt_f64_i64_sse(trunc_sse(x));
+		return cvt_f64_i64_sse(trunc_sse2(x));
 #endif
 	}
 

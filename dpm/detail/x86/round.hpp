@@ -94,7 +94,7 @@ namespace dpm
 #elif defined(DPM_USE_SVML)
 			return _mm_trunc_pd(x);
 #else
-			return trunc_sse(x);
+			return trunc_sse2(x);
 #endif
 		}
 		[[nodiscard]] DPM_FORCEINLINE __m128d nearbyint(__m128d x) noexcept
