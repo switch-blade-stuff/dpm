@@ -37,6 +37,13 @@ namespace dpm::detail
 	template<integral_of_size<8> T, int N>
 	[[nodiscard]] DPM_FORCEINLINE __m128i bit_shiftr(__m128i x) noexcept { return _mm_srli_epi64(x, N); }
 
+	template<integral_of_size<2> T, int N>
+	[[nodiscard]] DPM_FORCEINLINE __m128i bit_ashiftr(__m128i x) noexcept { return _mm_srai_epi16(x, N); }
+	template<integral_of_size<4> T, int N>
+	[[nodiscard]] DPM_FORCEINLINE __m128i bit_ashiftr(__m128i x) noexcept { return _mm_srai_epi32(x, N); }
+	template<integral_of_size<8> T, int N>
+	[[nodiscard]] DPM_FORCEINLINE __m128i bit_ashiftr(__m128i x) noexcept { return _mm_srai_epi64(x, N); }
+
 	/* Emulate AVX2 64-bit shifts by shifting individual elements. */
 #ifndef DPM_HAS_AVX2
 	template<integral_of_size<4> T>
@@ -110,6 +117,13 @@ namespace dpm::detail
 	template<integral_of_size<8> T, int N>
 	[[nodiscard]] DPM_FORCEINLINE __m256i bit_shiftr(__m256i x) noexcept { return _mm256_srli_epi64(x, N); }
 
+	template<integral_of_size<2> T, int N>
+	[[nodiscard]] DPM_FORCEINLINE __m256i bit_ashiftr(__m256i x) noexcept { return _mm256_srai_epi16(x, N); }
+	template<integral_of_size<4> T, int N>
+	[[nodiscard]] DPM_FORCEINLINE __m256i bit_ashiftr(__m256i x) noexcept { return _mm256_srai_epi32(x, N); }
+	template<integral_of_size<8> T, int N>
+	[[nodiscard]] DPM_FORCEINLINE __m256i bit_ashiftr(__m256i x) noexcept { return _mm256_srai_epi64(x, N); }
+
 	template<integral_of_size<4> T>
 	[[nodiscard]] DPM_FORCEINLINE __m128i bit_shiftl(__m128i a, __m128i b) noexcept { return _mm_sllv_epi32(a, b); }
 	template<integral_of_size<4> T>
@@ -152,6 +166,13 @@ namespace dpm::detail
 		const auto bf = std::bit_cast<__m256>(b);
 		return std::bit_cast<__m256i>(bit_or(af, bf));
 	}
+
+	template<integral_of_size<2> T, int N>
+	[[nodiscard]] DPM_FORCEINLINE __m256i bit_ashiftr(__m256i x) noexcept { return mux_128x2<__m256i>([](auto x) { return bit_ashiftr<T, N>(x); }, x); }
+	template<integral_of_size<4> T, int N>
+	[[nodiscard]] DPM_FORCEINLINE __m256i bit_ashiftr(__m256i x) noexcept { return mux_128x2<__m256i>([](auto x) { return bit_ashiftr<T, N>(x); }, x); }
+	template<integral_of_size<8> T, int N>
+	[[nodiscard]] DPM_FORCEINLINE __m256i bit_ashiftr(__m256i x) noexcept { return mux_128x2<__m256i>([](auto x) { return bit_ashiftr<T, N>(x); }, x); }
 
 	template<integral_of_size<2> T, int N>
 	[[nodiscard]] DPM_FORCEINLINE __m256i bit_shiftl(__m256i x) noexcept { return mux_128x2<__m256i>([](auto x) { return bit_shiftl<T, N>(x); }, x); }

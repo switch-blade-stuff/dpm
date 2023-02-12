@@ -39,7 +39,7 @@ namespace dpm::detail
 	[[nodiscard]] DPM_FORCEINLINE V impl_ldexp(V x, Vi n) noexcept
 	{
 		const auto ix = std::bit_cast<Vi>(x);
-		const auto is_zero = cmp_eq<I>(x, setzero<V>());
+		const auto is_zero = std::bit_cast<Vi>(cmp_eq<T>(x, setzero<V>()));
 		auto x_exp = bit_and(bit_shiftr<I, mant_bits<I>>(ix), fill<Vi>(exp_mask<I>));
 
 		/* Subnormal x. */

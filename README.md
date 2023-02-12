@@ -17,9 +17,8 @@ DPM currently supports the following architectures for SIMD vectorization:
     - AVX2
     - FMA
     - AVX512 (see notes)
-- ARM Neon (WIP)
 
-On architectures without SIMD intrinsic support, vectorization is emulated via scalar operations.
+On architectures without SIMD support, vectorization is emulated via scalar operations.
 
 ## Library options
 
@@ -96,8 +95,6 @@ DPM provides the following utilities and extensions to the standard API:
     * x86
         * `using sse = implementation-defined`
         * `using avx = implementation-defined`
-    * ARM
-        * `using neon = implementation-defined`
 * Storage traits & accessors
     * `struct native_data_type`
     * `struct native_data_size`

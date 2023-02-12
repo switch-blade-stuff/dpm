@@ -76,14 +76,15 @@
 #endif
 #endif
 
-#elif defined(__arm__) || defined(__arm) || defined(__aarch64__) || defined(_M_ARM) || defined(_M_ARM64)
-#define DPM_ARCH_ARM
-
-#if defined(__aarch64__) || defined(_M_ARM64)
-#define DPM_ARCH_ARM64
-#endif
-
-#if defined(__ARM_NEON__) || defined(__ARM_NEON)
-#define DPM_HAS_NEON
-#endif
+/* ARM NEON is currently not supported. */
+//#elif defined(__arm__) || defined(__arm) || defined(__aarch64__) || defined(_M_ARM) || defined(_M_ARM64)
+//#define DPM_ARCH_ARM
+//
+//#if defined(__aarch64__) || defined(_M_ARM64)
+//#define DPM_ARCH_ARM64
+//#endif
+//
+//#if defined(__ARM_NEON__) || defined(__ARM_NEON)
+//#define DPM_HAS_NEON
+//#endif
 #endif

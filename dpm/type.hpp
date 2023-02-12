@@ -8,5 +8,4 @@
 #include "flags.hpp"
 
 #include "detail/generic/type.hpp"
-#include "detail/arm/type.hpp"
 #include "detail/x86/type.hpp"

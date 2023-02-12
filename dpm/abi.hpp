@@ -7,5 +7,4 @@
 #include "traits.hpp"
 
 #include "detail/generic/abi.hpp"
-#include "detail/arm/abi.hpp"
 #include "detail/x86/abi.hpp"

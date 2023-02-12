@@ -1,6 +1,5 @@
 
 include(${CMAKE_CURRENT_LIST_DIR}/generic/CMakeLists.txt)
-include(${CMAKE_CURRENT_LIST_DIR}/arm/CMakeLists.txt)
 include(${CMAKE_CURRENT_LIST_DIR}/x86/CMakeLists.txt)
 
 target_sources(${DPM_PROJECT} INTERFACE
