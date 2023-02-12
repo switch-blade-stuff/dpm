@@ -21,6 +21,19 @@ namespace dpm::detail
 	template<std::same_as<float> T>
 	[[nodiscard]] DPM_FORCEINLINE __m128 cmp_ne(__m128 a, __m128 b) noexcept { return _mm_cmpneq_ps(a, b); }
 
+	template<typename V>
+	[[nodiscard]] DPM_FORCEINLINE bool test_mask(V x) noexcept requires(sizeof(V) == 16)
+	{
+#if defined(DPM_HAS_SSE4_1)
+		const auto ix = std::bit_cast<__m128i>(x);
+		return !_mm_testz_si128(ix, ix);
+#elif !defined(DPM_HAS_SSE2)
+		return _mm_movemask_ps(x);
+#else
+		return _mm_movemask_epi8(std::bit_cast<__m128i>(x));
+#endif
+	}
+
 #ifdef DPM_HAS_SSE2
 	template<std::same_as<double> T>
 	[[nodiscard]] DPM_FORCEINLINE __m128d cmp_eq(__m128d a, __m128d b) noexcept { return _mm_cmpeq_pd(a, b); }
@@ -90,6 +103,13 @@ namespace dpm::detail
 	[[nodiscard]] DPM_FORCEINLINE __m256d cmp_le(__m256d a, __m256d b) noexcept { return _mm256_cmp_pd(a, b, _CMP_LE_OQ); }
 	template<std::same_as<double> T>
 	[[nodiscard]] DPM_FORCEINLINE __m256d cmp_ne(__m256d a, __m256d b) noexcept { return _mm256_cmp_pd(a, b, _CMP_NEQ_OQ); }
+
+	template<typename V>
+	[[nodiscard]] DPM_FORCEINLINE bool test_mask(V x) noexcept requires(sizeof(V) == 32)
+	{
+		const auto ix = std::bit_cast<__m256i>(x);
+		return !_mm256_testz_si256(ix, ix);
+	}
 
 #ifdef DPM_HAS_AVX2
 	template<integral_of_size<1> T>

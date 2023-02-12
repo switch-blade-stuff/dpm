@@ -74,12 +74,12 @@ namespace dpm::detail
 		y = blendv<T>(y, add<T>(x, x), not_fin);
 #endif
 #ifdef DPM_HANDLE_ERRORS
-		if (movemask<T>(has_overflow)) [[unlikely]]
+		if (test_mask<V>(has_overflow)) [[unlikely]]
 		{
 			const auto vhuge = fill<V>(huge<T>);
 			y = blendv<T>(y, mul<T>(vhuge, copysign<T>(vhuge, x)), std::bit_cast<V>(has_underflow));
 		}
-		if (movemask<T>(has_underflow)) [[unlikely]]
+		if (test_mask<V>(has_underflow)) [[unlikely]]
 		{
 			const auto vtiny = fill<V>(tiny<T>);
 			y = blendv<T>(y, mul<T>(vtiny, copysign<T>(vtiny, x)), std::bit_cast<V>(has_underflow));
@@ -201,7 +201,7 @@ namespace dpm::detail
 #ifdef DPM_HANDLE_ERRORS
 		const auto ninf = fill<V>(-std::numeric_limits<T>::infinity());
 		const auto zero_mask = cmp_eq<T>(abs_x, setzero<V>());
-		if (movemask<T>(zero_mask)) [[unlikely]]
+		if (test_mask<V>(zero_mask)) [[unlikely]]
 		{
 			std::feraiseexcept(FE_DIVBYZERO);
 			errno = ERANGE;

@@ -100,7 +100,7 @@ namespace dpm::detail
 		/* Check domain. */
 #ifdef DPM_HANDLE_ERRORS
 		const auto dom_mask = isinf_abs(abs_x);
-		if (movemask<T>(dom_mask)) [[unlikely]]
+		if (test_mask<V>(dom_mask)) [[unlikely]]
 		{
 			std::feraiseexcept(FE_INVALID);
 			errno = EDOM;

@@ -53,7 +53,7 @@ namespace dpm::detail
 		/* Check domain. */
 #ifdef DPM_HANDLE_ERRORS
 		const auto dom_mask = cmp_gt<T>(abs_x, fill<V>(one<T>));
-		if (movemask<T>(dom_mask)) [[unlikely]]
+		if (test_mask<V>(dom_mask)) [[unlikely]]
 		{
 			std::feraiseexcept(FE_INVALID);
 			errno = EDOM;
@@ -73,7 +73,7 @@ namespace dpm::detail
 		/* Check domain. */
 #ifdef DPM_HANDLE_ERRORS
 		const auto dom_mask = cmp_gt<T>(abs_x, fill<V>(one<T>));
-		if (movemask<T>(dom_mask)) [[unlikely]]
+		if (test_mask<V>(dom_mask)) [[unlikely]]
 		{
 			std::feraiseexcept(FE_INVALID);
 			errno = EDOM;
