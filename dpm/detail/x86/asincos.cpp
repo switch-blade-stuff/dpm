@@ -59,7 +59,7 @@ namespace dpm::detail
 			errno = EDOM;
 		}
 		const auto nan = fill<V>(std::numeric_limits<T>::quiet_NaN());
-		abs_x = blendv<T>(abs_x, nan, bit_or(dom_mask, isunord(x, x)));
+		abs_x = blendv<T>(abs_x, nan, dom_mask);
 #endif
 		return do_asin<T>(abs_x, x_sign);
 	}
@@ -79,7 +79,7 @@ namespace dpm::detail
 			errno = EDOM;
 		}
 		const auto nan = fill<V>(std::numeric_limits<T>::quiet_NaN());
-		abs_x = blendv<T>(abs_x, nan, bit_or(dom_mask, isunord(x, x)));
+		abs_x = blendv<T>(abs_x, nan, dom_mask);
 #endif
 
 		/* c_mask = x > 0.5 */
