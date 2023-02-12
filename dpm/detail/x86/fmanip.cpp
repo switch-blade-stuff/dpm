@@ -35,18 +35,78 @@ namespace dpm::detail
 //		return ret;
 //	}
 
+	template<typename T, typename V, typename Vi, typename I = int_of_size_t<sizeof(T)>>
+	[[nodiscard]] DPM_FORCEINLINE V impl_ldexp(V x, Vi n) noexcept
+	{
+		const auto ix = std::bit_cast<Vi>(x);
+		const auto is_zero = cmp_eq<I>(x, setzero<V>());
+		auto x_exp = bit_and(bit_shiftr<I, mant_bits<I>>(ix), fill<Vi>(exp_mask<I>));
+
+		/* Subnormal x. */
+		const auto sx = mul<T>(x, fill<V>(exp_mult<T>));
+		const auto si = std::bit_cast<Vi>(sx);
+		auto sk = bit_and(bit_shiftr<I, mant_bits<I>>(si), fill<Vi>(exp_mask<I>));
+		sk = add<I>(sk, fill<Vi>(mant_bits<I> + 2));
+
+		/* x_exp = x_exp == 0 ? y_exp : x_exp */
+		x_exp = bit_or(x_exp, bit_and(cmp_eq<I>(x_exp, setzero<Vi>()), sk));
+		auto y_exp = add<I>(x_exp, n);
+
+		/* Normalize x_exp */
+		const auto is_denorm = cmp_gt<I>(y_exp, setzero<Vi>());
+		y_exp = add<I>(y_exp, bit_andnot(is_denorm, fill<Vi>(mant_bits<I> + 2)));
+
+#if defined(DPM_HANDLE_ERRORS) || defined(DPM_PROPAGATE_NAN)
+		const auto not_fin = std::bit_cast<V>(cmp_eq<I>(x_exp, fill<Vi>(exp_mask<I>)));
+#endif
+#ifdef DPM_HANDLE_ERRORS
+		const auto has_overflow = bit_or(cmp_gt<I>(n, fill<Vi>(max_ldexp<I>)), cmp_gt<I>(y_exp, fill<Vi>(exp_mask<I> + mant_bits<I> + 1)));
+		const auto has_underflow = bit_or(cmp_gt<I>(fill<Vi>(-max_ldexp<I>), n), cmp_gt<I>(fill<Vi>(I{1}), y_exp));
+#endif
+
+		/* Apply the new exponent & normalize. */
+		const auto exp_zeros = fill<Vi>(~(exp_mask<I> << mant_bits<I>));
+		y_exp = bit_andnot(is_zero, bit_shiftl<I, mant_bits<I>>(y_exp));
+		auto y = std::bit_cast<V>(bit_or(bit_and(ix, exp_zeros), y_exp));
+		y = blendv<T>(y, mul<T>(y, fill<V>(exp_multm<T>)), std::bit_cast<V>(is_denorm));
+
+#if defined(DPM_HANDLE_ERRORS) || defined(DPM_PROPAGATE_NAN)
+		y = blendv<T>(y, add<T>(x, x), not_fin);
+#endif
+#ifdef DPM_HANDLE_ERRORS
+		if (movemask<T>(has_overflow)) [[unlikely]]
+		{
+			const auto vhuge = fill<V>(huge<T>);
+			y = blendv<T>(y, mul<T>(vhuge, copysign<T>(vhuge, x)), std::bit_cast<V>(has_underflow));
+		}
+		if (movemask<T>(has_underflow)) [[unlikely]]
+		{
+			const auto vtiny = fill<V>(tiny<T>);
+			y = blendv<T>(y, mul<T>(vtiny, copysign<T>(vtiny, x)), std::bit_cast<V>(has_underflow));
+		}
+#endif
+		return y;
+	}
+
+	__m128 DPM_API_PUBLIC DPM_MATHFUNC ldexp(__m128 x, __m128i exp) noexcept { return impl_ldexp<float>(x,exp); }
+	__m128d DPM_API_PUBLIC DPM_MATHFUNC ldexp(__m128d x, __m128i exp) noexcept { return impl_ldexp<double>(x,exp); }
+#ifdef DPM_HAS_AVX
+	__m256 DPM_API_PUBLIC DPM_MATHFUNC ldexp(__m256 x, __m256i exp) noexcept { return impl_ldexp<float>(x,exp); }
+	__m256d DPM_API_PUBLIC DPM_MATHFUNC ldexp(__m256d x, __m256i exp) noexcept { return impl_ldexp<double>(x,exp); }
+#endif
+
 	template<typename T, typename V, typename I = int_of_size_t<sizeof(T)>, typename Vi = select_vector_t<I, sizeof(V)>>
 	[[nodiscard]] DPM_FORCEINLINE auto impl_modf(V x, V &ip) noexcept
 	{
 		const auto ix = std::bit_cast<Vi>(x);
 
 		/* e = ((ix >> mant_bits) & exp_mask) - exp_off */
-		auto e = bit_shiftr<I, mant_bits<T>>(ix);
-		e = bit_and(e, fill<Vi>(exp_mask<T>));
-		e = sub<I>(e, fill<Vi>(exp_off<T>));
+		auto e = bit_shiftr<I, mant_bits<I>>(ix);
+		e = bit_and(e, fill<Vi>(exp_mask<I>));
+		e = sub<I>(e, fill<Vi>(exp_off<I>));
 
 		/* e >= mant_bits */
-		const auto int_mask = std::bit_cast<V>(cmp_gt<I>(e, fill<Vi>(mant_bits<T> - 1)));
+		const auto int_mask = std::bit_cast<V>(cmp_gt<I>(e, fill<Vi>(mant_bits<I> - 1)));
 		const auto int_x = bit_and(x, fill<V>(sign_bit<T>));
 
 		/* e < 0 */
@@ -55,7 +115,7 @@ namespace dpm::detail
 		const auto fract_x = x;
 
 		/* mask = -1 >> (exp_bits + 1) >> e */
-		const auto mask = std::bit_cast<V>(bit_shiftr<I>(bit_shiftr<I, exp_bits<T> + 1>(fill<V>(I{-1})), e));
+		const auto mask = std::bit_cast<V>(bit_shiftr<I>(bit_shiftr<I, exp_bits<I> + 1>(fill<Vi>(I{-1})), e));
 
 		/* mask_zero = (ix & mask) == 0 */
 		auto mask_zero = cmp_eq<T>(bit_and(std::bit_cast<V>(ix), mask), setzero<V>());
@@ -91,24 +151,24 @@ namespace dpm::detail
 		constexpr auto do_clz = [](Vi x) noexcept
 		{
 			/* Mask top bits to prevent incorrect rounding. */
-			x = bit_andnot(bit_shiftr<I, exp_bits<T>>(x), x);
+			x = bit_andnot(bit_shiftr<I, exp_bits<I>>(x), x);
 			/* log2(x) via floating-point conversion. */
-			x = bit_shiftr<I, mant_bits<T>>(std::bit_cast<Vi>(cvt<T, I>(x)));
+			x = bit_shiftr<I, mant_bits<I>>(std::bit_cast<Vi>(cvt<T, I>(x)));
 			/* Apply exponent bias to get log2(x) using unsigned saturation. */
 			constexpr I bias = std::same_as<T, double> ? 1086 : 158;
 			return subs<std::uint16_t>(fill<Vi>(bias), x);
 		};
 		const auto ix = std::bit_cast<Vi>(abs_x);
-		auto exp = bit_shiftr<I, mant_bits<T>>(ix);
+		auto exp = bit_shiftr<I, mant_bits<I>>(ix);
 
 		/* POSIX requires denormal numbers to be treated as if they were normalized.
 		 * Shift denormal exponent by clz(ix) - (exp_bits + 1) */
 		const auto fix_denorm = cmp_eq<I>(exp, setzero<Vi>());
-		const auto norm_off = sub<I>(do_clz(ix), fill<Vi>(I{exp_bits<T> + 1}));
+		const auto norm_off = sub<I>(do_clz(ix), fill<Vi>(exp_bits<I> + 1));
 		exp = sub<I>(exp, bit_and(norm_off, fix_denorm));
 
 		/* Apply exponent offset. */
-		return sub<I>(exp, fill<Vi>(exp_off<T>));
+		return sub<I>(exp, fill<Vi>(exp_off<I>));
 	}
 	template<typename T, typename V, typename I = int_of_size_t<sizeof(T)>>
 	[[nodiscard]] DPM_FORCEINLINE auto impl_ilogb(V x) noexcept

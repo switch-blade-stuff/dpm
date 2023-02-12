@@ -22,26 +22,53 @@ namespace dpm::detail
 	template<std::floating_point T>
 	static constexpr T loge2 = T{0.69314718055994530942};
 
+	template<std::floating_point T>
+	static constexpr T exp_multm = std::same_as<T, float> ? T{2.9802322388e-08} : T{5.55111512312578270212e-17};
+	template<std::floating_point T>
+	static constexpr T exp_mult = std::same_as<T, float> ? T{3.355443200e+07} : T{1.80143985094819840000e+16};
+
+	template<typename>
+	struct range_vals;
+	template<typename T> requires std::same_as<double, T>
+	struct range_vals<T>
+	{
+		static constexpr T huge = 1.0e+300;
+		static constexpr T tiny = 1.0e-300;
+	};
+	template<typename T> requires std::same_as<float, T>
+	struct range_vals<T>
+	{
+		static constexpr T huge = 1.0e+30;
+		static constexpr T tiny = 1.0e-30;
+	};
+
+	template<std::floating_point T>
+	static constexpr T huge = range_vals<T>::huge;
+	template<std::floating_point T>
+	static constexpr T tiny = range_vals<T>::tiny;
+
 	template<typename T>
-	static constexpr int exp_mask = std::same_as<T, double> ? 0x7ff : 0xff;
+	static constexpr T exp_mask = sizeof(T) == sizeof(double) ? 0x7ff : 0xff;
 	template<typename T>
-	static constexpr int exp_off = std::same_as<T, double> ? 1023 : 127;
+	static constexpr T exp_off = sizeof(T) == sizeof(double) ? 1023 : 127;
 	template<typename T>
-	static constexpr int mant_bits = std::same_as<T, double> ? 52 : 23;
+	static constexpr T mant_bits = sizeof(T) == sizeof(double) ? 52 : 23;
 	template<typename T>
-	static constexpr int exp_bits = std::same_as<T, double> ? 11 : 8;
+	static constexpr T exp_bits = sizeof(T) == sizeof(double) ? 11 : 8;
+	template<typename T>
+	static constexpr T max_ldexp = 50000;
 
 	/* In some cases x86 intrinsics generate extraneous casts if literals are used with intrinsics. As such, define commonly used values here. */
 	template<std::floating_point T>
-	static constexpr T five_eights = 0.625;
+	static constexpr T five_eights = T{0.625};
 	template<std::floating_point T>
-	static constexpr T sign_bit = -0.0;
+	static constexpr T sign_bit = T{-0.0};
 	template<std::floating_point T>
-	static constexpr T half = 0.5;
+	static constexpr T half = T{0.5};
 	template<std::floating_point T>
-	static constexpr T one = 1.0;
+	static constexpr T one = T{1.0};
 	template<std::floating_point T>
-	static constexpr T two = 2.0;
+	static constexpr T two = T{2.0};
 
 	template<std::floating_point T>
 	static constexpr T dp_sincos[] = {T{-7.85398125648498535156e-1}, T{-3.77489470793079817668e-8}, T{-2.69515142907905952645e-15}};

@@ -28,28 +28,14 @@ namespace dpm
 #endif
 
 #ifdef DPM_HAS_SSE2
-		template<typename T, typename V, typename Vi, typename I = int_of_size_t<sizeof(T)>>
-		[[nodiscard]] inline V ldexp(V x, Vi exp) noexcept
-		{
-			const auto is_zero = std::bit_cast<Vi>(cmp_eq<T>(x, setzero<V>()));
-			auto mant_off = bit_andnot(is_zero, bit_shiftl<I, mant_bits<T>>(exp));
-#ifdef DPM_PROPAGATE_NAN
-			const auto is_nan = std::bit_cast<Vi>(isunord(x, x));
-			mant_off = bit_andnot(is_nan, mant_off);
-#endif
-#ifdef DPM_HANDLE_ERRORS
-			const auto inf = fill<V>(std::numeric_limits<T>::infinity());
-			const auto is_inf = std::bit_cast<Vi>(cmp_eq<T>(abs<T>(x), inf));
-			mant_off = bit_andnot(is_inf, mant_off);
-#endif
-			return std::bit_cast<V>(add<I>(std::bit_cast<Vi>(x), mant_off));
-		}
+		[[nodiscard]] __m128 DPM_API_PUBLIC DPM_MATHFUNC ldexp(__m128 x, __m128i exp) noexcept;
+		[[nodiscard]] __m128d DPM_API_PUBLIC DPM_MATHFUNC ldexp(__m128d x, __m128i exp) noexcept;
 
 		[[nodiscard]] __m128 DPM_API_PUBLIC DPM_MATHFUNC modf(__m128 x, __m128 *iptr) noexcept;
 		[[nodiscard]] __m128d DPM_API_PUBLIC DPM_MATHFUNC modf(__m128d x, __m128d *iptr) noexcept;
 
-		[[nodiscard]] DPM_FORCEINLINE __m128 scalbn(__m128 x, __m128i exp) noexcept { return ldexp<float>(x, exp); }
-		[[nodiscard]] DPM_FORCEINLINE __m128d scalbn(__m128d x, __m128i exp) noexcept { return ldexp<double>(x, exp); }
+		[[nodiscard]] DPM_FORCEINLINE __m128 scalbn(__m128 x, __m128i exp) noexcept { return ldexp(x, exp); }
+		[[nodiscard]] DPM_FORCEINLINE __m128d scalbn(__m128d x, __m128i exp) noexcept { return ldexp(x, exp); }
 
 		[[nodiscard]] __m128i DPM_API_PUBLIC DPM_MATHFUNC ilogb(__m128 x) noexcept;
 		[[nodiscard]] __m128i DPM_API_PUBLIC DPM_MATHFUNC ilogb(__m128d x) noexcept;
