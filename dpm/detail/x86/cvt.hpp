@@ -34,7 +34,7 @@ namespace dpm::detail
 	template<std::same_as<float> To, unsigned_integral_of_size<4> From>
 	[[nodiscard]] DPM_FORCEINLINE __m128 cvt(__m128i x) noexcept { return cvt_u32_f32(x); }
 
-	[[maybe_unused]] [[nodiscard]] DPM_FORCEINLINE __m128d cvt_u64_f64_sse(__m128i x) noexcept
+	[[maybe_unused]] [[nodiscard]] inline __m128d cvt_u64_f64_sse(__m128i x) noexcept
 	{
 		const auto exp84 = std::bit_cast<__m128i>(_mm_set1_pd(19342813113834066795298816.));  /* 2^84 */
 		const auto exp52 = std::bit_cast<__m128i>(_mm_set1_pd(0x0010'0000'0000'0000));        /* 2^52 */
@@ -49,7 +49,7 @@ namespace dpm::detail
 #endif
 		return _mm_add_pd(_mm_sub_pd(std::bit_cast<__m128d>(a), adjust), std::bit_cast<__m128d>(b));
 	}
-	[[maybe_unused]] [[nodiscard]] DPM_FORCEINLINE __m128d cvt_i64_f64_sse(__m128i x) noexcept
+	[[maybe_unused]] [[nodiscard]] inline __m128d cvt_i64_f64_sse(__m128i x) noexcept
 	{
 		const auto exp67m3 = std::bit_cast<__m128i>(_mm_set1_pd(442721857769029238784.)); /* 2^67 * 3 */
 		const auto exp52 = std::bit_cast<__m128i>(_mm_set1_pd(0x0010'0000'0000'0000));    /* 2^52 */
@@ -109,7 +109,7 @@ namespace dpm::detail
 #endif
 	}
 
-	[[nodiscard]] DPM_FORCEINLINE __m128d trunc_sse2(__m128d x) noexcept
+	[[nodiscard]] inline __m128d trunc_sse2(__m128d x) noexcept
 	{
 		auto ix = std::bit_cast<__m128i>(x);
 		auto e = _mm_srli_epi64(ix, 52);
@@ -185,7 +185,7 @@ namespace dpm::detail
 	template<std::same_as<float> To, unsigned_integral_of_size<4> From>
 	[[nodiscard]] DPM_FORCEINLINE __m256 cvt(__m256i x) noexcept { return cvt_u32_f32(x); }
 
-	[[maybe_unused]] [[nodiscard]] DPM_FORCEINLINE __m256d cvt_u64_f64_avx(__m256i x) noexcept
+	[[maybe_unused]] [[nodiscard]] inline __m256d cvt_u64_f64_avx(__m256i x) noexcept
 	{
 #ifdef DPM_HAS_AVX2
 		const auto exp84 = std::bit_cast<__m256i>(_mm256_set1_pd(19342813113834066795298816.));  /* 2^84 */
@@ -201,7 +201,7 @@ namespace dpm::detail
 		return _mm256_set_m128d(h, l);
 #endif
 	}
-	[[maybe_unused]] [[nodiscard]] DPM_FORCEINLINE __m256d cvt_i64_f64_avx(__m256i x) noexcept
+	[[maybe_unused]] [[nodiscard]] inline __m256d cvt_i64_f64_avx(__m256i x) noexcept
 	{
 #ifdef DPM_HAS_AVX2
 		const auto exp67m3 = std::bit_cast<__m256i>(_mm256_set1_pd(442721857769029238784.)); /* 2^67 * 3 */

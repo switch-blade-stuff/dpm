@@ -16,41 +16,71 @@ namespace dpm
 		template<typename T, typename V>
 		[[nodiscard]] DPM_FORCEINLINE V copysign(V x, V m) noexcept { return bit_or(abs<T>(x), m); }
 
-#ifdef DPM_HAS_SSE2
-		[[nodiscard]] __m128 DPM_API_PUBLIC DPM_MATHFUNC modf(__m128 x, __m128 *iptr) noexcept;
-		[[nodiscard]] __m128d DPM_API_PUBLIC DPM_MATHFUNC modf(__m128d x, __m128d *iptr) noexcept;
-
-		[[nodiscard]] __m128i DPM_API_PUBLIC DPM_MATHFUNC ilogb(__m128 x) noexcept;
-		[[nodiscard]] __m128i DPM_API_PUBLIC DPM_MATHFUNC ilogb(__m128d x) noexcept;
-
-#ifdef DPM_HAS_AVX
-		[[nodiscard]] __m256 DPM_API_PUBLIC DPM_MATHFUNC modf(__m256 x, __m256 *iptr) noexcept;
-		[[nodiscard]] __m256d DPM_API_PUBLIC DPM_MATHFUNC modf(__m256d x, __m256d *iptr) noexcept;
-
-		[[nodiscard]] __m256i DPM_API_PUBLIC DPM_MATHFUNC ilogb(__m256 x) noexcept;
-		[[nodiscard]] __m256i DPM_API_PUBLIC DPM_MATHFUNC ilogb(__m256d x) noexcept;
-#endif
-
-#ifndef DPM_USE_SVML
-		[[nodiscard]] __m128 DPM_API_PUBLIC DPM_MATHFUNC logb(__m128 x) noexcept;
-		[[nodiscard]] __m128d DPM_API_PUBLIC DPM_MATHFUNC logb(__m128d x) noexcept;
-
-#ifdef DPM_HAS_AVX
-		[[nodiscard]] __m256 DPM_API_PUBLIC DPM_MATHFUNC logb(__m256 x) noexcept;
-		[[nodiscard]] __m256d DPM_API_PUBLIC DPM_MATHFUNC logb(__m256d x) noexcept;
-#endif
-#else
+#ifdef DPM_USE_SVML
 		[[nodiscard]] DPM_FORCEINLINE __m128 logb(__m128 x) noexcept { return _mm_logb_ps(x); }
+#ifdef DPM_HAS_SSE2
 		[[nodiscard]] DPM_FORCEINLINE __m128d logb(__m128d x) noexcept { return _mm_logb_pd(x); }
-
+#endif
 #ifdef DPM_HAS_AVX
 		[[nodiscard]] DPM_FORCEINLINE __m256 logb(__m256 x) noexcept { return _mm256_logb_ps(x); }
 		[[nodiscard]] DPM_FORCEINLINE __m256d logb(__m256d x) noexcept { return _mm256_logb_pd(x); }
 #endif
 #endif
+
+#ifdef DPM_HAS_SSE2
+		template<typename T, typename V, typename Vi, typename I = int_of_size_t<sizeof(T)>>
+		[[nodiscard]] inline V ldexp(V x, Vi exp) noexcept
+		{
+			const auto is_zero = std::bit_cast<Vi>(cmp_eq<T>(x, setzero<V>()));
+			auto mant_off = bit_andnot(is_zero, bit_shiftl<I, mant_bits<T>>(exp));
+#ifdef DPM_PROPAGATE_NAN
+			const auto is_nan = std::bit_cast<Vi>(isunord(x, x));
+			mant_off = bit_andnot(is_nan, mant_off);
+#endif
+#ifdef DPM_HANDLE_ERRORS
+			const auto inf = fill<V>(std::numeric_limits<T>::infinity());
+			const auto is_inf = std::bit_cast<Vi>(cmp_eq<T>(abs<T>(x), inf));
+			mant_off = bit_andnot(is_inf, mant_off);
+#endif
+			return std::bit_cast<V>(add<I>(std::bit_cast<Vi>(x), mant_off));
+		}
+
+		[[nodiscard]] __m128 DPM_API_PUBLIC DPM_MATHFUNC modf(__m128 x, __m128 *iptr) noexcept;
+		[[nodiscard]] __m128d DPM_API_PUBLIC DPM_MATHFUNC modf(__m128d x, __m128d *iptr) noexcept;
+
+		[[nodiscard]] DPM_FORCEINLINE __m128 scalbn(__m128 x, __m128i exp) noexcept { return ldexp<float>(x, exp); }
+		[[nodiscard]] DPM_FORCEINLINE __m128d scalbn(__m128d x, __m128i exp) noexcept { return ldexp<double>(x, exp); }
+
+		[[nodiscard]] __m128i DPM_API_PUBLIC DPM_MATHFUNC ilogb(__m128 x) noexcept;
+		[[nodiscard]] __m128i DPM_API_PUBLIC DPM_MATHFUNC ilogb(__m128d x) noexcept;
+
+#ifndef DPM_USE_SVML
+		[[nodiscard]] __m128 DPM_API_PUBLIC DPM_MATHFUNC logb(__m128 x) noexcept;
+		[[nodiscard]] __m128d DPM_API_PUBLIC DPM_MATHFUNC logb(__m128d x) noexcept;
+#endif
+#endif
+
+#ifdef DPM_HAS_AVX
+		[[nodiscard]] __m256 DPM_API_PUBLIC DPM_MATHFUNC ldexp(__m256 x, __m256i exp) noexcept;
+		[[nodiscard]] __m256d DPM_API_PUBLIC DPM_MATHFUNC ldexp(__m256d x, __m256i exp) noexcept;
+
+		[[nodiscard]] __m256 DPM_API_PUBLIC DPM_MATHFUNC modf(__m256 x, __m256 *iptr) noexcept;
+		[[nodiscard]] __m256d DPM_API_PUBLIC DPM_MATHFUNC modf(__m256d x, __m256d *iptr) noexcept;
+
+		[[nodiscard]] DPM_FORCEINLINE __m256 scalbn(__m256 x, __m256i exp) noexcept { return ldexp(x, exp); }
+		[[nodiscard]] DPM_FORCEINLINE __m256d scalbn(__m256d x, __m256i exp) noexcept { return ldexp(x, exp); }
+
+		[[nodiscard]] __m256i DPM_API_PUBLIC DPM_MATHFUNC ilogb(__m256 x) noexcept;
+		[[nodiscard]] __m256i DPM_API_PUBLIC DPM_MATHFUNC ilogb(__m256d x) noexcept;
+
+#ifndef DPM_USE_SVML
+		[[nodiscard]] __m256 DPM_API_PUBLIC DPM_MATHFUNC logb(__m256 x) noexcept;
+		[[nodiscard]] __m256d DPM_API_PUBLIC DPM_MATHFUNC logb(__m256d x) noexcept;
+#endif
 #endif
 	}
 
+#if defined(DPM_USE_SVML) || defined(DPM_HAS_SSE2)
 	/** Decomposes elements of vector \a x into integral and fractional parts, returning the fractional and storing the integral in \a iptr. */
 	template<std::floating_point T, std::size_t N, std::size_t A>
 	[[nodiscard]] DPM_FORCEINLINE detail::x86_simd<T, N, A> modf(const detail::x86_simd<T, N, A> &x, detail::x86_simd<T, N, A> *iptr) noexcept requires detail::x86_overload_any<T, N, A>
@@ -76,6 +106,7 @@ namespace dpm
 		detail::vectorize([](auto &res, auto x) { res = detail::logb(x); }, result, x);
 		return result;
 	}
+#endif
 
 	/** Copies sign bit from elements of vector \a sign to elements of vector \a x, and returns the resulting vector. */
 	template<std::floating_point T, std::size_t N, std::size_t A>

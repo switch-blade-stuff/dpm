@@ -47,16 +47,28 @@
 #define DPM_PURE
 #endif
 
+#if defined(__ibmxl__) || defined(__xlC__)
+#include <builtins.h>
+#endif
+
 namespace dpm::detail
 {
 	DPM_API_PUBLIC void assert_err(const char *file, unsigned long line, const char *func, const char *cnd, const char *msg) noexcept;
 
-#if defined(_MSC_VER)
+#if defined(_MSC_VER) || defined(__INTEL_COMPILER)
 #define DPM_DEBUGTRAP() __debugbreak()
-#elif defined(__clang__) && defined(__has_builtin) && __has_builtin(__builtin_debugtrap)
+#elif defined(__has_builtin) && !defined(__ibmxl__) && __has_builtin(__builtin_debugtrap)
 #define DPM_DEBUGTRAP() __builtin_debugtrap()
-#elif defined(__GNUC__)
+#elif defined(__STDC_HOSTED__) && (__STDC_HOSTED__ == 0) && defined(__GNUC__)
 #define DPM_DEBUGTRAP() __builtin_trap()
+#elif defined(__ARMCC_VERSION)
+#define DPM_DEBUGTRAP() __breakpoint(42)
+#elif defined(__ibmxl__) || defined(__xlC__)
+#define DPM_DEBUGTRAP() __trap(42)
+#elif defined(__DMC__) && defined(_M_IX86)
+#define DPM_DEBUGTRAP() (__asm int 3h)
+#elif defined(__i386__) || defined(__x86_64__)
+#define DPM_DEBUGTRAP() (__asm__ __volatile__("int3"))
 #else
 	[[noreturn]] DPM_API_PUBLIC void assert_trap() noexcept;
 #define DPM_DEBUGTRAP() dpm::detail::assert_trap()

@@ -43,7 +43,7 @@ namespace dpm::detail
 		auto p1 = undefined<V>(), p2 = undefined<V>();
 		const auto p_mask = cmp_lt<T>(abs_x, fill<V>(pio32<T>));
 		const auto p_mask_bits = movemask<T>(p_mask);
-		if (p_mask_bits != fill_bits<extent>()) /* |x| >= Pi / 32 */
+		if (p_mask_bits != fill_bits<extent>()) [[likely]] /* |x| >= Pi / 32 */
 		{
 			/* tan(x) = sin(x) / cos(x) */
 			const auto [sin_x, cos_x] = eval_sincos(sign_x, abs_x);

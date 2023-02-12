@@ -11,14 +11,34 @@
 
 namespace dpm::detail
 {
+//	inline double_v frexp(const double_v &v, int_v *e)
+//	{
+//		const __m128i exponentBits = Const<double>::exponentMask().dataI();
+//		const __m128i exponentPart = _mm_and_si128(_mm_castpd_si128(v.data()), exponentBits);
+//		*e = _mm_sub_epi32(_mm_srli_epi64(exponentPart, 52), _mm_set1_epi32(0x3fe));
+//		const __m128d exponentMaximized = _mm_or_pd(v.data(), _mm_castsi128_pd(exponentBits));
+//		double_v ret = _mm_and_pd(exponentMaximized, _mm_load_pd(reinterpret_cast<const double *>(&c_general::frexpMask[0])));
+//		double_m zeroMask = v == double_v::Zero();
+//		ret(isnan(v) || !isfinite(v) || zeroMask) = v;
+//		e->setZero(zeroMask.data());
+//		return ret;
+//	}
+//	inline float_v frexp(const float_v &v, int_v *e)
+//	{
+//		const __m128i exponentBits = Const<float>::exponentMask().dataI();
+//		const __m128i exponentPart = _mm_and_si128(_mm_castps_si128(v.data()), exponentBits);
+//		*e = _mm_sub_epi32(_mm_srli_epi32(exponentPart, 23), _mm_set1_epi32(0x7e));
+//		const __m128 exponentMaximized = _mm_or_ps(v.data(), _mm_castsi128_ps(exponentBits));
+//		float_v ret = _mm_and_ps(exponentMaximized, _mm_castsi128_ps(_mm_set1_epi32(0xbf7fffff)));
+//		ret(isnan(v) || !isfinite(v) || v == float_v::Zero()) = v;
+//		e->setZero(v == float_v::Zero());
+//		return ret;
+//	}
+
 	template<typename T, typename V, typename I = int_of_size_t<sizeof(T)>, typename Vi = select_vector_t<I, sizeof(V)>>
 	[[nodiscard]] DPM_FORCEINLINE auto impl_modf(V x, V &ip) noexcept
 	{
-		const auto nan = fill<V>(std::numeric_limits<T>::quiet_NaN());
 		const auto ix = std::bit_cast<Vi>(x);
-#ifdef DPM_PROPAGATE_NAN
-		const auto nan_mask = isunord(x, x);
-#endif
 
 		/* e = ((ix >> mant_bits) & exp_mask) - exp_off */
 		auto e = bit_shiftr<I, mant_bits<T>>(ix);
@@ -52,14 +72,14 @@ namespace dpm::detail
 		ip = blendv<T>(x2, ip, mask_zero);
 
 		/* x = mask_zero ? x1 : (x - x2) */
-		x = blendv<T>(sub<T>(x, x2), x1, mask_zero);
-		x = blendv<T>(x, fract_x, fract_mask);
-		x = blendv<T>(x, int_x, int_mask);
+		auto y = blendv<T>(sub<T>(x, x2), x1, mask_zero);
+		y = blendv<T>(y, fract_x, fract_mask);
+		y = blendv<T>(y, int_x, int_mask);
 
 #ifdef DPM_PROPAGATE_NAN
-		x = blendv<T>(x, nan, nan_mask);
+		y = blendv<T>(y, x, isunord(x, x));
 #endif
-		return x;
+		return y;
 	}
 
 	__m128 DPM_API_PUBLIC DPM_MATHFUNC modf(__m128 x, __m128 &ip) noexcept { return impl_modf<float>(x, ip); }
@@ -94,22 +114,13 @@ namespace dpm::detail
 	[[nodiscard]] DPM_FORCEINLINE auto impl_ilogb(V x) noexcept
 	{
 		const auto abs_x = abs<T>(x);
-
-#ifdef DPM_HANDLE_ERRORS
-		const auto zero_mask = cmp_eq<T>(abs_x, setzero<V>());
-		const auto inf_mask = isinf_abs(abs_x);
-#endif
-#ifdef DPM_PROPAGATE_NAN
-		const auto nan_mask = isunord(x, x);
-#endif
-
 		auto y = eval_ilogb<T, I>(abs_x);
 #ifdef DPM_HANDLE_ERRORS
-		y = blendv<I>(y, fill<decltype(y)>(std::numeric_limits<I>::max()), std::bit_cast<decltype(y)>(inf_mask));
-		y = blendv<I>(y, fill<decltype(y)>(static_cast<I>(FP_ILOGB0)), std::bit_cast<decltype(y)>(zero_mask));
+		y = blendv<I>(y, fill<decltype(y)>(static_cast<I>(FP_ILOGB0)), std::bit_cast<decltype(y)>(cmp_eq<T>(abs_x, setzero<V>())));
+		y = blendv<I>(y, fill<decltype(y)>(std::numeric_limits<I>::max()), std::bit_cast<decltype(y)>(isinf_abs(abs_x)));
 #endif
 #ifdef DPM_PROPAGATE_NAN
-		y = blendv<I>(y, fill<decltype(y)>(static_cast<I>(FP_ILOGBNAN)), std::bit_cast<decltype(y)>(nan_mask));
+		y = blendv<I>(y, fill<decltype(y)>(static_cast<I>(FP_ILOGBNAN)), std::bit_cast<decltype(y)>(isunord(x, x)));
 #endif
 		return y;
 	}
@@ -126,32 +137,22 @@ namespace dpm::detail
 	[[nodiscard]] DPM_FORCEINLINE auto impl_logb(V x) noexcept
 	{
 		const auto abs_x = abs<T>(x);
-
+		auto y = cvt<T, I>(eval_ilogb<T, I>(abs_x));
 #ifdef DPM_HANDLE_ERRORS
 		const auto ninf = fill<V>(-std::numeric_limits<T>::infinity());
-		const auto inf = fill<V>(std::numeric_limits<T>::infinity());
 		const auto zero_mask = cmp_eq<T>(abs_x, setzero<V>());
-		const auto inf_mask = cmp_eq<T>(abs_x, inf);
 		if (movemask<T>(zero_mask)) [[unlikely]]
 		{
 			std::feraiseexcept(FE_DIVBYZERO);
 			errno = ERANGE;
 		}
+		y = blendv<T>(y, abs_x, isinf_abs(abs_x));
+		y = blendv<T>(y, ninf, zero_mask);
 #endif
 #ifdef DPM_PROPAGATE_NAN
-		const auto nan = fill<V>(std::numeric_limits<T>::quiet_NaN());
-		const auto nan_mask = isunord(x, x);
+		y = blendv<T>(y, x, isunord(x, x));
 #endif
-
-		x = cvt<T, I>(eval_ilogb<T, I>(abs_x));
-#ifdef DPM_HANDLE_ERRORS
-		x = blendv<T>(x, ninf, zero_mask);
-		x = blendv<T>(x, inf, inf_mask);
-#endif
-#ifdef DPM_PROPAGATE_NAN
-		x = blendv<T>(x, nan, nan_mask);
-#endif
-		return x;
+		return y;
 	}
 
 	__m128 DPM_API_PUBLIC DPM_MATHFUNC logb(__m128 x) noexcept { return impl_logb<float>(x); }

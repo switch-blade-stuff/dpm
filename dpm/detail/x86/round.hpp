@@ -136,7 +136,7 @@ namespace dpm
 #endif
 		}
 		template<std::same_as<float> T>
-		DPM_FORCEINLINE void round(__m128 x, __m128 *dst) noexcept
+		inline void round(__m128 x, __m128 *dst) noexcept
 		{
 #if defined(DPM_HAS_SSE4_1)
 			const auto sign = bit_and(x, _mm_set1_ps(-0.0f));
@@ -167,7 +167,7 @@ namespace dpm
 #endif
 		}
 		template<std::same_as<float> T>
-		DPM_FORCEINLINE void rint(__m128 x, __m128 *dst) noexcept
+		inline void rint(__m128 x, __m128 *dst) noexcept
 		{
 #ifdef DPM_HAS_SSE4_1
 			*dst = _mm_round_ps(x, _MM_FROUND_RAISE_EXC | _MM_FROUND_CUR_DIRECTION);
@@ -190,6 +190,7 @@ namespace dpm
 			const auto exc = _MM_GET_EXCEPTION_STATE();
 			rint<float>(x, &x);
 			_MM_SET_EXCEPTION_STATE(exc);
+			return x;
 #endif
 		}
 
@@ -224,7 +225,7 @@ namespace dpm
 #endif
 		}
 		template<std::same_as<double> T>
-		DPM_FORCEINLINE void round(__m128d x, __m128d *dst) noexcept
+		inline void round(__m128d x, __m128d *dst) noexcept
 		{
 #if defined(DPM_HAS_SSE4_1)
 			const auto sign = bit_and(x, _mm_set1_pd(-0.0f));
@@ -245,7 +246,7 @@ namespace dpm
 		template<integral_of_size<8> T>
 		DPM_FORCEINLINE void rint(__m128d x, __m128i *dst) noexcept { *dst = cvt_f64_i64(x); }
 		template<std::same_as<double> T>
-		DPM_FORCEINLINE void rint(__m128d x, __m128d *dst) noexcept
+		inline void rint(__m128d x, __m128d *dst) noexcept
 		{
 #ifdef DPM_HAS_SSE4_1
 			*dst = _mm_round_pd(x, _MM_FROUND_RAISE_EXC | _MM_FROUND_CUR_DIRECTION);
@@ -262,13 +263,13 @@ namespace dpm
 
 		[[nodiscard]] DPM_FORCEINLINE __m128d nearbyint(__m128d x) noexcept
 		{
-			return x;
 #ifdef DPM_HAS_SSE4_1
 			return _mm_round_pd(x, _MM_FROUND_NO_EXC | _MM_FROUND_CUR_DIRECTION);
 #else
 			const auto exc = _MM_GET_EXCEPTION_STATE();
 			rint<double>(x, &x);
 			_MM_SET_EXCEPTION_STATE(exc);
+			return x;
 #endif
 		}
 
@@ -411,39 +412,21 @@ namespace dpm
 #endif
 
 		template<typename T, typename V>
-		DPM_FORCEINLINE void round(V x, __m256 *dst) noexcept requires (sizeof(V) == 16)
-		{
-			round<T>(x, reinterpret_cast<__m128 *>(dst));
-		}
+		DPM_FORCEINLINE void round(V x, __m256 *dst) noexcept requires (sizeof(V) == 16) { round<T>(x, reinterpret_cast<__m128 *>(dst)); }
 		template<typename T, typename V>
-		DPM_FORCEINLINE void round(V x, __m256d *dst) noexcept requires (sizeof(V) == 16)
-		{
-			round<T>(x, reinterpret_cast<__m128d *>(dst));
-		}
+		DPM_FORCEINLINE void round(V x, __m256d *dst) noexcept requires (sizeof(V) == 16) { round<T>(x, reinterpret_cast<__m128d *>(dst)); }
 		template<typename T, typename V>
-		DPM_FORCEINLINE void round(V x, __m256i *dst) noexcept requires (sizeof(V) == 16)
-		{
-			round<T>(x, reinterpret_cast<__m128 *>(dst));
-		}
+		DPM_FORCEINLINE void round(V x, __m256i *dst) noexcept requires (sizeof(V) == 16) { round<T>(x, reinterpret_cast<__m128 *>(dst)); }
 
 		DPM_FORCEINLINE void lround(auto x, auto *dst) noexcept { rint<long>(x, dst); }
 		DPM_FORCEINLINE void llround(auto x, auto *dst) noexcept { rint<long long>(x, dst); }
 
 		template<typename T, typename V>
-		DPM_FORCEINLINE void rint(V x, __m256 *dst) noexcept requires (sizeof(V) == 16)
-		{
-			rint<T>(x, reinterpret_cast<__m128 *>(dst));
-		}
+		DPM_FORCEINLINE void rint(V x, __m256 *dst) noexcept requires (sizeof(V) == 16) { rint<T>(x, reinterpret_cast<__m128 *>(dst)); }
 		template<typename T, typename V>
-		DPM_FORCEINLINE void rint(V x, __m256d *dst) noexcept requires (sizeof(V) == 16)
-		{
-			rint<T>(x, reinterpret_cast<__m128d *>(dst));
-		}
+		DPM_FORCEINLINE void rint(V x, __m256d *dst) noexcept requires (sizeof(V) == 16) { rint<T>(x, reinterpret_cast<__m128d *>(dst)); }
 		template<typename T, typename V>
-		DPM_FORCEINLINE void rint(V x, __m256i *dst) noexcept requires (sizeof(V) == 16)
-		{
-			rint<T>(x, reinterpret_cast<__m128 *>(dst));
-		}
+		DPM_FORCEINLINE void rint(V x, __m256i *dst) noexcept requires (sizeof(V) == 16) { rint<T>(x, reinterpret_cast<__m128 *>(dst)); }
 
 		DPM_FORCEINLINE void lrint(auto x, auto *dst) noexcept { rint<long>(x, dst); }
 		DPM_FORCEINLINE void llrint(auto x, auto *dst) noexcept { rint<long long>(x, dst); }
@@ -484,7 +467,7 @@ namespace dpm
 
 	/** Rounds elements of vector \a x to nearest integer rounding away from zero, and returns the resulting vector. */
 	template<std::floating_point T, std::size_t N, std::size_t A>
-	[[nodiscard]] inline detail::x86_simd<T, N, A> round(const detail::x86_simd<T, N, A> &x) noexcept requires detail::x86_overload_any<T, N, A>
+	[[nodiscard]] DPM_FORCEINLINE detail::x86_simd<T, N, A> round(const detail::x86_simd<T, N, A> &x) noexcept requires detail::x86_overload_any<T, N, A>
 	{
 		detail::x86_simd<T, N, A> result = {};
 		detail::vectorize([](auto &res, auto x) { detail::round<T>(x, &res); }, result, x);
@@ -492,7 +475,7 @@ namespace dpm
 	}
 	/** Casts elements of vector \a x to `long` rounding away from zero, and returns the resulting integer vector. */
 	template<std::floating_point T, std::size_t N, std::size_t A>
-	[[nodiscard]] inline detail::x86_simd<long, N, A> lround(const detail::x86_simd<T, N, A> &x) noexcept requires detail::x86_overload_any<T, N, A> && detail::x86_overload_any<long, N, A>
+	[[nodiscard]] DPM_FORCEINLINE detail::x86_simd<long, N, A> lround(const detail::x86_simd<T, N, A> &x) noexcept requires detail::x86_overload_any<T, N, A> && detail::x86_overload_any<long, N, A>
 	{
 		constexpr auto to_extent = sizeof(ext::native_data_type_t<detail::x86_simd<long, N, A>>) / sizeof(long);
 		constexpr auto from_extent = sizeof(ext::native_data_type_t<detail::x86_simd<T, N, A>>) / sizeof(T);
@@ -507,7 +490,7 @@ namespace dpm
 	}
 	/** Casts elements of vector \a x to `long long` rounding away from zero, and returns the resulting integer vector. */
 	template<std::floating_point T, std::size_t N, std::size_t A>
-	[[nodiscard]] inline detail::x86_simd<long long, N, A> llround(const detail::x86_simd<T, N, A> &x) noexcept requires detail::x86_overload_any<T, N, A> && detail::x86_overload_any<long long, N, A>
+	[[nodiscard]] DPM_FORCEINLINE detail::x86_simd<long long, N, A> llround(const detail::x86_simd<T, N, A> &x) noexcept requires detail::x86_overload_any<T, N, A> && detail::x86_overload_any<long long, N, A>
 	{
 		constexpr auto to_extent = sizeof(ext::native_data_type_t<detail::x86_simd<long long, N, A>>) / sizeof(long long);
 		constexpr auto from_extent = sizeof(ext::native_data_type_t<detail::x86_simd<T, N, A>>) / sizeof(T);
@@ -523,7 +506,7 @@ namespace dpm
 
 	/** Rounds elements of vector \a x to nearest integer using current rounding mode with exceptions, and returns the resulting vector. */
 	template<std::floating_point T, std::size_t N, std::size_t A>
-	[[nodiscard]] inline detail::x86_simd<T, N, A> rint(const detail::x86_simd<T, N, A> &x) noexcept requires detail::x86_overload_any<T, N, A>
+	[[nodiscard]] DPM_FORCEINLINE detail::x86_simd<T, N, A> rint(const detail::x86_simd<T, N, A> &x) noexcept requires detail::x86_overload_any<T, N, A>
 	{
 		detail::x86_simd<T, N, A> result = {};
 		detail::vectorize([](auto &res, auto x) { detail::rint<T>(x, &res); }, result, x);
@@ -531,7 +514,7 @@ namespace dpm
 	}
 	/** Casts elements of vector \a x to `long` using current rounding mode with exceptions, and returns the resulting integer vector. */
 	template<std::floating_point T, std::size_t N, std::size_t A>
-	[[nodiscard]] inline detail::x86_simd<long, N, A> lrint(const detail::x86_simd<T, N, A> &x) noexcept requires detail::x86_overload_any<T, N, A> && detail::x86_overload_any<long, N, A>
+	[[nodiscard]] DPM_FORCEINLINE detail::x86_simd<long, N, A> lrint(const detail::x86_simd<T, N, A> &x) noexcept requires detail::x86_overload_any<T, N, A> && detail::x86_overload_any<long, N, A>
 	{
 		constexpr auto to_extent = sizeof(ext::native_data_type_t<detail::x86_simd<long, N, A>>) / sizeof(long);
 		constexpr auto from_extent = sizeof(ext::native_data_type_t<detail::x86_simd<T, N, A>>) / sizeof(T);
@@ -546,7 +529,7 @@ namespace dpm
 	}
 	/** Casts elements of vector \a x to `long long` using current rounding mode with exceptions, and returns the resulting integer vector. */
 	template<std::floating_point T, std::size_t N, std::size_t A>
-	[[nodiscard]] inline detail::x86_simd<long long, N, A> llrint(const detail::x86_simd<T, N, A> &x) noexcept requires detail::x86_overload_any<T, N, A> && detail::x86_overload_any<long long, N, A>
+	[[nodiscard]] DPM_FORCEINLINE detail::x86_simd<long long, N, A> llrint(const detail::x86_simd<T, N, A> &x) noexcept requires detail::x86_overload_any<T, N, A> && detail::x86_overload_any<long long, N, A>
 	{
 		constexpr auto to_extent = sizeof(ext::native_data_type_t<detail::x86_simd<long long, N, A>>) / sizeof(long long);
 		constexpr auto from_extent = sizeof(ext::native_data_type_t<detail::x86_simd<T, N, A>>) / sizeof(T);
@@ -564,7 +547,7 @@ namespace dpm
 	{
 		/** Casts elements of vector \a x to integer of type \a I rounding away from zero, and returns the resulting integer vector. */
 		template<std::signed_integral I, std::floating_point T, std::size_t N, std::size_t A>
-		[[nodiscard]] inline detail::x86_simd<I, N, A> iround(const detail::x86_simd<T, N, A> &x) noexcept requires detail::x86_overload_any<T, N, A> && detail::x86_overload_any<I, N, A>
+		[[nodiscard]] DPM_FORCEINLINE detail::x86_simd<I, N, A> iround(const detail::x86_simd<T, N, A> &x) noexcept requires detail::x86_overload_any<T, N, A> && detail::x86_overload_any<I, N, A>
 		{
 			detail::x86_simd<I, N, A> result = {};
 			detail::vectorize([](auto &res, auto x) { detail::round<I>(x, &res); }, result, x);
@@ -573,7 +556,7 @@ namespace dpm
 
 		/** Casts elements of vector \a x to integer of type \a I using current rounding mode with exceptions, and returns the resulting integer vector. */
 		template<std::signed_integral I, std::floating_point T, std::size_t N, std::size_t A>
-		[[nodiscard]] inline detail::x86_simd<I, N, A> irint(const detail::x86_simd<T, N, A> &x) noexcept requires detail::x86_overload_any<T, N, A> && detail::x86_overload_any<I, N, A>
+		[[nodiscard]] DPM_FORCEINLINE detail::x86_simd<I, N, A> irint(const detail::x86_simd<T, N, A> &x) noexcept requires detail::x86_overload_any<T, N, A> && detail::x86_overload_any<I, N, A>
 		{
 			detail::x86_simd<I, N, A> result = {};
 			detail::vectorize([](auto &res, auto x) { detail::rint<I>(x, &res); }, result, x);

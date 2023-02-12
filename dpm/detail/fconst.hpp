@@ -15,14 +15,21 @@
 
 namespace dpm::detail
 {
+	template<std::floating_point T>
+	static constexpr T pio32 = std::numbers::pi_v<T> / T{32.0};
+	template<std::floating_point T>
+	static constexpr T pio4 = std::numbers::pi_v<T> / T{4.0};
+	template<std::floating_point T>
+	static constexpr T loge2 = T{0.69314718055994530942};
+
 	template<typename T>
-	constexpr static int exp_mask = std::same_as<T, double> ? 0x7ff : 0xff;
+	static constexpr int exp_mask = std::same_as<T, double> ? 0x7ff : 0xff;
 	template<typename T>
-	constexpr static int exp_off = std::same_as<T, double> ? 1023 : 127;
+	static constexpr int exp_off = std::same_as<T, double> ? 1023 : 127;
 	template<typename T>
-	constexpr static int mant_bits = std::same_as<T, double> ? 52 : 23;
+	static constexpr int mant_bits = std::same_as<T, double> ? 52 : 23;
 	template<typename T>
-	constexpr static int exp_bits = std::same_as<T, double> ? 11 : 8;
+	static constexpr int exp_bits = std::same_as<T, double> ? 11 : 8;
 
 	/* In some cases x86 intrinsics generate extraneous casts if literals are used with intrinsics. As such, define commonly used values here. */
 	template<std::floating_point T>
@@ -38,10 +45,6 @@ namespace dpm::detail
 
 	template<std::floating_point T>
 	static constexpr T dp_sincos[] = {T{-7.85398125648498535156e-1}, T{-3.77489470793079817668e-8}, T{-2.69515142907905952645e-15}};
-	template<std::floating_point T>
-	static constexpr T pio32 = std::numbers::pi_v<T> / T{32.0};
-	template<std::floating_point T>
-	static constexpr T pio4 = std::numbers::pi_v<T> / T{4.0};
 
 	template<std::floating_point T>
 	static constexpr T sincof[] = {
