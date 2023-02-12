@@ -17,10 +17,14 @@ namespace dpm
 	namespace detail
 	{
 #ifndef DPM_HAS_SSE4_1
-		[[nodiscard]] DPM_FORCEINLINE auto mask_domain(auto x, auto result) noexcept
+		[[nodiscard]] DPM_FORCEINLINE auto mask_domain([[maybe_unused]] auto x, auto result) noexcept
 		{
+#ifdef DPMDPM_HANDLE_ERRORS
 			const auto fin_mask = isfinite(x);
 			return bit_or(bit_andnot(fin_mask, x), bit_and(fin_mask, result));
+#else
+			return result;
+#endif
 		}
 #endif
 

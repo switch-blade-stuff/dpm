@@ -136,7 +136,7 @@ DPM provides the following utilities and extensions to the standard API:
     * `#define DPM_NEVER_INLINE`
     * `#define DPM_FORCEINLINE`
     * `#define DPM_ASSUME(cnd)`
-* Assertions
+* Assertions & traps
     * `#define DPM_ASSERT_MSG_ALWAYS(cnd, msg)`
     * `#define DPM_ASSERT_MSG(cnd, msg)`
     * `#define DPM_ASSERT_ALWAYS(cnd)`

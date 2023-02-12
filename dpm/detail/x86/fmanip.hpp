@@ -28,8 +28,8 @@ namespace dpm
 #endif
 
 #ifdef DPM_HAS_SSE2
-		[[nodiscard]] __m128 DPM_API_PUBLIC DPM_MATHFUNC ldexp(__m128 x, __m128i exp) noexcept;
-		[[nodiscard]] __m128d DPM_API_PUBLIC DPM_MATHFUNC ldexp(__m128d x, __m128i exp) noexcept;
+		[[nodiscard]] __m128 DPM_PUBLIC DPM_MATHFUNC ldexp(__m128 x, __m128i exp) noexcept;
+		[[nodiscard]] __m128d DPM_PUBLIC DPM_MATHFUNC ldexp(__m128d x, __m128i exp) noexcept;
 
 		[[nodiscard]] DPM_FORCEINLINE __m128 ldexp(__m128 x, const __m128i *exp, std::size_t i) noexcept { return ldexp(x, exp[i]); }
 		[[nodiscard]] DPM_FORCEINLINE __m128d ldexp(__m128d x, const __m128i *exp, std::size_t i) noexcept
@@ -42,11 +42,11 @@ namespace dpm
 			return ldexp(x, exp64);
 		}
 
-		[[nodiscard]] __m128 DPM_API_PUBLIC DPM_MATHFUNC modf(__m128 x, __m128 *iptr) noexcept;
-		[[nodiscard]] __m128d DPM_API_PUBLIC DPM_MATHFUNC modf(__m128d x, __m128d *iptr) noexcept;
+		[[nodiscard]] __m128 DPM_PUBLIC DPM_MATHFUNC modf(__m128 x, __m128 *iptr) noexcept;
+		[[nodiscard]] __m128d DPM_PUBLIC DPM_MATHFUNC modf(__m128d x, __m128d *iptr) noexcept;
 
-		[[nodiscard]] __m128i DPM_API_PUBLIC DPM_MATHFUNC ilogb(__m128 x) noexcept;
-		[[nodiscard]] __m128i DPM_API_PUBLIC DPM_MATHFUNC ilogb(__m128d x) noexcept;
+		[[nodiscard]] __m128i DPM_PUBLIC DPM_MATHFUNC ilogb(__m128 x) noexcept;
+		[[nodiscard]] __m128i DPM_PUBLIC DPM_MATHFUNC ilogb(__m128d x) noexcept;
 
 		DPM_FORCEINLINE void ilogb(__m128 x, __m128i *out, std::size_t i) noexcept { out[i] = ilogb(x); }
 		DPM_FORCEINLINE void ilogb(__m128d x, __m128i *out, std::size_t i) noexcept
@@ -59,14 +59,14 @@ namespace dpm
 		}
 
 #ifndef DPM_USE_SVML
-		[[nodiscard]] __m128 DPM_API_PUBLIC DPM_MATHFUNC logb(__m128 x) noexcept;
-		[[nodiscard]] __m128d DPM_API_PUBLIC DPM_MATHFUNC logb(__m128d x) noexcept;
+		[[nodiscard]] __m128 DPM_PUBLIC DPM_MATHFUNC logb(__m128 x) noexcept;
+		[[nodiscard]] __m128d DPM_PUBLIC DPM_MATHFUNC logb(__m128d x) noexcept;
 #endif
 #endif
 
 #ifdef DPM_HAS_AVX
-		[[nodiscard]] __m256 DPM_API_PUBLIC DPM_MATHFUNC ldexp(__m256 x, __m256i exp) noexcept;
-		[[nodiscard]] __m256d DPM_API_PUBLIC DPM_MATHFUNC ldexp(__m256d x, __m256i exp) noexcept;
+		[[nodiscard]] __m256 DPM_PUBLIC DPM_MATHFUNC ldexp(__m256 x, __m256i exp) noexcept;
+		[[nodiscard]] __m256d DPM_PUBLIC DPM_MATHFUNC ldexp(__m256d x, __m256i exp) noexcept;
 
 		[[nodiscard]] DPM_FORCEINLINE __m256 ldexp(__m256 x, const __m256i *exp, std::size_t i) noexcept { return ldexp(x, exp[i]); }
 		[[nodiscard]] DPM_FORCEINLINE __m256d ldexp(__m256d x, const __m128i *exp, std::size_t i) noexcept
@@ -91,11 +91,11 @@ namespace dpm
 #endif
 		}
 
-		[[nodiscard]] __m256 DPM_API_PUBLIC DPM_MATHFUNC modf(__m256 x, __m256 *iptr) noexcept;
-		[[nodiscard]] __m256d DPM_API_PUBLIC DPM_MATHFUNC modf(__m256d x, __m256d *iptr) noexcept;
+		[[nodiscard]] __m256 DPM_PUBLIC DPM_MATHFUNC modf(__m256 x, __m256 *iptr) noexcept;
+		[[nodiscard]] __m256d DPM_PUBLIC DPM_MATHFUNC modf(__m256d x, __m256d *iptr) noexcept;
 
-		[[nodiscard]] __m256i DPM_API_PUBLIC DPM_MATHFUNC ilogb(__m256 x) noexcept;
-		[[nodiscard]] __m256i DPM_API_PUBLIC DPM_MATHFUNC ilogb(__m256d x) noexcept;
+		[[nodiscard]] __m256i DPM_PUBLIC DPM_MATHFUNC ilogb(__m256 x) noexcept;
+		[[nodiscard]] __m256i DPM_PUBLIC DPM_MATHFUNC ilogb(__m256d x) noexcept;
 
 		DPM_FORCEINLINE void ilogb(__m256 x, __m256i *out, std::size_t i) noexcept { out[i] = ilogb(x); }
 		DPM_FORCEINLINE void ilogb(__m256d x, __m256i *out, std::size_t i) noexcept
@@ -108,8 +108,8 @@ namespace dpm
 		}
 
 #ifndef DPM_USE_SVML
-		[[nodiscard]] __m256 DPM_API_PUBLIC DPM_MATHFUNC logb(__m256 x) noexcept;
-		[[nodiscard]] __m256d DPM_API_PUBLIC DPM_MATHFUNC logb(__m256d x) noexcept;
+		[[nodiscard]] __m256 DPM_PUBLIC DPM_MATHFUNC logb(__m256 x) noexcept;
+		[[nodiscard]] __m256d DPM_PUBLIC DPM_MATHFUNC logb(__m256d x) noexcept;
 #endif
 #endif
 	}

@@ -53,7 +53,7 @@
 
 namespace dpm::detail
 {
-	DPM_API_PUBLIC void assert_err(const char *file, unsigned long line, const char *func, const char *cnd, const char *msg) noexcept;
+	DPM_PUBLIC void assert_err(const char *file, unsigned long line, const char *func, const char *cnd, const char *msg) noexcept;
 
 #if defined(_MSC_VER) || defined(__INTEL_COMPILER)
 #define DPM_DEBUGTRAP() __debugbreak()
@@ -70,7 +70,7 @@ namespace dpm::detail
 #elif defined(__i386__) || defined(__x86_64__)
 #define DPM_DEBUGTRAP() (__asm__ __volatile__("int3"))
 #else
-	[[noreturn]] DPM_API_PUBLIC void assert_trap() noexcept;
+	[[noreturn]] DPM_PUBLIC void assert_trap() noexcept;
 #define DPM_DEBUGTRAP() dpm::detail::assert_trap()
 #endif
 }

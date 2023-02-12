@@ -88,11 +88,11 @@ namespace dpm::detail
 		return y;
 	}
 
-	__m128 DPM_API_PUBLIC DPM_MATHFUNC ldexp(__m128 x, __m128i exp) noexcept { return impl_ldexp<float>(x,exp); }
-	__m128d DPM_API_PUBLIC DPM_MATHFUNC ldexp(__m128d x, __m128i exp) noexcept { return impl_ldexp<double>(x,exp); }
+	__m128 DPM_PUBLIC DPM_MATHFUNC ldexp(__m128 x, __m128i exp) noexcept { return impl_ldexp<float>(x, exp); }
+	__m128d DPM_PUBLIC DPM_MATHFUNC ldexp(__m128d x, __m128i exp) noexcept { return impl_ldexp<double>(x, exp); }
 #ifdef DPM_HAS_AVX
-	__m256 DPM_API_PUBLIC DPM_MATHFUNC ldexp(__m256 x, __m256i exp) noexcept { return impl_ldexp<float>(x,exp); }
-	__m256d DPM_API_PUBLIC DPM_MATHFUNC ldexp(__m256d x, __m256i exp) noexcept { return impl_ldexp<double>(x,exp); }
+	__m256 DPM_PUBLIC DPM_MATHFUNC ldexp(__m256 x, __m256i exp) noexcept { return impl_ldexp<float>(x, exp); }
+	__m256d DPM_PUBLIC DPM_MATHFUNC ldexp(__m256d x, __m256i exp) noexcept { return impl_ldexp<double>(x, exp); }
 #endif
 
 	template<typename T, typename V, typename I = int_of_size_t<sizeof(T)>, typename Vi = select_vector_t<I, sizeof(V)>>
@@ -142,8 +142,8 @@ namespace dpm::detail
 		return y;
 	}
 
-	__m128 DPM_API_PUBLIC DPM_MATHFUNC modf(__m128 x, __m128 &ip) noexcept { return impl_modf<float>(x, ip); }
-	__m128d DPM_API_PUBLIC DPM_MATHFUNC modf(__m128d x, __m128d &ip) noexcept { return impl_modf<double>(x, ip); }
+	__m128 DPM_PUBLIC DPM_MATHFUNC modf(__m128 x, __m128 &ip) noexcept { return impl_modf<float>(x, ip); }
+	__m128d DPM_PUBLIC DPM_MATHFUNC modf(__m128d x, __m128d &ip) noexcept { return impl_modf<double>(x, ip); }
 
 	template<typename T, typename I, typename V, typename Vi = select_vector_t<I, sizeof(V)>>
 	[[nodiscard]] DPM_FORCEINLINE Vi eval_ilogb(V abs_x) noexcept
@@ -185,11 +185,11 @@ namespace dpm::detail
 		return y;
 	}
 
-	__m128i DPM_API_PUBLIC DPM_MATHFUNC ilogb(__m128 x) noexcept { return impl_ilogb<float>(x); }
-	__m128i DPM_API_PUBLIC DPM_MATHFUNC ilogb(__m128d x) noexcept { return impl_ilogb<double>(x); }
+	__m128i DPM_PUBLIC DPM_MATHFUNC ilogb(__m128 x) noexcept { return impl_ilogb<float>(x); }
+	__m128i DPM_PUBLIC DPM_MATHFUNC ilogb(__m128d x) noexcept { return impl_ilogb<double>(x); }
 #ifdef DPM_HAS_AVX
-	__m256i DPM_API_PUBLIC DPM_MATHFUNC ilogb(__m256 x) noexcept { return impl_ilogb<float>(x); }
-	__m256i DPM_API_PUBLIC DPM_MATHFUNC ilogb(__m256d x) noexcept { return impl_ilogb<double>(x); }
+	__m256i DPM_PUBLIC DPM_MATHFUNC ilogb(__m256 x) noexcept { return impl_ilogb<float>(x); }
+	__m256i DPM_PUBLIC DPM_MATHFUNC ilogb(__m256d x) noexcept { return impl_ilogb<double>(x); }
 #endif
 
 #ifndef DPM_USE_SVML
@@ -215,12 +215,12 @@ namespace dpm::detail
 		return y;
 	}
 
-	__m128 DPM_API_PUBLIC DPM_MATHFUNC logb(__m128 x) noexcept { return impl_logb<float>(x); }
-	__m128d DPM_API_PUBLIC DPM_MATHFUNC logb(__m128d x) noexcept { return impl_logb<double>(x); }
+	__m128 DPM_PUBLIC DPM_MATHFUNC logb(__m128 x) noexcept { return impl_logb<float>(x); }
+	__m128d DPM_PUBLIC DPM_MATHFUNC logb(__m128d x) noexcept { return impl_logb<double>(x); }
 
 #ifdef DPM_HAS_AVX
-	__m256 DPM_API_PUBLIC DPM_MATHFUNC logb(__m256 x) noexcept { return impl_logb<float>(x); }
-	__m256d DPM_API_PUBLIC DPM_MATHFUNC logb(__m256d x) noexcept { return impl_logb<double>(x); }
+	__m256 DPM_PUBLIC DPM_MATHFUNC logb(__m256 x) noexcept { return impl_logb<float>(x); }
+	__m256d DPM_PUBLIC DPM_MATHFUNC logb(__m256d x) noexcept { return impl_logb<double>(x); }
 #endif
 #endif
 }

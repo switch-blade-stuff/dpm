@@ -16,48 +16,48 @@ namespace dpm
 	namespace detail
 	{
 #ifndef DPM_USE_SVML
-		[[nodiscard]] std::pair<__m128, __m128> DPM_API_PRIVATE DPM_MATHFUNC eval_sincos(__m128 sign_x, __m128 abs_x) noexcept;
-		[[nodiscard]] std::pair<__m128d, __m128d> DPM_API_PRIVATE DPM_MATHFUNC eval_sincos(__m128d sign_x, __m128d abs_x) noexcept;
+		[[nodiscard]] std::pair<__m128, __m128> DPM_PRIVATE DPM_MATHFUNC eval_sincos(__m128 sign_x, __m128 abs_x) noexcept;
+		[[nodiscard]] std::pair<__m128d, __m128d> DPM_PRIVATE DPM_MATHFUNC eval_sincos(__m128d sign_x, __m128d abs_x) noexcept;
 
-		[[nodiscard]] std::pair<__m128, __m128> DPM_API_PUBLIC DPM_MATHFUNC sincos(__m128 x) noexcept;
-		[[nodiscard]] __m128 DPM_API_PUBLIC DPM_MATHFUNC sin(__m128 x) noexcept;
-		[[nodiscard]] __m128 DPM_API_PUBLIC DPM_MATHFUNC cos(__m128 x) noexcept;
-		[[nodiscard]] __m128 DPM_API_PUBLIC DPM_MATHFUNC tan(__m128 x) noexcept;
-		[[nodiscard]] __m128 DPM_API_PUBLIC DPM_MATHFUNC asin(__m128 x) noexcept;
-		[[nodiscard]] __m128 DPM_API_PUBLIC DPM_MATHFUNC acos(__m128 x) noexcept;
-		[[nodiscard]] __m128 DPM_API_PUBLIC DPM_MATHFUNC atan(__m128 x) noexcept;
-		[[nodiscard]] __m128 DPM_API_PUBLIC DPM_MATHFUNC atan2(__m128 a, __m128 b) noexcept;
+		[[nodiscard]] std::pair<__m128, __m128> DPM_PUBLIC DPM_MATHFUNC sincos(__m128 x) noexcept;
+		[[nodiscard]] __m128 DPM_PUBLIC DPM_MATHFUNC sin(__m128 x) noexcept;
+		[[nodiscard]] __m128 DPM_PUBLIC DPM_MATHFUNC cos(__m128 x) noexcept;
+		[[nodiscard]] __m128 DPM_PUBLIC DPM_MATHFUNC tan(__m128 x) noexcept;
+		[[nodiscard]] __m128 DPM_PUBLIC DPM_MATHFUNC asin(__m128 x) noexcept;
+		[[nodiscard]] __m128 DPM_PUBLIC DPM_MATHFUNC acos(__m128 x) noexcept;
+		[[nodiscard]] __m128 DPM_PUBLIC DPM_MATHFUNC atan(__m128 x) noexcept;
+		[[nodiscard]] __m128 DPM_PUBLIC DPM_MATHFUNC atan2(__m128 a, __m128 b) noexcept;
 
-		[[nodiscard]] std::pair<__m128d, __m128d> DPM_API_PUBLIC DPM_MATHFUNC sincos(__m128d x) noexcept;
-		[[nodiscard]] __m128d DPM_API_PUBLIC DPM_MATHFUNC sin(__m128d x) noexcept;
-		[[nodiscard]] __m128d DPM_API_PUBLIC DPM_MATHFUNC cos(__m128d x) noexcept;
-		[[nodiscard]] __m128d DPM_API_PUBLIC DPM_MATHFUNC tan(__m128d x) noexcept;
-		[[nodiscard]] __m128d DPM_API_PUBLIC DPM_MATHFUNC asin(__m128d x) noexcept;
-		[[nodiscard]] __m128d DPM_API_PUBLIC DPM_MATHFUNC acos(__m128d x) noexcept;
-		[[nodiscard]] __m128d DPM_API_PUBLIC DPM_MATHFUNC atan(__m128d x) noexcept;
-		[[nodiscard]] __m128d DPM_API_PUBLIC DPM_MATHFUNC atan2(__m128d a, __m128d b) noexcept;
+		[[nodiscard]] std::pair<__m128d, __m128d> DPM_PUBLIC DPM_MATHFUNC sincos(__m128d x) noexcept;
+		[[nodiscard]] __m128d DPM_PUBLIC DPM_MATHFUNC sin(__m128d x) noexcept;
+		[[nodiscard]] __m128d DPM_PUBLIC DPM_MATHFUNC cos(__m128d x) noexcept;
+		[[nodiscard]] __m128d DPM_PUBLIC DPM_MATHFUNC tan(__m128d x) noexcept;
+		[[nodiscard]] __m128d DPM_PUBLIC DPM_MATHFUNC asin(__m128d x) noexcept;
+		[[nodiscard]] __m128d DPM_PUBLIC DPM_MATHFUNC acos(__m128d x) noexcept;
+		[[nodiscard]] __m128d DPM_PUBLIC DPM_MATHFUNC atan(__m128d x) noexcept;
+		[[nodiscard]] __m128d DPM_PUBLIC DPM_MATHFUNC atan2(__m128d a, __m128d b) noexcept;
 
 #ifdef DPM_HAS_AVX
-		[[nodiscard]] std::pair<__m256, __m256> DPM_API_PRIVATE DPM_MATHFUNC eval_sincos(__m256 sign_x, __m256 abs_x) noexcept;
-		[[nodiscard]] std::pair<__m256d, __m256d> DPM_API_PRIVATE DPM_MATHFUNC eval_sincos(__m256d sign_x, __m256d abs_x) noexcept;
+		[[nodiscard]] std::pair<__m256, __m256> DPM_PRIVATE DPM_MATHFUNC eval_sincos(__m256 sign_x, __m256 abs_x) noexcept;
+		[[nodiscard]] std::pair<__m256d, __m256d> DPM_PRIVATE DPM_MATHFUNC eval_sincos(__m256d sign_x, __m256d abs_x) noexcept;
 
-		[[nodiscard]] std::pair<__m256, __m256> DPM_API_PUBLIC DPM_MATHFUNC sincos(__m256 x) noexcept;
-		[[nodiscard]] __m256 DPM_API_PUBLIC DPM_MATHFUNC sin(__m256 x) noexcept;
-		[[nodiscard]] __m256 DPM_API_PUBLIC DPM_MATHFUNC cos(__m256 x) noexcept;
-		[[nodiscard]] __m256 DPM_API_PUBLIC DPM_MATHFUNC tan(__m256 x) noexcept;
-		[[nodiscard]] __m256 DPM_API_PUBLIC DPM_MATHFUNC asin(__m256 x) noexcept;
-		[[nodiscard]] __m256 DPM_API_PUBLIC DPM_MATHFUNC acos(__m256 x) noexcept;
-		[[nodiscard]] __m256 DPM_API_PUBLIC DPM_MATHFUNC atan(__m256 x) noexcept;
-		[[nodiscard]] __m256 DPM_API_PUBLIC DPM_MATHFUNC atan2(__m256 a, __m256 b) noexcept;
+		[[nodiscard]] std::pair<__m256, __m256> DPM_PUBLIC DPM_MATHFUNC sincos(__m256 x) noexcept;
+		[[nodiscard]] __m256 DPM_PUBLIC DPM_MATHFUNC sin(__m256 x) noexcept;
+		[[nodiscard]] __m256 DPM_PUBLIC DPM_MATHFUNC cos(__m256 x) noexcept;
+		[[nodiscard]] __m256 DPM_PUBLIC DPM_MATHFUNC tan(__m256 x) noexcept;
+		[[nodiscard]] __m256 DPM_PUBLIC DPM_MATHFUNC asin(__m256 x) noexcept;
+		[[nodiscard]] __m256 DPM_PUBLIC DPM_MATHFUNC acos(__m256 x) noexcept;
+		[[nodiscard]] __m256 DPM_PUBLIC DPM_MATHFUNC atan(__m256 x) noexcept;
+		[[nodiscard]] __m256 DPM_PUBLIC DPM_MATHFUNC atan2(__m256 a, __m256 b) noexcept;
 
-		[[nodiscard]] std::pair<__m256d, __m256d> DPM_API_PUBLIC DPM_MATHFUNC sincos(__m256d x) noexcept;
-		[[nodiscard]] __m256d DPM_API_PUBLIC DPM_MATHFUNC sin(__m256d x) noexcept;
-		[[nodiscard]] __m256d DPM_API_PUBLIC DPM_MATHFUNC cos(__m256d x) noexcept;
-		[[nodiscard]] __m256d DPM_API_PUBLIC DPM_MATHFUNC tan(__m256d x) noexcept;
-		[[nodiscard]] __m256d DPM_API_PUBLIC DPM_MATHFUNC asin(__m256d x) noexcept;
-		[[nodiscard]] __m256d DPM_API_PUBLIC DPM_MATHFUNC acos(__m256d x) noexcept;
-		[[nodiscard]] __m256d DPM_API_PUBLIC DPM_MATHFUNC atan(__m256d x) noexcept;
-		[[nodiscard]] __m256d DPM_API_PUBLIC DPM_MATHFUNC atan2(__m256d a, __m256d b) noexcept;
+		[[nodiscard]] std::pair<__m256d, __m256d> DPM_PUBLIC DPM_MATHFUNC sincos(__m256d x) noexcept;
+		[[nodiscard]] __m256d DPM_PUBLIC DPM_MATHFUNC sin(__m256d x) noexcept;
+		[[nodiscard]] __m256d DPM_PUBLIC DPM_MATHFUNC cos(__m256d x) noexcept;
+		[[nodiscard]] __m256d DPM_PUBLIC DPM_MATHFUNC tan(__m256d x) noexcept;
+		[[nodiscard]] __m256d DPM_PUBLIC DPM_MATHFUNC asin(__m256d x) noexcept;
+		[[nodiscard]] __m256d DPM_PUBLIC DPM_MATHFUNC acos(__m256d x) noexcept;
+		[[nodiscard]] __m256d DPM_PUBLIC DPM_MATHFUNC atan(__m256d x) noexcept;
+		[[nodiscard]] __m256d DPM_PUBLIC DPM_MATHFUNC atan2(__m256d a, __m256d b) noexcept;
 #endif
 #else
 		[[nodiscard]] DPM_FORCEINLINE std::pair<__m128, __m128> sincos(__m128 x) noexcept

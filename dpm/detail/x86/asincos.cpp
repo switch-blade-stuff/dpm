@@ -47,11 +47,10 @@ namespace dpm::detail
 	template<typename T, typename V>
 	[[nodiscard]] DPM_FORCEINLINE V impl_asin(V x) noexcept
 	{
-		constexpr auto extent = sizeof(V) / sizeof(T);
 		const auto x_sign = masksign<T>(x);
-		const auto abs_x = bit_xor(x, x_sign);
+		auto abs_x = bit_xor(x, x_sign);
 
-#if defined(DPM_HANDLE_ERRORS) || defined(DPM_PROPAGATE_NAN)
+		/* Check domain. */
 #ifdef DPM_HANDLE_ERRORS
 		const auto dom_mask = cmp_gt<T>(abs_x, fill<V>(one<T>));
 		if (movemask<T>(dom_mask)) [[unlikely]]
@@ -59,31 +58,19 @@ namespace dpm::detail
 			std::feraiseexcept(FE_INVALID);
 			errno = EDOM;
 		}
-		const auto nan_mask = bit_or(dom_mask, isunord(x, x));
-#else
-		const auto nan_mask = isunord(x, x);
+		const auto nan = fill<V>(std::numeric_limits<T>::quiet_NaN());
+		abs_x = blendv<T>(abs_x, nan, bit_or(dom_mask, isunord(x, x)));
 #endif
-		if (movemask<T>(nan_mask) == fill_bits<extent>()) [[unlikely]]
-			return fill<V>(std::numeric_limits<T>::quiet_NaN());
-#endif
-
-		const auto p = do_asin<T>(abs_x, x_sign);
-#ifdef DPM_PROPAGATE_NAN
-		/* return nan_mask ? NaN : p */
-		return blendv<T>(p, fill<V>(std::numeric_limits<T>::quiet_NaN()), nan_mask);
-#else
-		return p;
-#endif
+		return do_asin<T>(abs_x, x_sign);
 	}
 	template<typename T, typename V>
 	[[nodiscard]] DPM_FORCEINLINE V impl_acos(V x) noexcept
 	{
-		constexpr auto extent = sizeof(V) / sizeof(T);
-		const auto x_sign = masksign<T>(x);
-		const auto abs_x = bit_xor(x, x_sign);
 		const auto v_pio4 = fill<V>(pio4<T>);
+		const auto x_sign = masksign<T>(x);
+		auto abs_x = bit_xor(x, x_sign);
 
-#if defined(DPM_HANDLE_ERRORS) || defined(DPM_PROPAGATE_NAN)
+		/* Check domain. */
 #ifdef DPM_HANDLE_ERRORS
 		const auto dom_mask = cmp_gt<T>(abs_x, fill<V>(one<T>));
 		if (movemask<T>(dom_mask)) [[unlikely]]
@@ -91,12 +78,8 @@ namespace dpm::detail
 			std::feraiseexcept(FE_INVALID);
 			errno = EDOM;
 		}
-		const auto nan_mask = bit_or(dom_mask, isunord(x, x));
-#else
-		const auto nan_mask = isunord(x, x);
-#endif
-		if (movemask<T>(nan_mask) == fill_bits<extent>()) [[unlikely]]
-			return fill<V>(std::numeric_limits<T>::quiet_NaN());
+		const auto nan = fill<V>(std::numeric_limits<T>::quiet_NaN());
+		abs_x = blendv<T>(abs_x, nan, bit_or(dom_mask, isunord(x, x)));
 #endif
 
 		/* c_mask = x > 0.5 */
@@ -105,27 +88,20 @@ namespace dpm::detail
 		const auto acos1 = mul<T>(fill<V>(two<T>), do_asin<T>(sqrt(fmadd(x, fill<V>(-half<T>), fill<V>(half<T>))), setzero<V>()));
 		/* acos2: x <= 0.5 */
 		const auto acos2 = add<T>(add<T>(sub<T>(v_pio4, do_asin<T>(abs_x, x_sign)), fill<V>(asin_off<T>)), v_pio4);
-
 		/* Select result. */
-		const auto r = blendv<T>(acos2, acos1, c_mask);
-#ifdef DPM_PROPAGATE_NAN
-		/* return nan_mask ? NaN : p */
-		return blendv<T>(r, fill<V>(std::numeric_limits<T>::quiet_NaN()), nan_mask);
-#else
-		return r;
-#endif
+		return blendv<T>(acos2, acos1, c_mask);
 	}
 
-	__m128 DPM_API_PUBLIC DPM_MATHFUNC asin(__m128 x) noexcept { return impl_asin<float>(x); }
-	__m128 DPM_API_PUBLIC DPM_MATHFUNC acos(__m128 x) noexcept { return impl_acos<float>(x); }
-	__m128d DPM_API_PUBLIC DPM_MATHFUNC asin(__m128d x) noexcept { return impl_asin<double>(x); }
-	__m128d DPM_API_PUBLIC DPM_MATHFUNC acos(__m128d x) noexcept { return impl_acos<double>(x); }
+	__m128 DPM_PUBLIC DPM_MATHFUNC asin(__m128 x) noexcept { return impl_asin<float>(x); }
+	__m128 DPM_PUBLIC DPM_MATHFUNC acos(__m128 x) noexcept { return impl_acos<float>(x); }
+	__m128d DPM_PUBLIC DPM_MATHFUNC asin(__m128d x) noexcept { return impl_asin<double>(x); }
+	__m128d DPM_PUBLIC DPM_MATHFUNC acos(__m128d x) noexcept { return impl_acos<double>(x); }
 
 #ifdef DPM_HAS_AVX
-	__m256 DPM_API_PUBLIC DPM_MATHFUNC asin(__m256 x) noexcept { return impl_asin<float>(x); }
-	__m256 DPM_API_PUBLIC DPM_MATHFUNC acos(__m256 x) noexcept { return impl_acos<float>(x); }
-	__m256d DPM_API_PUBLIC DPM_MATHFUNC asin(__m256d x) noexcept { return impl_asin<double>(x); }
-	__m256d DPM_API_PUBLIC DPM_MATHFUNC acos(__m256d x) noexcept { return impl_acos<double>(x); }
+	__m256 DPM_PUBLIC DPM_MATHFUNC asin(__m256 x) noexcept { return impl_asin<float>(x); }
+	__m256 DPM_PUBLIC DPM_MATHFUNC acos(__m256 x) noexcept { return impl_acos<float>(x); }
+	__m256d DPM_PUBLIC DPM_MATHFUNC asin(__m256d x) noexcept { return impl_asin<double>(x); }
+	__m256d DPM_PUBLIC DPM_MATHFUNC acos(__m256d x) noexcept { return impl_acos<double>(x); }
 #endif
 }
 

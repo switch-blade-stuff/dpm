@@ -125,7 +125,8 @@ static inline void test_trig() noexcept
 			std::numbers::pi_v<T> * 4, std::numbers::pi_v<T> / 6,
 			std::numbers::pi_v<T> * 3, std::numbers::pi_v<T> / 3,
 			std::numbers::pi_v<T> * 5, std::numbers::pi_v<T> / 5,
-			std::numbers::pi_v<T>, std::numeric_limits<T>::quiet_NaN()
+			std::numbers::pi_v<T>, std::numeric_limits<T>::quiet_NaN(),
+			std::numeric_limits<T>::infinity()
 	};
 	invoke_test([](auto x) { return dpm::sin(x); }, std::span{test_vals}, T{1.0e-3}, T{4.8e-7});
 	invoke_test([](auto x) { return dpm::cos(x); }, std::span{test_vals}, T{1.0e-3}, T{4.8e-7});
