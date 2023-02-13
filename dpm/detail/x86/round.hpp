@@ -104,8 +104,9 @@ namespace dpm
 			dst[0] = _mm_cvttps_epi64(x);
 #else
 			const auto tmp = cvtt<std::int32_t, float>(x);
-			dst[0] = _mm_unpacklo_epi32(tmp, _mm_setzero_si128());
-			dst[1] = _mm_unpackhi_epi32(tmp, _mm_setzero_si128());
+			const auto sign = _mm_srai_epi32(tmp, 31);
+			dst[0] = _mm_unpacklo_epi32(tmp, sign);
+			dst[1] = _mm_unpackhi_epi32(tmp, sign);
 #endif
 		}
 
@@ -135,8 +136,9 @@ namespace dpm
 #else
 			__m128i tmp;
 			round<std::int32_t>(x, &tmp);
-			dst[0] = _mm_unpacklo_epi32(tmp, _mm_setzero_si128());
-			dst[1] = _mm_unpackhi_epi32(tmp, _mm_setzero_si128());
+			const auto sign = _mm_srai_epi32(tmp, 31);
+			dst[0] = _mm_unpacklo_epi32(tmp, sign);
+			dst[1] = _mm_unpackhi_epi32(tmp, sign);
 #endif
 		}
 		template<std::same_as<float> T>
@@ -166,8 +168,9 @@ namespace dpm
 			dst[0] = _mm_cvtps_epi64(x);
 #else
 			const auto tmp = _mm_cvtps_epi32(x);
-			dst[0] = _mm_unpacklo_epi32(tmp, _mm_setzero_si128());
-			dst[1] = _mm_unpackhi_epi32(tmp, _mm_setzero_si128());
+			const auto sign = _mm_srai_epi32(tmp, 31);
+			dst[0] = _mm_unpacklo_epi32(tmp, sign);
+			dst[1] = _mm_unpackhi_epi32(tmp, sign);
 #endif
 		}
 		template<std::same_as<float> T>
@@ -293,8 +296,9 @@ namespace dpm
 			dst[0] = _mm256_cvttps_epi64(x);
 #else
 			const auto tmp = cvtt<std::int32_t, float>(x);
-			const auto ih = std::bit_cast<__m256>(_mm256_unpackhi_epi32(tmp, _mm256_setzero_si256()));
-			const auto il = std::bit_cast<__m256>(_mm256_unpacklo_epi32(tmp, _mm256_setzero_si256()));
+			const auto sign = _mm256_srai_epi32(tmp, 31);
+			const auto ih = std::bit_cast<__m256>(_mm256_unpackhi_epi32(tmp, sign));
+			const auto il = std::bit_cast<__m256>(_mm256_unpacklo_epi32(tmp, sign));
 			dst[0] = std::bit_cast<__m256i>(_mm256_permute2f128_ps(il, ih, 0x20));
 			dst[1] = std::bit_cast<__m256i>(_mm256_permute2f128_ps(il, ih, 0x31));
 #endif
@@ -330,8 +334,9 @@ namespace dpm
 #else
 			__m256i tmp;
 			round<std::int32_t>(x, &tmp);
-			const auto ih = _mm256_unpackhi_ps(std::bit_cast<__m256>(tmp), _mm256_setzero_ps());
-			const auto il = _mm256_unpacklo_ps(std::bit_cast<__m256>(tmp), _mm256_setzero_ps());
+			const auto sign = _mm256_srai_epi32(tmp, 31);
+			const auto ih = _mm256_unpackhi_ps(std::bit_cast<__m256>(tmp), sign);
+			const auto il = _mm256_unpacklo_ps(std::bit_cast<__m256>(tmp), sign);
 			dst[0] = std::bit_cast<__m256i>(_mm256_permute2f128_ps(il, ih, 0x20));
 			dst[1] = std::bit_cast<__m256i>(_mm256_permute2f128_ps(il, ih, 0x31));
 #endif
@@ -350,8 +355,9 @@ namespace dpm
 		DPM_FORCEINLINE void rint(__m256 x, __m256i *dst) noexcept
 		{
 			const auto tmp = _mm256_cvtps_epi32(x);
-			const auto ih = std::bit_cast<__m256>(_mm256_unpackhi_ps(tmp, _mm256_setzero_si256()));
-			const auto il = std::bit_cast<__m256>(_mm256_unpacklo_ps(tmp, _mm256_setzero_si256()));
+			const auto sign = _mm256_srai_epi32(tmp, 31);
+			const auto ih = std::bit_cast<__m256>(_mm256_unpackhi_ps(tmp, sign));
+			const auto il = std::bit_cast<__m256>(_mm256_unpacklo_ps(tmp, sign));
 			dst[0] = std::bit_cast<__m256i>(_mm256_permute2f128_ps(il, ih, 0x20));
 			dst[1] = std::bit_cast<__m256i>(_mm256_permute2f128_ps(il, ih, 0x31));
 		}
@@ -393,8 +399,9 @@ namespace dpm
 #else
 			__m128i tmp;
 			round<std::int32_t>(x, &tmp);
-			reinterpret_cast<__m128i *>(dst)[0] = _mm_unpacklo_epi32(tmp, _mm_setzero_si128());
-			reinterpret_cast<__m128i *>(dst)[1] = _mm_unpackhi_epi32(tmp, _mm_setzero_si128());
+			const auto sign = _mm_srai_epi32(tmp, 31);
+			reinterpret_cast<__m128i *>(dst)[0] = _mm_unpacklo_epi32(tmp, sign);
+			reinterpret_cast<__m128i *>(dst)[1] = _mm_unpackhi_epi32(tmp, sign);
 #endif
 		}
 		template<std::same_as<double> T>
