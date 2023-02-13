@@ -921,6 +921,16 @@ namespace dpm
 		return result;
 	}
 
+	/** Finds next representable value from elements of vector \a from to elements of vector \a to, and returns the resulting vector. */
+	template<std::floating_point T, typename Abi>
+	[[nodiscard]] inline simd<T, Abi> nextafter(const simd<T, Abi> &from, const simd<T, Abi> &to) noexcept
+	{
+		simd<T, Abi> result = {};
+		for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i)
+			result[i] = std::nextafter(from[i], to[i]);
+		return result;
+	}
+
 	/** Copies sign bit from elements of vector \a sign to elements of vector \a x, and returns the resulting vector. */
 	template<std::floating_point T, typename Abi>
 	[[nodiscard]] inline simd<T, Abi> copysign(const simd<T, Abi> &x, const simd<T, Abi> &sign) noexcept

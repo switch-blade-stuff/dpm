@@ -11,6 +11,62 @@
 
 namespace dpm::detail
 {
+	template<typename T, typename V, typename I = int_of_size_t<sizeof(T)>, typename Vi = select_vector_t<I, sizeof(V)>>
+	[[nodiscard]] DPM_FORCEINLINE V impl_nextafter(V x, V y)
+	{
+		auto ix = std::bit_cast<Vi>(x);
+		auto iy = std::bit_cast<Vi>(y);
+		const auto x_sign = std::bit_cast<Vi>(bit_and(x, fill<V>(sign_bit<T>)));
+		const auto y_sign = std::bit_cast<Vi>(bit_and(y, fill<V>(sign_bit<T>)));
+		const auto ax = bit_xor(ix, x_sign);
+		const auto ay = bit_xor(iy, y_sign);
+
+		const auto zero_mask = cmp_eq<I>(ax, setzero<Vi>());
+		/* x_off = (ax > ay || (x_sign ^ y_sign)) ? -1 : 1 */
+		const auto sub_mask = bit_or(cmp_gt<I>(setzero<Vi>(), bit_xor(x_sign, y_sign)), cmp_gt<I>(ax, ay));
+		const auto x_off = bit_or(fill<Vi>(I{1}), sub_mask);
+		/* ix = ax == 0 ? y_sign | 1 : ix + x_off */
+		ix = blendv<I>(add<I>(ix, x_off), bit_or(y_sign, fill<Vi>(I{1})), zero_mask);
+
+		/* raise overflow if ix is infinite and x is finite & return NaN if any is NaN. */
+		const auto inf_exp = fill<Vi>(exp_mask<I> << mant_bits<I>);
+		const auto exp = bit_and(ix, inf_exp);
+		auto z = std::bit_cast<V>(ix);
+
+		/* Check domain & propagate NaN */
+		const auto eq_mask = cmp_eq<T>(x, y);
+#ifdef DPM_PROPAGATE_NAN
+		/* z = isnan(x) || isnan(y) ? x | y : z */
+		const auto nan_mask = isunord(x, y);
+		z = blendv<T>(z, bit_or(x, y), nan_mask);
+#ifdef DPM_HANDLE_ERRORS
+		/* Raise overflow if exp == inf */
+		const auto inf_mask = std::bit_cast<V>(cmp_eq<I>(exp, inf_exp));
+		if (test_mask<V>(bit_andnot(nan_mask, inf_mask))) [[unlikely]]
+		{
+			std::feraiseexcept(FE_OVERFLOW);
+			errno = ERANGE;
+		}
+		/* Raise underflow if exp == 0 */
+		const auto uflow_mask = std::bit_cast<V>(cmp_eq<I>(exp, setzero<Vi>()));
+		if (test_mask<V>(bit_andnot(eq_mask, uflow_mask))) [[unlikely]]
+		{
+			std::feraiseexcept(FE_UNDERFLOW);
+			errno = ERANGE;
+		}
+#endif
+#endif
+		/* return x == y ? y : z */
+		return blendv<T>(z, y, eq_mask);
+	}
+
+	__m128 DPM_PUBLIC DPM_MATHFUNC nextafter(__m128 from, __m128 to) noexcept { return impl_nextafter<float>(from, to); }
+	__m128d DPM_PUBLIC DPM_MATHFUNC nextafter(__m128d from, __m128d to) noexcept { return impl_nextafter<double>(from, to); }
+#ifdef DPM_HAS_AVX
+	__m256 DPM_PUBLIC DPM_MATHFUNC nextafter(__m256 from, __m256 to) noexcept { return impl_nextafter<float>(from, to); }
+	__m256d DPM_PUBLIC DPM_MATHFUNC nextafter(__m256d from, __m256d to) noexcept { return impl_nextafter<double>(from, to); }
+#endif
+
 //	inline double_v frexp(const double_v &v, int_v *e)
 //	{
 //		const __m128i exponentBits = Const<double>::exponentMask().dataI();
@@ -56,7 +112,7 @@ namespace dpm::detail
 		const auto is_denorm = cmp_gt<I>(y_exp, setzero<Vi>());
 		y_exp = add<I>(y_exp, bit_andnot(is_denorm, fill<Vi>(mant_bits<I> + 2)));
 
-#if defined(DPM_HANDLE_ERRORS) || defined(DPM_PROPAGATE_NAN)
+#ifdef DPM_PROPAGATE_NAN
 		const auto not_fin = std::bit_cast<V>(cmp_eq<I>(x_exp, fill<Vi>(exp_mask<I>)));
 #endif
 #ifdef DPM_HANDLE_ERRORS
@@ -70,7 +126,7 @@ namespace dpm::detail
 		auto y = std::bit_cast<V>(bit_or(bit_and(ix, exp_zeros), y_exp));
 		y = blendv<T>(y, mul<T>(y, fill<V>(exp_multm<T>)), std::bit_cast<V>(is_denorm));
 
-#if defined(DPM_HANDLE_ERRORS) || defined(DPM_PROPAGATE_NAN)
+#ifdef DPM_PROPAGATE_NAN
 		y = blendv<T>(y, add<T>(x, x), not_fin);
 #endif
 #ifdef DPM_HANDLE_ERRORS

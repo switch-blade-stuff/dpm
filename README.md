@@ -34,7 +34,7 @@ On architectures without SIMD support, vectorization is emulated via scalar oper
     <td>DPM_HANDLE_ERRORS</td>
     <td>-DDPM_HANDLE_ERRORS</td>
     <td>ON</td>
-    <td>Toggles detection & reporting of math errors via <a hred="https://en.cppreference.com/w/cpp/numeric/math/math_errhandling">math_errhandling</a> (see notes)</td>
+    <td>Toggles detection of math errors & reporting via <a hred="https://en.cppreference.com/w/cpp/numeric/math/math_errhandling">math_errhandling</a> (see notes)</td>
   </tr>
   <tr>
     <td>DPM_PROPAGATE_NAN</td>
@@ -154,14 +154,14 @@ is enabled, the `ext` namespaces are declared as inline.
 
 The standard specifies that floating-point math functions such as `sin`, `cos`, etc. must report math errors via the
 mechanism specified in [math_errhandling](https://en.cppreference.com/w/cpp/numeric/math/math_errhandling).
-When `DPM_HANDLE_ERRORS` option is enabled, DPM catches and reports errors as specified by the standard, 
-however this
-does reduce efficiency of math functions due to the additional safety checks. If performance is preferred over accuracy,
-disable `DPM_HANDLE_ERRORS`. Note that if error handling is disabled, domain checks will not be preformed.
+When `DPM_HANDLE_ERRORS` option is enabled, DPM catches and reports errors as specified by the standard,
+however this does reduce efficiency of math functions due to the additional safety checks. If performance is preferred
+over accuracy, disable `DPM_HANDLE_ERRORS`. Note that if error handling is disabled, domain checks will not be
+preformed. `DPM_HANDLE_ERRORS` implies `DPM_PROPAGATE_NAN`.
 
 Additionally, if `DPM_PROPAGATE_NAN` option is enabled, the library guarantees that math functions will propagate any
-NaN inputs, which may be used as a form of error handling. If `DPM_PROPAGATE_NAN` is disabled, invoking math functions
-with `NaN` as input will result in undefined behavior unless otherwise specified.
+NaN inputs, which may be used as a form of error handling. If both `DPM_PROPAGATE_NAN` and `DPM_HANDLE_ERRORS` are
+disabled, invoking math functions with `NaN` as input will result in undefined behavior unless otherwise specified.
 
 ### AVX512
 

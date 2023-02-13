@@ -392,4 +392,19 @@ int main()
 	test_trig<double, dpm::simd_abi::ext::aligned_vector<8, 16>>();
 	test_trig<double, dpm::simd_abi::ext::aligned_vector<16, 16>>();
 	test_trig<double, dpm::simd_abi::ext::aligned_vector<32, 16>>();
+
+	{
+		dpm::fixed_size_simd<double, 8> a, b;
+		const std::array<double, 8> a_data = {-0.0, -0.0, 0.0, 1.0, std::numeric_limits<double>::max(), std::numeric_limits<double>::quiet_NaN(), 0.0};
+		a.copy_from(a_data.data(), dpm::element_aligned);
+		const std::array<double, 8> b_data = {0.0, 1.0, 1.0, 2.0, std::numeric_limits<double>::infinity(), 0.0, std::numeric_limits<double>::quiet_NaN()};
+		b.copy_from(b_data.data(), dpm::element_aligned);
+
+		const auto c = dpm::nextafter(a, b);
+		for (std::size_t i = 0; i < a.size(); ++i)
+		{
+			const auto s = std::nextafter(a[i], b[i]);
+			TEST_ASSERT(c[i] == s || (std::isnan(c[i]) && std::isnan(s)));
+		}
+	}
 }

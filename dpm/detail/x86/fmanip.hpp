@@ -62,6 +62,9 @@ namespace dpm
 		[[nodiscard]] __m128 DPM_PUBLIC DPM_MATHFUNC logb(__m128 x) noexcept;
 		[[nodiscard]] __m128d DPM_PUBLIC DPM_MATHFUNC logb(__m128d x) noexcept;
 #endif
+
+		[[nodiscard]] __m128 DPM_PUBLIC DPM_MATHFUNC nextafter(__m128 from, __m128 to) noexcept;
+		[[nodiscard]] __m128d DPM_PUBLIC DPM_MATHFUNC nextafter(__m128d from, __m128d to) noexcept;
 #endif
 
 #ifdef DPM_HAS_AVX
@@ -111,6 +114,9 @@ namespace dpm
 		[[nodiscard]] __m256 DPM_PUBLIC DPM_MATHFUNC logb(__m256 x) noexcept;
 		[[nodiscard]] __m256d DPM_PUBLIC DPM_MATHFUNC logb(__m256d x) noexcept;
 #endif
+
+		[[nodiscard]] __m256 DPM_PUBLIC DPM_MATHFUNC nextafter(__m256 from, __m256 to) noexcept;
+		[[nodiscard]] __m256d DPM_PUBLIC DPM_MATHFUNC nextafter(__m256d from, __m256d to) noexcept;
 #endif
 	}
 
@@ -151,6 +157,15 @@ namespace dpm
 		const auto x_data = ext::to_native_data(x);
 		for (std::size_t i = 0; i < ext::native_data_size_v<detail::x86_simd<T, N, A>>; ++i)
 			detail::ldexp(x_data[i], result_data.data(), i);
+		return result;
+	}
+
+	/** Finds next representable value from elements of vector \a from to elements of vector \a to, and returns the resulting vector. */
+	template<std::floating_point T, std::size_t N, std::size_t A>
+	[[nodiscard]] DPM_FORCEINLINE detail::x86_simd<T, N, A> nextafter(const detail::x86_simd<T, N, A> &from, const detail::x86_simd<T, N, A> &to) noexcept requires detail::x86_overload_any<T, N, A>
+	{
+		detail::x86_simd<T, N, A> result = {};
+		detail::vectorize([](auto &res, auto from, auto to) { res = detail::nextafter(from, to); }, result, from, to);
 		return result;
 	}
 #endif

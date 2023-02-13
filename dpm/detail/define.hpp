@@ -41,3 +41,8 @@
 #else
 #define DPM_DECLARE_EXT_NAMESPACE namespace ext
 #endif
+
+/* DPM_HANDLE_ERRORS implies DPM_PROPAGATE_NAN */
+#if defined(DPM_HANDLE_ERRORS) && !defined(DPM_PROPAGATE_NAN)
+#define DPM_PROPAGATE_NAN
+#endif
