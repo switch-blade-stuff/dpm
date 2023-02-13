@@ -892,7 +892,6 @@ namespace dpm
 #pragma endregion
 
 #pragma region "floating-point manipulation"
-
 	/** Decomposes elements of vector \a x into a normalized fraction and a power-of-two exponent, stores the exponent in \a exp, and returns the fraction. */
 	template<std::floating_point T, typename Abi>
 	[[nodiscard]] inline simd<T, Abi> frexp(const simd<T, Abi> &x, simd<int, Abi> *exp) noexcept
@@ -900,6 +899,15 @@ namespace dpm
 		simd<T, Abi> result = {};
 		for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i)
 			result[i] = std::frexp(x[i], &((*exp)[i]));
+		return result;
+	}
+	/** Decomposes elements of vector \a x into integral and fractional parts, returning the fractional and storing the integral in \a iptr. */
+	template<std::floating_point T, typename Abi>
+	[[nodiscard]] inline simd<T, Abi> modf(const simd<T, Abi> &x, simd<T, Abi> *iptr) noexcept
+	{
+		simd<T, Abi> result = {};
+		for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i)
+			result[i] = std::modf(x[i], &((*iptr)[i]));
 		return result;
 	}
 	/** Multiplies elements of vector \a x by `2` raised to power specified by elements of vector \a exp, and returns the resulting vector. */
@@ -911,17 +919,6 @@ namespace dpm
 			result[i] = std::ldexp(x[i], exp[i]);
 		return result;
 	}
-
-	/** Decomposes elements of vector \a x into integral and fractional parts, returning the fractional and storing the integral in \a iptr. */
-	template<std::floating_point T, typename Abi>
-	[[nodiscard]] inline simd<T, Abi> modf(const simd<T, Abi> &x, simd<T, Abi> *iptr) noexcept
-	{
-		simd<T, Abi> result = {};
-		for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i)
-			result[i] = std::modf(x[i], &((*iptr)[i]));
-		return result;
-	}
-
 	/** Multiplies elements of vector \a x by `FLT_RADIX` raised to power specified by elements of vector \a exp, and returns the resulting vector. */
 	template<std::floating_point T, typename Abi>
 	[[nodiscard]] inline simd<T, Abi> scalbn(const simd<T, Abi> &x, const simd<int, Abi> &exp) noexcept
@@ -940,7 +937,6 @@ namespace dpm
 			result[i] = std::scalbln(x[i], exp[i]);
 		return result;
 	}
-
 	/** Extracts unbiased exponent of elements in vector \a x as integers, and returns the resulting vector. */
 	template<std::floating_point T, typename Abi>
 	[[nodiscard]] inline rebind_simd_t<int, simd<T, Abi>> ilogb(const simd<T, Abi> &x) noexcept
@@ -959,7 +955,6 @@ namespace dpm
 			result[i] = std::logb(x[i]);
 		return result;
 	}
-
 	/** Finds next representable value from elements of vector \a from to elements of vector \a to, and returns the resulting vector. */
 	template<std::floating_point T, typename Abi>
 	[[nodiscard]] inline simd<T, Abi> nextafter(const simd<T, Abi> &from, const simd<T, Abi> &to) noexcept
@@ -969,7 +964,15 @@ namespace dpm
 			result[i] = std::nextafter(from[i], to[i]);
 		return result;
 	}
-
+	/** Finds next representable value from elements of vector \a from to elements of vector \a to without loss of precision, and returns the resulting vector. */
+	template<std::floating_point T, typename Abi>
+	[[nodiscard]] inline simd<T, Abi> nexttoward(const simd<T, Abi> &from, const simd<long double, Abi> &to) noexcept
+	{
+		simd<T, Abi> result = {};
+		for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i)
+			result[i] = std::nexttoward(from[i], to[i]);
+		return result;
+	}
 	/** Copies sign bit from elements of vector \a sign to elements of vector \a x, and returns the resulting vector. */
 	template<std::floating_point T, typename Abi>
 	[[nodiscard]] inline simd<T, Abi> copysign(const simd<T, Abi> &x, const simd<T, Abi> &sign) noexcept
@@ -989,25 +992,52 @@ namespace dpm
 		return result;
 	}
 
+	/** @copydoc frexp
+	 * @note Arguments and return type are promoted to `double`, or `long double` if one of the arguments is `long double`. */
+	template<typename T, typename Abi, typename Promoted = rebind_simd_t<detail::promote_t<T>, simd<T, Abi>>>
+	[[nodiscard]] DPM_FORCEINLINE Promoted frexp(const simd<T, Abi> &x, simd<int, Abi> *exp) noexcept { return Promoted{frexp(Promoted{x}, exp)}; }
+	/** @copydoc ldexp
+	 * @note Arguments and return type are promoted to `double`, or `long double` if one of the arguments is `long double`. */
+	template<typename T, typename Abi, typename Promoted = rebind_simd_t<detail::promote_t<T>, simd<T, Abi>>>
+	[[nodiscard]] DPM_FORCEINLINE Promoted ldexp(const simd<T, Abi> &x, const simd<int, Abi> &exp) noexcept { return Promoted{ldexp(Promoted{x}, exp)}; }
+	/** @copydoc scalbn
+	 * @note Arguments and return type are promoted to `double`, or `long double` if one of the arguments is `long double`. */
+	template<typename T, typename Abi, typename Promoted = rebind_simd_t<detail::promote_t<T>, simd<T, Abi>>>
+	[[nodiscard]] DPM_FORCEINLINE Promoted scalbn(const simd<T, Abi> &x, const simd<int, Abi> &exp) noexcept { return Promoted{scalbn(Promoted{x}, exp)}; }
+	/** @copydoc scalbln
+	 * @note Arguments and return type are promoted to `double`, or `long double` if one of the arguments is `long double`. */
+	template<typename T, typename Abi, typename Promoted = rebind_simd_t<detail::promote_t<T>, simd<T, Abi>>>
+	[[nodiscard]] DPM_FORCEINLINE Promoted scalbln(const simd<T, Abi> &x, const simd<long, Abi> &exp) noexcept { return Promoted{scalbln(Promoted{x}, exp)}; }
 	/** @copydoc ilogb
 	 * @note Arguments and return type are promoted to `double`, or `long double` if one of the arguments is `long double`. */
 	template<typename T, typename Abi, typename Promoted = rebind_simd_t<detail::promote_t<T>, simd<T, Abi>>>
-	[[nodiscard]] DPM_FORCEINLINE Promoted ilogb(const simd<T, Abi> &x) noexcept { return Promoted{ilogb(Promoted{x}, detail::promote_t<T>{x})}; }
+	[[nodiscard]] DPM_FORCEINLINE rebind_simd_t<int, simd<T, Abi>> ilogb(const simd<T, Abi> &x) noexcept { return Promoted{ilogb(Promoted{x})}; }
 	/** @copydoc logb
 	 * @note Arguments and return type are promoted to `double`, or `long double` if one of the arguments is `long double`. */
 	template<typename T, typename Abi, typename Promoted = rebind_simd_t<detail::promote_t<T>, simd<T, Abi>>>
-	[[nodiscard]] DPM_FORCEINLINE Promoted logb(const simd<T, Abi> &x) noexcept { return Promoted{logb(Promoted{x}, detail::promote_t<T>{x})}; }
-	/** @copydoc isnan
+	[[nodiscard]] DPM_FORCEINLINE Promoted logb(const simd<T, Abi> &x) noexcept { return Promoted{logb(Promoted{x})}; }
+	/** @copydoc nextafter
+	 * @note Arguments and return type are promoted to `double`, or `long double` if one of the arguments is `long double`. */
+	template<typename T0, typename T1, typename Abi, typename Promoted = rebind_simd_t<detail::promote_t<T0, T1>, simd<T0, Abi>>>
+	[[nodiscard]] DPM_FORCEINLINE Promoted nextafter(const simd<T0, Abi> &from, const simd<T1, Abi> &to) noexcept { return Promoted{nextafter(Promoted{from}, Promoted{to})}; }
+	/** @copydoc nextafter
+	 * @note Arguments and return type are promoted to `double`, or `long double` if one of the arguments is `long double`. */
+	template<typename T, typename Abi, typename Promoted = rebind_simd_t<detail::promote_t<T>, simd<T, Abi>>>
+	[[nodiscard]] DPM_FORCEINLINE Promoted nexttoward(const simd<T, Abi> &from, const simd<long double, Abi> &to) noexcept { return Promoted{nexttoward(Promoted{from}, to)}; }
+	/** @copydoc copysign
 	 * @note Arguments and return type are promoted to `double`, or `long double` if one of the arguments is `long double`. */
 	template<typename T0, typename T1, typename Abi, typename Promoted = rebind_simd_t<detail::promote_t<T0, T1>, simd<T0, Abi>>>
 	[[nodiscard]] DPM_FORCEINLINE Promoted copysign(const simd<T0, Abi> &x, const simd<T1, Abi> &sign) noexcept { return Promoted{copysign(Promoted{x}, Promoted{sign})}; }
-	/** @copydoc isnan
+	/** @copydoc copysign
 	 * @note Arguments and return type are promoted to `double`, or `long double` if one of the arguments is `long double`. */
 	template<typename T0, typename T1, typename Abi, typename Promoted = rebind_simd_t<detail::promote_t<T0, T1>, simd<T0, Abi>>>
 	[[nodiscard]] DPM_FORCEINLINE Promoted copysign(const simd<T0, Abi> &x, T1 sign) noexcept { return Promoted{copysign(Promoted{x}, detail::promote_t<T0, T1>{sign})}; }
 
 	DPM_DECLARE_EXT_NAMESPACE
 	{
+		/** Decomposes elements of vector \a x into a normalized fraction and a power-of-two exponent, stores the exponent in \a exp, and returns the fraction. */
+		template<std::floating_point T, typename Abi>
+		[[nodiscard]] DPM_FORCEINLINE simd<T, Abi> frexp(const simd<T, Abi> &x, simd<int, Abi> &exp) noexcept { return frexp(x, &exp); }
 		/** Decomposes elements of vector \a x into integral and fractional parts, returning the fractional and storing the integral in \a ip. */
 		template<std::floating_point T, typename Abi>
 		[[nodiscard]] DPM_FORCEINLINE simd<T, Abi> modf(const simd<T, Abi> &x, simd<T, Abi> &ip) noexcept { return modf(x, &ip); }
