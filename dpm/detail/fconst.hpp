@@ -48,6 +48,8 @@ namespace dpm::detail
 	static constexpr T tiny = range_vals<T>::tiny;
 
 	template<typename T>
+	static constexpr T exp_middle = sizeof(T) == sizeof(double) ? 0x3fe : 0x3f;
+	template<typename T>
 	static constexpr T exp_mask = sizeof(T) == sizeof(double) ? 0x7ff : 0xff;
 	template<typename T>
 	static constexpr T exp_off = sizeof(T) == sizeof(double) ? 1023 : 127;
@@ -56,7 +58,7 @@ namespace dpm::detail
 	template<typename T>
 	static constexpr T exp_bits = sizeof(T) == sizeof(double) ? 11 : 8;
 	template<typename T>
-	static constexpr T max_ldexp = 50000;
+	static constexpr T max_scalbn = 50000;
 
 	/* In some cases x86 intrinsics generate extraneous casts if literals are used with intrinsics. As such, define commonly used values here. */
 	template<std::floating_point T>

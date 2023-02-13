@@ -892,6 +892,26 @@ namespace dpm
 #pragma endregion
 
 #pragma region "floating-point manipulation"
+
+	/** Decomposes elements of vector \a x into a normalized fraction and a power-of-two exponent, stores the exponent in \a exp, and returns the fraction. */
+	template<std::floating_point T, typename Abi>
+	[[nodiscard]] inline simd<T, Abi> frexp(const simd<T, Abi> &x, simd<int, Abi> *exp) noexcept
+	{
+		simd<T, Abi> result = {};
+		for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i)
+			result[i] = std::frexp(x[i], &((*exp)[i]));
+		return result;
+	}
+	/** Multiplies elements of vector \a x by `2` raised to power specified by elements of vector \a exp, and returns the resulting vector. */
+	template<std::floating_point T, typename Abi>
+	[[nodiscard]] inline simd<T, Abi> ldexp(const simd<T, Abi> &x, const simd<int, Abi> &exp) noexcept
+	{
+		simd<T, Abi> result = {};
+		for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i)
+			result[i] = std::ldexp(x[i], exp[i]);
+		return result;
+	}
+
 	/** Decomposes elements of vector \a x into integral and fractional parts, returning the fractional and storing the integral in \a iptr. */
 	template<std::floating_point T, typename Abi>
 	[[nodiscard]] inline simd<T, Abi> modf(const simd<T, Abi> &x, simd<T, Abi> *iptr) noexcept
@@ -899,6 +919,25 @@ namespace dpm
 		simd<T, Abi> result = {};
 		for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i)
 			result[i] = std::modf(x[i], &((*iptr)[i]));
+		return result;
+	}
+
+	/** Multiplies elements of vector \a x by `FLT_RADIX` raised to power specified by elements of vector \a exp, and returns the resulting vector. */
+	template<std::floating_point T, typename Abi>
+	[[nodiscard]] inline simd<T, Abi> scalbn(const simd<T, Abi> &x, const simd<int, Abi> &exp) noexcept
+	{
+		simd<T, Abi> result = {};
+		for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i)
+			result[i] = std::scalbn(x[i], exp[i]);
+		return result;
+	}
+	/** @copydoc scalbn */
+	template<std::floating_point T, typename Abi>
+	[[nodiscard]] inline simd<T, Abi> scalbln(const simd<T, Abi> &x, const simd<long, Abi> &exp) noexcept
+	{
+		simd<T, Abi> result = {};
+		for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i)
+			result[i] = std::scalbln(x[i], exp[i]);
 		return result;
 	}
 

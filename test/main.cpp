@@ -375,6 +375,35 @@ int main()
 		TEST_ASSERT(dpm::all_of(a == b));
 	}
 
+	{
+		dpm::fixed_size_simd<float, 7> a, b;
+		const std::array<float, 7> a_data = {-0.0f, -0.0f, 0.0f, 1.0f, std::numeric_limits<float>::max(), std::numeric_limits<float>::quiet_NaN(), 0.0f};
+		a.copy_from(a_data.data(), dpm::element_aligned);
+		const std::array<float, 7> b_data = {0.0f, 1.0f, 1.0f, 2.0f, std::numeric_limits<float>::infinity(), 0.0f, std::numeric_limits<float>::quiet_NaN()};
+		b.copy_from(b_data.data(), dpm::element_aligned);
+
+		const auto c = dpm::nextafter(a, b);
+		for (std::size_t i = 0; i < a.size(); ++i)
+		{
+			const auto s = std::nextafter(a[i], b[i]);
+			TEST_ASSERT(c[i] == s || (std::isnan(c[i]) && std::isnan(s)));
+		}
+	}
+	{
+		dpm::fixed_size_simd<double, 7> a, b;
+		const std::array<double, 7> a_data = {-0.0, -0.0, 0.0, 1.0, std::numeric_limits<double>::max(), std::numeric_limits<double>::quiet_NaN(), 0.0};
+		a.copy_from(a_data.data(), dpm::element_aligned);
+		const std::array<double, 7> b_data = {0.0, 1.0, 1.0, 2.0, std::numeric_limits<double>::infinity(), 0.0, std::numeric_limits<double>::quiet_NaN()};
+		b.copy_from(b_data.data(), dpm::element_aligned);
+
+		const auto c = dpm::nextafter(a, b);
+		for (std::size_t i = 0; i < a.size(); ++i)
+		{
+			const auto s = std::nextafter(a[i], b[i]);
+			TEST_ASSERT(c[i] == s || (std::isnan(c[i]) && std::isnan(s)));
+		}
+	}
+
 	test_trig<float, dpm::simd_abi::fixed_size<4>>();
 	test_trig<float, dpm::simd_abi::fixed_size<8>>();
 	test_trig<float, dpm::simd_abi::fixed_size<16>>();
@@ -392,19 +421,4 @@ int main()
 	test_trig<double, dpm::simd_abi::ext::aligned_vector<8, 16>>();
 	test_trig<double, dpm::simd_abi::ext::aligned_vector<16, 16>>();
 	test_trig<double, dpm::simd_abi::ext::aligned_vector<32, 16>>();
-
-	{
-		dpm::fixed_size_simd<double, 8> a, b;
-		const std::array<double, 8> a_data = {-0.0, -0.0, 0.0, 1.0, std::numeric_limits<double>::max(), std::numeric_limits<double>::quiet_NaN(), 0.0};
-		a.copy_from(a_data.data(), dpm::element_aligned);
-		const std::array<double, 8> b_data = {0.0, 1.0, 1.0, 2.0, std::numeric_limits<double>::infinity(), 0.0, std::numeric_limits<double>::quiet_NaN()};
-		b.copy_from(b_data.data(), dpm::element_aligned);
-
-		const auto c = dpm::nextafter(a, b);
-		for (std::size_t i = 0; i < a.size(); ++i)
-		{
-			const auto s = std::nextafter(a[i], b[i]);
-			TEST_ASSERT(c[i] == s || (std::isnan(c[i]) && std::isnan(s)));
-		}
-	}
 }

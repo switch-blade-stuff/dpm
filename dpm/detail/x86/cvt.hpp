@@ -154,12 +154,6 @@ namespace dpm::detail
 	template<signed_integral_of_size<8> To, std::same_as<double> From>
 	[[nodiscard]] DPM_FORCEINLINE __m128i cvt(__m128d x) noexcept { return cvt_f64_i64(x); }
 
-	template<integral_of_size<8> To, integral_of_size<4> From>
-	[[nodiscard]] DPM_FORCEINLINE __m128i cvt(__m128i x) noexcept
-	{
-		const auto xf = std::bit_cast<__m128>(x);
-		return std::bit_cast<__m128i>(_mm_shuffle_ps(xf, xf, _MM_SHUFFLE(2, 0, 2, 0)));
-	}
 	template<integral_of_size<4> To, integral_of_size<8> From>
 	[[nodiscard]] DPM_FORCEINLINE __m128i cvt(__m128i x) noexcept
 	{
