@@ -154,6 +154,19 @@ namespace dpm::detail
 	template<signed_integral_of_size<8> To, std::same_as<double> From>
 	[[nodiscard]] DPM_FORCEINLINE __m128i cvt(__m128d x) noexcept { return cvt_f64_i64(x); }
 
+	template<integral_of_size<4> To, integral_of_size<8> From>
+	[[nodiscard]] DPM_FORCEINLINE __m128i cvt(__m128i x) noexcept
+	{
+		const auto xf = std::bit_cast<__m128>(x);
+		return std::bit_cast<__m128i>(_mm_shuffle_ps(xf, xf, _MM_SHUFFLE(2, 0, 2, 0)));
+	}
+	[[nodiscard]] DPM_FORCEINLINE __m128i pack_i64x2_i32(__m128i i0, __m128i i1) noexcept
+	{
+		const auto f0 = std::bit_cast<__m128>(i0);
+		const auto f1 = std::bit_cast<__m128>(i1);
+		return std::bit_cast<__m128i>(_mm_shuffle_ps(f0, f1, _MM_SHUFFLE(2,0,2,0)));
+	}
+
 #ifdef DPM_HAS_AVX
 	[[nodiscard]] DPM_FORCEINLINE __m256i cvt_f32_u32(__m256 x) noexcept
 	{
@@ -288,6 +301,22 @@ namespace dpm::detail
 	[[nodiscard]] DPM_FORCEINLINE __m256i cvt(__m256d x) noexcept { return cvt_f64_u64(x); }
 	template<signed_integral_of_size<8> To, std::same_as<double> From>
 	[[nodiscard]] DPM_FORCEINLINE __m256i cvt(__m256d x) noexcept { return cvt_f64_i64(x); }
+
+	template<integral_of_size<4> To, integral_of_size<8> From>
+	[[nodiscard]] DPM_FORCEINLINE __m128i cvt(__m256i x) noexcept
+	{
+		const auto xf = std::bit_cast<__m256>(x);
+		const auto xl = _mm256_castps256_ps128(xf);
+		const auto xh = _mm256_extractf128_ps(xf, 1);
+		return std::bit_cast<__m128i>(_mm_shuffle_ps(xl, xh, _MM_SHUFFLE(2, 0, 2, 0)));
+	}
+	[[nodiscard]] DPM_FORCEINLINE __m256i pack_i64x2_i32(__m256i i0, __m256i i1) noexcept
+	{
+		const auto f0 = std::bit_cast<__m256>(i0);
+		const auto f1 = std::bit_cast<__m256>(i1);
+		const auto mix = _mm256_shuffle_ps(f0, f1, _MM_SHUFFLE(2,0,2,0));
+		return _mm256_permute4x64_pd(std::bit_cast<__m256d>(mix), _MM_SHUFFLE(3,1,2,0));
+	}
 #endif
 }
 
