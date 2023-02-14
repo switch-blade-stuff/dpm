@@ -267,9 +267,6 @@ namespace dpm
 #endif
 	}
 
-	/* At this point, fmod & remainder functions are not vectorized due to the underlying algorithms requiring
-	 * a lot of branches and loops, which makes them generally unsuitable for efficient vectorization. */
-
 	/** Calculates absolute value of elements in vector \a x. */
 	template<typename T, std::size_t N, std::size_t A>
 	[[nodiscard]] DPM_FORCEINLINE detail::x86_simd<T, N, A> abs(const detail::x86_simd<T, N, A> &x) noexcept requires detail::x86_overload_any<T, N, A>

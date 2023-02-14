@@ -30,7 +30,7 @@ namespace dpm
 
 #pragma region "basic operations"
 	/** Calculates absolute value of elements in vector \a x. */
-	template<std::floating_point T, typename Abi>
+	template<typename T, typename Abi>
 	[[nodiscard]] inline simd<T, Abi> abs(const simd<T, Abi> &x) noexcept
 	{
 		simd<T, Abi> result = {};

@@ -44,17 +44,6 @@ namespace dpm
 		return result;
 	}
 
-//	/** Raises elements of vector \a x to power specified by elements of vector \a p, and returns the resulting vector. */
-//	template<std::floating_point T, std::size_t N, std::size_t A>
-//	[[nodiscard]] DPM_FORCEINLINE detail::x86_simd<T, N, A> pow(const detail::x86_simd<T, N, A> &x, const detail::x86_simd<T, N, A> &p) noexcept requires detail::x86_overload_any<T, N, A>
-//	{
-//	}
-//	/** Calculates cube root of elements in vector \a x, and returns the resulting vector. */
-//	template<std::floating_point T, std::size_t N, std::size_t A>
-//	[[nodiscard]] DPM_FORCEINLINE detail::x86_simd<T, N, A> cbrt(const detail::x86_simd<T, N, A> &x) noexcept requires detail::x86_overload_any<T, N, A>
-//	{
-//	}
-
 #ifdef DPM_HAS_SSE2
 	/** Calculates square root of the sum of elements in vectors \a a and \a b without causing over or underflow, and returns the resulting vector. */
 	template<std::floating_point T, std::size_t N, std::size_t A>
