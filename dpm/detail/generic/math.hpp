@@ -982,15 +982,6 @@ namespace dpm
 			result[i] = std::copysign(x[i], sign[i]);
 		return result;
 	}
-	/** Copies sign bit from \a sign to elements of vector \a x, and returns the resulting vector. */
-	template<std::floating_point T, typename Abi>
-	[[nodiscard]] inline simd<T, Abi> copysign(const simd<T, Abi> &x, T sign) noexcept
-	{
-		simd<T, Abi> result = {};
-		for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i)
-			result[i] = std::copysign(x[i], sign);
-		return result;
-	}
 
 	/** @copydoc frexp
 	 * @note Arguments and return type are promoted to `double`, or `long double` if one of the arguments is `long double`. */
@@ -1028,6 +1019,56 @@ namespace dpm
 	 * @note Arguments and return type are promoted to `double`, or `long double` if one of the arguments is `long double`. */
 	template<typename T0, typename T1, typename Abi, typename Promoted = rebind_simd_t<detail::promote_t<T0, T1>, simd<T0, Abi>>>
 	[[nodiscard]] DPM_FORCEINLINE Promoted copysign(const simd<T0, Abi> &x, const simd<T1, Abi> &sign) noexcept { return Promoted{copysign(Promoted{x}, Promoted{sign})}; }
+
+	/** Multiplies elements of vector \a x by `2` raised to power \a exp, and returns the resulting vector. */
+	template<std::floating_point T, typename Abi>
+	[[nodiscard]] inline simd<T, Abi> ldexp(const simd<T, Abi> &x, int exp) noexcept
+	{
+		simd<T, Abi> result = {};
+		for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i)
+			result[i] = std::ldexp(x[i], exp);
+		return result;
+	}
+	/** Multiplies elements of vector \a x by `FLT_RADIX` raised to power \a exp, and returns the resulting vector. */
+	template<std::floating_point T, typename Abi>
+	[[nodiscard]] inline simd<T, Abi> scalbn(const simd<T, Abi> &x, int exp) noexcept
+	{
+		simd<T, Abi> result = {};
+		for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i)
+			result[i] = std::scalbn(x[i], exp);
+		return result;
+	}
+	/** @copydoc scalbn */
+	template<std::floating_point T, typename Abi>
+	[[nodiscard]] inline simd<T, Abi> scalbln(const simd<T, Abi> &x, long exp) noexcept
+	{
+		simd<T, Abi> result = {};
+		for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i)
+			result[i] = std::scalbln(x[i], exp);
+		return result;
+	}
+	/** Copies sign bit from \a sign to elements of vector \a x, and returns the resulting vector. */
+	template<std::floating_point T, typename Abi>
+	[[nodiscard]] inline simd<T, Abi> copysign(const simd<T, Abi> &x, T sign) noexcept
+	{
+		simd<T, Abi> result = {};
+		for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i)
+			result[i] = std::copysign(x[i], sign);
+		return result;
+	}
+
+	/** @copydoc ldexp
+	 * @note Arguments and return type are promoted to `double`, or `long double` if one of the arguments is `long double`. */
+	template<typename T, typename Abi, typename Promoted = rebind_simd_t<detail::promote_t<T>, simd<T, Abi>>>
+	[[nodiscard]] DPM_FORCEINLINE Promoted ldexp(const simd<T, Abi> &x, int exp) noexcept { return Promoted{ldexp(Promoted{x}, exp)}; }
+	/** @copydoc scalbn
+	 * @note Arguments and return type are promoted to `double`, or `long double` if one of the arguments is `long double`. */
+	template<typename T, typename Abi, typename Promoted = rebind_simd_t<detail::promote_t<T>, simd<T, Abi>>>
+	[[nodiscard]] DPM_FORCEINLINE Promoted scalbn(const simd<T, Abi> &x, int exp) noexcept { return Promoted{scalbn(Promoted{x}, exp)}; }
+	/** @copydoc scalbln
+	 * @note Arguments and return type are promoted to `double`, or `long double` if one of the arguments is `long double`. */
+	template<typename T, typename Abi, typename Promoted = rebind_simd_t<detail::promote_t<T>, simd<T, Abi>>>
+	[[nodiscard]] DPM_FORCEINLINE Promoted scalbln(const simd<T, Abi> &x, long exp) noexcept { return Promoted{scalbln(Promoted{x}, exp)}; }
 	/** @copydoc copysign
 	 * @note Arguments and return type are promoted to `double`, or `long double` if one of the arguments is `long double`. */
 	template<typename T0, typename T1, typename Abi, typename Promoted = rebind_simd_t<detail::promote_t<T0, T1>, simd<T0, Abi>>>
@@ -1041,6 +1082,11 @@ namespace dpm
 		/** Decomposes elements of vector \a x into integral and fractional parts, returning the fractional and storing the integral in \a ip. */
 		template<std::floating_point T, typename Abi>
 		[[nodiscard]] DPM_FORCEINLINE simd<T, Abi> modf(const simd<T, Abi> &x, simd<T, Abi> &ip) noexcept { return modf(x, &ip); }
+
+		/** @copydoc frexp
+		 * @note Arguments and return type are promoted to `double`, or `long double` if one of the arguments is `long double`. */
+		template<typename T, typename Abi, typename Promoted = rebind_simd_t<detail::promote_t<T>, simd<T, Abi>>>
+		[[nodiscard]] DPM_FORCEINLINE Promoted frexp(const simd<T, Abi> &x, simd<int, Abi> &exp) noexcept { return Promoted{frexp(Promoted{x}, exp)}; }
 	}
 #pragma endregion
 

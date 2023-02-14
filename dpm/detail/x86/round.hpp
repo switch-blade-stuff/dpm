@@ -292,7 +292,7 @@ namespace dpm
 		DPM_FORCEINLINE void itrunc(__m256 x, __m256i *dst) noexcept
 		{
 #if defined(DPM_HAS_AVX512DQ) && defined(DPM_HAS_AVX512VL)
-			dst[1] = _mm256_cvttps_epi64(_mm256_permute2f128_ps(x, x, 0x11));
+			dst[1] = _mm256_cvttps_epi64(_mm256_extractf128_ps(x, 1));
 			dst[0] = _mm256_cvttps_epi64(x);
 #else
 			const auto tmp = cvtt<std::int32_t, float>(x);
@@ -321,7 +321,7 @@ namespace dpm
 		DPM_FORCEINLINE void round(__m256 x, __m256i *dst) noexcept
 		{
 #if defined(DPM_HAS_AVX512DQ) && defined(DPM_HAS_AVX512VL)
-			const auto ih = _mm256_cvttps_epi64(_mm256_permute2f128_ps(x, x, 0x11));
+			const auto ih = _mm256_cvttps_epi64(_mm256_extractf128_ps(x, 1));
 			const auto il = _mm256_cvttps_epi64(x);
 			const auto th = _mm256_cvtepi64_ps(ih);
 			const auto tl = _mm256_cvtepi64_ps(il);

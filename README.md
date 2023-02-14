@@ -98,39 +98,42 @@ DPM provides the following utilities and extensions to the standard API:
 * Storage traits & accessors
     * `struct native_data_type`
     * `struct native_data_size`
-    * `std::span to_native_data(simd &)`
-    * `std::span to_native_data(const simd &)`
-    * `std::span to_native_data(simd_mask &)`
-    * `std::span to_native_data(const simd_mask &)`
+    * `std::span to_native_data(simd<T, Abi> &)`
+    * `std::span to_native_data(const simd<T, Abi> &)`
+    * `std::span to_native_data(simd_mask<T, Abi> &)`
+    * `std::span to_native_data(const simd_mask<T, Abi> &)`
 * Blend functions
-    * `simd blend(const simd &, const simd &, const simd_mask &)`
-    * `simd blend(const simd &, const const_where_expression &)`
-    * `simd_mask blend(const simd_mask &, const simd_mask &, const simd_mask &)`
-    * `simd_mask blend(const simd_mask &, const const_where_expression &)`
+    * `simd<T, Abi> blend(const simd<T, Abi> &, const simd<T, Abi> &, const simd_mask<T, Abi> &)`
+    * `simd<T, Abi> blend(const simd<T, Abi> &, const const_where_expression &)`
+    * `simd_mask<T, Abi> blend(const simd_mask<T, Abi> &, const simd_mask<T, Abi> &, const simd_mask<T, Abi> &)`
+    * `simd_mask<T, Abi> blend(const simd_mask<T, Abi> &, const const_where_expression &)`
     * `V blend(const V &, const V &, /* bool-wrapper */)`
     * `V blend(const V &, const const_where_expression &)`
 * Shuffle functions
-    * `simd shuffle<Is...>(const simd &)`
-    * `simd_mask shuffle<Is...>(const simd_mask &)`
-    * `simd_mask shuffle<Is...>(const V &)`
+    * `simd<T, Abi> shuffle<Is...>(const simd<T, Abi> &)`
+    * `simd_mask<T, Abi> shuffle<Is...>(const simd_mask<T, Abi> &)`
+    * `simd_mask<T, Abi> shuffle<Is...>(const V &)`
 * Reductions
-    * `simd hadd(const simd &)`
-    * `simd hmul(const simd &)`
-    * `simd hand(const simd &)`
-    * `simd hxor(const simd &)`
-    * `simd hor(const simd &)`
+    * `simd<T, Abi> hadd(const simd<T, Abi> &)`
+    * `simd<T, Abi> hmul(const simd<T, Abi> &)`
+    * `simd<T, Abi> hand(const simd<T, Abi> &)`
+    * `simd<T, Abi> hxor(const simd<T, Abi> &)`
+    * `simd<T, Abi> hor(const simd<T, Abi> &)`
 * Basic math functions
-    * `simd remquo(const simd &, const simd &, simd &)`
-    * `simd nan<T, Abi>(const char *)`
+    * `simd<T, Abi> remquo(const simd<T, Abi> &, const simd<T, Abi> &, simd<T, Abi> &)`
+    * `simd<T, Abi> nan<T, Abi>(const char *)`
 * Power math functions
-    * `simd rcp(const simd &)`
-    * `simd rsqrt(const simd &)`
+    * `simd<T, Abi> rcp(const simd<T, Abi> &)`
+    * `simd<T, Abi> rsqrt(const simd<T, Abi> &)`
 * Nearest integer functions
-    * `rebind_simd_t<I, simd>  iround<I>(const simd &)`
-    * `rebind_simd_t<I, simd>  irint<I>(const simd &)`
-    * `rebind_simd_t<I, simd>  itrunc<I>(const simd &)`
-    * `rebind_simd_t<long, simd>  ltrunc(const simd &)`
-    * `rebind_simd_t<long long, simd>  lltrunc(const simd &)`
+    * `rebind_simd_t<I, simd<T, Abi>> iround<I>(const simd<T, Abi> &)`
+    * `rebind_simd_t<I, simd<T, Abi>> irint<I>(const simd<T, Abi> &)`
+    * `rebind_simd_t<I, simd<T, Abi>> itrunc<I>(const simd<T, Abi> &)`
+    * `rebind_simd_t<long, simd<T, Abi>> ltrunc(const simd<T, Abi> &)`
+    * `rebind_simd_t<long long, simd<T, Abi>> lltrunc(const simd<T, Abi> &)`
+* Floating-point manipulation functions
+    * `simd<T, Abi> frexp(const simd<T, Abi> &x, simd<int, Abi> &)`
+    * `simd<T, Abi> modf(const simd<T, Abi> &x, simd<T, Abi> &)`
 * Optimization hints
     * `#define DPM_UNREACHABLE()`
     * `#define DPM_NEVER_INLINE`

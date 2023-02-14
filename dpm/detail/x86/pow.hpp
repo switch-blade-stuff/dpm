@@ -17,6 +17,9 @@ namespace dpm
 #ifdef DPM_HAS_SSE2
 		[[nodiscard]] DPM_FORCEINLINE __m128d rcp(__m128d x) noexcept { return _mm_div_pd(_mm_set1_pd(1.0), x); }
 		[[nodiscard]] DPM_FORCEINLINE __m128d sqrt(__m128d x) noexcept { return _mm_sqrt_pd(x); }
+
+		[[nodiscard]] __m128 DPM_PUBLIC DPM_MATHFUNC hypot(__m128 a, __m128 b) noexcept;
+		[[nodiscard]] __m128d DPM_PUBLIC DPM_MATHFUNC hypot(__m128d a, __m128d b) noexcept;
 #endif
 
 #ifdef DPM_HAS_AVX
@@ -26,6 +29,9 @@ namespace dpm
 
 		[[nodiscard]] DPM_FORCEINLINE __m256d rcp(__m256d x) noexcept { return _mm256_div_pd(_mm256_set1_pd(1.0), x); }
 		[[nodiscard]] DPM_FORCEINLINE __m256d sqrt(__m256d x) noexcept { return _mm256_sqrt_pd(x); }
+
+		[[nodiscard]] __m256 DPM_PUBLIC DPM_MATHFUNC hypot(__m256 a, __m256 b) noexcept;
+		[[nodiscard]] __m256d DPM_PUBLIC DPM_MATHFUNC hypot(__m256d a, __m256d b) noexcept;
 #endif
 	}
 
@@ -48,11 +54,17 @@ namespace dpm
 //	[[nodiscard]] DPM_FORCEINLINE detail::x86_simd<T, N, A> cbrt(const detail::x86_simd<T, N, A> &x) noexcept requires detail::x86_overload_any<T, N, A>
 //	{
 //	}
-//	/** Calculates square root of the sum of elements in vectors \a a and \a b without causing over or underflow, and returns the resulting vector. */
-//	template<std::floating_point T, std::size_t N, std::size_t A>
-//	[[nodiscard]] DPM_FORCEINLINE detail::x86_simd<T, N, A> hypot(const detail::x86_simd<T, N, A> &a, const detail::x86_simd<T, N, A> &b) noexcept requires detail::x86_overload_any<T, N, A>
-//	{
-//	}
+
+#ifdef DPM_HAS_SSE2
+	/** Calculates square root of the sum of elements in vectors \a a and \a b without causing over or underflow, and returns the resulting vector. */
+	template<std::floating_point T, std::size_t N, std::size_t A>
+	[[nodiscard]] DPM_FORCEINLINE detail::x86_simd<T, N, A> hypot(const detail::x86_simd<T, N, A> &a, const detail::x86_simd<T, N, A> &b) noexcept requires detail::x86_overload_any<T, N, A>
+	{
+		detail::x86_simd<T, N, A> result = {};
+		detail::vectorize([](auto &res, auto a, auto b) { res = detail::hypot(a, b); }, result, a, b);
+		return result;
+	}
+#endif
 
 	DPM_DECLARE_EXT_NAMESPACE
 	{

@@ -28,6 +28,7 @@ target_sources(${DPM_PROJECT} PUBLIC
 target_sources(${DPM_PROJECT} PRIVATE
         ${CMAKE_CURRENT_LIST_DIR}/polevl.hpp
         ${CMAKE_CURRENT_LIST_DIR}/cpuid.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/pow.cpp
         ${CMAKE_CURRENT_LIST_DIR}/exp.cpp
         ${CMAKE_CURRENT_LIST_DIR}/sincos.cpp
         ${CMAKE_CURRENT_LIST_DIR}/tan.cpp

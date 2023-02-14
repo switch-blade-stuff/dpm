@@ -271,6 +271,35 @@ namespace dpm
 		detail::vectorize([](auto &res, auto from, auto to) { res = detail::nextafter(from, to); }, result, from, to);
 		return result;
 	}
+
+	/** Multiplies elements of vector \a x by `2` raised to power \a exp, and returns the resulting vector. */
+	template<std::floating_point T, std::size_t N, std::size_t A>
+	[[nodiscard]] DPM_FORCEINLINE detail::x86_simd<T, N, A> ldexp(const detail::x86_simd<T, N, A> &x, int exp) noexcept
+	{
+		return scalbn(x, exp);
+	}
+	/** @copydoc ldexp */
+	template<std::floating_point T, std::size_t N, std::size_t A>
+	[[nodiscard]] DPM_FORCEINLINE detail::x86_simd<T, N, A> scalbn(const detail::x86_simd<T, N, A> &x, int exp) noexcept
+	{
+		using exp_t = detail::int_of_size_t<sizeof(T)>;
+		using exp_vector = detail::select_vector_t<exp_t, sizeof(ext::native_data_type_t<detail::x86_simd<T, N, A>>)>;
+
+		detail::x86_simd<T, N, A> result = {};
+		detail::vectorize([exp = detail::fill<exp_vector>(static_cast<exp_t>(exp))](auto &res, auto x) { res = detail::scalbn(x, exp); }, result, x);
+		return result;
+	}
+	/** @copydoc ldexp */
+	template<std::floating_point T, std::size_t N, std::size_t A>
+	[[nodiscard]] DPM_FORCEINLINE detail::x86_simd<T, N, A> scalbln(const detail::x86_simd<T, N, A> &x, long exp) noexcept
+	{
+		using exp_t = detail::int_of_size_t<sizeof(T)>;
+		using exp_vector = detail::select_vector_t<exp_t, sizeof(ext::native_data_type_t<detail::x86_simd<T, N, A>>)>;
+
+		detail::x86_simd<T, N, A> result = {};
+		detail::vectorize([exp = detail::fill<exp_vector>(static_cast<exp_t>(exp))](auto &res, auto x) { res = detail::scalbn(x, exp); }, result, x);
+		return result;
+	}
 #endif
 
 #if defined(DPM_USE_SVML) || defined(DPM_HAS_SSE2)
