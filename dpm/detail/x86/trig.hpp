@@ -7,7 +7,7 @@
 #include "math_fwd.hpp"
 #include "type.hpp"
 
-#if defined(DPM_ARCH_X86) && defined(DPM_HAS_SSE2)
+#if defined(DPM_ARCH_X86)
 
 #include "class.hpp"
 
@@ -15,7 +15,7 @@ namespace dpm
 {
 	namespace detail
 	{
-#ifndef DPM_USE_SVML
+#if !defined(DPM_USE_SVML) && defined(DPM_HAS_SSE2)
 		[[nodiscard]] std::pair<__m128, __m128> DPM_PRIVATE DPM_MATHFUNC eval_sincos(__m128 sign_x, __m128 abs_x) noexcept;
 		[[nodiscard]] std::pair<__m128d, __m128d> DPM_PRIVATE DPM_MATHFUNC eval_sincos(__m128d sign_x, __m128d abs_x) noexcept;
 
@@ -75,6 +75,7 @@ namespace dpm
 		[[nodiscard]] DPM_FORCEINLINE __m128 atan(__m128 x) noexcept { return _mm_atan_ps(x); }
 		[[nodiscard]] DPM_FORCEINLINE __m128 atan2(__m128 a, __m128 b) noexcept { return _mm_atan2_ps(a, b); }
 
+#ifdef DPM_HAS_SSE2
 		[[nodiscard]] DPM_FORCEINLINE std::pair<__m128d, __m128d> sincos(__m128d x) noexcept
 		{
 			__m128d sin, cos;
@@ -94,7 +95,7 @@ namespace dpm
 		[[nodiscard]] DPM_FORCEINLINE __m128d acos(__m128d x) noexcept { return _mm_acos_pd(x); }
 		[[nodiscard]] DPM_FORCEINLINE __m128d atan(__m128d x) noexcept { return _mm_atan_pd(x); }
 		[[nodiscard]] DPM_FORCEINLINE __m128d atan2(__m128d a, __m128d b) noexcept { return _mm_atan2_pd(a, b); }
-
+#endif
 #ifdef DPM_HAS_AVX
 		[[nodiscard]] DPM_FORCEINLINE std::pair<__m256, __m256> sincos(__m256 x) noexcept
 		{
@@ -134,6 +135,7 @@ namespace dpm
 #endif
 	}
 
+#if defined(DPM_USE_SVML) || defined(DPM_HAS_SSE2)
 	/** Calculates sine of elements in vector \a x, and returns the resulting vector. */
 	template<std::floating_point T, std::size_t N, std::size_t A>
 	[[nodiscard]] DPM_FORCEINLINE detail::x86_simd<T, N, A> sin(const detail::x86_simd<T, N, A> &x) noexcept requires detail::x86_overload_any<T, N, A>
@@ -183,6 +185,17 @@ namespace dpm
 		return result;
 	}
 
+	DPM_DECLARE_EXT_NAMESPACE
+	{
+		/** Calculates sine and cosine of elements in vector \a x, and assigns results to elements of \a out_sin and \a out_cos respectively. */
+		template<std::floating_point T, std::size_t N, std::size_t A>
+		DPM_FORCEINLINE void sincos(const detail::x86_simd<T, N, A> &x, detail::x86_simd<T, N, A> &out_sin, detail::x86_simd<T, N, A> &out_cos) noexcept requires detail::x86_overload_any<T, N, A>
+		{
+			detail::vectorize([](auto x, auto &sin_x, auto &cos_x) { std::bind(sin_x, cos_x) = detail::sincos(x); }, x, out_sin, out_cos);
+		}
+	}
+#endif
+
 #ifdef DPM_USE_SVML
 	/** Calculates arc-tangent of quotient of elements in vectors \a a and \a b, and returns the resulting vector. */
 	template<std::floating_point T, std::size_t N, std::size_t A>
@@ -193,16 +206,6 @@ namespace dpm
 		return result;
 	}
 #endif
-
-	DPM_DECLARE_EXT_NAMESPACE
-	{
-		/** Calculates sine and cosine of elements in vector \a x, and assigns results to elements of \a out_sin and \a out_cos respectively. */
-		template<std::floating_point T, std::size_t N, std::size_t A>
-		DPM_FORCEINLINE void sincos(const detail::x86_simd<T, N, A> &x, detail::x86_simd<T, N, A> &out_sin, detail::x86_simd<T, N, A> &out_cos) noexcept requires detail::x86_overload_any<T, N, A>
-		{
-			detail::vectorize([](auto x, auto &sin_x, auto &cos_x) { std::bind(sin_x, cos_x) = detail::sincos(x); }, x, out_sin, out_cos);
-		}
-	}
 }
 
 #endif

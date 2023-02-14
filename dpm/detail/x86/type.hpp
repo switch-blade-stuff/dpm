@@ -430,7 +430,7 @@ namespace dpm
 			const auto vm = detail::maskzero<T>(mask_data[i], mask_t::size() - i * sizeof(result) / sizeof(T));
 			result = detail::bit_or(result, vm);
 		}
-		return detail::movemask<T>(result);
+		return detail::test_mask(result);
 	}
 	/** Returns `true` if at none of the elements of the \a mask is `true`. Otherwise returns `false`. */
 	template<typename T, std::size_t N, std::size_t A>
@@ -445,7 +445,7 @@ namespace dpm
 			const auto vm = detail::maskzero<T>(mask_data[i], mask_t::size() - i * sizeof(result) / sizeof(T));
 			result = detail::bit_or(result, vm);
 		}
-		return !detail::movemask<T>(result);
+		return !detail::test_mask(result);
 	}
 	/** Returns `true` if at least one of the elements of the \a mask is `true` and at least one is `false`. Otherwise returns `false`. */
 	template<typename T, std::size_t N, std::size_t A>
@@ -465,7 +465,7 @@ namespace dpm
 			all_mask = detail::bit_and(all_mask, vmo);
 			any_mask = detail::bit_or(any_mask, vmz);
 		}
-		return detail::movemask<T>(any_mask) && detail::movemask<T>(all_mask) != detail::fill_bits<(sizeof(all_mask) / sizeof(T)) * detail::movemask_bits_v<T>>();
+		return detail::test_mask(any_mask) && detail::movemask<T>(all_mask) != detail::fill_bits<(sizeof(all_mask) / sizeof(T)) * detail::movemask_bits_v<T>>();
 	}
 
 	/** Returns the number of `true` elements of \a mask. */
