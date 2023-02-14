@@ -131,10 +131,9 @@ static inline void test_trig() noexcept
 	invoke_test([](auto x) { return dpm::sin(x); }, std::span{test_vals}, T{1.0e-3}, T{4.8e-7});
 	invoke_test([](auto x) { return dpm::cos(x); }, std::span{test_vals}, T{1.0e-3}, T{4.8e-7});
 	invoke_test([](auto x) { return dpm::tan(x); }, std::span{test_vals}, T{1.0e-3}, T{4.8e-7});
-	//test_func1<T, Abi>([](auto x) { return tan2(x); }, T{0.001}, std::span{vals});
-	invoke_test([](auto x) { return asin(x); }, std::span{test_vals}, T{1.0e-3}, T{1.0e-7});
-	invoke_test([](auto x) { return acos(x); }, std::span{test_vals}, T{1.0e-3}, T{1.0e-7});
-	//test_func1<T, Abi>([](auto x) { return atan(x); }, T{0.001}, std::span{vals});
+	invoke_test([](auto x) { return dpm::asin(x); }, std::span{test_vals}, T{1.0e-3}, T{1.0e-7});
+	invoke_test([](auto x) { return dpm::acos(x); }, std::span{test_vals}, T{1.0e-3}, T{1.0e-7});
+	invoke_test([](auto x) { return dpm::atan(x); }, std::span{test_vals}, T{1.0e-3}, T{1.0e-7});
 }
 
 #include <cmath>

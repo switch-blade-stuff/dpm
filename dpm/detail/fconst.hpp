@@ -20,12 +20,30 @@ namespace dpm::detail
 	template<std::floating_point T>
 	static constexpr T pio4 = std::numbers::pi_v<T> / T{4.0};
 	template<std::floating_point T>
+	static constexpr T pio2 = std::numbers::pi_v<T> / T{2.0};
+	template<std::floating_point T>
+	static constexpr T tan3pio8 = T{2.41421356237309504880};
+	template<std::floating_point T>
 	static constexpr T loge2 = T{0.69314718055994530942};
 
 	template<std::floating_point T>
 	static constexpr T exp_multm = std::same_as<T, float> ? T{2.9802322388e-08} : T{5.55111512312578270212e-17};
 	template<std::floating_point T>
 	static constexpr T exp_mult = std::same_as<T, float> ? T{3.355443200e+07} : T{1.80143985094819840000e+16};
+
+	/* In some cases x86 intrinsics generate extraneous casts if literals are used with intrinsics. As such, define commonly used values here. */
+	template<std::floating_point T>
+	static constexpr T five_eights = T{0.625};
+	template<std::floating_point T>
+	static constexpr T sign_bit = T{-0.0};
+	template<std::floating_point T>
+	static constexpr T half = T{0.5};
+	template<std::floating_point T>
+	static constexpr T p66 = T{0.66};
+	template<std::floating_point T>
+	static constexpr T one = T{1.0};
+	template<std::floating_point T>
+	static constexpr T two = T{2.0};
 
 	template<typename>
 	struct range_vals;
@@ -60,18 +78,6 @@ namespace dpm::detail
 	template<typename T>
 	static constexpr T max_scalbn = 50000;
 
-	/* In some cases x86 intrinsics generate extraneous casts if literals are used with intrinsics. As such, define commonly used values here. */
-	template<std::floating_point T>
-	static constexpr T five_eights = T{0.625};
-	template<std::floating_point T>
-	static constexpr T sign_bit = T{-0.0};
-	template<std::floating_point T>
-	static constexpr T half = T{0.5};
-	template<std::floating_point T>
-	static constexpr T one = T{1.0};
-	template<std::floating_point T>
-	static constexpr T two = T{2.0};
-
 	template<std::floating_point T>
 	static constexpr T dp_sincos[] = {T{-7.85398125648498535156e-1}, T{-3.77489470793079817668e-8}, T{-2.69515142907905952645e-15}};
 
@@ -96,17 +102,13 @@ namespace dpm::detail
 	template<std::floating_point T>
 	static constexpr T asin_s[] = {T{1.000000000000000000000e0}, T{-2.194779531642920639778e1}, T{1.470656354026814941758e2}, T{-3.838770957603691357202e2}, T{3.424398657913078477438e2}};
 	template<std::floating_point T>
-	static constexpr T asin_p[] = {
-			T{4.253011369004428248960e-3}, T{-6.019598008014123785661e-1},
-			T{5.444622390564711410273e0}, T{-1.626247967210700244449e1},
-			T{1.956261983317594739197e1}, T{-8.198089802484824371615e0}
-	};
+	static constexpr T asin_p[] = {T{4.253011369004428248960e-3}, T{-6.019598008014123785661e-1}, T{5.444622390564711410273e0}, T{-1.626247967210700244449e1}, T{1.956261983317594739197e1}, T{-8.198089802484824371615e0}};
 	template<std::floating_point T>
-	static constexpr T asin_q[] = {
-			T{1.000000000000000000000e0}, T{-1.474091372988853791896e1},
-			T{7.049610280856842141659e1}, T{-1.471791292232726029859e2},
-			T{1.395105614657485689735e2}, T{-4.918853881490881290097e1}
-	};
+	static constexpr T asin_q[] = {T{1.0}, T{-1.474091372988853791896e1}, T{7.049610280856842141659e1}, T{-1.471791292232726029859e2}, T{1.395105614657485689735e2}, T{-4.918853881490881290097e1}};
+	template<std::floating_point T>
+	static constexpr T atan_q[] = {T{1.0}, T{2.485846490142306297962e1}, T{1.650270098316988542046e2}, T{4.328810604912902668951e2}, T{4.853903996359136964868e2}, T{1.945506571482613964425e2}};
+	template<std::floating_point T>
+	static constexpr T atan_p[] = {T{-8.750608600031904122785e-1}, T{-1.615753718733365076637e1}, T{-7.500855792314704667340e1}, T{-1.228866684490136173410e2}, T{-6.485021904942025371773e1}};
 	template<std::floating_point T>
 	static constexpr T asin_pmin = std::same_as<T, float> ? T{1.0e-4} : T{1.0e-8};
 	template<std::floating_point T>

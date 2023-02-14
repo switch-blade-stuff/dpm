@@ -182,6 +182,8 @@ namespace dpm
 		detail::vectorize([](auto &res, auto x) { res = detail::atan(x); }, result, x);
 		return result;
 	}
+
+#ifdef DPM_USE_SVML
 	/** Calculates arc-tangent of quotient of elements in vectors \a a and \a b, and returns the resulting vector. */
 	template<std::floating_point T, std::size_t N, std::size_t A>
 	[[nodiscard]] DPM_FORCEINLINE detail::x86_simd<T, N, A> atan2(const detail::x86_simd<T, N, A> &a, const detail::x86_simd<T, N, A> &b) noexcept requires detail::x86_overload_any<T, N, A>
@@ -190,6 +192,7 @@ namespace dpm
 		detail::vectorize([](auto &res, auto a, auto b) { res = detail::atan2(a, b); }, result, a, b);
 		return result;
 	}
+#endif
 
 	DPM_DECLARE_EXT_NAMESPACE
 	{
