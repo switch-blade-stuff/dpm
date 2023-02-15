@@ -6,19 +6,14 @@
 
 #if defined(DPM_ARCH_X86) && defined(DPM_HAS_SSE2) && !defined(DPM_USE_SVML)
 
+#include "except.hpp"
 #include "polevl.hpp"
 #include "pow.hpp"
-
-#ifdef DPM_HANDLE_ERRORS
-#ifndef _MSC_VER /* MSVC does not support STDC pragmas */
-#pragma STDC FENV_ACCESS ON
-#endif
-#endif
 
 namespace dpm::detail
 {
 	template<typename T, typename V>
-	[[nodiscard]] static V do_asin(V abs_x, V x_sign) noexcept
+	[[nodiscard]] static V eval_asin(V abs_x, V x_sign) noexcept
 	{
 		const auto v_pio4 = fill<V>(pio4<T>);
 
@@ -50,18 +45,12 @@ namespace dpm::detail
 		const auto x_sign = masksign<T>(x);
 		auto abs_x = bit_xor(x, x_sign);
 
-		/* Check domain. */
+		/* Enforce domain. */
 #ifdef DPM_HANDLE_ERRORS
-		const auto dom_mask = cmp_gt<T>(abs_x, fill<V>(one<T>));
-		if (test_mask<V>(dom_mask)) [[unlikely]]
-		{
-			std::feraiseexcept(FE_INVALID);
-			errno = EDOM;
-		}
-		const auto nan = fill<V>(std::numeric_limits<T>::quiet_NaN());
-		abs_x = blendv<T>(abs_x, nan, dom_mask);
+		if (const auto m = cmp_gt<T>(abs_x, fill<V>(one<T>)); test_mask(m))
+			[[unlikely]] abs_x = except_nan<T>(abs_x, m);
 #endif
-		return do_asin<T>(abs_x, x_sign);
+		return eval_asin<T>(abs_x, x_sign);
 	}
 	template<typename T, typename V>
 	[[nodiscard]] DPM_FORCEINLINE V impl_acos(V x) noexcept
@@ -70,24 +59,17 @@ namespace dpm::detail
 		const auto x_sign = masksign<T>(x);
 		auto abs_x = bit_xor(x, x_sign);
 
-		/* Check domain. */
+		/* Enforce domain. */
 #ifdef DPM_HANDLE_ERRORS
-		const auto dom_mask = cmp_gt<T>(abs_x, fill<V>(one<T>));
-		if (test_mask<V>(dom_mask)) [[unlikely]]
-		{
-			std::feraiseexcept(FE_INVALID);
-			errno = EDOM;
-		}
-		const auto nan = fill<V>(std::numeric_limits<T>::quiet_NaN());
-		abs_x = blendv<T>(abs_x, nan, dom_mask);
+		if (const auto m = cmp_gt<T>(abs_x, fill<V>(one<T>)); test_mask(m))
+			[[unlikely]] abs_x = except_nan<T>(abs_x, m);
 #endif
-
 		/* c_mask = x > 0.5 */
 		const auto c_mask = cmp_gt<T>(x, fill<V>(half<T>));
 		/* acos1: x > 0.5 */
-		const auto acos1 = mul<T>(fill<V>(two<T>), do_asin<T>(sqrt(fmadd(x, fill<V>(-half<T>), fill<V>(half<T>))), setzero<V>()));
+		const auto acos1 = mul<T>(fill<V>(two<T>), eval_asin<T>(sqrt(fmadd(abs_x, fill<V>(-half<T>), fill<V>(half<T>))), setzero<V>()));
 		/* acos2: x <= 0.5 */
-		const auto acos2 = add<T>(add<T>(sub<T>(v_pio4, do_asin<T>(abs_x, x_sign)), fill<V>(asin_off<T>)), v_pio4);
+		const auto acos2 = add<T>(add<T>(sub<T>(v_pio4, eval_asin<T>(abs_x, x_sign)), fill<V>(asin_off<T>)), v_pio4);
 		/* Select result. */
 		return blendv<T>(acos2, acos1, c_mask);
 	}

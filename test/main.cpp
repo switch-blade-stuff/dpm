@@ -6,6 +6,29 @@
 
 #define TEST_ASSERT(x) DPM_ASSERT_ALWAYS(x)
 
+#ifdef DPM_HANDLE_ERRORS
+static inline void clear_err() noexcept
+{
+#if math_errhandling & MATH_ERREXCEPT
+	std::feclearexcept(FE_ALL_EXCEPT);
+#endif
+#if math_errhandling & MATH_ERRNO
+	errno = 0;
+#endif
+}
+static inline bool test_err([[maybe_unused]] int except_val, [[maybe_unused]] int errno_val) noexcept
+{
+	bool result = false;
+#if math_errhandling & MATH_ERREXCEPT
+	result = result || std::fetestexcept(except_val) == except_val;
+#endif
+#if math_errhandling & MATH_ERRNO
+	result = result || errno == errno_val;
+#endif
+	return result;
+}
+#endif
+
 template<typename T>
 static inline bool almost_equal(T a, T b, T rel_eps, T eps)
 {
@@ -104,10 +127,9 @@ static inline void test_trig() noexcept
 	constexpr auto invoke_test = []<std::size_t N>(auto f, std::span<const T, N> vals, T rel_eps, T eps)
 	{
 		constexpr auto simd_size = dpm::simd_size_v<T, Abi>;
-		dpm::simd<T, Abi> vs[N / simd_size + (N % simd_size ? 1 : 0)];
 		for (std::size_t i = 0; i < N;)
 		{
-			auto &v = vs[i / simd_size];
+			dpm::simd<T, Abi> v = {};
 			v.copy_from(vals.data() + i, dpm::element_aligned);
 			v = f(v);
 
@@ -120,7 +142,7 @@ static inline void test_trig() noexcept
 	};
 
 	const auto test_vals = std::array{
-			T{12.54}, T{0.1234}, T{-0.34}, T{12299.99}, T{0.0},
+			T{12.54}, T{0.1234}, T{-0.34}, T{12299.99}, T{0.0}, T{1.0},
 			std::numbers::pi_v<T> * 2, std::numbers::pi_v<T> / 4,
 			std::numbers::pi_v<T> * 4, std::numbers::pi_v<T> / 6,
 			std::numbers::pi_v<T> * 3, std::numbers::pi_v<T> / 3,
@@ -134,6 +156,97 @@ static inline void test_trig() noexcept
 	invoke_test([](auto x) { return dpm::asin(x); }, std::span{test_vals}, T{1.0e-3}, T{1.0e-7});
 	invoke_test([](auto x) { return dpm::acos(x); }, std::span{test_vals}, T{1.0e-3}, T{1.0e-7});
 	invoke_test([](auto x) { return dpm::atan(x); }, std::span{test_vals}, T{1.0e-3}, T{1.0e-7});
+
+	/* TODO: If DPM_HANDLE_ERRORS is set and fp exceptions are used, check exceptions. */
+}
+
+template<typename T, typename Abi>
+static inline void test_hypot() noexcept
+{
+	const auto a_data = std::array{
+			T{-0.0}, T{-0.0}, T{0.0}, T{1.0}, T{2.0},
+			std::numeric_limits<T>::max(), std::numeric_limits<T>::min(),
+			std::numeric_limits<T>::infinity()
+	};
+	const auto b_data = std::array{
+			T{0.0}, T{1.0}, T{3.0}, T{2.0}, T{2.0},
+			std::numeric_limits<T>::quiet_NaN(), std::numeric_limits<T>::quiet_NaN(),
+			std::numeric_limits<T>::quiet_NaN()
+	};
+
+	constexpr auto simd_size = dpm::simd_size_v<T, Abi>;
+	for (std::size_t i = 0; i < a_data.size();)
+	{
+		dpm::simd<T, Abi> a = {}, b = {};
+		a.copy_from(a_data.data() + i, dpm::element_aligned);
+		b.copy_from(b_data.data() + i, dpm::element_aligned);
+		const auto c = dpm::hypot(a, b);
+
+		for (std::size_t j = 0; i < a_data.size() && j < simd_size; ++j, ++i)
+		{
+			const auto d = std::hypot(a[j], b[j]);
+			TEST_ASSERT(c[j] == d || (std::isnan(c[j]) && std::isnan(d)));
+		}
+	}
+}
+
+template<typename T, typename Abi>
+static inline void test_nextafter() noexcept
+{
+	{
+		const auto a_data = std::array{
+				T{-0.0}, T{-0.0}, T{0.0}, T{1.0},
+				std::numeric_limits<T>::max(), std::numeric_limits<T>::min(),
+				std::numeric_limits<T>::quiet_NaN(), T{0.0}
+		};
+		const auto b_data = std::array{
+				T{0.0}, T{1.0}, T{1.0}, T{2.0},
+				std::numeric_limits<T>::infinity(), -std::numeric_limits<T>::infinity(),
+				T{0.0}, std::numeric_limits<T>::quiet_NaN()
+		};
+
+		constexpr auto simd_size = dpm::simd_size_v<T, Abi>;
+		for (std::size_t i = 0; i < a_data.size();)
+		{
+			dpm::simd<T, Abi> a = {}, b = {};
+			a.copy_from(a_data.data() + i, dpm::element_aligned);
+			b.copy_from(b_data.data() + i, dpm::element_aligned);
+			const auto c = dpm::nextafter(a, b);
+
+			for (std::size_t j = 0; i < a_data.size() && j < simd_size; ++j, ++i)
+			{
+				const auto d = std::nextafter(a[j], b[j]);
+				TEST_ASSERT(c[j] == d || (std::isnan(c[j]) && std::isnan(d)));
+			}
+		}
+	}
+#ifdef DPM_HANDLE_ERRORS
+	{
+		dpm::fixed_size_simd<double, 2> a, b, c;
+		const std::array<double, 2> a2_data = {0.0, std::numeric_limits<double>::max()};
+		const std::array<double, 2> b2_data = {1.0, std::numeric_limits<double>::infinity()};
+
+		a = {a2_data[0]};
+		b = {b2_data[0]};
+		c = dpm::nextafter(a, b);
+		TEST_ASSERT(test_err(FE_UNDERFLOW, ERANGE));
+		TEST_ASSERT(c[0] = std::nextafter(a[0], b[0]));
+
+		clear_err();
+		a = {a2_data[1]};
+		b = {b2_data[1]};
+		c = dpm::nextafter(a, b);
+		TEST_ASSERT(test_err(FE_OVERFLOW, ERANGE));
+		TEST_ASSERT(c[0] = std::nextafter(a[0], b[0]));
+
+		a.copy_from(a2_data.data(), dpm::element_aligned);
+		b.copy_from(b2_data.data(), dpm::element_aligned);
+		c = dpm::nextafter(a, b);
+		TEST_ASSERT(test_err(FE_OVERFLOW | FE_UNDERFLOW, ERANGE));
+		TEST_ASSERT(c[0] = std::nextafter(a[0], b[0]));
+		TEST_ASSERT(c[1] = std::nextafter(a[1], b[1]));
+	}
+#endif
 }
 
 #include <cmath>
@@ -374,35 +487,6 @@ int main()
 		TEST_ASSERT(dpm::all_of(a == b));
 	}
 
-	{
-		dpm::fixed_size_simd<float, 7> a, b;
-		const std::array<float, 7> a_data = {-0.0f, -0.0f, 0.0f, 1.0f, std::numeric_limits<float>::max(), std::numeric_limits<float>::quiet_NaN(), 0.0f};
-		a.copy_from(a_data.data(), dpm::element_aligned);
-		const std::array<float, 7> b_data = {0.0f, 1.0f, 1.0f, 2.0f, std::numeric_limits<float>::infinity(), 0.0f, std::numeric_limits<float>::quiet_NaN()};
-		b.copy_from(b_data.data(), dpm::element_aligned);
-
-		const auto c = dpm::nextafter(a, b);
-		for (std::size_t i = 0; i < a.size(); ++i)
-		{
-			const auto s = std::nextafter(a[i], b[i]);
-			TEST_ASSERT(c[i] == s || (std::isnan(c[i]) && std::isnan(s)));
-		}
-	}
-	{
-		dpm::fixed_size_simd<double, 7> a, b;
-		const std::array<double, 7> a_data = {-0.0, -0.0, 0.0, 1.0, std::numeric_limits<double>::max(), std::numeric_limits<double>::quiet_NaN(), 0.0};
-		a.copy_from(a_data.data(), dpm::element_aligned);
-		const std::array<double, 7> b_data = {0.0, 1.0, 1.0, 2.0, std::numeric_limits<double>::infinity(), 0.0, std::numeric_limits<double>::quiet_NaN()};
-		b.copy_from(b_data.data(), dpm::element_aligned);
-
-		const auto c = dpm::nextafter(a, b);
-		for (std::size_t i = 0; i < a.size(); ++i)
-		{
-			const auto s = std::nextafter(a[i], b[i]);
-			TEST_ASSERT(c[i] == s || (std::isnan(c[i]) && std::isnan(s)));
-		}
-	}
-
 	test_trig<float, dpm::simd_abi::fixed_size<4>>();
 	test_trig<float, dpm::simd_abi::fixed_size<8>>();
 	test_trig<float, dpm::simd_abi::fixed_size<16>>();
@@ -420,4 +504,40 @@ int main()
 	test_trig<double, dpm::simd_abi::ext::aligned_vector<8, 16>>();
 	test_trig<double, dpm::simd_abi::ext::aligned_vector<16, 16>>();
 	test_trig<double, dpm::simd_abi::ext::aligned_vector<32, 16>>();
+
+	test_hypot<float, dpm::simd_abi::fixed_size<4>>();
+	test_hypot<float, dpm::simd_abi::fixed_size<8>>();
+	test_hypot<float, dpm::simd_abi::fixed_size<16>>();
+	test_hypot<float, dpm::simd_abi::fixed_size<32>>();
+	test_hypot<float, dpm::simd_abi::ext::aligned_vector<4, 16>>();
+	test_hypot<float, dpm::simd_abi::ext::aligned_vector<8, 16>>();
+	test_hypot<float, dpm::simd_abi::ext::aligned_vector<16, 16>>();
+	test_hypot<float, dpm::simd_abi::ext::aligned_vector<32, 16>>();
+
+	test_hypot<double, dpm::simd_abi::fixed_size<4>>();
+	test_hypot<double, dpm::simd_abi::fixed_size<8>>();
+	test_hypot<double, dpm::simd_abi::fixed_size<16>>();
+	test_hypot<double, dpm::simd_abi::fixed_size<32>>();
+	test_hypot<double, dpm::simd_abi::ext::aligned_vector<4, 16>>();
+	test_hypot<double, dpm::simd_abi::ext::aligned_vector<8, 16>>();
+	test_hypot<double, dpm::simd_abi::ext::aligned_vector<16, 16>>();
+	test_hypot<double, dpm::simd_abi::ext::aligned_vector<32, 16>>();
+
+	test_nextafter<float, dpm::simd_abi::fixed_size<4>>();
+	test_nextafter<float, dpm::simd_abi::fixed_size<8>>();
+	test_nextafter<float, dpm::simd_abi::fixed_size<16>>();
+	test_nextafter<float, dpm::simd_abi::fixed_size<32>>();
+	test_nextafter<float, dpm::simd_abi::ext::aligned_vector<4, 16>>();
+	test_nextafter<float, dpm::simd_abi::ext::aligned_vector<8, 16>>();
+	test_nextafter<float, dpm::simd_abi::ext::aligned_vector<16, 16>>();
+	test_nextafter<float, dpm::simd_abi::ext::aligned_vector<32, 16>>();
+
+	test_nextafter<double, dpm::simd_abi::fixed_size<4>>();
+	test_nextafter<double, dpm::simd_abi::fixed_size<8>>();
+	test_nextafter<double, dpm::simd_abi::fixed_size<16>>();
+	test_nextafter<double, dpm::simd_abi::fixed_size<32>>();
+	test_nextafter<double, dpm::simd_abi::ext::aligned_vector<4, 16>>();
+	test_nextafter<double, dpm::simd_abi::ext::aligned_vector<8, 16>>();
+	test_nextafter<double, dpm::simd_abi::ext::aligned_vector<16, 16>>();
+	test_nextafter<double, dpm::simd_abi::ext::aligned_vector<32, 16>>();
 }

@@ -35,17 +35,17 @@ namespace dpm::detail
 		const auto yh = _mm256_cvtps_pd(_mm256_extractf128_ps(y, 1));
 		const auto xl = _mm256_cvtps_pd(_mm256_castps256_ps128(x));
 		const auto yl = _mm256_cvtps_pd(_mm256_castps256_ps128(y));
-		const auto xyh = _mm256_cvtpd_ps(fmadd(xh, xh, mul<double>(yh, yh)));
-		const auto xyl = _mm256_cvtpd_ps(fmadd(xl, xl, mul<double>(yl, yl)));
-		return mul<float>(z, _mm256_sqrt_pd(_mm256_set_m128(xyh, xyl)));
+		const auto xyh = _mm256_cvtpd_ps(_mm256_sqrt_pd(fmadd(xh, xh, mul<double>(yh, yh))));
+		const auto xyl = _mm256_cvtpd_ps(_mm256_sqrt_pd(fmadd(xl, xl, mul<double>(yl, yl))));
+		return mul<float>(z, _mm256_set_m128(xyh, xyl));
 	}
 	[[nodiscard]] DPM_FORCEINLINE __m128 eval_hypotf(__m128 x, __m128 y, __m128 z) noexcept
 	{
 		/* Convert to double to prevent overflow. */
 		const auto x64 = _mm256_cvtps_pd(x);
 		const auto y64 = _mm256_cvtps_pd(y);
-		const auto xy = _mm256_cvtpd_ps(fmadd(x64, x64, mul<double>(y64, y64)));
-		return mul<float>(z, _mm_sqrt_pd(xy));
+		const auto xy = fmadd(x64, x64, mul<double>(y64, y64));
+		return mul<float>(z, _mm256_cvtpd_ps(_mm256_sqrt_pd(xy)));
 	}
 #else
 	[[nodiscard]] DPM_FORCEINLINE __m128 eval_hypotf(__m128 x, __m128 y, __m128 z) noexcept
@@ -58,7 +58,7 @@ namespace dpm::detail
 		const auto xyh = _mm_cvtpd_ps(fmadd(xh, xh, mul<double>(yh, yh)));
 		const auto xyl = _mm_cvtpd_ps(fmadd(xl, xl, mul<double>(yl, yl)));
 		const auto xy = _mm_shuffle_ps(xyl, xyh, _MM_SHUFFLE(1, 0, 1, 0));
-		return mul<float>(z, _mm_sqrt_pd(xy));
+		return mul<float>(z, _mm_sqrt_ps(xy));
 	}
 #endif
 
@@ -83,19 +83,16 @@ namespace dpm::detail
 
 		/* Apply offset to avoid under- and overflow. */
 		auto c = fill<V>(one<T>);
-		const auto big_mask = std::bit_cast<V>(cmp_gt<std::int64_t>(ia, fill<Vi>((0x5fdull << 52) - 1)));
-		const auto small_mask = std::bit_cast<V>(cmp_gt<std::int64_t>(fill<Vi>(0x5c1ull << 52), ib));
+		const auto big_mask = std::bit_cast<V>(cmp_gt<std::int64_t>(ia, fill<Vi>((0x5fdul << 52) - 1)));
+		const auto small_mask = std::bit_cast<V>(cmp_gt<std::int64_t>(fill<Vi>(0x23dul << 52), ib));
 		const auto new_c = blendv<T>(fill<V>(0x1p-700), fill<V>(0x1p700), small_mask);
 		auto ab_mult = blendv<T>(fill<V>(0x1p700), fill<V>(0x1p-700), small_mask);
 		const auto off_mask = bit_or(big_mask, small_mask);
 		ab_mult = blendv<T>(c, ab_mult, off_mask);
 		c = blendv<T>(c, new_c, off_mask);
-		a = mul<T>(a, ab_mult);
-		b = mul<T>(b, ab_mult);
-
 		/* Evaluate result without overflow. */
-		const auto [hx, lx] = split(a);
-		const auto [hy, ly] = split(b);
+		const auto [hx, lx] = split(mul<T>(a, ab_mult));
+		const auto [hy, ly] = split(mul<T>(b, ab_mult));
 		c = mul<T>(c, sqrt(add<T>(add<T>(ly, lx), add<T>(hy, hx))));
 
 		/* hypot(a, b) ~= a + b * b / a / 2 for small a & b */
@@ -109,7 +106,7 @@ namespace dpm::detail
 		const auto inf_b = std::bit_cast<V>(cmp_eq<std::int64_t>(ib, fill<Vi>(inf_mant)));
 
 		/* plus_mask = isinf(a) || ia - ib > small */
-		const auto plus_mask = bit_or(inf_a, ab_small);
+		const auto plus_mask = bit_andnot(inf_b, bit_or(inf_a, ab_small));
 		/* return (inf_b || plus_mask) ? b + (plus_mask ? a : 0) : c */
 		return blendv<T>(c, add<T>(b, bit_and(plus_mask, a)), bit_or(inf_b, plus_mask));
 #else
@@ -132,13 +129,11 @@ namespace dpm::detail
 		const auto off_mask = bit_or(big_mask, small_mask);
 		ab_mult = blendv<T>(c, ab_mult, off_mask);
 		c = blendv<T>(c, new_z, off_mask);
-		a = mul<T>(a, ab_mult);
-		b = mul<T>(b, ab_mult);
 
 		/* Evaluate result without overflow. */
-		c = eval_hypotf(a, b, c);
+		c = eval_hypotf(mul<T>(a, ab_mult), mul<T>(b, ab_mult), c);
 
-		/* hypot(a, b) ~= a + b * b / a / 2 for small a & b */
+		/* hypot(a, b) ~= a + b for small a & b */
 		constexpr std::uint32_t hypot_small = (25 << 23) - 1;
 		const auto ab_small = std::bit_cast<V>(cmp_gt<std::int32_t>(sub<std::uint32_t>(ia, ib), fill<Vi>(hypot_small)));
 
@@ -149,7 +144,7 @@ namespace dpm::detail
 		const auto inf_b = std::bit_cast<V>(cmp_eq<std::int32_t>(ib, fill<Vi>(inf_mant)));
 
 		/* plus_mask = isinf(a) || ia - ib > small */
-		const auto plus_mask = bit_or(inf_a, ab_small);
+		const auto plus_mask = bit_andnot(inf_b, bit_or(inf_a, ab_small));
 		/* return (inf_b || plus_mask) ? b + (plus_mask ? a : 0) : c */
 		return blendv<T>(c, add<T>(b, bit_and(plus_mask, a)), bit_or(inf_b, plus_mask));
 #else

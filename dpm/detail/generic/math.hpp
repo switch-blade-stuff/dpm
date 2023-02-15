@@ -4,6 +4,10 @@
 
 #pragma once
 
+#if defined(__GNUC__) && !defined(_GNU_SOURCE)
+#define _GNU_SOURCE
+#endif
+
 #include "type.hpp"
 
 #ifndef DPM_USE_IMPORT
@@ -18,7 +22,11 @@
 #endif
 #endif
 
+#if defined(DPM_HANDLE_ERRORS) && math_errhandling
+#define DPM_MATHFUNC DPM_VECTORCALL
+#else
 #define DPM_MATHFUNC DPM_PURE DPM_VECTORCALL
+#endif
 
 namespace dpm
 {
@@ -599,8 +607,23 @@ namespace dpm
 		template<typename T, typename Abi>
 		DPM_FORCEINLINE void sincos(const simd<T, Abi> &x, simd<T, Abi> &out_sin, simd<T, Abi> &out_cos) noexcept
 		{
+#ifdef _GNU_SOURCE
+			for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i)
+			{
+				T sin, cos;
+				if constexpr (std::same_as<T, float>)
+					sincosf(x[i], &sin, &cos);
+				else if constexpr (std::same_as<T, long double>)
+					sincosl(x[i], &sin, &cos);
+				else
+					sincos(x[i], &sin, &cos);
+				out_sin[i] = sin;
+				out_cos[i] = cos;
+			}
+#else
 			out_sin = sin(x);
 			out_cos = cos(x);
+#endif
 		}
 	}
 #pragma endregion

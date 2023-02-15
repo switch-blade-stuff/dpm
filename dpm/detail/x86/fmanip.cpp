@@ -6,6 +6,7 @@
 
 #if defined(DPM_ARCH_X86) && defined(DPM_HAS_SSE2)
 
+#include "except.hpp"
 #include "class.hpp"
 #include "cvt.hpp"
 
@@ -36,7 +37,7 @@ namespace dpm::detail
 		norm_exp = bit_shiftr<I, mant_bits<I>>(norm_exp) - fill<Vi>(exp_off<I> - 1) - off;
 
 		const auto not_fin_or_zero = bit_or(std::bit_cast<Vi>(is_zero), not_fin);
-		norm_x = blendv<T>(norm_x, add<T>(x, x), std::bit_cast<V>(not_fin_or_zero));
+		norm_x = blendv<T>(norm_x, add<T>(norm_x, norm_x), std::bit_cast<V>(not_fin_or_zero));
 		out_exp = blendv<I>(norm_exp, exp_x, not_fin_or_zero);
 		return norm_x;
 	}
@@ -87,16 +88,9 @@ namespace dpm::detail
 		y = blendv<T>(y, add<T>(x, x), not_fin);
 #endif
 #ifdef DPM_HANDLE_ERRORS
-		if (test_mask<V>(has_overflow)) [[unlikely]]
-		{
-			const auto vhuge = fill<V>(huge<T>);
-			y = blendv<T>(y, mul<T>(vhuge, copysign<T>(vhuge, x)), std::bit_cast<V>(has_underflow));
-		}
-		if (test_mask<V>(has_underflow)) [[unlikely]]
-		{
-			const auto vtiny = fill<V>(tiny<T>);
-			y = blendv<T>(y, mul<T>(vtiny, copysign<T>(vtiny, x)), std::bit_cast<V>(has_underflow));
-		}
+		const auto x_sign = masksign<T>(x);
+		if (test_mask(has_overflow)) [[unlikely]] y = except_oflow<T>(y, x_sign, std::bit_cast<V>(has_overflow));
+		if (test_mask(has_underflow)) [[unlikely]] y = except_uflow<T>(y, x_sign, std::bit_cast<V>(has_underflow));
 #endif
 		return y;
 	}
@@ -211,19 +205,17 @@ namespace dpm::detail
 	{
 		const auto abs_x = abs<T>(x);
 		auto y = cvt<T, I>(eval_ilogb<T, I>(abs_x));
-#ifdef DPM_HANDLE_ERRORS
-		const auto ninf = fill<V>(-std::numeric_limits<T>::infinity());
-		const auto zero_mask = cmp_eq<T>(abs_x, setzero<V>());
-		if (test_mask<V>(zero_mask)) [[unlikely]]
-		{
-			std::feraiseexcept(FE_DIVBYZERO);
-			errno = ERANGE;
-		}
-		y = blendv<T>(y, abs_x, isinf_abs(abs_x));
-		y = blendv<T>(y, ninf, zero_mask);
-#endif
-#ifdef DPM_PROPAGATE_NAN
-		y = blendv<T>(y, x, isunord(x, x));
+#if defined(DPM_HANDLE_ERRORS)
+		if (const auto m = cmp_eq<T>(abs_x, setzero<V>()); test_mask(m))
+			[[unlikely]] y = except_inf<T, -1>(y, m);
+
+		/* logb(+-inf) = inf; logb(+-nan) = nan */
+		const auto dom_mask = bit_or(isinf_abs(abs_x), isunord(x, x));
+		if (test_mask(dom_mask)) [[unlikely]] y = blendv<T>(y, mul<T>(x, x), dom_mask);
+#elif defined(DPM_PROPAGATE_NAN)
+		/* logb(+-nan) = nan */
+		const auto dom_mask = isunord(x, x);
+		if (test_mask(dom_mask)) [[unlikely]] y = blendv<T>(y, mul<T>(x, x), dom_mask);
 #endif
 		return y;
 	}
@@ -265,24 +257,28 @@ namespace dpm::detail
 		/* c = isnan(a) || isnan(b) ? a | b : c */
 		const auto nan_mask = isunord(a, b);
 		c = blendv<T>(c, bit_or(a, b), nan_mask);
-#ifdef DPM_HANDLE_ERRORS
+#if defined(DPM_HANDLE_ERRORS) && math_errhandling
+		int error = 0;
 		/* Raise overflow if exp == inf */
-		const auto inf_mask = std::bit_cast<V>(cmp_eq<I>(exp, inf_exp));
-		if (test_mask<V>(bit_andnot(nan_mask, inf_mask))) [[unlikely]]
-		{
-			std::feraiseexcept(FE_OVERFLOW);
-			errno = ERANGE;
-		}
+		const auto oflow_mask = std::bit_cast<V>(cmp_eq<I>(exp, inf_exp));
+		if (test_mask(bit_andnot(nan_mask, oflow_mask))) [[unlikely]] error |= FE_OVERFLOW;
 		/* Raise underflow if exp == 0 */
 		const auto uflow_mask = std::bit_cast<V>(cmp_eq<I>(exp, setzero<Vi>()));
-		if (test_mask<V>(bit_andnot(eq_mask, uflow_mask))) [[unlikely]]
+		if (test_mask(bit_andnot(eq_mask, uflow_mask))) [[unlikely]] error |= FE_UNDERFLOW;
+
+		/* Cannot use except_oflow & except_uflow, as we would have to discard the results. */
+		if (error != 0) [[unlikely]]
 		{
-			std::feraiseexcept(FE_UNDERFLOW);
+#if math_errhandling & MATH_ERREXCEPT
+			std::feraiseexcept(error);
+#endif
+#if math_errhandling & MATH_ERRNO
 			errno = ERANGE;
+#endif
 		}
 #endif
 #endif
-		/* return a == b ? b : z */
+		/* return a == b ? b : c */
 		return blendv<T>(c, b, eq_mask);
 	}
 

@@ -6,13 +6,8 @@
 
 #if defined(DPM_ARCH_X86) && defined(DPM_HAS_SSE2) && !defined(DPM_USE_SVML)
 
+#include "except.hpp"
 #include "polevl.hpp"
-
-#ifdef DPM_HANDLE_ERRORS
-#ifndef _MSC_VER /* MSVC does not support STDC pragmas */
-#pragma STDC FENV_ACCESS ON
-#endif
-#endif
 
 namespace dpm::detail
 {
@@ -23,16 +18,10 @@ namespace dpm::detail
 		const auto sign_x = masksign<T>(x);
 		auto abs_x = bit_xor(x, sign_x);
 
-		/* Check domain. */
+		/* Enforce domain. */
 #ifdef DPM_HANDLE_ERRORS
-		const auto dom_mask = isinf_abs(abs_x);
-		if (test_mask<V>(dom_mask)) [[unlikely]]
-		{
-			std::feraiseexcept(FE_INVALID);
-			errno = EDOM;
-		}
-		const auto nan = fill<V>(std::numeric_limits<T>::quiet_NaN());
-		abs_x = blendv<T>(abs_x, nan, dom_mask);
+		if (const auto m = isinf_abs(abs_x); test_mask(m))
+			[[unlikely]] abs_x = except_nan<T>(abs_x, m);
 #endif
 
 		auto p1 = undefined<V>(), p2 = undefined<V>();

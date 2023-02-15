@@ -10,6 +10,22 @@ namespace dpm
 {
 	namespace detail
 	{
+#ifdef DPM_USE_SVML
+		[[nodiscard]] DPM_FORCEINLINE __m128 pow(__m128 x, __m128 p) noexcept { return _mm_pow_ps(x, p); }
+		[[nodiscard]] DPM_FORCEINLINE __m128 cbrt(__m128 x) noexcept { return _mm_cbrt_ps(x); }
+#ifdef DPM_HAS_SSE2
+		[[nodiscard]] DPM_FORCEINLINE __m128d pow(__m128d x, __m128d p) noexcept { return _mm_pow_pd(x, p); }
+		[[nodiscard]] DPM_FORCEINLINE __m128d cbrt(__m128d x) noexcept { return _mm_cbrt_pd(x); }
+#endif
+#ifdef DPM_HAS_AVX
+		[[nodiscard]] DPM_FORCEINLINE __m256 pow(__m256 x, __m256 p) noexcept { return _mm256_pow_ps(x, p); }
+		[[nodiscard]] DPM_FORCEINLINE __m256 cbrt(__m256 x) noexcept { return _mm256_cbrt_ps(x); }
+
+		[[nodiscard]] DPM_FORCEINLINE __m256d pow(__m256d x, __m256d p) noexcept { return _mm256_pow_pd(x, p); }
+		[[nodiscard]] DPM_FORCEINLINE __m256d cbrt(__m256d x) noexcept { return _mm256_cbrt_pd(x); }
+#endif
+#endif
+
 		[[nodiscard]] DPM_FORCEINLINE __m128 rcp(__m128 x) noexcept { return _mm_rcp_ps(x); }
 		[[nodiscard]] DPM_FORCEINLINE __m128 sqrt(__m128 x) noexcept { return _mm_sqrt_ps(x); }
 		[[nodiscard]] DPM_FORCEINLINE __m128 rsqrt(__m128 x) noexcept { return _mm_rsqrt_ps(x); }
@@ -34,6 +50,35 @@ namespace dpm
 		[[nodiscard]] __m256d DPM_PUBLIC DPM_MATHFUNC hypot(__m256d a, __m256d b) noexcept;
 #endif
 	}
+
+#ifdef DPM_USE_SVML
+	/** Raises elements of vector \a x to power specified by elements of vector \a p, and returns the resulting vector. */
+	template<std::floating_point T, std::size_t N, std::size_t A>
+	[[nodiscard]] DPM_FORCEINLINE detail::x86_simd<T, N, A> pow(const detail::x86_simd<T, N, A> &x, const detail::x86_simd<T, N, A> &p) noexcept requires detail::x86_overload_any<T, N, A>
+	{
+		detail::x86_simd<T, N, A> result = {};
+		detail::vectorize([](auto &res, auto x, auto p) { res = detail::pow(x, p); }, result, x, p);
+		return result;
+	}
+	/** Raises elements of vector \a x to power \a p, and returns the resulting vector. */
+	template<std::floating_point T, std::size_t N, std::size_t A>
+	[[nodiscard]] DPM_FORCEINLINE detail::x86_simd<T, N, A> pow(const detail::x86_simd<T, N, A> &x, T p) noexcept requires detail::x86_overload_any<T, N, A>
+	{
+		detail::x86_simd<T, N, A> result = {};
+		using native_t = ext::dpm::native_data_type_t<detail::x86_simd<T, N, A>>;
+		detail::vectorize([pow = detail::fill<native_t>(p)](auto &res, auto x) { res = detail::pow(x, pow); }, result, x);
+		return result;
+	}
+
+	/** Calculates cubic root of elements in vector \a x, and returns the resulting vector. */
+	template<std::floating_point T, std::size_t N, std::size_t A>
+	[[nodiscard]] DPM_FORCEINLINE detail::x86_simd<T, N, A> cbrt(const detail::x86_simd<T, N, A> &x) noexcept requires detail::x86_overload_any<T, N, A>
+	{
+		detail::x86_simd<T, N, A> result = {};
+		detail::vectorize([](auto &res, auto x) { res = detail::cbrt(x); }, result, x);
+		return result;
+	}
+#endif
 
 	/** Calculates square root of elements in vector \a x, and returns the resulting vector. */
 	template<std::floating_point T, std::size_t N, std::size_t A>

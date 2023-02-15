@@ -56,8 +56,8 @@ namespace dpm::detail
 	template<typename T> requires std::same_as<float, T>
 	struct range_vals<T>
 	{
-		static constexpr T huge = 1.0e+30;
-		static constexpr T tiny = 1.0e-30;
+		static constexpr T huge = 1.0e+30f;
+		static constexpr T tiny = 1.0e-30f;
 	};
 
 	template<std::floating_point T>

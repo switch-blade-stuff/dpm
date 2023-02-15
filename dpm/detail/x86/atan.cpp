@@ -53,7 +53,7 @@ namespace dpm::detail
 		z = add<T>(z, bit_and(pio2_mask, z_off));
 		y = add<T>(y, z);
 
-		/* atan(+-inf) = +-Pi/2, and is not an error. */
+		/* atan(+-inf) = +-Pi/2. */
 		const auto inf_mask = isinf_abs(abs_x);
 		y = blendv<T>(y, v_pio2, inf_mask);
 		/* Restore sign. */
