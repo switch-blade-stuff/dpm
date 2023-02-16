@@ -22,7 +22,7 @@ namespace dpm::detail
 
 		/* Reduce x to [sqrt(2) / 2, sqrt(2)] */
 		V y, f, c = setzero<V>();
-		if constexpr (Op == OP_LOG1P)
+		if constexpr (Op == exp_op::OP_LOG1P)
 		{
 			/* TODO: Handle log1p */
 
@@ -59,12 +59,12 @@ namespace dpm::detail
 		const auto r = fmadd(z, t2, t1);
 
 		/* Dispatch the selected operation. */
-		if constexpr (Op == OP_LOG || Op == OP_LOG1P)
+		if constexpr (Op == exp_op::OP_LOG || Op == exp_op::OP_LOG1P)
 		{
 			const auto v_ln2h = fill<V>(ln2h_64);
 			const auto v_ln2l = fill<V>(ln2l_64);
 
-			const auto kf = cvt<T, I>(k);
+			const auto kf = cvt_i32_f64<V>(cvt_i64_i32(k));
 			y = fmadd(kf, v_ln2l, f);
 			y = fmadd(kf, v_ln2h, add<T>(y, c));
 			y = fmadd(s, add<T>(hfsq, r), y);
@@ -81,16 +81,16 @@ namespace dpm::detail
 			yl = fmadd(s, yl, hfsq);
 			yl = sub<T>(sub<T>(f, yh), yl);
 
-			if constexpr (Op == OP_LOG2)
+			if constexpr (Op == exp_op::OP_LOG2)
 			{
 				const auto v_ivln2h = fill<V>(ivln2h_64);
 				const auto v_ivln2l = fill<V>(ivln2l_64);
 
 				yl = fmadd(yl, v_ivln2h, mul<T>(add<T>(yl, yh), v_ivln2l));
 				yh = mul<T>(yh, v_ivln2h);
-				y = cvt<T, I>(k);
+				y = cvt_i32_f64<V>(cvt_i64_i32(k));
 			}
-			if constexpr (Op == OP_LOG10)
+			if constexpr (Op == exp_op::OP_LOG10)
 			{
 				const auto v_log10_2h = fill<V>(log10_2h_64);
 				const auto v_log10_2l = fill<V>(log10_2l_64);
@@ -98,7 +98,7 @@ namespace dpm::detail
 				const auto v_ivln10l = fill<V>(ivln10l_64);
 
 				/* log10(1 + f) + k * log10(2) ~ yh + yl */
-				const auto kf = cvt<T, I>(k);
+				const auto kf = cvt_i32_f64<V>(cvt_i64_i32(k));
 				y = add<T>(yl, yh);
 				yl = fmadd(y, v_ivln10l, mul<T>(yl, v_ivln10h));
 				yl = fmadd(kf, v_log10_2l, yl);
@@ -124,16 +124,24 @@ namespace dpm::detail
 
 		/* Check for error conditions. */
 #ifdef DPM_HANDLE_ERRORS
-		/* log(-x) = NaN; log(+-0) = -inf */
-		const auto zero_mask = std::bit_cast<V>(cmp_eq<I>(abs_x, setzero<Vi>()));
-		auto neg_mask = std::bit_cast<V>(cmp_eq<I>(x_sign, sign_mask));
-		if (test_mask(zero_mask)) [[unlikely]]
+		if constexpr (Op == exp_op::OP_LOG1P)
 		{
-			/* Only check for log(-x) if log(-0) has not been reported. */
-			neg_mask = bit_andnot(zero_mask, neg_mask);
-			y = except_divzero<T, -1>(y, zero_mask);
+			/* TODO: Handle log1p */
+
 		}
-		if (test_mask(neg_mask)) [[unlikely]] y = except_invalid<T>(y, neg_mask);
+		else
+		{
+			/* log(-x) = NaN; log(+-0) = -inf */
+			const auto zero_mask = std::bit_cast<V>(cmp_eq<I>(abs_x, setzero<Vi>()));
+			auto neg_mask = std::bit_cast<V>(cmp_eq<I>(x_sign, sign_mask));
+			if (test_mask(zero_mask)) [[unlikely]]
+			{
+				/* Only check for log(-x) if log(-0) has not been reported. */
+				neg_mask = bit_andnot(zero_mask, neg_mask);
+				y = except_divzero<T, -1>(y, zero_mask);
+			}
+			if (test_mask(neg_mask)) [[unlikely]] y = except_invalid<T>(y, neg_mask);
+		}
 #endif
 		return y;
 	}
