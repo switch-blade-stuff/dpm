@@ -50,12 +50,12 @@ namespace dpm::detail
 		const auto s = div<T>(f, add<T>(fill<V>(2.0), f));
 		const auto z = mul<T>(s, s);
 		auto w = mul<T>(z, z);
-		auto t1 = fmadd(w, fill<V>(log10coff_64[5]), fill<V>(log10coff_64[3]));
-		t1 = fmadd(t1, w, fill<V>(log10coff_64[1]));
+		auto t1 = fmadd(w, fill<V>(logcoff_64[5]), fill<V>(logcoff_64[3]));
+		t1 = fmadd(t1, w, fill<V>(logcoff_64[1]));
 		t1 = mul<T>(w, t1);
-		auto t2 = fmadd(w, fill<V>(log10coff_64[6]), fill<V>(log10coff_64[4]));
-		t2 = fmadd(t2, w, fill<V>(log10coff_64[2]));
-		t2 = fmadd(t2, w, fill<V>(log10coff_64[0]));
+		auto t2 = fmadd(w, fill<V>(logcoff_64[6]), fill<V>(logcoff_64[4]));
+		t2 = fmadd(t2, w, fill<V>(logcoff_64[2]));
+		t2 = fmadd(t2, w, fill<V>(logcoff_64[0]));
 		const auto r = fmadd(z, t2, t1);
 
 		/* Dispatch the selected operation. */
