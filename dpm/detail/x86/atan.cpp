@@ -60,12 +60,12 @@ namespace dpm::detail
 		return bit_xor(y, x_sign);
 	}
 
-	[[nodiscard]] __m128 atan(__m128 x) noexcept { return impl_atan<float>(x); }
-	[[nodiscard]] __m128d atan(__m128d x) noexcept { return impl_atan<double>(x); }
+	[[nodiscard]] __m128 DPM_MATHFUNC atan(__m128 x) noexcept { return impl_atan<float>(x); }
+	[[nodiscard]] __m128d DPM_MATHFUNC atan(__m128d x) noexcept { return impl_atan<double>(x); }
 
 #ifdef DPM_HAS_AVX
-	[[nodiscard]] __m256 atan(__m256 x) noexcept { return impl_atan<float>(x); }
-	[[nodiscard]] __m256d atan(__m256d x) noexcept { return impl_atan<double>(x); }
+	[[nodiscard]] __m256 DPM_MATHFUNC atan(__m256 x) noexcept { return impl_atan<float>(x); }
+	[[nodiscard]] __m256d DPM_MATHFUNC atan(__m256d x) noexcept { return impl_atan<double>(x); }
 #endif
 }
 

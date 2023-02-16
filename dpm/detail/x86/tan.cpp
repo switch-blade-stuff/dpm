@@ -44,12 +44,12 @@ namespace dpm::detail
 		return blendv<T>(p1, p2, p_mask);
 	}
 
-	[[nodiscard]] __m128 tan(__m128 x) noexcept { return impl_tan<float>(x); }
-	[[nodiscard]] __m128d tan(__m128d x) noexcept { return impl_tan<double>(x); }
+	[[nodiscard]] __m128 DPM_MATHFUNC tan(__m128 x) noexcept { return impl_tan<float>(x); }
+	[[nodiscard]] __m128d DPM_MATHFUNC tan(__m128d x) noexcept { return impl_tan<double>(x); }
 
 #ifdef DPM_HAS_AVX
-	[[nodiscard]] __m256 tan(__m256 x) noexcept { return impl_tan<float>(x); }
-	[[nodiscard]] __m256d tan(__m256d x) noexcept { return impl_tan<double>(x); }
+	[[nodiscard]] __m256 DPM_MATHFUNC tan(__m256 x) noexcept { return impl_tan<float>(x); }
+	[[nodiscard]] __m256d DPM_MATHFUNC tan(__m256d x) noexcept { return impl_tan<double>(x); }
 #endif
 }
 

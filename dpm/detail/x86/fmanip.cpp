@@ -34,7 +34,7 @@ namespace dpm::detail
 
 		/* norm_x = (ix & ~exp_bits) | exp_middle */
 		norm_x = std::bit_cast<V>(bit_or(bit_and(ix, fill<Vi>(~exp_ones)), fill<Vi>(exp_middle<I> << mant_bits<I>)));
-		norm_exp = bit_shiftr<I, mant_bits<I>>(norm_exp) - fill<Vi>(exp_off<I> - 1) - off;
+		norm_exp = sub<I>(sub<I>(bit_shiftr<I, mant_bits<I>>(norm_exp), fill<Vi>(exp_off<I> - 1)), off);
 
 		const auto not_fin_or_zero = bit_or(std::bit_cast<Vi>(is_zero), not_fin);
 		norm_x = blendv<T>(norm_x, add<T>(norm_x, norm_x), std::bit_cast<V>(not_fin_or_zero));
@@ -42,11 +42,11 @@ namespace dpm::detail
 		return norm_x;
 	}
 
-	__m128 frexp(__m128 x, __m128i &out_exp) noexcept { return impl_frexp<float>(x, out_exp); }
-	__m128d frexp(__m128d x, __m128i &out_exp) noexcept { return impl_frexp<double>(x, out_exp); }
+	__m128 DPM_MATHFUNC frexp(__m128 x, __m128i &out_exp) noexcept { return impl_frexp<float>(x, out_exp); }
+	__m128d DPM_MATHFUNC frexp(__m128d x, __m128i &out_exp) noexcept { return impl_frexp<double>(x, out_exp); }
 #ifdef DPM_HAS_AVX
-	__m256 frexp(__m256 x, __m256i &out_exp) noexcept { return impl_frexp<float>(x, out_exp); }
-	__m256d frexp(__m256d x, __m256i &out_exp) noexcept { return impl_frexp<double>(x, out_exp); }
+	__m256 DPM_MATHFUNC frexp(__m256 x, __m256i &out_exp) noexcept { return impl_frexp<float>(x, out_exp); }
+	__m256d DPM_MATHFUNC frexp(__m256d x, __m256i &out_exp) noexcept { return impl_frexp<double>(x, out_exp); }
 #endif
 
 	template<typename T, typename V, typename Vi, typename I = int_of_size_t<sizeof(T)>>
@@ -95,11 +95,11 @@ namespace dpm::detail
 		return y;
 	}
 
-	__m128 scalbn(__m128 x, __m128i exp) noexcept { return impl_scalbn<float>(x, exp); }
-	__m128d scalbn(__m128d x, __m128i exp) noexcept { return impl_scalbn<double>(x, exp); }
+	__m128 DPM_MATHFUNC scalbn(__m128 x, __m128i exp) noexcept { return impl_scalbn<float>(x, exp); }
+	__m128d DPM_MATHFUNC scalbn(__m128d x, __m128i exp) noexcept { return impl_scalbn<double>(x, exp); }
 #ifdef DPM_HAS_AVX
-	__m256 scalbn(__m256 x, __m256i exp) noexcept { return impl_scalbn<float>(x, exp); }
-	__m256d scalbn(__m256d x, __m256i exp) noexcept { return impl_scalbn<double>(x, exp); }
+	__m256 DPM_MATHFUNC scalbn(__m256 x, __m256i exp) noexcept { return impl_scalbn<float>(x, exp); }
+	__m256d DPM_MATHFUNC scalbn(__m256d x, __m256i exp) noexcept { return impl_scalbn<double>(x, exp); }
 #endif
 
 	template<typename T, typename V, typename I = int_of_size_t<sizeof(T)>, typename Vi = select_vector_t<I, sizeof(V)>>
@@ -192,11 +192,11 @@ namespace dpm::detail
 		return y;
 	}
 
-	__m128i ilogb(__m128 x) noexcept { return impl_ilogb<float>(x); }
-	__m128i ilogb(__m128d x) noexcept { return impl_ilogb<double>(x); }
+	__m128i DPM_MATHFUNC ilogb(__m128 x) noexcept { return impl_ilogb<float>(x); }
+	__m128i DPM_MATHFUNC ilogb(__m128d x) noexcept { return impl_ilogb<double>(x); }
 #ifdef DPM_HAS_AVX
-	__m256i ilogb(__m256 x) noexcept { return impl_ilogb<float>(x); }
-	__m256i ilogb(__m256d x) noexcept { return impl_ilogb<double>(x); }
+	__m256i DPM_MATHFUNC ilogb(__m256 x) noexcept { return impl_ilogb<float>(x); }
+	__m256i DPM_MATHFUNC ilogb(__m256d x) noexcept { return impl_ilogb<double>(x); }
 #endif
 
 #ifndef DPM_USE_SVML
@@ -220,12 +220,12 @@ namespace dpm::detail
 		return y;
 	}
 
-	__m128 logb(__m128 x) noexcept { return impl_logb<float>(x); }
-	__m128d logb(__m128d x) noexcept { return impl_logb<double>(x); }
+	__m128 DPM_MATHFUNC logb(__m128 x) noexcept { return impl_logb<float>(x); }
+	__m128d DPM_MATHFUNC logb(__m128d x) noexcept { return impl_logb<double>(x); }
 
 #ifdef DPM_HAS_AVX
-	__m256 logb(__m256 x) noexcept { return impl_logb<float>(x); }
-	__m256d logb(__m256d x) noexcept { return impl_logb<double>(x); }
+	__m256 DPM_MATHFUNC logb(__m256 x) noexcept { return impl_logb<float>(x); }
+	__m256d DPM_MATHFUNC logb(__m256d x) noexcept { return impl_logb<double>(x); }
 #endif
 #endif
 
@@ -282,11 +282,11 @@ namespace dpm::detail
 		return blendv<T>(c, b, eq_mask);
 	}
 
-	__m128 nextafter(__m128 from, __m128 to) noexcept { return impl_nextafter<float>(from, to); }
-	__m128d nextafter(__m128d from, __m128d to) noexcept { return impl_nextafter<double>(from, to); }
+	__m128 DPM_MATHFUNC nextafter(__m128 from, __m128 to) noexcept { return impl_nextafter<float>(from, to); }
+	__m128d DPM_MATHFUNC nextafter(__m128d from, __m128d to) noexcept { return impl_nextafter<double>(from, to); }
 #ifdef DPM_HAS_AVX
-	__m256 nextafter(__m256 from, __m256 to) noexcept { return impl_nextafter<float>(from, to); }
-	__m256d nextafter(__m256d from, __m256d to) noexcept { return impl_nextafter<double>(from, to); }
+	__m256 DPM_MATHFUNC nextafter(__m256 from, __m256 to) noexcept { return impl_nextafter<float>(from, to); }
+	__m256d DPM_MATHFUNC nextafter(__m256d from, __m256d to) noexcept { return impl_nextafter<double>(from, to); }
 #endif
 }
 

@@ -83,8 +83,8 @@ namespace dpm::detail
 
 		/* Apply offset to avoid under- and overflow. */
 		auto c = fill<V>(one<T>);
-		const auto big_mask = std::bit_cast<V>(cmp_gt<std::int64_t>(ia, fill<Vi>((0x5fdul << 52) - 1)));
-		const auto small_mask = std::bit_cast<V>(cmp_gt<std::int64_t>(fill<Vi>(0x23dul << 52), ib));
+		const auto big_mask = std::bit_cast<V>(cmp_gt<std::int64_t>(ia, fill<Vi>((0x5fdull << 52) - 1)));
+		const auto small_mask = std::bit_cast<V>(cmp_gt<std::int64_t>(fill<Vi>(0x23dull << 52), ib));
 		const auto new_c = blendv<T>(fill<V>(0x1p-700), fill<V>(0x1p700), small_mask);
 		auto ab_mult = blendv<T>(fill<V>(0x1p700), fill<V>(0x1p-700), small_mask);
 		const auto off_mask = bit_or(big_mask, small_mask);
@@ -153,12 +153,12 @@ namespace dpm::detail
 #endif
 	}
 
-	__m128 hypot(__m128 a, __m128 b) noexcept { return impl_hypot<float>(a, b); }
-	__m128d hypot(__m128d a, __m128d b) noexcept { return impl_hypot<double>(a, b); }
+	__m128 DPM_MATHFUNC hypot(__m128 a, __m128 b) noexcept { return impl_hypot<float>(a, b); }
+	__m128d DPM_MATHFUNC hypot(__m128d a, __m128d b) noexcept { return impl_hypot<double>(a, b); }
 
 #ifdef DPM_HAS_AVX
-	__m256 hypot(__m256 a, __m256 b) noexcept { return impl_hypot<float>(a, b); }
-	__m256d hypot(__m256d a, __m256d b) noexcept { return impl_hypot<double>(a, b); }
+	__m256 DPM_MATHFUNC hypot(__m256 a, __m256 b) noexcept { return impl_hypot<float>(a, b); }
+	__m256d DPM_MATHFUNC hypot(__m256d a, __m256d b) noexcept { return impl_hypot<double>(a, b); }
 #endif
 }
 

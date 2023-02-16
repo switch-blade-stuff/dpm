@@ -119,9 +119,10 @@ namespace dpm::detail
 
 		auto small_e = _mm_cmpgt_epi32(_mm_set1_epi64x(12), e);
 #ifndef DPM_HAS_SSE3
-		small_e = std::bit_cast<__m128i>(_mm_shuffle_ps(small_e, small_e, (shuffle4_mask<3, 3, 1, 1>())));
+		const auto ie = std::bit_cast<__m128>(small_e);
+		small_e = std::bit_cast<__m128i>(_mm_shuffle_ps(ie, ie, (shuffle4_mask<3, 3, 1, 1>())));
 #else
-		small_e = _mm_moveldup_ps(small_e);
+		small_e = std::bit_cast<__m128i>(_mm_moveldup_ps(std::bit_cast<__m128>(small_e)));
 #endif
 		const auto minus_one = _mm_set1_epi64x(-1);
 		auto shift = _mm_or_si128(_mm_andnot_si128(small_e, e), _mm_and_si128(small_e, _mm_set1_epi64x(1)));
@@ -323,7 +324,7 @@ namespace dpm::detail
 		const auto f0 = std::bit_cast<__m256>(i0);
 		const auto f1 = std::bit_cast<__m256>(i1);
 		const auto mix = _mm256_shuffle_ps(f0, f1, _MM_SHUFFLE(2,0,2,0));
-		return _mm256_permute4x64_pd(std::bit_cast<__m256d>(mix), _MM_SHUFFLE(3,1,2,0));
+		return std::bit_cast<__m256i>(_mm256_permute4x64_pd(std::bit_cast<__m256d>(mix), _MM_SHUFFLE(3,1,2,0)));
 	}
 #endif
 }

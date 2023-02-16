@@ -100,22 +100,22 @@ namespace dpm::detail
 		return eval_sincos<T, Op>(sign_x, abs_x);
 	}
 
-	std::pair<__m128, __m128> sincos(__m128 x) noexcept { return impl_sincos<float>(x); }
-	__m128 sin(__m128 x) noexcept { return impl_sincos<float, sincos_op::OP_SIN>(x); }
-	__m128 cos(__m128 x) noexcept { return impl_sincos<float, sincos_op::OP_COS>(x); }
+	std::pair<__m128, __m128> DPM_MATHFUNC sincos(__m128 x) noexcept { return impl_sincos<float>(x); }
+	__m128 DPM_MATHFUNC sin(__m128 x) noexcept { return impl_sincos<float, sincos_op::OP_SIN>(x); }
+	__m128 DPM_MATHFUNC cos(__m128 x) noexcept { return impl_sincos<float, sincos_op::OP_COS>(x); }
 
-	std::pair<__m128d, __m128d> sincos(__m128d x) noexcept { return impl_sincos<double>(x); }
-	__m128d sin(__m128d x) noexcept { return impl_sincos<double, sincos_op::OP_SIN>(x); }
-	__m128d cos(__m128d x) noexcept { return impl_sincos<double, sincos_op::OP_COS>(x); }
+	std::pair<__m128d, __m128d> DPM_MATHFUNC sincos(__m128d x) noexcept { return impl_sincos<double>(x); }
+	__m128d DPM_MATHFUNC sin(__m128d x) noexcept { return impl_sincos<double, sincos_op::OP_SIN>(x); }
+	__m128d DPM_MATHFUNC cos(__m128d x) noexcept { return impl_sincos<double, sincos_op::OP_COS>(x); }
 
 #ifdef DPM_HAS_AVX
-	std::pair<__m256, __m256> sincos(__m256 x) noexcept { return impl_sincos<float>(x); }
-	__m256 sin(__m256 x) noexcept { return impl_sincos<float, sincos_op::OP_SIN>(x); }
-	__m256 cos(__m256 x) noexcept { return impl_sincos<float, sincos_op::OP_COS>(x); }
+	std::pair<__m256, __m256> DPM_MATHFUNC sincos(__m256 x) noexcept { return impl_sincos<float>(x); }
+	__m256 DPM_MATHFUNC sin(__m256 x) noexcept { return impl_sincos<float, sincos_op::OP_SIN>(x); }
+	__m256 DPM_MATHFUNC cos(__m256 x) noexcept { return impl_sincos<float, sincos_op::OP_COS>(x); }
 
-	std::pair<__m256d, __m256d> sincos(__m256d x) noexcept { return impl_sincos<double>(x); }
-	__m256d sin(__m256d x) noexcept { return impl_sincos<double, sincos_op::OP_SIN>(x); }
-	__m256d cos(__m256d x) noexcept { return impl_sincos<double, sincos_op::OP_COS>(x); }
+	std::pair<__m256d, __m256d> DPM_MATHFUNC sincos(__m256d x) noexcept { return impl_sincos<double>(x); }
+	__m256d DPM_MATHFUNC sin(__m256d x) noexcept { return impl_sincos<double, sincos_op::OP_SIN>(x); }
+	__m256d DPM_MATHFUNC cos(__m256d x) noexcept { return impl_sincos<double, sincos_op::OP_COS>(x); }
 #endif
 }
 

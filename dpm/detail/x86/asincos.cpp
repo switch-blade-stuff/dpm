@@ -74,16 +74,16 @@ namespace dpm::detail
 		return blendv<T>(acos2, acos1, c_mask);
 	}
 
-	__m128 asin(__m128 x) noexcept { return impl_asin<float>(x); }
-	__m128 acos(__m128 x) noexcept { return impl_acos<float>(x); }
-	__m128d asin(__m128d x) noexcept { return impl_asin<double>(x); }
-	__m128d acos(__m128d x) noexcept { return impl_acos<double>(x); }
+	__m128 DPM_MATHFUNC asin(__m128 x) noexcept { return impl_asin<float>(x); }
+	__m128 DPM_MATHFUNC acos(__m128 x) noexcept { return impl_acos<float>(x); }
+	__m128d DPM_MATHFUNC asin(__m128d x) noexcept { return impl_asin<double>(x); }
+	__m128d DPM_MATHFUNC acos(__m128d x) noexcept { return impl_acos<double>(x); }
 
 #ifdef DPM_HAS_AVX
-	__m256 asin(__m256 x) noexcept { return impl_asin<float>(x); }
-	__m256 acos(__m256 x) noexcept { return impl_acos<float>(x); }
-	__m256d asin(__m256d x) noexcept { return impl_asin<double>(x); }
-	__m256d acos(__m256d x) noexcept { return impl_acos<double>(x); }
+	__m256 DPM_MATHFUNC asin(__m256 x) noexcept { return impl_asin<float>(x); }
+	__m256 DPM_MATHFUNC acos(__m256 x) noexcept { return impl_acos<float>(x); }
+	__m256d DPM_MATHFUNC asin(__m256d x) noexcept { return impl_asin<double>(x); }
+	__m256d DPM_MATHFUNC acos(__m256d x) noexcept { return impl_acos<double>(x); }
 #endif
 }
 

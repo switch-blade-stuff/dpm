@@ -30,7 +30,7 @@ namespace dpm::detail
 		else
 		{
 			/* Normalize x. Signed comparison takes care of x_sign != 0. */
-			const auto unorm_mask = std::bit_cast<Vi>(cmp_gt<T>(fill<Vi>(0x0010ull << 48), ix));
+			const auto unorm_mask = std::bit_cast<Vi>(cmp_gt<I>(fill<Vi>(0x0010ull << 48), ix));
 			const auto nx = std::bit_cast<Vi>(mul<T>(x, fill<V>(0x1p54)));
 			k = sub<I>(k, bit_and(unorm_mask, fill<Vi>(I{54})));
 			ix = blendv<I>(ix, nx, unorm_mask);
@@ -146,15 +146,15 @@ namespace dpm::detail
 		return y;
 	}
 
-	__m128d log(__m128d x) noexcept { return impl_log<double, exp_op::OP_LOG>(x); }
-	__m128d log2(__m128d x) noexcept { return impl_log<double, exp_op::OP_LOG2>(x); }
-	__m128d log10(__m128d x) noexcept { return impl_log<double, exp_op::OP_LOG10>(x); }
-	//__m128d log1p(__m128d x) noexcept { return impl_log<double, exp_op::OP_LOG1P>(x); }
+	__m128d DPM_MATHFUNC log(__m128d x) noexcept { return impl_log<double, exp_op::OP_LOG>(x); }
+	__m128d DPM_MATHFUNC log2(__m128d x) noexcept { return impl_log<double, exp_op::OP_LOG2>(x); }
+	__m128d DPM_MATHFUNC log10(__m128d x) noexcept { return impl_log<double, exp_op::OP_LOG10>(x); }
+	//__m128d DPM_MATHFUNC log1p(__m128d x) noexcept { return impl_log<double, exp_op::OP_LOG1P>(x); }
 #ifdef DPM_HAS_AVX
-	__m256d log(__m256d x) noexcept { return impl_log<double, exp_op::OP_LOG>(x); }
-	__m256d log2(__m256d x) noexcept { return impl_log<double, exp_op::OP_LOG2>(x); }
-	__m256d log10(__m256d x) noexcept { return impl_log<double, exp_op::OP_LOG10>(x); }
-	//__m256d log1p(__m256d x) noexcept { return impl_log<double, exp_op::OP_LOG1P>(x); }
+	__m256d DPM_MATHFUNC log(__m256d x) noexcept { return impl_log<double, exp_op::OP_LOG>(x); }
+	__m256d DPM_MATHFUNC log2(__m256d x) noexcept { return impl_log<double, exp_op::OP_LOG2>(x); }
+	__m256d DPM_MATHFUNC log10(__m256d x) noexcept { return impl_log<double, exp_op::OP_LOG10>(x); }
+	//__m256d DPM_MATHFUNC log1p(__m256d x) noexcept { return impl_log<double, exp_op::OP_LOG1P>(x); }
 #endif
 }
 

@@ -36,8 +36,8 @@ namespace dpm
 		{
 			__m128i tmp;
 			x = frexp(x, tmp);
-			auto *out64 = reinterpret_cast<alias_t<std::uint64_t> *>(out);
-			out64[i] = _mm_cvtsi128_si64(cvt_i64_i32(tmp));
+			auto *out64 = reinterpret_cast<alias_t<double> *>(out);
+			out64[i] = _mm_cvtsd_f64(std::bit_cast<__m128d>(cvt_i64_i32(tmp)));
 			return x;
 		}
 		DPM_FORCEINLINE void frexp2(__m128d &x0, __m128d &x1, __m128i *out, std::size_t i) noexcept
@@ -64,8 +64,8 @@ namespace dpm
 
 		[[nodiscard]] DPM_FORCEINLINE __m128 scalbn64(__m128 x, const __m128i *exp, std::size_t i) noexcept
 		{
-			const auto exph = std::bit_cast<__m128i>(exp[i * 2 + 1]);
-			const auto expl = std::bit_cast<__m128i>(exp[i * 2]);
+			const auto exph = std::bit_cast<__m128>(exp[i * 2 + 1]);
+			const auto expl = std::bit_cast<__m128>(exp[i * 2]);
 			return scalbn(x, std::bit_cast<__m128i>(_mm_shuffle_ps(expl, exph, _MM_SHUFFLE(2, 0, 2, 0))));
 		}
 		[[nodiscard]] DPM_FORCEINLINE __m128d scalbn64(__m128d x, const __m128i *exp, std::size_t i) noexcept { return scalbn(x, exp[i]); }
@@ -79,8 +79,8 @@ namespace dpm
 		DPM_FORCEINLINE void ilogb(__m128 x, __m128i *out, std::size_t i) noexcept { out[i] = ilogb(x); }
 		DPM_FORCEINLINE void ilogb(__m128d x, __m128i *out, std::size_t i) noexcept
 		{
-			auto *out64 = reinterpret_cast<alias_t<std::uint64_t> *>(out);
-			out64[i] = _mm_cvtsi128_si64(cvt_i64_i32(ilogb(x)));
+			auto *out64 = reinterpret_cast<alias_t<double> *>(out);
+			out64[i] = _mm_cvtsd_f64(std::bit_cast<__m128d>(cvt_i64_i32(ilogb(x))));
 		}
 		DPM_FORCEINLINE void ilogb2(__m128d x0, __m128d x1, __m128i *out, std::size_t i) noexcept
 		{
