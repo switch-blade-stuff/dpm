@@ -7,6 +7,13 @@
 #define TEST_ASSERT(x) DPM_ASSERT_ALWAYS(x)
 
 #ifdef DPM_HANDLE_ERRORS
+
+#ifdef DPM_HANDLE_ERRORS
+#ifndef _MSC_VER /* MSVC does not support STDC pragmas */
+#pragma STDC FENV_ACCESS ON
+#endif
+#endif
+
 static inline void clear_err() noexcept
 {
 #if math_errhandling & MATH_ERREXCEPT
@@ -18,12 +25,12 @@ static inline void clear_err() noexcept
 }
 static inline bool test_err([[maybe_unused]] int except_val, [[maybe_unused]] int errno_val) noexcept
 {
-	bool result = false;
+	bool result = true;
 #if math_errhandling & MATH_ERREXCEPT
-	result = result || std::fetestexcept(except_val) == except_val;
+	result = result && std::fetestexcept(except_val) == except_val;
 #endif
 #if math_errhandling & MATH_ERRNO
-	result = result || errno == errno_val;
+	result = result && errno == errno_val;
 #endif
 	return result;
 }

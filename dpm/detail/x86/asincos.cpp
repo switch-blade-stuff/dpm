@@ -48,7 +48,7 @@ namespace dpm::detail
 		/* Enforce domain. */
 #ifdef DPM_HANDLE_ERRORS
 		if (const auto m = cmp_gt<T>(abs_x, fill<V>(one<T>)); test_mask(m))
-			[[unlikely]] abs_x = except_nan<T>(abs_x, m);
+			[[unlikely]] abs_x = except_invalid<T>(abs_x, m);
 #endif
 		return eval_asin<T>(abs_x, x_sign);
 	}
@@ -62,7 +62,7 @@ namespace dpm::detail
 		/* Enforce domain. */
 #ifdef DPM_HANDLE_ERRORS
 		if (const auto m = cmp_gt<T>(abs_x, fill<V>(one<T>)); test_mask(m))
-			[[unlikely]] abs_x = except_nan<T>(abs_x, m);
+			[[unlikely]] abs_x = except_invalid<T>(abs_x, m);
 #endif
 		/* c_mask = x > 0.5 */
 		const auto c_mask = cmp_gt<T>(x, fill<V>(half<T>));

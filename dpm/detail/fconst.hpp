@@ -113,4 +113,14 @@ namespace dpm::detail
 	static constexpr T asin_pmin = std::same_as<T, float> ? T{1.0e-4} : T{1.0e-8};
 	template<std::floating_point T>
 	static constexpr T asin_off = T{6.123233995736765886130e-17};
+
+	inline constexpr double log10coff_64[] = {6.666666666666735130e-1, 3.999999999940941908e-1, 2.857142874366239149e-1, 2.222219843214978396e-1, 1.818357216161805012e-1, 1.531383769920937332e-1, 1.479819860511658591e-1};
+	inline constexpr double log10_2l_64 = 3.69423907715893078616e-13;
+	inline constexpr double log10_2h_64 = 3.01029995663611771306e-1;
+	inline constexpr double ivln10l_64 = 2.50829467116452752298e-11;
+	inline constexpr double ivln10h_64 = 4.34294481878168880939e-1;
+	inline constexpr double ivln2l_64 = 1.67517131648865118353e-1;
+	inline constexpr double ivln2h_64 = 1.44269504072144627571;
+	inline constexpr double ln2h_64 = 6.93147180369123816490e-1;
+	inline constexpr double ln2l_64 = 1.90821492927058770002e-1;
 }

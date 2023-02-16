@@ -108,7 +108,7 @@ namespace dpm
 			__m256i tmp;
 			x = frexp(x, tmp);
 			auto *out128 = reinterpret_cast<__m128i *>(out);
-			out128[i] = cvt<std::int32_t, std::int64_t>(tmp);
+			out128[i] = cvt128<std::int32_t, std::int64_t>(tmp);
 			return x;
 		}
 		[[nodiscard]] DPM_FORCEINLINE __m256d frexp(__m256d x, __m256i *out, std::size_t i) noexcept { return frexp(x, reinterpret_cast<__m128i *>(out), i); }
@@ -148,11 +148,11 @@ namespace dpm
 #endif
 		}
 
-		[[nodiscard]] DPM_FORCEINLINE __m128 scalbn64(__m128 x, const __m256i *exp, std::size_t i) noexcept{return scalbn(x, cvt<std::int32_t, std::int64_t>(exp[i]));}
+		[[nodiscard]] DPM_FORCEINLINE __m128 scalbn64(__m128 x, const __m256i *exp, std::size_t i) noexcept{return scalbn(x, cvt128<std::int32_t, std::int64_t>(exp[i]));}
 		[[nodiscard]] DPM_FORCEINLINE __m256 scalbn64(__m256 x, const __m256i *exp, std::size_t i) noexcept
 		{
-			const auto exph = cvt<std::int32_t, std::int64_t>(exp[i]);
-			const auto expl = cvt<std::int32_t, std::int64_t>(exp[i]);
+			const auto exph = cvt128<std::int32_t, std::int64_t>(exp[i]);
+			const auto expl = cvt128<std::int32_t, std::int64_t>(exp[i]);
 			return scalbn(x, _mm256_set_m128i(exph, expl));
 		}
 		[[nodiscard]] DPM_FORCEINLINE __m256d scalbn64(__m256d x, const __m256i *exp, std::size_t i) noexcept { return scalbn(x, exp[i]); }
@@ -164,7 +164,7 @@ namespace dpm
 		[[nodiscard]] __m256i DPM_PUBLIC DPM_MATHFUNC ilogb(__m256d x) noexcept;
 
 		DPM_FORCEINLINE void ilogb(__m256 x, __m256i *out, std::size_t i) noexcept { out[i] = ilogb(x); }
-		DPM_FORCEINLINE void ilogb(__m256d x, __m128i *out, std::size_t i) noexcept { out[i] = cvt<std::int32_t, std::int64_t>(ilogb(x)); }
+		DPM_FORCEINLINE void ilogb(__m256d x, __m128i *out, std::size_t i) noexcept { out[i] = cvt128<std::int32_t, std::int64_t>(ilogb(x)); }
 		DPM_FORCEINLINE void ilogb(__m256d x, __m256i *out, std::size_t i) noexcept { ilogb(x, reinterpret_cast<__m128i *>(out), i); }
 		DPM_FORCEINLINE void ilogb2(__m256d x0, __m256d x1, __m256i *out, std::size_t i) noexcept
 		{

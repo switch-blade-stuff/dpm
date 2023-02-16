@@ -303,13 +303,15 @@ namespace dpm::detail
 	[[nodiscard]] DPM_FORCEINLINE __m256i cvt(__m256d x) noexcept { return cvt_f64_i64(x); }
 
 	template<integral_of_size<4> To, integral_of_size<8> From>
-	[[nodiscard]] DPM_FORCEINLINE __m128i cvt(__m256i x) noexcept
+	[[nodiscard]] DPM_FORCEINLINE __m128i cvt128(__m256i x) noexcept
 	{
 		const auto xf = std::bit_cast<__m256>(x);
 		const auto xl = _mm256_castps256_ps128(xf);
 		const auto xh = _mm256_extractf128_ps(xf, 1);
 		return std::bit_cast<__m128i>(_mm_shuffle_ps(xl, xh, _MM_SHUFFLE(2, 0, 2, 0)));
 	}
+	template<integral_of_size<4> To, integral_of_size<8> From>
+	[[nodiscard]] DPM_FORCEINLINE __m256i cvt(__m256i x) noexcept { return _mm256_castsi128_si256(cvt128<To, From>(x)); }
 	[[nodiscard]] DPM_FORCEINLINE __m256i pack_i64x2_i32(__m256i i0, __m256i i1) noexcept
 	{
 		const auto f0 = std::bit_cast<__m256>(i0);

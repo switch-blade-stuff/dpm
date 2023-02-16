@@ -95,7 +95,7 @@ namespace dpm::detail
 		/* Enforce domain. */
 #ifdef DPM_HANDLE_ERRORS
 		if (const auto m = isinf_abs(abs_x); test_mask(m))
-			[[unlikely]] abs_x = except_nan<T>(abs_x, m);
+			[[unlikely]] abs_x = except_invalid<T>(abs_x, m);
 #endif
 		return eval_sincos<T, Op>(sign_x, abs_x);
 	}
