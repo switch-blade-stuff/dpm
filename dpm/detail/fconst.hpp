@@ -6,12 +6,9 @@
 
 #include "define.hpp"
 
-#ifndef DPM_USE_IMPORT
-
 #include <numbers>
 #include <limits>
-
-#endif
+#include <bit>
 
 namespace dpm::detail
 {
@@ -24,7 +21,7 @@ namespace dpm::detail
 	template<std::floating_point T>
 	static constexpr T tan3pio8 = T{2.41421356237309504880};
 	template<std::floating_point T>
-	static constexpr T loge2 = T{0.69314718055994530942};
+	static constexpr T ln2 = T{0x1.62e42fefa39efp-1};
 
 	template<std::floating_point T>
 	static constexpr T exp_multm = std::same_as<T, float> ? T{2.9802322388e-08} : T{5.55111512312578270212e-17};
@@ -114,13 +111,14 @@ namespace dpm::detail
 	template<std::floating_point T>
 	static constexpr T asin_off = T{6.123233995736765886130e-17};
 
-	inline constexpr double logcoff_64[] = {6.666666666666735130e-1, 3.999999999940941908e-1, 2.857142874366239149e-1, 2.222219843214978396e-1, 1.818357216161805012e-1, 1.531383769920937332e-1, 1.479819860511658591e-1};
-	inline constexpr double log10_2l_64 = 3.69423907715893078616e-13;
-	inline constexpr double log10_2h_64 = 3.01029995663611771306e-1;
-	inline constexpr double ivln10l_64 = 2.50829467116452752298e-11;
-	inline constexpr double ivln10h_64 = 4.34294481878168880939e-1;
-	inline constexpr double ivln2l_64 = 1.67517131648865118353e-1;
-	inline constexpr double ivln2h_64 = 1.44269504072144627571;
-	inline constexpr double ln2h_64 = 6.93147180369123816490e-1;
-	inline constexpr double ln2l_64 = 1.90821492927058770002e-1;
+	static constexpr double logcoff_f64[] = {-0x1.ffffffffffff7p-2, 0x1.55555555170d4p-2, -0x1.0000000399c27p-2, 0x1.999b2e90e94cap-3, -0x1.554e550bd501ep-3};
+	static constexpr float logcoff_f32[] = {-0x1.00ea348b88334p-2f, 0x1.5575b0be00b6ap-2f, -0x1.ffffef20a4123p-2f};
+
+	static constexpr std::size_t logtab_bits_f32 = 4;
+	static constexpr std::size_t logtab_size_f32 = 1 << (logtab_bits_f32 + 1);
+	extern const DPM_PRIVATE float logtab_f32[logtab_size_f32];
+
+	static constexpr std::size_t logtab_bits_f64 = 7;
+	static constexpr std::size_t logtab_size_f64 = 1 << (logtab_bits_f64 + 1);
+	extern const DPM_PRIVATE double logtab_f64[logtab_size_f64];
 }

@@ -29,12 +29,8 @@
 
 #endif
 
-#ifndef DPM_USE_IMPORT
-
 #include <string_view>
 #include <string>
-
-#endif
 
 namespace dpm
 {

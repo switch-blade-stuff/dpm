@@ -19,6 +19,8 @@ target_sources(${DPM_PROJECT} INTERFACE
         ${CMAKE_CURRENT_LIST_DIR}/math.hpp)
 
 target_sources(${DPM_PROJECT} PUBLIC
+        ${CMAKE_CURRENT_LIST_DIR}/lut.hpp
+        ${CMAKE_CURRENT_LIST_DIR}/except.hpp
         ${CMAKE_CURRENT_LIST_DIR}/cpuid.hpp
         ${CMAKE_CURRENT_LIST_DIR}/pow.hpp
         ${CMAKE_CURRENT_LIST_DIR}/exp.hpp
@@ -27,13 +29,15 @@ target_sources(${DPM_PROJECT} PUBLIC
 
 target_sources(${DPM_PROJECT} PRIVATE
         ${CMAKE_CURRENT_LIST_DIR}/polevl.hpp
-        ${CMAKE_CURRENT_LIST_DIR}/except.hpp
         ${CMAKE_CURRENT_LIST_DIR}/cpuid.cpp
         ${CMAKE_CURRENT_LIST_DIR}/pow.cpp
-        ${CMAKE_CURRENT_LIST_DIR}/log_f32.cpp
-        ${CMAKE_CURRENT_LIST_DIR}/log_f64.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/log.cpp
         ${CMAKE_CURRENT_LIST_DIR}/sincos.cpp
         ${CMAKE_CURRENT_LIST_DIR}/tan.cpp
         ${CMAKE_CURRENT_LIST_DIR}/asincos.cpp
         ${CMAKE_CURRENT_LIST_DIR}/atan.cpp
-        ${CMAKE_CURRENT_LIST_DIR}/fmanip.cpp)
+        ${CMAKE_CURRENT_LIST_DIR}/frexp.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/scalbn.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/modf.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/logb.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/nextafter.cpp)

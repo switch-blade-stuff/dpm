@@ -6,11 +6,7 @@
 
 #include "mbase.hpp"
 
-#ifndef DPM_USE_IMPORT
-
 #include <span>
-
-#endif
 
 namespace dpm::detail
 {

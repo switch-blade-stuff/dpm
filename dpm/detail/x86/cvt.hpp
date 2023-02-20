@@ -120,7 +120,7 @@ namespace dpm::detail
 		auto small_e = _mm_cmpgt_epi32(_mm_set1_epi64x(12), e);
 #ifndef DPM_HAS_SSE3
 		const auto ie = std::bit_cast<__m128>(small_e);
-		small_e = std::bit_cast<__m128i>(_mm_shuffle_ps(ie, ie, (shuffle4_mask<3, 3, 1, 1>())));
+		small_e = std::bit_cast<__m128i>(_mm_shuffle_ps(ie, ie, _MM_SHUFFLE(3, 3, 1, 1)));
 #else
 		small_e = std::bit_cast<__m128i>(_mm_moveldup_ps(std::bit_cast<__m128>(small_e)));
 #endif

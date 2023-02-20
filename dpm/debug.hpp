@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include <version>
+
 #include "detail/api.hpp"
 
 #if defined(_MSC_VER)
@@ -74,6 +76,30 @@ namespace dpm::detail
 #define DPM_DEBUGTRAP() dpm::detail::assert_trap()
 #endif
 }
+
+#ifdef __cpp_lib_source_location
+#include <source_location>
+
+namespace dpm::detail
+{
+	DPM_FORCEINLINE void assert_err(const std::source_location loc, const char *cnd, const char *msg) noexcept
+	{
+		assert_err(loc.file_name(), loc.line(), loc.function_name(), cnd, msg);
+	}
+}
+
+#define DPM_ASSERT_MSG_LOC_ALWAYS(cnd, msg, src_loc)        \
+	do { if (!(cnd)) [[unlikely]] {                         \
+		dpm::detail::assert_err(src_loc, (#cnd), (msg));    \
+		DPM_DEBUGTRAP();                                    \
+	}} while(false)
+
+#ifndef NDEBUG
+#define DPM_ASSERT_MSG_LOC(cnd, msg, src_loc) DPM_ASSERT_MSG_LOC_ALWAYS(cnd, msg, src_loc)
+#else
+#define DPM_ASSERT_MSG_LOC(cnd, msg, src_loc)
+#endif
+#endif
 
 #define DPM_ASSERT_MSG_ALWAYS(cnd, msg)                                                 \
     do { if (!(cnd)) [[unlikely]] {                                                     \

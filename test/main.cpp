@@ -39,6 +39,9 @@ static inline bool test_err([[maybe_unused]] int except_val, [[maybe_unused]] in
 template<typename T>
 static inline bool almost_equal(T a, T b, T rel_eps, T eps)
 {
+	if (std::isinf(a) && std::isinf(b) && std::signbit(a) == std::signbit(b))
+		return true;
+
 	const auto diff = std::abs(a - b);
 	if (diff <= eps) return true;
 
@@ -131,38 +134,45 @@ static inline void test_mask() noexcept
 template<typename T, typename Abi>
 static inline void test_trig() noexcept
 {
-	constexpr auto invoke_test = []<std::size_t N>(auto f, std::span<const T, N> vals, T rel_eps, T eps)
 	{
-		constexpr auto simd_size = dpm::simd_size_v<T, Abi>;
-		for (std::size_t i = 0; i < N;)
+		constexpr auto invoke_test = []<std::size_t N>(auto f, std::span<const T, N> vals, T rel_eps, T eps)
 		{
-			dpm::simd<T, Abi> v = {};
-			v.copy_from(vals.data() + i, dpm::element_aligned);
-			v = f(v);
-
-			for (std::size_t j = 0; i < N && j < simd_size; ++j, ++i)
+			constexpr auto simd_size = dpm::simd_size_v<T, Abi>;
+			for (std::size_t i = 0; i < N;)
 			{
-				const auto a = f(dpm::simd<T, dpm::simd_abi::scalar>{vals[i]});
-				TEST_ASSERT(almost_equal(v[j], a[0], rel_eps, eps) || (std::isnan(v[j]) && std::isnan(a[0])));
-			}
-		}
-	};
+				dpm::simd<T, Abi> v = {};
+				v.copy_from(vals.data() + i, dpm::element_aligned);
+				v = f(v);
 
-	const auto test_vals = std::array{
-			T{12.54}, T{0.1234}, T{-0.34}, T{12299.99}, T{0.0}, T{1.0},
-			std::numbers::pi_v<T> * 2, std::numbers::pi_v<T> / 4,
-			std::numbers::pi_v<T> * 4, std::numbers::pi_v<T> / 6,
-			std::numbers::pi_v<T> * 3, std::numbers::pi_v<T> / 3,
-			std::numbers::pi_v<T> * 5, std::numbers::pi_v<T> / 5,
-			std::numbers::pi_v<T>, std::numeric_limits<T>::quiet_NaN(),
-			std::numeric_limits<T>::infinity()
-	};
-	invoke_test([](auto x) { return dpm::sin(x); }, std::span{test_vals}, T{1.0e-3}, T{4.8e-7});
-	invoke_test([](auto x) { return dpm::cos(x); }, std::span{test_vals}, T{1.0e-3}, T{4.8e-7});
-	invoke_test([](auto x) { return dpm::tan(x); }, std::span{test_vals}, T{1.0e-3}, T{4.8e-7});
-	invoke_test([](auto x) { return dpm::asin(x); }, std::span{test_vals}, T{1.0e-3}, T{1.0e-7});
-	invoke_test([](auto x) { return dpm::acos(x); }, std::span{test_vals}, T{1.0e-3}, T{1.0e-7});
-	invoke_test([](auto x) { return dpm::atan(x); }, std::span{test_vals}, T{1.0e-3}, T{1.0e-7});
+				for (std::size_t j = 0; i < N && j < simd_size; ++j, ++i)
+				{
+					const auto a = f(dpm::simd<T, dpm::simd_abi::scalar>{vals[i]});
+					TEST_ASSERT(almost_equal(v[j], a[0], rel_eps, eps) || (std::isnan(v[j]) && std::isnan(a[0])));
+				}
+			}
+		};
+
+		const auto test_vals = std::array{
+				T{12.54}, T{0.1234}, T{-0.34}, T{12299.99}, T{0.0}, T{1.0}, T{-1.0}, T{0.125},
+				std::numbers::pi_v<T> * 2, std::numbers::pi_v<T> / 4,
+				std::numbers::pi_v<T> * 4, std::numbers::pi_v<T> / 6,
+				std::numbers::pi_v<T> * 3, std::numbers::pi_v<T> / 3,
+				std::numbers::pi_v<T> * 5, std::numbers::pi_v<T> / 5,
+				std::numbers::pi_v<T>, std::numeric_limits<T>::quiet_NaN(),
+				std::numeric_limits<T>::infinity()
+		};
+		invoke_test([](auto x) { return dpm::sin(x); }, std::span{test_vals}, T{1.0e-3}, T{4.8e-7});
+		invoke_test([](auto x) { return dpm::cos(x); }, std::span{test_vals}, T{1.0e-3}, T{4.8e-7});
+		invoke_test([](auto x) { return dpm::tan(x); }, std::span{test_vals}, T{1.0e-3}, T{4.8e-7});
+		invoke_test([](auto x) { return dpm::asin(x); }, std::span{test_vals}, T{1.0e-3}, T{1.0e-7});
+		invoke_test([](auto x) { return dpm::acos(x); }, std::span{test_vals}, T{1.0e-3}, T{1.0e-7});
+		invoke_test([](auto x) { return dpm::atan(x); }, std::span{test_vals}, T{1.0e-3}, T{1.0e-7});
+
+		invoke_test([](auto x) { return dpm::log(x); }, std::span{test_vals}, T{1.0e-3}, T{1.0e-7});
+		invoke_test([](auto x) { return dpm::log2(x); }, std::span{test_vals}, T{1.0e-3}, T{1.0e-7});
+		invoke_test([](auto x) { return dpm::log10(x); }, std::span{test_vals}, T{1.0e-3}, T{1.0e-7});
+		invoke_test([](auto x) { return dpm::log1p(x); }, std::span{test_vals}, T{1.0e-3}, T{1.0e-7});
+	}
 
 	/* TODO: If DPM_HANDLE_ERRORS is set and fp exceptions are used, check exceptions. */
 }

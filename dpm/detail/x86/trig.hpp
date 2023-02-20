@@ -15,11 +15,14 @@ namespace dpm
 {
 	namespace detail
 	{
-#if !defined(DPM_USE_SVML) && defined(DPM_HAS_SSE2)
-		[[nodiscard]] std::pair<__m128, __m128> DPM_PRIVATE DPM_MATHFUNC eval_sincos(__m128 sign_x, __m128 abs_x) noexcept;
-		[[nodiscard]] std::pair<__m128d, __m128d> DPM_PRIVATE DPM_MATHFUNC eval_sincos(__m128d sign_x, __m128d abs_x) noexcept;
+		template<typename T>
+		struct sincos_ret { T sin, cos; };
 
-		[[nodiscard]] std::pair<__m128, __m128> DPM_PUBLIC DPM_MATHFUNC sincos(__m128 x) noexcept;
+#if !defined(DPM_USE_SVML) && defined(DPM_HAS_SSE2)
+		[[nodiscard]] sincos_ret<__m128> DPM_PRIVATE DPM_MATHFUNC eval_sincos(__m128 sign_x, __m128 abs_x) noexcept;
+		[[nodiscard]] sincos_ret<__m128d> DPM_PRIVATE DPM_MATHFUNC eval_sincos(__m128d sign_x, __m128d abs_x) noexcept;
+
+		[[nodiscard]] sincos_ret<__m128> DPM_PUBLIC DPM_MATHFUNC sincos(__m128 x) noexcept;
 		[[nodiscard]] __m128 DPM_PUBLIC DPM_MATHFUNC sin(__m128 x) noexcept;
 		[[nodiscard]] __m128 DPM_PUBLIC DPM_MATHFUNC cos(__m128 x) noexcept;
 		[[nodiscard]] __m128 DPM_PUBLIC DPM_MATHFUNC tan(__m128 x) noexcept;
@@ -28,7 +31,7 @@ namespace dpm
 		[[nodiscard]] __m128 DPM_PUBLIC DPM_MATHFUNC atan(__m128 x) noexcept;
 		[[nodiscard]] __m128 DPM_PUBLIC DPM_MATHFUNC atan2(__m128 a, __m128 b) noexcept;
 
-		[[nodiscard]] std::pair<__m128d, __m128d> DPM_PUBLIC DPM_MATHFUNC sincos(__m128d x) noexcept;
+		[[nodiscard]] sincos_ret<__m128d> DPM_PUBLIC DPM_MATHFUNC sincos(__m128d x) noexcept;
 		[[nodiscard]] __m128d DPM_PUBLIC DPM_MATHFUNC sin(__m128d x) noexcept;
 		[[nodiscard]] __m128d DPM_PUBLIC DPM_MATHFUNC cos(__m128d x) noexcept;
 		[[nodiscard]] __m128d DPM_PUBLIC DPM_MATHFUNC tan(__m128d x) noexcept;
@@ -38,10 +41,10 @@ namespace dpm
 		[[nodiscard]] __m128d DPM_PUBLIC DPM_MATHFUNC atan2(__m128d a, __m128d b) noexcept;
 
 #ifdef DPM_HAS_AVX
-		[[nodiscard]] std::pair<__m256, __m256> DPM_PRIVATE DPM_MATHFUNC eval_sincos(__m256 sign_x, __m256 abs_x) noexcept;
-		[[nodiscard]] std::pair<__m256d, __m256d> DPM_PRIVATE DPM_MATHFUNC eval_sincos(__m256d sign_x, __m256d abs_x) noexcept;
+		[[nodiscard]] sincos_ret<__m256> DPM_PRIVATE DPM_MATHFUNC eval_sincos(__m256 sign_x, __m256 abs_x) noexcept;
+		[[nodiscard]] sincos_ret<__m256d> DPM_PRIVATE DPM_MATHFUNC eval_sincos(__m256d sign_x, __m256d abs_x) noexcept;
 
-		[[nodiscard]] std::pair<__m256, __m256> DPM_PUBLIC DPM_MATHFUNC sincos(__m256 x) noexcept;
+		[[nodiscard]] sincos_ret<__m256> DPM_PUBLIC DPM_MATHFUNC sincos(__m256 x) noexcept;
 		[[nodiscard]] __m256 DPM_PUBLIC DPM_MATHFUNC sin(__m256 x) noexcept;
 		[[nodiscard]] __m256 DPM_PUBLIC DPM_MATHFUNC cos(__m256 x) noexcept;
 		[[nodiscard]] __m256 DPM_PUBLIC DPM_MATHFUNC tan(__m256 x) noexcept;
@@ -50,7 +53,7 @@ namespace dpm
 		[[nodiscard]] __m256 DPM_PUBLIC DPM_MATHFUNC atan(__m256 x) noexcept;
 		[[nodiscard]] __m256 DPM_PUBLIC DPM_MATHFUNC atan2(__m256 a, __m256 b) noexcept;
 
-		[[nodiscard]] std::pair<__m256d, __m256d> DPM_PUBLIC DPM_MATHFUNC sincos(__m256d x) noexcept;
+		[[nodiscard]] sincos_ret<__m256d> DPM_PUBLIC DPM_MATHFUNC sincos(__m256d x) noexcept;
 		[[nodiscard]] __m256d DPM_PUBLIC DPM_MATHFUNC sin(__m256d x) noexcept;
 		[[nodiscard]] __m256d DPM_PUBLIC DPM_MATHFUNC cos(__m256d x) noexcept;
 		[[nodiscard]] __m256d DPM_PUBLIC DPM_MATHFUNC tan(__m256d x) noexcept;
@@ -60,11 +63,11 @@ namespace dpm
 		[[nodiscard]] __m256d DPM_PUBLIC DPM_MATHFUNC atan2(__m256d a, __m256d b) noexcept;
 #endif
 #else
-		[[nodiscard]] DPM_FORCEINLINE std::pair<__m128, __m128> sincos(__m128 x) noexcept
+		[[nodiscard]] DPM_FORCEINLINE sincos_ret<__m128> sincos(__m128 x) noexcept
 		{
-			__m128 sin, cos;
-			sin = _mm_sincos_ps(&cos, x);
-			return {sin, cos};
+			sincos_ret<__m128> result;
+			result.sin = _mm_sincos_ps(&result.cos, x);
+			return result;
 		}
 		[[nodiscard]] DPM_FORCEINLINE __m128 sin(__m128 x) noexcept { return _mm_sin_ps(x); }
 		[[nodiscard]] DPM_FORCEINLINE __m128 cos(__m128 x) noexcept { return _mm_cos_ps(x); }
@@ -76,19 +79,18 @@ namespace dpm
 		[[nodiscard]] DPM_FORCEINLINE __m128 atan2(__m128 a, __m128 b) noexcept { return _mm_atan2_ps(a, b); }
 
 #ifdef DPM_HAS_SSE2
-		[[nodiscard]] DPM_FORCEINLINE std::pair<__m128d, __m128d> sincos(__m128d x) noexcept
+		[[nodiscard]] DPM_FORCEINLINE sincos_ret<__m128d> sincos(__m128d x) noexcept
 		{
-			__m128d sin, cos;
-			sin = _mm_sincos_pd(&cos, x);
-			return {sin, cos};
+			sincos_ret<__m128d> result;
+			result.sin = _mm_sincos_pd(&result.cos, x);
+			return result;
 		}
 		[[nodiscard]] DPM_FORCEINLINE __m128d sin(__m128d x) noexcept { return _mm_sin_pd(x); }
 		[[nodiscard]] DPM_FORCEINLINE __m128d cos(__m128d x) noexcept { return _mm_cos_pd(x); }
 		[[nodiscard]] DPM_FORCEINLINE __m128d tan(__m128d x) noexcept { return _mm_tan_pd(x); }
 		[[nodiscard]] DPM_FORCEINLINE __m128d cot(__m128d x) noexcept
 		{
-			__m128d sin, cos;
-			sin = _mm_sincos_pd(&cos, x);
+			const auto [sin, cos] = sincos(x);
 			return _mm_div_pd(cos, sin);
 		}
 		[[nodiscard]] DPM_FORCEINLINE __m128d asin(__m128d x) noexcept { return _mm_asin_pd(x); }
@@ -97,11 +99,11 @@ namespace dpm
 		[[nodiscard]] DPM_FORCEINLINE __m128d atan2(__m128d a, __m128d b) noexcept { return _mm_atan2_pd(a, b); }
 #endif
 #ifdef DPM_HAS_AVX
-		[[nodiscard]] DPM_FORCEINLINE std::pair<__m256, __m256> sincos(__m256 x) noexcept
+		[[nodiscard]] DPM_FORCEINLINE sincos_ret<__m256> sincos(__m256 x) noexcept
 		{
-			__m256 sin, cos;
-			sin = _mm_sincos_ps(&cos, x);
-			return {sin, cos};
+			sincos_ret<__m256> result;
+			result.sin = _mm256_sincos_ps(&result.cos, x);
+			return result;
 		}
 		[[nodiscard]] DPM_FORCEINLINE __m256 sin(__m256 x) noexcept { return _mm256_sin_ps(x); }
 		[[nodiscard]] DPM_FORCEINLINE __m256 cos(__m256 x) noexcept { return _mm256_cos_ps(x); }
@@ -112,19 +114,18 @@ namespace dpm
 		[[nodiscard]] DPM_FORCEINLINE __m256 atan(__m256 x) noexcept { return _mm256_atan_ps(x); }
 		[[nodiscard]] DPM_FORCEINLINE __m256 atan2(__m256 a, __m256 b) noexcept { return _mm256_atan2_ps(a, b); }
 
-		[[nodiscard]] std::pair<__m256d, __m256d> DPM_FORCEINLINEsincos(__m256d x) noexcept
+		[[nodiscard]] DPM_FORCEINLINE sincos_ret<__m256d> sincos(__m256d x) noexcept
 		{
-			__m256d sin, cos;
-			sin = _mm_sincos_ps(&cos, x);
-			return {sin, cos};
+			sincos_ret<__m256d> result;
+			result.sin = _mm256_sincos_pd(&result.cos, x);
+			return result;
 		}
 		[[nodiscard]] DPM_FORCEINLINE __m256d sin(__m256d x) noexcept { return _mm256_sin_pd(x); }
 		[[nodiscard]] DPM_FORCEINLINE __m256d cos(__m256d x) noexcept { return _mm256_cos_pd(x); }
 		[[nodiscard]] DPM_FORCEINLINE __m256d tan(__m256d x) noexcept { return _mm256_tan_pd(x); }
 		[[nodiscard]] DPM_FORCEINLINE __m256d cot(__m256d x) noexcept
 		{
-			__m256d sin, cos;
-			sin = _mm256_sincos_pd(&cos, x);
+			const auto [sin, cos] = sincos(x);
 			return _mm256_div_pd(cos, sin);
 		}
 		[[nodiscard]] DPM_FORCEINLINE __m256d asin(__m256d x) noexcept { return _mm256_asin_pd(x); }

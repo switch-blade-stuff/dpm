@@ -6,18 +6,22 @@
 
 #if defined(DPM_ARCH_X86) && defined(DPM_HAS_SSE2)
 
+#include "minmax.hpp"
+
 namespace dpm::detail
 {
 	template<typename T, typename V, typename I = int_of_size_t<sizeof(T)>, typename Vi = select_vector_t<I, sizeof(V)>>
 	[[nodiscard]] DPM_FORCEINLINE std::pair<Vi, Vi> prepare_hypot(V &a, V &b) noexcept
 	{
 		/* |a|, |b| */
-		auto ia = std::bit_cast<Vi>(bit_andnot(fill<V>(sign_bit<T>), a));
-		auto ib = std::bit_cast<Vi>(bit_andnot(fill<V>(sign_bit<T>), b));
+		const auto abs_a = bit_andnot(fill<V>(sign_bit<T>), a);
+		const auto abs_b = bit_andnot(fill<V>(sign_bit<T>), b);
+		auto ia = std::bit_cast<Vi>(abs_a);
+		auto ib = std::bit_cast<Vi>(abs_b);
 
 		/* |a| >= |b| */
 		const auto ta = ia;
-		const auto swap_mask = cmp_gt<I>(ib, ia);
+		const auto swap_mask = std::bit_cast<Vi>(cmp_nge<T>(abs_a, abs_b));
 		ia = blendv<I>(ia, ib, swap_mask); /* ia = (ia < ib) ? ib : ia */
 		ib = blendv<I>(ib, ta, swap_mask); /* ib = (ia < ib) ? ia : ib */
 
@@ -31,34 +35,33 @@ namespace dpm::detail
 	[[nodiscard]] DPM_FORCEINLINE __m256 eval_hypotf(__m256 x, __m256 y, __m256 z) noexcept
 	{
 		/* Convert to double to prevent overflow. */
-		const auto xh = _mm256_cvtps_pd(_mm256_extractf128_ps(x, 1));
-		const auto yh = _mm256_cvtps_pd(_mm256_extractf128_ps(y, 1));
 		const auto xl = _mm256_cvtps_pd(_mm256_castps256_ps128(x));
 		const auto yl = _mm256_cvtps_pd(_mm256_castps256_ps128(y));
-		const auto xyh = _mm256_cvtpd_ps(_mm256_sqrt_pd(fmadd(xh, xh, mul<double>(yh, yh))));
-		const auto xyl = _mm256_cvtpd_ps(_mm256_sqrt_pd(fmadd(xl, xl, mul<double>(yl, yl))));
-		return mul<float>(z, _mm256_set_m128(xyh, xyl));
+		const auto xh = _mm256_cvtps_pd(_mm256_extractf128_ps(x, 1));
+		const auto yh = _mm256_cvtps_pd(_mm256_extractf128_ps(y, 1));
+		const auto xyl = _mm256_cvtpd_ps(_mm256_sqrt_pd(fmadd(xl, xl, _mm256_mul_pd(yl, yl))));
+		const auto xyh = _mm256_cvtpd_ps(_mm256_sqrt_pd(fmadd(xh, xh, _mm256_mul_pd(yh, yh))));
+		return _mm256_mul_ps(z, _mm256_set_m128(xyh, xyl));
 	}
 	[[nodiscard]] DPM_FORCEINLINE __m128 eval_hypotf(__m128 x, __m128 y, __m128 z) noexcept
 	{
 		/* Convert to double to prevent overflow. */
 		const auto x64 = _mm256_cvtps_pd(x);
 		const auto y64 = _mm256_cvtps_pd(y);
-		const auto xy = fmadd(x64, x64, mul<double>(y64, y64));
-		return mul<float>(z, _mm256_cvtpd_ps(_mm256_sqrt_pd(xy)));
+		const auto xy = fmadd(x64, x64, _mm256_mul_pd(y64, y64));
+		return _mm_mul_ps(z, _mm256_cvtpd_ps(_mm256_sqrt_pd(xy)));
 	}
 #else
 	[[nodiscard]] DPM_FORCEINLINE __m128 eval_hypotf(__m128 x, __m128 y, __m128 z) noexcept
 	{
 		/* Convert to double to prevent overflow. */
-		const auto xh = _mm_cvtps_pd(_mm_shuffle_ps(x, x, _MM_SHUFFLE(3, 2, 3, 2)));
-		const auto yh = _mm_cvtps_pd(_mm_shuffle_ps(y, y, _MM_SHUFFLE(3, 2, 3, 2)));
 		const auto xl = _mm_cvtps_pd(x);
 		const auto yl = _mm_cvtps_pd(y);
-		const auto xyh = _mm_cvtpd_ps(fmadd(xh, xh, mul<double>(yh, yh)));
-		const auto xyl = _mm_cvtpd_ps(fmadd(xl, xl, mul<double>(yl, yl)));
-		const auto xy = _mm_shuffle_ps(xyl, xyh, _MM_SHUFFLE(1, 0, 1, 0));
-		return mul<float>(z, _mm_sqrt_ps(xy));
+		const auto xh = _mm_cvtps_pd(_mm_shuffle_ps(x, x, _MM_SHUFFLE(3, 2, 3, 2)));
+		const auto yh = _mm_cvtps_pd(_mm_shuffle_ps(y, y, _MM_SHUFFLE(3, 2, 3, 2)));
+		const auto xyl = _mm_cvtpd_ps(_mm_sqrt_pd(fmadd(xl, xl, _mm_mul_pd(yl, yl))));
+		const auto xyh = _mm_cvtpd_ps(_mm_sqrt_pd(fmadd(xh, xh, _mm_mul_pd(yh, yh))));
+		return _mm_mul_ps(z, _mm_shuffle_ps(xyl, xyh, _MM_SHUFFLE(1, 0, 1, 0)));
 	}
 #endif
 
@@ -79,12 +82,16 @@ namespace dpm::detail
 		};
 
 		/* Ensure that |a| >= |b| */
-		const auto [ia, ib] = prepare_hypot<T>(a, b);
+		auto [ia, ib] = prepare_hypot<T>(a, b);
+
+		/* Comparisons will be preformed using top 32 bits. */
+		ia = bit_shiftr<std::int64_t, 32>(ia);
+		ib = bit_shiftr<std::int64_t, 32>(ib);
 
 		/* Apply offset to avoid under- and overflow. */
 		auto c = fill<V>(one<T>);
-		const auto big_mask = std::bit_cast<V>(cmp_gt<std::int64_t>(ia, fill<Vi>((0x5fdull << 52) - 1)));
-		const auto small_mask = std::bit_cast<V>(cmp_gt<std::int64_t>(fill<Vi>(0x23dull << 52), ib));
+		const auto big_mask = std::bit_cast<V>(cmp_gt_l32<std::int64_t>(ia, fill<Vi>((0x5fdull << 20) - 1)));
+		const auto small_mask = std::bit_cast<V>(cmp_gt_l32<std::int64_t>(fill<Vi>(0x23dull << 20), ib));
 		const auto new_c = blendv<T>(fill<V>(0x1p-700), fill<V>(0x1p700), small_mask);
 		auto ab_mult = blendv<T>(fill<V>(0x1p700), fill<V>(0x1p-700), small_mask);
 		const auto off_mask = bit_or(big_mask, small_mask);
@@ -96,13 +103,13 @@ namespace dpm::detail
 		c = mul<T>(c, sqrt(add<T>(add<T>(ly, lx), add<T>(hy, hx))));
 
 		/* hypot(a, b) ~= a + b * b / a / 2 for small a & b */
-		constexpr std::int64_t hypot_small = (64ull << 52) - 1;
-		const auto ab_small = std::bit_cast<V>(cmp_gt<std::int64_t>(sub<std::uint64_t>(ia, ib), fill<Vi>(hypot_small)));
+		constexpr std::int64_t hypot_small = (64ull << 20) - 1;
+		const auto ab_small = std::bit_cast<V>(cmp_gt_l32<std::int64_t>(sub<std::uint64_t>(ia, ib), fill<Vi>(hypot_small)));
 
 #ifdef DPM_PROPAGATE_NAN
 		/* hypot(inf, NaN) = inf */
-		constexpr std::uint64_t inf_mant = 0x7ffull << 52;
-		const auto inf_a = std::bit_cast<V>(cmp_gt<std::int64_t>(ia, fill<Vi>(inf_mant - 1)));
+		constexpr std::uint64_t inf_mant = 0x7ffull << 20;
+		const auto inf_a = std::bit_cast<V>(cmp_gt_l32<std::int64_t>(ia, fill<Vi>(inf_mant - 1)));
 		const auto inf_b = std::bit_cast<V>(cmp_eq<std::int64_t>(ib, fill<Vi>(inf_mant)));
 
 		/* plus_mask = isinf(a) || ia - ib > small */

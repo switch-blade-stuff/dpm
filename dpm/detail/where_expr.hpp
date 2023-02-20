@@ -7,12 +7,8 @@
 #include "../traits.hpp"
 #include "utility.hpp"
 
-#ifndef DPM_USE_IMPORT
-
 #include <utility>
 #include <bit>
-
-#endif
 
 namespace dpm
 {

@@ -11,13 +11,9 @@
 
 #include "abi.hpp"
 
-#ifndef DPM_USE_IMPORT
-
 #include <algorithm>
 #include <array>
 #include <span>
-
-#endif
 
 namespace dpm
 {

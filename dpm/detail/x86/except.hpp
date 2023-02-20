@@ -38,6 +38,7 @@ namespace dpm::detail
 	template<typename T, int Sign = 1, typename V>
 	[[nodiscard]] DPM_FORCEINLINE V except_divzero(V x, V mask) noexcept
 	{
+		/* x = mask ? +-1.0 / x - x : x; 1.0 / 0.0 == inf + FE_DIVBYZERO */
 		const auto v_one = fill<V>(Sign < 0 ? -one<T> : one<T>);
 		return blendv<T>(x, div<T>(v_one, sub<T>(x, x)), mask);
 	}

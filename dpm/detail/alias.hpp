@@ -5,12 +5,7 @@
 #pragma once
 
 #include "utility.hpp"
-
-#ifndef DPM_USE_IMPORT
-
 #include <utility>
-
-#endif
 
 namespace dpm::detail
 {

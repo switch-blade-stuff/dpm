@@ -140,6 +140,8 @@ DPM provides the following utilities and extensions to the standard API:
     * `#define DPM_FORCEINLINE`
     * `#define DPM_ASSUME(cnd)`
 * Assertions & traps
+    * `#define DPM_ASSERT_MSG_LOC_ALWAYS(cnd, msg, src_loc)`
+    * `#define DPM_ASSERT_MSG_LOC(cnd, msg, src_loc)`
     * `#define DPM_ASSERT_MSG_ALWAYS(cnd, msg)`
     * `#define DPM_ASSERT_MSG(cnd, msg)`
     * `#define DPM_ASSERT_ALWAYS(cnd)`

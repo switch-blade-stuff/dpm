@@ -70,8 +70,8 @@ namespace dpm
 		}
 		[[nodiscard]] DPM_FORCEINLINE __m128d scalbn64(__m128d x, const __m128i *exp, std::size_t i) noexcept { return scalbn(x, exp[i]); }
 
-		[[nodiscard]] __m128 DPM_PUBLIC DPM_MATHFUNC modf(__m128 x, __m128 *iptr) noexcept;
-		[[nodiscard]] __m128d DPM_PUBLIC DPM_MATHFUNC modf(__m128d x, __m128d *iptr) noexcept;
+		[[nodiscard]] __m128 DPM_PUBLIC DPM_MATHFUNC modf(__m128 x, __m128 &i) noexcept;
+		[[nodiscard]] __m128d DPM_PUBLIC DPM_MATHFUNC modf(__m128d x, __m128d &i) noexcept;
 
 		[[nodiscard]] __m128i DPM_PUBLIC DPM_MATHFUNC ilogb(__m128 x) noexcept;
 		[[nodiscard]] __m128i DPM_PUBLIC DPM_MATHFUNC ilogb(__m128d x) noexcept;
@@ -157,8 +157,8 @@ namespace dpm
 		}
 		[[nodiscard]] DPM_FORCEINLINE __m256d scalbn64(__m256d x, const __m256i *exp, std::size_t i) noexcept { return scalbn(x, exp[i]); }
 
-		[[nodiscard]] __m256 DPM_PUBLIC DPM_MATHFUNC modf(__m256 x, __m256 *iptr) noexcept;
-		[[nodiscard]] __m256d DPM_PUBLIC DPM_MATHFUNC modf(__m256d x, __m256d *iptr) noexcept;
+		[[nodiscard]] __m256 DPM_PUBLIC DPM_MATHFUNC modf(__m256 x, __m256 &i) noexcept;
+		[[nodiscard]] __m256d DPM_PUBLIC DPM_MATHFUNC modf(__m256d x, __m256d &i) noexcept;
 
 		[[nodiscard]] __m256i DPM_PUBLIC DPM_MATHFUNC ilogb(__m256 x) noexcept;
 		[[nodiscard]] __m256i DPM_PUBLIC DPM_MATHFUNC ilogb(__m256d x) noexcept;
@@ -244,7 +244,7 @@ namespace dpm
 	[[nodiscard]] DPM_FORCEINLINE detail::x86_simd<T, N, A> modf(const detail::x86_simd<T, N, A> &x, detail::x86_simd<T, N, A> *iptr) noexcept requires detail::x86_overload_any<T, N, A>
 	{
 		detail::x86_simd<T, N, A> result = {};
-		detail::vectorize([](auto &res, auto x, auto &iptr) { res = detail::modf(x, iptr); }, result, x, *iptr);
+		detail::vectorize([](auto &res, auto x, auto &i) { res = detail::modf(x, i); }, result, x, *iptr);
 		return result;
 	}
 	/** Extracts unbiased exponent of elements in vector \a x as integers, and returns the resulting vector. */

@@ -5,9 +5,9 @@
 #pragma once
 
 /* Modules are currently not supported */
-#if defined(DPM_USE_MODULES) && defined(__cpp_modules) && 0
-#define DPM_USE_IMPORT
-#endif
+//#if defined(DPM_USE_MODULES) && defined(__cpp_modules)
+//#define DPM_USE_IMPORT
+//#endif
 
 #include <type_traits>
 #include <concepts>

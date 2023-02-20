@@ -41,8 +41,6 @@ namespace dpm::detail
 	[[nodiscard]] DPM_FORCEINLINE __m128i bit_ashiftr(__m128i x) noexcept { return _mm_srai_epi16(x, N); }
 	template<integral_of_size<4> T, int N>
 	[[nodiscard]] DPM_FORCEINLINE __m128i bit_ashiftr(__m128i x) noexcept { return _mm_srai_epi32(x, N); }
-	template<integral_of_size<8> T, int N>
-	[[nodiscard]] DPM_FORCEINLINE __m128i bit_ashiftr(__m128i x) noexcept { return _mm_srai_epi64(x, N); }
 
 	/* Emulate AVX2 64-bit shifts by shifting individual elements. */
 #ifndef DPM_HAS_AVX2
@@ -121,8 +119,6 @@ namespace dpm::detail
 	[[nodiscard]] DPM_FORCEINLINE __m256i bit_ashiftr(__m256i x) noexcept { return _mm256_srai_epi16(x, N); }
 	template<integral_of_size<4> T, int N>
 	[[nodiscard]] DPM_FORCEINLINE __m256i bit_ashiftr(__m256i x) noexcept { return _mm256_srai_epi32(x, N); }
-	template<integral_of_size<8> T, int N>
-	[[nodiscard]] DPM_FORCEINLINE __m256i bit_ashiftr(__m256i x) noexcept { return _mm256_srai_epi64(x, N); }
 
 	template<integral_of_size<4> T>
 	[[nodiscard]] DPM_FORCEINLINE __m128i bit_shiftl(__m128i a, __m128i b) noexcept { return _mm_sllv_epi32(a, b); }
@@ -207,6 +203,67 @@ namespace dpm::detail
 	{
 		return mux_128x2<__m256i>([](auto a, auto b) { return bit_shiftr<T>(a, b); }, a, b);
 	}
+#endif
+#endif
+
+#ifdef DPM_HAS_AVX512VL
+	template<integral_of_size<8> T, int N>
+	[[nodiscard]] DPM_FORCEINLINE __m128i bit_ashiftr(__m128i x) noexcept { return _mm_srai_epi64(x, N); }
+	template<integral_of_size<8> T, int N>
+	[[nodiscard]] DPM_FORCEINLINE __m256i bit_ashiftr(__m256i x) noexcept { return _mm256_srai_epi64(x, N); }
+#else
+	template<integral_of_size<8> T, int N>
+	[[nodiscard]] DPM_FORCEINLINE __m128i bit_ashiftr(__m128i x) noexcept
+	{
+		/* Emulate 64-bit asr via 32-bit asr. */
+		auto xh = x, xl = x;
+		if constexpr (N >= 32)
+		{
+			xh = _mm_srai_epi32(xh, 31);
+			xh = _mm_shuffle_epi32(xh, _MM_SHUFFLE(3, 2, 3, 1));
+			if constexpr (N > 32) xl = _mm_srai_epi32(xl, N - 32);
+			xl = _mm_shuffle_epi32(xl, _MM_SHUFFLE(3, 2, 3, 1));
+		}
+		else
+		{
+			xh = _mm_srai_epi32(xh, N);
+			xh = _mm_shuffle_epi32(xh, _MM_SHUFFLE(3, 2, 3, 1));
+			xl = _mm_srli_epi32(xl, N);
+			xl = _mm_shuffle_epi32(xl, _MM_SHUFFLE(3, 2, 2, 0));
+		}
+		return _mm_unpacklo_epi32(xl, xh);
+	}
+
+#ifdef DPM_HAS_AVX
+#ifdef DPM_HAS_AVX2
+	template<integral_of_size<8> T, int N>
+	[[nodiscard]] DPM_FORCEINLINE __m256i bit_ashiftr(__m256i x) noexcept
+	{
+		/* Emulate 64-bit asr via 32-bit asr. */
+		auto xh = x, xl = x;
+		if constexpr (N >= 32)
+		{
+			xh = _mm256_srai_epi32(xh, 31);
+			xh = _mm256_shuffle_epi32(xh, _MM_SHUFFLE(3, 2, 3, 1));
+			if constexpr (N > 32) xl = _mm256_srai_epi32(xl, N - 32);
+			xl = _mm256_shuffle_epi32(xl, _MM_SHUFFLE(3, 2, 3, 1));
+		}
+		else
+		{
+			xh = _mm256_srai_epi32(xh, N);
+			xh = _mm256_shuffle_epi32(xh, _MM_SHUFFLE(3, 2, 3, 1));
+			xl = _mm256_srli_epi32(xl, N);
+			xl = _mm256_shuffle_epi32(xl, _MM_SHUFFLE(3, 2, 2, 0));
+		}
+		return _mm256_unpacklo_epi32(xl, xh);
+	}
+#else
+	template<integral_of_size<8> T, int N>
+	[[nodiscard]] DPM_FORCEINLINE __m256i bit_ashiftr(__m256i a) noexcept
+	{
+		return mux_128x2<__m256i>([](auto a, auto b) { return bit_ashiftr<T>(a, b); }, a, b);
+	}
+#endif
 #endif
 #endif
 

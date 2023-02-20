@@ -100,7 +100,7 @@ namespace dpm::detail
 		{
 			const auto a = _mm_shuffle_ps(va, va, (shuffle4_mask<I1 % 4, I1 % 4, I0 % 4, I0 % 4>()));
 			const auto b = _mm_shuffle_ps(va, va, (shuffle4_mask<I3 % 4, I3 % 4, I2 % 4, I2 % 4>()));
-			return std::bit_cast<V>(_mm_shuffle_ps(a, b, (shuffle4_mask<2, 0, 2, 0>())));
+			return std::bit_cast<V>(_mm_shuffle_ps(a, b, _MM_SHUFFLE(2, 0, 2, 0)));
 		}
 	}
 
@@ -108,7 +108,7 @@ namespace dpm::detail
 	[[nodiscard]] DPM_FORCEINLINE T reduce(__m128 v, Op op) noexcept
 	{
 #ifndef DPM_HAS_SSE3
-		const auto a = _mm_shuffle_ps(v, v, (shuffle4_mask<3, 3, 1, 1>()));
+		const auto a = _mm_shuffle_ps(v, v, _MM_SHUFFLE(3, 3, 1, 1));
 #else
 		const auto a = _mm_movehdup_ps(v);
 #endif
@@ -347,7 +347,7 @@ namespace dpm::detail
 	template<std::same_as<double> T, typename Op>
 	[[nodiscard]] DPM_FORCEINLINE T reduce(__m128d v, Op op) noexcept
 	{
-		const auto a = _mm_shuffle_pd(v, v, (shuffle2_mask<1, 1>()));
+		const auto a = _mm_shuffle_pd(v, v, _MM_SHUFFLE2(1, 1));
 		return _mm_cvtsd_f64(op(v, a));
 	}
 	template<integral_of_size<4> T, typename Op>
@@ -355,7 +355,7 @@ namespace dpm::detail
 	{
 		const auto vf = std::bit_cast<__m128>(v);
 #ifndef DPM_HAS_SSE3
-		const auto a = _mm_shuffle_ps(vf, vf, (shuffle4_mask<3, 3, 1, 1>()));
+		const auto a = _mm_shuffle_ps(vf, vf, _MM_SHUFFLE(3, 3, 1, 1));
 #else
 		const auto a = _mm_movehdup_ps(vf);
 #endif
@@ -367,7 +367,7 @@ namespace dpm::detail
 	[[nodiscard]] DPM_FORCEINLINE T reduce(__m128i v, Op op) noexcept
 	{
 		const auto vf = std::bit_cast<__m128d>(v);
-		const auto a = _mm_shuffle_pd(vf, vf, (shuffle2_mask<1, 1>()));
+		const auto a = _mm_shuffle_pd(vf, vf, _MM_SHUFFLE2(1, 1));
 		return _mm_cvtsi128_si64x(op(v, std::bit_cast<__m128i>(a)));
 	}
 #endif
@@ -496,7 +496,7 @@ namespace dpm::detail
 	{
 		auto a = _mm256_permute2f128_ps(v, v, 0b1000'0001);
 		auto b = op(v, a);
-		a = _mm256_shuffle_ps(b, b, (shuffle4_mask<3, 3, 1, 1>()));
+		a = _mm256_shuffle_ps(b, b, _MM_SHUFFLE(3, 3, 1, 1));
 		b = op(b, a);
 		return _mm256_cvtss_f32(op(b, _mm256_unpackhi_ps(b, b)));
 	}
@@ -582,7 +582,7 @@ namespace dpm::detail
 	{
 		auto a = _mm256_permute2f128_si256(v, v, 0b1000'0001);
 		auto b = op(v, a);
-		a = _mm256_shuffle_epi32(b, (shuffle4_mask<3, 3, 1, 1>()));
+		a = _mm256_shuffle_epi32(b, _MM_SHUFFLE(3, 3, 1, 1));
 		b = op(b, a);
 		return static_cast<T>(_mm256_cvtsi256_si32(op(b, _mm256_unpackhi_epi32(b, b))));
 	}

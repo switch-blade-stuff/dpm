@@ -10,8 +10,6 @@
 
 #include "type.hpp"
 
-#ifndef DPM_USE_IMPORT
-
 #include <cmath>
 
 #ifdef DPM_HANDLE_ERRORS
@@ -19,7 +17,6 @@
 #include <cerrno>
 #include <cfenv>
 
-#endif
 #endif
 
 /* math_errhandling requires use of errno and/or floating-point exceptions. */

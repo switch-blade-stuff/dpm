@@ -6,12 +6,8 @@
 
 #include "detail/define.hpp"
 
-#ifndef DPM_USE_IMPORT
-
 #include <functional>
 #include <limits>
-
-#endif
 
 namespace dpm
 {
