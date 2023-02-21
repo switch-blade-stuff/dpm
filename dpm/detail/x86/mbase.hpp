@@ -25,7 +25,9 @@ namespace dpm
 		}
 		[[maybe_unused]] [[nodiscard]] DPM_FORCEINLINE __m128 fnmsub_sse(__m128 a, __m128 b, __m128 c) noexcept
 		{
-			return _mm_sub_ps(_mm_setzero_ps(), fmadd_sse(a, b, c));
+			const auto tmp = _mm_undefined_ps();
+			const auto zero = _mm_xor_ps(tmp, tmp);
+			return _mm_sub_ps(zero, fmadd_sse(a, b, c));
 		}
 
 		[[nodiscard]] DPM_FORCEINLINE __m128 fmadd(__m128 a, __m128 b, __m128 c) noexcept
@@ -81,7 +83,9 @@ namespace dpm
 		}
 		[[maybe_unused]] [[nodiscard]] DPM_FORCEINLINE __m128d fnmsub_sse(__m128d a, __m128d b, __m128d c) noexcept
 		{
-			return _mm_sub_pd(_mm_setzero_pd(), fmadd_sse(a, b, c));
+			const auto tmp = _mm_undefined_pd();
+			const auto zero = _mm_xor_pd(tmp, tmp);
+			return _mm_sub_pd(zero, fmadd_sse(a, b, c));
 		}
 
 		[[nodiscard]] DPM_FORCEINLINE __m128d fmadd(__m128d a, __m128d b, __m128d c) noexcept
@@ -157,7 +161,9 @@ namespace dpm
 		}
 		[[maybe_unused]] [[nodiscard]] DPM_FORCEINLINE __m256 fnmsub_avx(__m256 a, __m256 b, __m256 c) noexcept
 		{
-			return _mm256_sub_ps(_mm256_setzero_ps(), fmadd_avx(a, b, c));
+			const auto tmp = _mm256_undefined_ps();
+			const auto zero = _mm256_xor_ps(tmp, tmp);
+			return _mm256_sub_ps(zero, fmadd_avx(a, b, c));
 		}
 
 		[[maybe_unused]] [[nodiscard]] DPM_FORCEINLINE __m256d fmadd_avx(__m256d a, __m256d b, __m256d c) noexcept
@@ -174,7 +180,9 @@ namespace dpm
 		}
 		[[maybe_unused]] [[nodiscard]] DPM_FORCEINLINE __m256d fnmsub_avx(__m256d a, __m256d b, __m256d c) noexcept
 		{
-			return _mm256_sub_pd(_mm256_setzero_pd(), fmadd_avx(a, b, c));
+			const auto tmp = _mm256_undefined_pd();
+			const auto zero = _mm256_xor_pd(tmp, tmp);
+			return _mm256_sub_pd(zero, fmadd_avx(a, b, c));
 		}
 
 		[[nodiscard]] DPM_FORCEINLINE __m256 fmadd(__m256 a, __m256 b, __m256 c) noexcept

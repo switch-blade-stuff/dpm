@@ -227,8 +227,9 @@ namespace dpm
 #else
 			__m128i tmp;
 			round<std::int32_t>(x, &tmp);
-			dst[0] = _mm_unpacklo_epi32(tmp, _mm_setzero_si128());
-			dst[1] = _mm_unpackhi_epi32(tmp, _mm_setzero_si128());
+			const auto zero = bit_xor(tmp, tmp);
+			dst[0] = _mm_unpacklo_epi32(tmp, zero);
+			dst[1] = _mm_unpackhi_epi32(tmp, zero);
 #endif
 		}
 		template<std::same_as<double> T>

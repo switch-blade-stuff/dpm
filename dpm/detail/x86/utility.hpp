@@ -9,16 +9,18 @@
 
 namespace dpm::detail
 {
+	/* In certain cases, CLang has been generating cvtsi2ss + broadcast instructions for setzero. Use manual xor([xy]mm, [xy]mm) to avoid that. */
 	template<typename V>
 	[[nodiscard]] DPM_FORCEINLINE V setzero() noexcept requires (sizeof(V) == 16)
 	{
-		return std::bit_cast<V>(_mm_setzero_ps());
+		const auto tmp = _mm_undefined_ps();
+		return std::bit_cast<V>(_mm_xor_ps(tmp, tmp));
 	}
 	template<typename V>
 	[[nodiscard]] DPM_FORCEINLINE V setones() noexcept requires (sizeof(V) == 16)
 	{
 #ifndef DPM_HAS_SSE2
-		const auto tmp = _mm_setzero_ps();
+		const auto tmp = setzero<V>();
 		return std::bit_cast<V>(_mm_cmpeq_ps(tmp, tmp));
 #else
 		const auto tmp = _mm_undefined_si128();
@@ -147,13 +149,14 @@ namespace dpm::detail
 	template<typename V>
 	[[nodiscard]] DPM_FORCEINLINE V setzero() noexcept requires (sizeof(V) == 32)
 	{
-		return std::bit_cast<V>(_mm256_setzero_ps());
+		const auto tmp = _mm256_undefined_ps();
+		return std::bit_cast<V>(_mm256_xor_ps(tmp, tmp));
 	}
 	template<typename V>
 	[[nodiscard]] DPM_FORCEINLINE V setones() noexcept requires (sizeof(V) == 32)
 	{
 #ifndef DPM_HAS_AVX2
-		const auto tmp = _mm256_setzero_ps();
+		const auto tmp = setzero<V>();
 		return std::bit_cast<V>(_mm256_cmp_ps(tmp, tmp, _CMP_EQ_OS));
 #else
 		const auto tmp = _mm256_undefined_si256();
