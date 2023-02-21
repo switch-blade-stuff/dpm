@@ -59,13 +59,14 @@ namespace dpm
 		[[nodiscard]] DPM_FORCEINLINE __m256d log1p(__m256d x) noexcept { return _mm256_log1p_pd(x); }
 #endif
 #elif defined(DPM_HAS_SSE2)
-		template<typename T, typename V, typename Vi, typename I = int_of_size_t<sizeof(T)>>
-		[[nodiscard]] DPM_FORCEINLINE std::pair<V, V> get_invc_logc(Vi i) noexcept
+		/* Use source_location to properly report assertions. */
+		template<typename V, typename Vi, typename T, std::size_t N, typename I = int_of_size_t<sizeof(T)>>
+		[[nodiscard]] DPM_FORCEINLINE std::pair<V, V> log_get_table(Vi idx, std::span<const T, N> table, std::source_location loc) noexcept
 		{
-			const auto i_invc = bit_shiftl<I, 1>(i);
+			const auto i_invc = bit_shiftl<I, 1>(idx);
 			const auto i_logc = add<I>(i_invc, fill<Vi>(static_cast<I>(1)));
-			const auto v_invc = lut_load<V, I>(logtab_v<T>, i_invc);
-			const auto v_logc = lut_load<V, I>(logtab_v<T>, i_logc);
+			const auto v_invc = lut_load<V, I>(table, i_invc, loc);
+			const auto v_logc = lut_load<V, I>(table, i_logc, loc);
 			return {v_invc, v_logc};
 		}
 		template<typename T, typename V>
@@ -126,7 +127,6 @@ namespace dpm
 
 		/* Vectorized versions of log(float) & log(double) based on implementation from the ARM optimized routines library
 		 * https://github.com/ARM-software/optimized-routines license: MIT */
-
 		template<std::same_as<float> T, typename Vi, typename I = std::int32_t, typename V = select_vector_t<T, sizeof(Vi)>>
 		[[nodiscard]] DPM_FORCEINLINE V eval_log(Vi ix) noexcept
 		{
@@ -134,13 +134,13 @@ namespace dpm
 			const auto tmp = sub<I>(ix, fill<Vi>(0x3f33'0000));
 			auto i = bit_shiftr<I, 23 - logtab_bits_f32>(tmp);
 			i = bit_and(i, fill<Vi>((1 << logtab_bits_f32) - 1));
-			const auto [invc, logc] = get_invc_logc<T, V>(i);
+			const auto [invc, logc] = log_get_table<V>(i, logtab_v<T>, std::source_location::current());
 
 			/* x = 2^k z; where z is in range [0x3f33'0000, 2 * 0x3f33'0000] and exact.  */
 			const auto k = bit_ashiftr<I, 23>(tmp);
 			const auto z = std::bit_cast<V>(sub<I>(ix, bit_and(tmp, fill<Vi>(0xff80'0000))));
 
-			/* log(x) = log1p(z/c-1) + log(c) + k*Ln2 */
+			/* log(x) = log1p(z/c-1) + log(c) + k*ln2 */
 			const auto r = fmsub(z, invc, fill<V>(1.0f));
 			const auto y0 = fmadd(cvt<T, I>(k), fill<V>(ln2<T>), logc);
 
@@ -157,13 +157,13 @@ namespace dpm
 			const auto tmp = sub<I>(ix, fill<Vi>(0x3fe6'9009'0000'0000));
 			auto i = bit_shiftr<I, 52 - logtab_bits_f64>(tmp);
 			i = bit_and(i, fill<Vi>((1 << logtab_bits_f64) - 1));
-			const auto [invc, logc] = get_invc_logc<T, V>(i);
+			const auto [invc, logc] = log_get_table<V>(i, logtab_v<T>, std::source_location::current());
 
 			/* x = 2^k z; where z is in range [0x3fe6'9009'0000'0000, 2 * 0x3fe6'9009'0000'0000] and exact.  */
 			const auto k = bit_ashiftr<I, 52>(tmp);
 			const auto z = std::bit_cast<V>(sub<I>(ix, bit_and(tmp, fill<Vi>(0xfffull << 52))));
 
-			/* log(x) = log1p(z/c-1) + log(c) + k*Ln2.  */
+			/* log(x) = log1p(z/c-1) + log(c) + k*ln2.  */
 			const auto r = fmadd(z, invc, fill<V>(-1.0));
 			/* We only care about the bottom bits anyway. */
 			const auto kf = cvt_i32_f64<V>(cvt_i64_i32(k));
@@ -237,14 +237,14 @@ namespace dpm
 		detail::vectorize([](auto &res, auto x) { res = detail::log(x); }, result, x);
 		return result;
 	}
-//	/** Calculates binary (base 2) logarithm of elements in vector \a x, and returns the resulting vector. */
-//	template<std::floating_point T, std::size_t N, std::size_t A>
-//	[[nodiscard]] DPM_FORCEINLINE detail::x86_simd<T, N, A> log2(const detail::x86_simd<T, N, A> &x) noexcept requires detail::x86_overload_any<T, N, A>
-//	{
-//		detail::x86_simd<T, N, A> result = {};
-//		detail::vectorize([](auto &res, auto x) { res = detail::log2(x); }, result, x);
-//		return result;
-//	}
+	/** Calculates binary (base 2) logarithm of elements in vector \a x, and returns the resulting vector. */
+	template<std::floating_point T, std::size_t N, std::size_t A>
+	[[nodiscard]] DPM_FORCEINLINE detail::x86_simd<T, N, A> log2(const detail::x86_simd<T, N, A> &x) noexcept requires detail::x86_overload_any<T, N, A>
+	{
+		detail::x86_simd<T, N, A> result = {};
+		detail::vectorize([](auto &res, auto x) { res = detail::log2(x); }, result, x);
+		return result;
+	}
 	/** Calculates common (base 10) logarithm of elements in vector \a x, and returns the resulting vector. */
 	template<std::floating_point T, std::size_t N, std::size_t A>
 	[[nodiscard]] DPM_FORCEINLINE detail::x86_simd<T, N, A> log10(const detail::x86_simd<T, N, A> &x) noexcept requires detail::x86_overload_any<T, N, A>

@@ -82,7 +82,7 @@ namespace dpm::detail
 
 namespace dpm::detail
 {
-	DPM_FORCEINLINE void assert_err(const std::source_location loc, const char *cnd, const char *msg) noexcept
+	DPM_FORCEINLINE void assert_err(std::source_location loc, const char *cnd, const char *msg) noexcept
 	{
 		assert_err(loc.file_name(), loc.line(), loc.function_name(), cnd, msg);
 	}

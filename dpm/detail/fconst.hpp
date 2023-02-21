@@ -132,10 +132,34 @@ namespace dpm::detail
 	template<typename T>
 	static constexpr auto logtab_v = logtab<T>::value;
 
+	static constexpr double log2coff_f64[] = {-0x1.71547652b8339p-1, 0x1.ec709dc3a04bep-2, -0x1.7154764702ffbp-2, 0x1.2776c50034c48p-2, -0x1.ec7b328ea92bcp-3, 0x1.a6225e117f92ep-3};
+	static constexpr float log2coff_f32[] = {-0x1.712b6f70a7e4dp-2f, 0x1.ecabf496832ep-2f, -0x1.715479ffae3dep-1f, 0x1.715475f35c8b8p0f};
+
+	static constexpr std::size_t log2tab_bits_f32 = 4;
+	static constexpr std::size_t log2tab_size_f32 = 1 << (log2tab_bits_f32 + 1);
+	extern const DPM_PRIVATE float log2tab_f32[log2tab_size_f32];
+
+	static constexpr std::size_t log2tab_bits_f64 = 6;
+	static constexpr std::size_t log2tab_size_f64 = 1 << (log2tab_bits_f64 + 1);
+	extern const DPM_PRIVATE double log2tab_f64[log2tab_size_f64];
+
+	template<typename>
+	struct log2tab;
+	template<>
+	struct log2tab<float> { static constexpr auto value = std::span{log2tab_f32}; };
+	template<>
+	struct log2tab<double> { static constexpr auto value = std::span{log2tab_f64}; };
+	template<typename T>
+	static constexpr auto log2tab_v = log2tab<T>::value;
+
 	template<std::floating_point T>
 	static constexpr T log10_2l = std::same_as<T, float> ? T{7.9034151668e-7} : T{3.69423907715893078616e-13};
 	template<std::floating_point T>
 	static constexpr T log10_2h = std::same_as<T, float> ? T{3.0102920532e-1} : T{3.01029995663611771306e-1};
 	template<std::floating_point T>
 	static constexpr T ivln10 = T{4.34294481903251816668e-1};
+	template<std::floating_point T>
+	static constexpr T invln2l = T{0x1.705fc2eefa200p-33};
+	template<std::floating_point T>
+	static constexpr T invln2h = T{0x1.7154765200000p+0};
 }
