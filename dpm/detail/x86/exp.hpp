@@ -108,29 +108,37 @@ namespace dpm
 		{
 			constexpr std::int32_t sub_max = 0x7f00'0000;
 			constexpr std::int32_t sub_off = 0x80'0000;
-			const auto ix = std::bit_cast<Vi>(x);
+			auto ix = std::bit_cast<Vi>(x);
 
 			/* x is subnormal or not finite. */
 			const auto is_subnorm = cmp_gt<std::int32_t>(sub<std::int32_t>(ix, fill<Vi>(sub_off)), fill<Vi>(sub_max - 1));
-			/* Normalize x if it is subnormal. */
-			const auto x_norm = mul<T>(x, fill<V>(0x1p23f));
-			const auto ix_norm = sub<std::int32_t>(std::bit_cast<Vi>(x_norm), fill<Vi>(23 << 23));
-			return blendv<std::int32_t>(ix, ix_norm, is_subnorm);
+			if (test_mask(is_subnorm)) [[unlikely]] /* Avoid overflow in x * 2^23 */
+			{
+				/* Normalize x. */
+				const auto x_norm = mul<T>(x, fill<V>(0x1p23f));
+				const auto ix_norm = sub<std::int32_t>(std::bit_cast<Vi>(x_norm), fill<Vi>(23 << 23));
+				ix = blendv<std::int32_t>(ix, ix_norm, is_subnorm);
+			}
+			return ix;
 		}
 		template<std::same_as<double> T, typename V, typename Vi = select_vector_t<std::int64_t, sizeof(V)>>
 		[[nodiscard]] DPM_FORCEINLINE Vi log_normalize(V x) noexcept
 		{
 			constexpr std::int32_t sub_max = 0x7fe0;
 			constexpr std::int32_t sub_off = 0x10;
-			const auto ix = std::bit_cast<Vi>(x);
+			auto ix = std::bit_cast<Vi>(x);
 
 			/* x is subnormal, negative or not finite. */
 			const auto top16 = bit_shiftr<std::int64_t, 48>(ix);
 			const auto is_subnorm = cmp_gt_l32<std::int64_t>(sub<std::int64_t>(top16, fill<Vi>(sub_off)), fill<Vi>(sub_max - 1));
-			/* Normalize x if it is subnormal. */
-			const auto x_norm = mul<T>(x, fill<V>(0x1p52));
-			const auto ix_norm = sub<std::int64_t>(std::bit_cast<Vi>(x_norm), fill<Vi>(52ull << 52));
-			return blendv<std::int64_t>(ix, ix_norm, is_subnorm);
+			if (test_mask(is_subnorm)) [[unlikely]] /* Avoid overflow in x * 2^52 */
+			{
+				/* Normalize x. */
+				const auto x_norm = mul<T>(x, fill<V>(0x1p52));
+				const auto ix_norm = sub<std::int64_t>(std::bit_cast<Vi>(x_norm), fill<Vi>(52ull << 52));
+				ix = blendv<std::int64_t>(ix, ix_norm, is_subnorm);
+			}
+			return ix;
 		}
 
 		/* Vectorized versions of log(float) & log(double) based on implementation from the ARM optimized routines library
@@ -145,17 +153,17 @@ namespace dpm
 			i = bit_and(i, fill<Vi>((1 << logtab_bits_f32) - 1));
 			const auto [invc, logc] = get_invc_logc<T, V>(i);
 
-			/* x = 2^k z; where z is in range [OFF, 2 * OFF] and exact.  */
+			/* x = 2^k z; where z is in range [0x3f33'0000, 2 * 0x3f33'0000] and exact.  */
 			const auto k = bit_ashiftr<I, 23>(tmp);
-			auto y = std::bit_cast<V>(sub<I>(ix, bit_and(tmp, fill<Vi>(0xff80'0000))));
+			const auto z = std::bit_cast<V>(sub<I>(ix, bit_and(tmp, fill<Vi>(0xff80'0000))));
 
 			/* log(x) = log1p(z/c-1) + log(c) + k*Ln2 */
-			const auto r = fmsub(y, invc, fill<V>(1.0f));
+			const auto r = fmsub(z, invc, fill<V>(1.0f));
 			const auto y0 = fmadd(cvt<T, I>(k), fill<V>(ln2<T>), logc);
 
 			/* Approximate log1p(r).  */
 			const auto r2 = mul<T>(r, r);
-			y = fmadd(fill<V>(logcoff_f32[1]), r, fill<V>(logcoff_f32[2]));
+			auto y = fmadd(fill<V>(logcoff_f32[1]), r, fill<V>(logcoff_f32[2]));
 			y = fmadd(fill<V>(logcoff_f32[0]), r2, y);
 			return fmadd(y, r2, add<T>(y0, r));
 		}
@@ -168,20 +176,20 @@ namespace dpm
 			i = bit_and(i, fill<Vi>((1 << logtab_bits_f64) - 1));
 			const auto [invc, logc] = get_invc_logc<T, V>(i);
 
-			/* x = 2^k z; where z is in range [OFF, 2 * OFF] and exact.  */
+			/* x = 2^k z; where z is in range [0x3fe6'9009'0000'0000, 2 * 0x3fe6'9009'0000'0000] and exact.  */
 			const auto k = bit_ashiftr<I, 52>(tmp);
-			auto y = std::bit_cast<V>(sub<I>(ix, bit_and(tmp, fill<Vi>(0xfffull << 52))));
+			const auto z = std::bit_cast<V>(sub<I>(ix, bit_and(tmp, fill<Vi>(0xfffull << 52))));
 
 			/* log(x) = log1p(z/c-1) + log(c) + k*Ln2.  */
-			const auto r = fmadd(y, invc, fill<V>(-1.0));
+			const auto r = fmadd(z, invc, fill<V>(-1.0));
 			/* We only care about the bottom bits anyway. */
 			const auto kf = cvt_i32_f64<V>(cvt_i64_i32(k));
 			const auto y0 = fmadd(kf, fill<V>(ln2<T>), logc);
 
-			/* y = r2 * (logcoff_f64[0] + r * A1 + r2 * (logcoff_f64[2] + r * logcoff_f64[3] + r2 * logcoff_f64[4])) + hi  */
+			/* y = r2 * (logcoff_f64[0] + r * logcoff_f64[1] + r2 * (logcoff_f64[2] + r * logcoff_f64[3] + r2 * logcoff_f64[4])) + y0 + r  */
 			const auto r2 = mul<T>(r, r);
 			const auto p = fmadd(fill<V>(logcoff_f64[1]), r, fill<V>(logcoff_f64[0]));
-			y = fmadd(fill<V>(logcoff_f64[3]), r, fill<V>(logcoff_f64[2]));
+			auto y = fmadd(fill<V>(logcoff_f64[3]), r, fill<V>(logcoff_f64[2]));
 			y = fmadd(fill<V>(logcoff_f64[4]), r2, y);
 			return fmadd(fmadd(y, r2, p), r2, add<T>(y0, r));
 		}
@@ -254,17 +262,17 @@ namespace dpm
 //		detail::vectorize([](auto &res, auto x) { res = detail::log2(x); }, result, x);
 //		return result;
 //	}
-//	/** Calculates common (base 10) logarithm of elements in vector \a x, and returns the resulting vector. */
-//	template<std::floating_point T, std::size_t N, std::size_t A>
-//	[[nodiscard]] DPM_FORCEINLINE detail::x86_simd<T, N, A> log10(const detail::x86_simd<T, N, A> &x) noexcept requires detail::x86_overload_any<T, N, A> && std::same_as<T, double>
-//	{
-//		detail::x86_simd<T, N, A> result = {};
-//		detail::vectorize([](auto &res, auto x) { res = detail::log10(x); }, result, x);
-//		return result;
-//	}
+	/** Calculates common (base 10) logarithm of elements in vector \a x, and returns the resulting vector. */
+	template<std::floating_point T, std::size_t N, std::size_t A>
+	[[nodiscard]] DPM_FORCEINLINE detail::x86_simd<T, N, A> log10(const detail::x86_simd<T, N, A> &x) noexcept requires detail::x86_overload_any<T, N, A>
+	{
+		detail::x86_simd<T, N, A> result = {};
+		detail::vectorize([](auto &res, auto x) { res = detail::log10(x); }, result, x);
+		return result;
+	}
 	/** Calculates natural (base *e*) logarithm of elements in vector \a x plus `1`, and returns the resulting vector. */
 	template<std::floating_point T, std::size_t N, std::size_t A>
-	[[nodiscard]] DPM_FORCEINLINE detail::x86_simd<T, N, A> log1p(const detail::x86_simd<T, N, A> &x) noexcept requires detail::x86_overload_any<T, N, A> && std::same_as<T, double>
+	[[nodiscard]] DPM_FORCEINLINE detail::x86_simd<T, N, A> log1p(const detail::x86_simd<T, N, A> &x) noexcept requires detail::x86_overload_any<T, N, A>
 	{
 		detail::x86_simd<T, N, A> result = {};
 		detail::vectorize([](auto &res, auto x) { res = detail::log1p(x); }, result, x);

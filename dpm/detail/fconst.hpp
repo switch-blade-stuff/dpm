@@ -131,4 +131,11 @@ namespace dpm::detail
 	struct logtab<double> { static constexpr auto value = std::span{logtab_f64}; };
 	template<typename T>
 	static constexpr auto logtab_v = logtab<T>::value;
+
+	template<std::floating_point T>
+	static constexpr T log10_2l = std::same_as<T, float> ? T{7.9034151668e-7} : T{3.69423907715893078616e-13};
+	template<std::floating_point T>
+	static constexpr T log10_2h = std::same_as<T, float> ? T{3.0102920532e-1} : T{3.01029995663611771306e-1};
+	template<std::floating_point T>
+	static constexpr T ivln10 = T{4.34294481903251816668e-1};
 }
