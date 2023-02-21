@@ -6,14 +6,6 @@
 
 #if defined(DPM_ARCH_X86) && defined(DPM_HAS_SSE2) && !defined(DPM_USE_SVML)
 
-#include "polevl.hpp"
-
-#ifdef DPM_HANDLE_ERRORS
-#ifndef _MSC_VER /* MSVC does not support STDC pragmas */
-#pragma STDC FENV_ACCESS ON
-#endif
-#endif
-
 namespace dpm::detail
 {
 	template<typename T, typename V>

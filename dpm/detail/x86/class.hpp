@@ -20,7 +20,7 @@ namespace dpm
 		#ifdef DPM_HAS_AVX
 			return _mm_cmp_ps(x, inf, _CMP_NEQ_OQ);
 		#else
-			return bit_and(_mm_cmpord_ps(x, inf), _mm_cmpneq_ps(x, inf));
+			return _mm_cmplt_ps(x, inf); /* NaN < inf == false */
 		#endif
 		}
 		[[nodiscard]] DPM_FORCEINLINE __m128 isnormal_abs(__m128 x) noexcept
@@ -45,7 +45,7 @@ namespace dpm
 #ifdef DPM_HAS_AVX
 			return _mm_cmp_pd(x, inf, _CMP_NEQ_OQ);
 #else
-			return bit_and(_mm_cmpord_pd(x, inf), _mm_cmpneq_pd(x, inf));
+			return _mm_cmplt_pd(x, inf); /* NaN < inf == false */
 #endif
 		}
 		[[nodiscard]] DPM_FORCEINLINE __m128d isnormal_abs(__m128d x) noexcept

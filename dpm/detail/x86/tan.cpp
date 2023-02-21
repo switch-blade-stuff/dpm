@@ -6,9 +6,6 @@
 
 #if defined(DPM_ARCH_X86) && defined(DPM_HAS_SSE2) && !defined(DPM_USE_SVML)
 
-#include "except.hpp"
-#include "polevl.hpp"
-
 namespace dpm::detail
 {
 	template<typename T, typename V, typename I = int_of_size_t<sizeof(T)>>
@@ -21,7 +18,7 @@ namespace dpm::detail
 		/* Enforce domain. */
 #ifdef DPM_HANDLE_ERRORS
 		if (const auto m = isinf_abs(abs_x); test_mask(m))
-			[[unlikely]] abs_x = except_invalid<T>(abs_x, m);
+			[[unlikely]] abs_x = except_invalid<T>(abs_x, abs_x, m);
 #endif
 
 		auto p1 = undefined<V>(), p2 = undefined<V>();
@@ -30,7 +27,7 @@ namespace dpm::detail
 		if (p_mask_bits != fill_bits<extent>()) [[likely]] /* |x| >= Pi / 32 */
 		{
 			/* tan(x) = sin(x) / cos(x) */
-			const auto [sin_x, cos_x] = eval_sincos(sign_x, abs_x);
+			const auto [sin_x, cos_x] = eval_sincos<T>(sign_x, abs_x);
 			p1 = div<T>(sin_x, cos_x);
 		}
 		if (p_mask_bits != 0) [[unlikely]] /* |x| < Pi / 32 */

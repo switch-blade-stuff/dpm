@@ -67,7 +67,7 @@ namespace dpm::detail
 		auto y = cvt<T, I>(eval_ilogb<T, I>(abs_x));
 #if defined(DPM_HANDLE_ERRORS)
 		if (const auto m = cmp_eq<T>(abs_x, setzero<V>()); test_mask(m))
-			[[unlikely]] y = except_divzero<T, -1>(y, m);
+			[[unlikely]] y = except_divzero<T, -1>(y, abs_x, m);
 
 		/* logb(+-inf) = inf; logb(+-nan) = nan */
 		const auto dom_mask = bit_or(isinf_abs(abs_x), isunord(x, x));

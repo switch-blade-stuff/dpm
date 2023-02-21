@@ -1,5 +1,6 @@
 
 target_sources(${DPM_PROJECT} INTERFACE
+        ${CMAKE_CURRENT_LIST_DIR}/cpuid.hpp
         ${CMAKE_CURRENT_LIST_DIR}/abi.hpp
         ${CMAKE_CURRENT_LIST_DIR}/type_fwd.hpp
         ${CMAKE_CURRENT_LIST_DIR}/utility.hpp
@@ -21,17 +22,17 @@ target_sources(${DPM_PROJECT} INTERFACE
 target_sources(${DPM_PROJECT} PUBLIC
         ${CMAKE_CURRENT_LIST_DIR}/lut.hpp
         ${CMAKE_CURRENT_LIST_DIR}/except.hpp
-        ${CMAKE_CURRENT_LIST_DIR}/cpuid.hpp
+        ${CMAKE_CURRENT_LIST_DIR}/polevl.hpp
         ${CMAKE_CURRENT_LIST_DIR}/pow.hpp
         ${CMAKE_CURRENT_LIST_DIR}/exp.hpp
         ${CMAKE_CURRENT_LIST_DIR}/trig.hpp
         ${CMAKE_CURRENT_LIST_DIR}/fmanip.hpp)
 
 target_sources(${DPM_PROJECT} PRIVATE
-        ${CMAKE_CURRENT_LIST_DIR}/polevl.hpp
         ${CMAKE_CURRENT_LIST_DIR}/cpuid.cpp
         ${CMAKE_CURRENT_LIST_DIR}/pow.cpp
         ${CMAKE_CURRENT_LIST_DIR}/log.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/log1p.cpp
         ${CMAKE_CURRENT_LIST_DIR}/sincos.cpp
         ${CMAKE_CURRENT_LIST_DIR}/tan.cpp
         ${CMAKE_CURRENT_LIST_DIR}/asincos.cpp

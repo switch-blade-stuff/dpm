@@ -8,6 +8,7 @@
 
 #include <numbers>
 #include <limits>
+#include <span>
 #include <bit>
 
 namespace dpm::detail
@@ -121,4 +122,13 @@ namespace dpm::detail
 	static constexpr std::size_t logtab_bits_f64 = 7;
 	static constexpr std::size_t logtab_size_f64 = 1 << (logtab_bits_f64 + 1);
 	extern const DPM_PRIVATE double logtab_f64[logtab_size_f64];
+
+	template<typename>
+	struct logtab;
+	template<>
+	struct logtab<float> { static constexpr auto value = std::span{logtab_f32}; };
+	template<>
+	struct logtab<double> { static constexpr auto value = std::span{logtab_f64}; };
+	template<typename T>
+	static constexpr auto logtab_v = logtab<T>::value;
 }

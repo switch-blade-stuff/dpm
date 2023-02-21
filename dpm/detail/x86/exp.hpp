@@ -10,6 +10,7 @@
 
 #include "transform.hpp"
 #include "except.hpp"
+#include "class.hpp"
 #include "lut.hpp"
 
 #endif
@@ -58,25 +59,48 @@ namespace dpm
 		[[nodiscard]] DPM_FORCEINLINE __m256d log1p(__m256d x) noexcept { return _mm256_log1p_pd(x); }
 #endif
 #elif defined(DPM_HAS_SSE2)
-		template<std::same_as<float> T, typename V, typename Vi>
+		template<typename T, typename V, typename Vi, typename I = int_of_size_t<sizeof(T)>>
 		[[nodiscard]] DPM_FORCEINLINE std::pair<V, V> get_invc_logc(Vi i) noexcept
 		{
-			const auto data = std::span{logtab_f32};
-			const auto i_invc = bit_shiftl<std::int32_t, 1>(i);
-			const auto i_logc = add<std::int32_t>(i_invc, fill<Vi>(1));
-			const auto v_invc = lut_load<V, std::int32_t>(data, i_invc);
-			const auto v_logc = lut_load<V, std::int32_t>(data, i_logc);
+			const auto i_invc = bit_shiftl<I, 1>(i);
+			const auto i_logc = add<I>(i_invc, fill<Vi>(static_cast<I>(1)));
+			const auto v_invc = lut_load<V, I>(logtab_v<T>, i_invc);
+			const auto v_logc = lut_load<V, I>(logtab_v<T>, i_logc);
 			return {v_invc, v_logc};
 		}
-		template<std::same_as<double> T, typename V, typename Vi>
-		[[nodiscard]] DPM_FORCEINLINE std::pair<V, V> get_invc_logc(Vi i) noexcept
+		template<typename T, typename V>
+		[[nodiscard]] DPM_FORCEINLINE V log_excepts(V y, V x) noexcept
 		{
-			const auto data = std::span{logtab_f64};
-			const auto i_invc = bit_shiftl<std::int64_t, 1>(i);
-			const auto i_logc = add<std::int64_t>(i_invc, fill<Vi>(1ull));
-			const auto v_invc = lut_load<V, std::int64_t>(data, i_invc);
-			const auto v_logc = lut_load<V, std::int64_t>(data, i_logc);
-			return {v_invc, v_logc};
+#ifdef DPM_PROPAGATE_NAN
+			/* log(inf) == inf; log(NaN) == NaN */
+			y = blendv<T>(x, y, isfinite_abs(x));
+#endif
+#ifdef DPM_HANDLE_ERRORS
+			/* log(0) == inf + FE_DIVBYZERO */
+			const auto zero_mask = cmp_eq<T>(x, setzero<V>());
+			if (test_mask(zero_mask)) [[unlikely]] y = except_divzero<T>(y, x, zero_mask);
+			/* log(-x) == NaN + FE_INVALID */
+			const auto minus_mask = cmp_lt<T>(x, setzero<V>());
+			if (test_mask(minus_mask)) [[unlikely]] y = except_invalid<T>(y, x, std::bit_cast<V>(minus_mask));
+#endif
+			return y;
+		}
+		template<typename T, typename V>
+		[[nodiscard]] DPM_FORCEINLINE V log1p_excepts(V y, V x) noexcept
+		{
+#ifdef DPM_PROPAGATE_NAN
+			/* log1p(inf) == inf; log1p(NaN) == NaN */
+			y = blendv<T>(x, y, isfinite_abs(x));
+#endif
+#ifdef DPM_HANDLE_ERRORS
+			/* log1p(-1) == inf + FE_DIVBYZERO */
+			const auto zero_mask = cmp_eq<T>(x, fill<V>(-one<T>));
+			if (test_mask(zero_mask)) [[unlikely]] y = except_divzero<T>(y, x, zero_mask);
+			/* log1p(x < -1) == NaN + FE_INVALID */
+			const auto minus_mask = cmp_lt<T>(x, fill<V>(-one<T>));
+			if (test_mask(minus_mask)) [[unlikely]] y = except_invalid<T>(y, x, std::bit_cast<V>(minus_mask));
+#endif
+			return y;
 		}
 
 		template<std::same_as<float> T, typename V, typename Vi = select_vector_t<std::int32_t, sizeof(V)>>
@@ -96,7 +120,7 @@ namespace dpm
 		template<std::same_as<double> T, typename V, typename Vi = select_vector_t<std::int64_t, sizeof(V)>>
 		[[nodiscard]] DPM_FORCEINLINE Vi log_normalize(V x) noexcept
 		{
-			constexpr std::int32_t sub_max = 0x7ff0 - 0x10;
+			constexpr std::int32_t sub_max = 0x7fe0;
 			constexpr std::int32_t sub_off = 0x10;
 			const auto ix = std::bit_cast<Vi>(x);
 
@@ -109,50 +133,63 @@ namespace dpm
 			return blendv<std::int64_t>(ix, ix_norm, is_subnorm);
 		}
 
-		template<std::same_as<float> T, typename V, typename Vi = select_vector_t<std::int32_t, sizeof(V)>>
-		[[nodiscard]] DPM_FORCEINLINE V log_excepts(V y, V x) noexcept
+		/* Vectorized versions of log(float) & log(double) based on implementation from the ARM optimized routines library
+		 * https://github.com/ARM-software/optimized-routines license: MIT */
+
+		template<std::same_as<float> T, typename Vi, typename I = std::int32_t, typename V = select_vector_t<T, sizeof(Vi)>>
+		[[nodiscard]] DPM_FORCEINLINE V eval_log(Vi ix) noexcept
 		{
-#ifdef DPM_PROPAGATE_NAN
-			/* log(inf) == inf; log(NaN) == NaN */
-			const auto ix = std::bit_cast<Vi>(x);
-			const auto not_finite = cmp_gt<std::int32_t>(ix, fill<Vi>(0x7f7f'ffff));
-			y = blendv<T>(y, x, std::bit_cast<V>(not_finite));
-#endif
-#ifdef DPM_HANDLE_ERRORS
-			/* log(0) == inf + FE_DIVBYZERO */
-			const auto zero_mask = cmp_eq<T>(x, setzero<V>());
-			if (test_mask(zero_mask)) [[unlikely]] y = except_divzero<T>(y, zero_mask);
-			/* log(-x) == NaN + FE_INVALID */
-			const auto minus_mask = cmp_gt<std::int32_t>(setzero<Vi>(), ix);
-			if (test_mask(minus_mask)) [[unlikely]] y = except_invalid<T>(y, std::bit_cast<V>(minus_mask));
-#endif
-			return y;
+			/* Load invc & logc constants from the lookup table. */
+			const auto tmp = sub<I>(ix, fill<Vi>(0x3f33'0000));
+			auto i = bit_shiftr<I, 23 - logtab_bits_f32>(tmp);
+			i = bit_and(i, fill<Vi>((1 << logtab_bits_f32) - 1));
+			const auto [invc, logc] = get_invc_logc<T, V>(i);
+
+			/* x = 2^k z; where z is in range [OFF, 2 * OFF] and exact.  */
+			const auto k = bit_ashiftr<I, 23>(tmp);
+			auto y = std::bit_cast<V>(sub<I>(ix, bit_and(tmp, fill<Vi>(0xff80'0000))));
+
+			/* log(x) = log1p(z/c-1) + log(c) + k*Ln2 */
+			const auto r = fmsub(y, invc, fill<V>(1.0f));
+			const auto y0 = fmadd(cvt<T, I>(k), fill<V>(ln2<T>), logc);
+
+			/* Approximate log1p(r).  */
+			const auto r2 = mul<T>(r, r);
+			y = fmadd(fill<V>(logcoff_f32[1]), r, fill<V>(logcoff_f32[2]));
+			y = fmadd(fill<V>(logcoff_f32[0]), r2, y);
+			return fmadd(y, r2, add<T>(y0, r));
 		}
-		template<std::same_as<double> T, typename V, typename Vi = select_vector_t<std::int64_t, sizeof(V)>>
-		[[nodiscard]] DPM_FORCEINLINE V log_excepts(V y, V x) noexcept
+		template<std::same_as<double> T, typename Vi, typename I = std::int64_t, typename V = select_vector_t<T, sizeof(Vi)>>
+		[[nodiscard]] DPM_FORCEINLINE V eval_log(Vi ix) noexcept
 		{
-#ifdef DPM_PROPAGATE_NAN
-			/* log(inf) == inf; log(NaN) == NaN */
-			const auto ix = std::bit_cast<Vi>(x);
-			const auto not_finite = cmp_gt_h32<std::int64_t>(ix, fill<Vi>(0x7fef'ffff'0000'0000));
-			y = blendv<T>(y, x, std::bit_cast<V>(not_finite));
-#endif
-#ifdef DPM_HANDLE_ERRORS
-			/* log(0) == inf + FE_DIVBYZERO */
-			const auto zero_mask = cmp_eq<T>(x, setzero<V>());
-			if (test_mask(zero_mask)) [[unlikely]] y = except_divzero<T>(y, zero_mask);
-			/* log(-x) == NaN + FE_INVALID */
-			const auto minus_mask = cmp_gt_h32<std::int64_t>(setzero<Vi>(), ix);
-			if (test_mask(minus_mask)) [[unlikely]] y = except_invalid<T>(y, std::bit_cast<V>(minus_mask));
-#endif
-			return y;
+			/* Load invc & logc constants from the lookup table. */
+			const auto tmp = sub<I>(ix, fill<Vi>(0x3fe6'9009'0000'0000));
+			auto i = bit_shiftr<I, 52 - logtab_bits_f64>(tmp);
+			i = bit_and(i, fill<Vi>((1 << logtab_bits_f64) - 1));
+			const auto [invc, logc] = get_invc_logc<T, V>(i);
+
+			/* x = 2^k z; where z is in range [OFF, 2 * OFF] and exact.  */
+			const auto k = bit_ashiftr<I, 52>(tmp);
+			auto y = std::bit_cast<V>(sub<I>(ix, bit_and(tmp, fill<Vi>(0xfffull << 52))));
+
+			/* log(x) = log1p(z/c-1) + log(c) + k*Ln2.  */
+			const auto r = fmadd(y, invc, fill<V>(-1.0));
+			/* We only care about the bottom bits anyway. */
+			const auto kf = cvt_i32_f64<V>(cvt_i64_i32(k));
+			const auto y0 = fmadd(kf, fill<V>(ln2<T>), logc);
+
+			/* y = r2 * (logcoff_f64[0] + r * A1 + r2 * (logcoff_f64[2] + r * logcoff_f64[3] + r2 * logcoff_f64[4])) + hi  */
+			const auto r2 = mul<T>(r, r);
+			const auto p = fmadd(fill<V>(logcoff_f64[1]), r, fill<V>(logcoff_f64[0]));
+			y = fmadd(fill<V>(logcoff_f64[3]), r, fill<V>(logcoff_f64[2]));
+			y = fmadd(fill<V>(logcoff_f64[4]), r2, y);
+			return fmadd(fmadd(y, r2, p), r2, add<T>(y0, r));
 		}
 
 		[[nodiscard]] __m128 DPM_PUBLIC DPM_MATHFUNC log(__m128 x) noexcept;
 		[[nodiscard]] __m128 DPM_PUBLIC DPM_MATHFUNC log2(__m128 x) noexcept;
 		[[nodiscard]] __m128 DPM_PUBLIC DPM_MATHFUNC log10(__m128 x) noexcept;
 		[[nodiscard]] __m128 DPM_PUBLIC DPM_MATHFUNC log1p(__m128 x) noexcept;
-
 
 		[[nodiscard]] __m128d DPM_PUBLIC DPM_MATHFUNC log(__m128d x) noexcept;
 		[[nodiscard]] __m128d DPM_PUBLIC DPM_MATHFUNC log2(__m128d x) noexcept;
@@ -225,13 +262,13 @@ namespace dpm
 //		detail::vectorize([](auto &res, auto x) { res = detail::log10(x); }, result, x);
 //		return result;
 //	}
-//	/** Calculates natural (base *e*) logarithm of elements in vector \a x plus `1`, and returns the resulting vector. */
-//	template<std::floating_point T, std::size_t N, std::size_t A>
-//	[[nodiscard]] DPM_FORCEINLINE detail::x86_simd<T, N, A> log1p(const detail::x86_simd<T, N, A> &x) noexcept requires detail::x86_overload_any<T, N, A> && std::same_as<T, double>
-//	{
-//		detail::x86_simd<T, N, A> result = {};
-//		detail::vectorize([](auto &res, auto x) { res = detail::log1p(x); }, result, x);
-//		return result;
-//	}
+	/** Calculates natural (base *e*) logarithm of elements in vector \a x plus `1`, and returns the resulting vector. */
+	template<std::floating_point T, std::size_t N, std::size_t A>
+	[[nodiscard]] DPM_FORCEINLINE detail::x86_simd<T, N, A> log1p(const detail::x86_simd<T, N, A> &x) noexcept requires detail::x86_overload_any<T, N, A> && std::same_as<T, double>
+	{
+		detail::x86_simd<T, N, A> result = {};
+		detail::vectorize([](auto &res, auto x) { res = detail::log1p(x); }, result, x);
+		return result;
+	}
 #endif
 }

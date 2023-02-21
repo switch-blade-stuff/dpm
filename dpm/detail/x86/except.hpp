@@ -30,16 +30,16 @@ namespace dpm::detail
 	}
 
 	template<typename T, typename V>
-	[[nodiscard]] DPM_FORCEINLINE V except_invalid(V x, V mask) noexcept
+	[[nodiscard]] DPM_FORCEINLINE V except_invalid(V y, V x, V mask) noexcept
 	{
 		/* x = mask ? x - x / 0.0 : x; 0.0 / 0.0 == NaN + FE_INVALID */
-		return blendv<T>(x, div<T>(sub<T>(x, x), setzero<V>()), mask);
+		return blendv<T>(y, div<T>(sub<T>(x, x), setzero<V>()), mask);
 	}
 	template<typename T, int Sign = 1, typename V>
-	[[nodiscard]] DPM_FORCEINLINE V except_divzero(V x, V mask) noexcept
+	[[nodiscard]] DPM_FORCEINLINE V except_divzero(V y, V x, V mask) noexcept
 	{
 		/* x = mask ? +-1.0 / x - x : x; 1.0 / 0.0 == inf + FE_DIVBYZERO */
 		const auto v_one = fill<V>(Sign < 0 ? -one<T> : one<T>);
-		return blendv<T>(x, div<T>(v_one, sub<T>(x, x)), mask);
+		return blendv<T>(y, div<T>(v_one, sub<T>(x, x)), mask);
 	}
 }
