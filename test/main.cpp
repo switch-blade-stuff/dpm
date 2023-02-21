@@ -2,17 +2,19 @@
  * Created by switchblade on 2023-01-01.
  */
 
+/* Always test with error handling on. Otherwise, error conditions are UB. */
+#ifndef DPM_HANDLE_ERRORS
+#define DPM_HANDLE_ERRORS
+#endif
+
+#ifndef _MSC_VER /* MSVC does not support STDC pragmas */
+#pragma STDC FENV_ACCESS ON
+#endif
+
 #include <dpm/simd.hpp>
 
 #define TEST_ASSERT(x) DPM_ASSERT_ALWAYS(x)
 
-#ifdef DPM_HANDLE_ERRORS
-
-#ifdef DPM_HANDLE_ERRORS
-#ifndef _MSC_VER /* MSVC does not support STDC pragmas */
-#pragma STDC FENV_ACCESS ON
-#endif
-#endif
 
 static inline void clear_err() noexcept
 {
@@ -34,7 +36,6 @@ static inline bool test_err([[maybe_unused]] int except_val, [[maybe_unused]] in
 #endif
 	return result;
 }
-#endif
 
 template<typename T>
 static inline bool almost_equal(T a, T b, T rel_eps, T eps)
@@ -132,6 +133,41 @@ static inline void test_mask() noexcept
 }
 
 template<typename T, typename Abi>
+static inline void test_exp() noexcept
+{
+	{
+		constexpr auto invoke_test = []<std::size_t N>(auto f, std::span<const T, N> vals, T rel_eps, T eps)
+		{
+			constexpr auto simd_size = dpm::simd_size_v<T, Abi>;
+			for (std::size_t i = 0; i < N;)
+			{
+				dpm::simd<T, Abi> v = {};
+				v.copy_from(vals.data() + i, dpm::element_aligned);
+				v = f(v);
+
+				for (std::size_t j = 0; i < N && j < simd_size; ++j, ++i)
+				{
+					const auto a = f(dpm::simd<T, dpm::simd_abi::scalar>{vals[i]});
+					TEST_ASSERT(almost_equal(v[j], a[0], rel_eps, eps) || (std::isnan(v[j]) && std::isnan(a[0])));
+				}
+			}
+		};
+
+		const auto test_vals = std::array{
+				T{12.54}, T{0.1234}, T{-0.34}, T{0.0}, T{1.0}, T{-1.0}, T{0.125},
+				std::numbers::pi_v<T>, std::numeric_limits<T>::quiet_NaN(),
+				std::numeric_limits<T>::infinity()
+		};
+		invoke_test([](auto x) { return dpm::log(x); }, std::span{test_vals}, T{1.0e-3}, T{1.0e-7});
+		invoke_test([](auto x) { return dpm::log2(x); }, std::span{test_vals}, T{1.0e-3}, T{1.0e-7});
+		invoke_test([](auto x) { return dpm::log10(x); }, std::span{test_vals}, T{1.0e-3}, T{1.0e-7});
+		invoke_test([](auto x) { return dpm::log1p(x); }, std::span{test_vals}, T{1.0e-3}, T{1.0e-7});
+	}
+
+	/* TODO: If DPM_HANDLE_ERRORS is set and fp exceptions are used, check exceptions. */
+}
+
+template<typename T, typename Abi>
 static inline void test_trig() noexcept
 {
 	{
@@ -167,11 +203,6 @@ static inline void test_trig() noexcept
 		invoke_test([](auto x) { return dpm::asin(x); }, std::span{test_vals}, T{1.0e-3}, T{1.0e-7});
 		invoke_test([](auto x) { return dpm::acos(x); }, std::span{test_vals}, T{1.0e-3}, T{1.0e-7});
 		invoke_test([](auto x) { return dpm::atan(x); }, std::span{test_vals}, T{1.0e-3}, T{1.0e-7});
-
-		invoke_test([](auto x) { return dpm::log(x); }, std::span{test_vals}, T{1.0e-3}, T{1.0e-7});
-		invoke_test([](auto x) { return dpm::log2(x); }, std::span{test_vals}, T{1.0e-3}, T{1.0e-7});
-		invoke_test([](auto x) { return dpm::log10(x); }, std::span{test_vals}, T{1.0e-3}, T{1.0e-7});
-		invoke_test([](auto x) { return dpm::log1p(x); }, std::span{test_vals}, T{1.0e-3}, T{1.0e-7});
 	}
 
 	/* TODO: If DPM_HANDLE_ERRORS is set and fp exceptions are used, check exceptions. */
@@ -503,6 +534,24 @@ int main()
 		dpm::where(m, a).copy_from(c_data.data(), dpm::vector_aligned);
 		TEST_ASSERT(dpm::all_of(a == b));
 	}
+
+	test_exp<float, dpm::simd_abi::fixed_size<4>>();
+	test_exp<float, dpm::simd_abi::fixed_size<8>>();
+	test_exp<float, dpm::simd_abi::fixed_size<16>>();
+	test_exp<float, dpm::simd_abi::fixed_size<32>>();
+	test_exp<float, dpm::simd_abi::ext::aligned_vector<4, 16>>();
+	test_exp<float, dpm::simd_abi::ext::aligned_vector<8, 16>>();
+	test_exp<float, dpm::simd_abi::ext::aligned_vector<16, 16>>();
+	test_exp<float, dpm::simd_abi::ext::aligned_vector<32, 16>>();
+
+	test_exp<double, dpm::simd_abi::fixed_size<4>>();
+	test_exp<double, dpm::simd_abi::fixed_size<8>>();
+	test_exp<double, dpm::simd_abi::fixed_size<16>>();
+	test_exp<double, dpm::simd_abi::fixed_size<32>>();
+	test_exp<double, dpm::simd_abi::ext::aligned_vector<4, 16>>();
+	test_exp<double, dpm::simd_abi::ext::aligned_vector<8, 16>>();
+	test_exp<double, dpm::simd_abi::ext::aligned_vector<16, 16>>();
+	test_exp<double, dpm::simd_abi::ext::aligned_vector<32, 16>>();
 
 	test_trig<float, dpm::simd_abi::fixed_size<4>>();
 	test_trig<float, dpm::simd_abi::fixed_size<8>>();

@@ -2,6 +2,12 @@
  * Created by switchblade on 2023-02-01.
  */
 
+#ifdef DPM_HANDLE_ERRORS
+#ifndef _MSC_VER /* MSVC does not support STDC pragmas */
+#pragma STDC FENV_ACCESS ON
+#endif
+#endif
+
 #include "trig.hpp"
 
 #if defined(DPM_ARCH_X86) && defined(DPM_HAS_SSE2) && !defined(DPM_USE_SVML)

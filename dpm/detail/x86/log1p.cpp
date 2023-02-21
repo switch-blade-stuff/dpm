@@ -2,6 +2,12 @@
  * Created by switchblade on 2023-02-20.
  */
 
+#ifdef DPM_HANDLE_ERRORS
+#ifndef _MSC_VER /* MSVC does not support STDC pragmas */
+#pragma STDC FENV_ACCESS ON
+#endif
+#endif
+
 #include "exp.hpp"
 
 #if defined(DPM_ARCH_X86) && defined(DPM_HAS_SSE2) && !defined(DPM_USE_SVML)
@@ -12,7 +18,7 @@ namespace dpm::detail
 	 * As such, log(1 + x) ~= log(u) + c / u. When c == 0, log(1 + x) is exact.
 	 *
 	 * It is important to avoid underflow in c / u. As such,
-	 * when u == x + 1 is in range [sqrt(2) / 2, sqrt(2)), c == 0.
+	 * when u is in range [sqrt(2) / 2, sqrt(2)), c == 0.
 	 * Otherwise, let k = (as_int(u) + 0x95f62 << 32) >> 52 - 0x3fd;
 	 * if k < 52, c == 1 - (u - x) for k >= 0 and x - (u - 1) for k < 0.
 	 * Otherwise (for k >= 52), c == 0.

@@ -4,12 +4,6 @@
 
 #pragma once
 
-#ifdef DPM_HANDLE_ERRORS
-#ifndef _MSC_VER /* MSVC does not support STDC pragmas */
-#pragma STDC FENV_ACCESS ON
-#endif
-#endif
-
 #include "utility.hpp"
 #include "addsub.hpp"
 #include "muldiv.hpp"
