@@ -29,6 +29,37 @@ namespace dpm::detail
 	 * Use eval_log to calculate log(u), as there is no need for
 	 * normalization since denormal x results in underflow condition. */
 
+	template<typename T, typename V, typename I = int_of_size_t<sizeof(T)>, typename Vi = select_vector_t<I, sizeof(V)>>
+	[[nodiscard]] DPM_FORCEINLINE V log1p_excepts(V y, V x) noexcept
+	{
+#ifdef DPM_PROPAGATE_NAN
+		/* log1p(inf) == inf; log1p(NaN) == NaN */
+		y = blendv<T>(x, y, isfinite_abs(x));
+#endif
+#ifdef DPM_HANDLE_ERRORS
+		/* log1p(subnormal x) == x + FE_UNDERFLOW */
+		const auto exp = bit_shiftr<I, mant_bits<I>>(std::bit_cast<Vi>(x));
+		const auto uflow_mask = cmp_eq<I>(exp, setzero<Vi>());
+		if (test_mask(uflow_mask) != 0) [[unlikely]]
+		{
+			/* Cannot use except_uflow, as we need to return x. */
+#if math_errhandling & MATH_ERREXCEPT
+			std::feraiseexcept(FE_UNDERFLOW);
+#endif
+#if math_errhandling & MATH_ERRNO
+			errno = ERANGE;
+#endif
+		}
+		/* log1p(-1) == inf + FE_DIVBYZERO */
+		const auto zero_mask = cmp_eq<T>(x, fill<V>(-one<T>));
+		if (test_mask(zero_mask)) [[unlikely]] y = except_divzero<T>(y, x, zero_mask);
+		/* log1p(x < -1) == NaN + FE_INVALID */
+		const auto minus_mask = cmp_lt<T>(x, fill<V>(-one<T>));
+		if (test_mask(minus_mask)) [[unlikely]] y = except_invalid<T>(y, x, std::bit_cast<V>(minus_mask));
+#endif
+		return y;
+	}
+
 	template<std::same_as<float> T, typename V, typename I = std::int32_t, typename Vi = select_vector_t<I, sizeof(V)>>
 	[[nodiscard]] DPM_FORCEINLINE V impl_log1p(V x) noexcept
 	{

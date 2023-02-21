@@ -85,23 +85,6 @@ namespace dpm
 #endif
 			return y;
 		}
-		template<typename T, typename V>
-		[[nodiscard]] DPM_FORCEINLINE V log1p_excepts(V y, V x) noexcept
-		{
-#ifdef DPM_PROPAGATE_NAN
-			/* log1p(inf) == inf; log1p(NaN) == NaN */
-			y = blendv<T>(x, y, isfinite_abs(x));
-#endif
-#ifdef DPM_HANDLE_ERRORS
-			/* log1p(-1) == inf + FE_DIVBYZERO */
-			const auto zero_mask = cmp_eq<T>(x, fill<V>(-one<T>));
-			if (test_mask(zero_mask)) [[unlikely]] y = except_divzero<T>(y, x, zero_mask);
-			/* log1p(x < -1) == NaN + FE_INVALID */
-			const auto minus_mask = cmp_lt<T>(x, fill<V>(-one<T>));
-			if (test_mask(minus_mask)) [[unlikely]] y = except_invalid<T>(y, x, std::bit_cast<V>(minus_mask));
-#endif
-			return y;
-		}
 
 		template<std::same_as<float> T, typename V, typename Vi = select_vector_t<std::int32_t, sizeof(V)>>
 		[[nodiscard]] DPM_FORCEINLINE Vi log_normalize(V x) noexcept
@@ -256,7 +239,7 @@ namespace dpm
 	}
 //	/** Calculates binary (base 2) logarithm of elements in vector \a x, and returns the resulting vector. */
 //	template<std::floating_point T, std::size_t N, std::size_t A>
-//	[[nodiscard]] DPM_FORCEINLINE detail::x86_simd<T, N, A> log2(const detail::x86_simd<T, N, A> &x) noexcept requires detail::x86_overload_any<T, N, A> && std::same_as<T, double>
+//	[[nodiscard]] DPM_FORCEINLINE detail::x86_simd<T, N, A> log2(const detail::x86_simd<T, N, A> &x) noexcept requires detail::x86_overload_any<T, N, A>
 //	{
 //		detail::x86_simd<T, N, A> result = {};
 //		detail::vectorize([](auto &res, auto x) { res = detail::log2(x); }, result, x);
