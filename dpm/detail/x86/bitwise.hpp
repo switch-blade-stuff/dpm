@@ -254,7 +254,7 @@ namespace dpm::detail
 		}
 		return _mm256_unpacklo_epi32(xl, xh);
 #else
-		return mux_128x2<__m256i>([](auto x) { return bit_ashiftr<T>(x); }, x);
+		return mux_128x2<__m256i>([](auto x) { return bit_ashiftr<T, N>(x); }, x);
 #endif
 	}
 #endif

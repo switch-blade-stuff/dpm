@@ -148,7 +148,7 @@ namespace dpm::detail
 	[[nodiscard]] DPM_FORCEINLINE V lut_load(std::span<const double, N> data, __m256i v_idx, std::source_location loc = std::source_location::current()) noexcept
 	{
 		const auto idx = reinterpret_cast<const alias_t<I> *>(&assert_lut_idx<I, N>(v_idx, loc));
-		return _mm_set_ps(
+		return _mm256_set_pd(
 				data[static_cast<std::size_t>(idx[3] * Scale / 8)],
 				data[static_cast<std::size_t>(idx[2] * Scale / 8)],
 				data[static_cast<std::size_t>(idx[1] * Scale / 8)],
