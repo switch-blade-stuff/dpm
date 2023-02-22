@@ -623,7 +623,7 @@ namespace dpm::detail
 	[[nodiscard]] DPM_FORCEINLINE V maskone(V x, std::size_t n) noexcept requires (sizeof(V) == 32) { return maskblend<T>(x, setones<V>(), n); }
 
 	template<typename T, std::size_t I, std::size_t... Is, typename V>
-	[[nodiscard]] DPM_FORCEINLINE V shuffle(std::index_sequence<I, Is...>, const V *x) noexcept requires (!sequence_shuffle<T, __m128i, I, Is...> && sizeof(V) == 32)
+	[[nodiscard]] DPM_FORCEINLINE V shuffle(std::index_sequence<I, Is...>, const V *x) noexcept requires (!sequence_shuffle<T, __m256i, I, Is...> && sizeof(V) == 32)
 	{
 		/* Since there are no *convenient* element-wise shuffles with AVX, use 2 SSE shuffles instead. */
 		constexpr auto extent = 16 / sizeof(T);
