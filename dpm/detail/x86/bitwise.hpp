@@ -167,8 +167,6 @@ namespace dpm::detail
 	[[nodiscard]] DPM_FORCEINLINE __m256i bit_ashiftr(__m256i x) noexcept { return mux_128x2<__m256i>([](auto x) { return bit_ashiftr<T, N>(x); }, x); }
 	template<integral_of_size<4> T, int N>
 	[[nodiscard]] DPM_FORCEINLINE __m256i bit_ashiftr(__m256i x) noexcept { return mux_128x2<__m256i>([](auto x) { return bit_ashiftr<T, N>(x); }, x); }
-	template<integral_of_size<8> T, int N>
-	[[nodiscard]] DPM_FORCEINLINE __m256i bit_ashiftr(__m256i x) noexcept { return mux_128x2<__m256i>([](auto x) { return bit_ashiftr<T, N>(x); }, x); }
 
 	template<integral_of_size<2> T, int N>
 	[[nodiscard]] DPM_FORCEINLINE __m256i bit_shiftl(__m256i x) noexcept { return mux_128x2<__m256i>([](auto x) { return bit_shiftl<T, N>(x); }, x); }
@@ -233,12 +231,11 @@ namespace dpm::detail
 		}
 		return _mm_unpacklo_epi32(xl, xh);
 	}
-
 #ifdef DPM_HAS_AVX
-#ifdef DPM_HAS_AVX2
 	template<integral_of_size<8> T, int N>
 	[[nodiscard]] DPM_FORCEINLINE __m256i bit_ashiftr(__m256i x) noexcept
 	{
+#ifdef DPM_HAS_AVX2
 		/* Emulate 64-bit asr via 32-bit asr. */
 		auto xh = x, xl = x;
 		if constexpr (N >= 32)
@@ -256,14 +253,10 @@ namespace dpm::detail
 			xl = _mm256_shuffle_epi32(xl, _MM_SHUFFLE(3, 2, 2, 0));
 		}
 		return _mm256_unpacklo_epi32(xl, xh);
-	}
 #else
-	template<integral_of_size<8> T, int N>
-	[[nodiscard]] DPM_FORCEINLINE __m256i bit_ashiftr(__m256i a) noexcept
-	{
-		return mux_128x2<__m256i>([](auto a, auto b) { return bit_ashiftr<T>(a, b); }, a, b);
-	}
+		return mux_128x2<__m256i>([](auto x) { return bit_ashiftr<T>(x); }, x);
 #endif
+	}
 #endif
 #endif
 

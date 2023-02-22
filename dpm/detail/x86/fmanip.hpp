@@ -144,7 +144,7 @@ namespace dpm
 				exp64 = _mm256_unpacklo_epi32(exp64, sign);
 			return scalbn(x, exp64);
 #else
-			return scalbn(x, reinterpret_cast<const __m128i *>(exp), i);
+			return scalbn32(x, reinterpret_cast<const __m128i *>(exp), i);
 #endif
 		}
 
