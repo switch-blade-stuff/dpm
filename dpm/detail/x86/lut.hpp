@@ -70,25 +70,40 @@ namespace dpm::detail
 	[[nodiscard]] DPM_FORCEINLINE V lut_load(std::span<const float, N> data, __m128i v_idx, std::source_location loc = std::source_location::current()) noexcept
 	{
 		const auto idx = reinterpret_cast<const alias_t<I> *>(&assert_lut_idx<I, N>(v_idx, loc));
-		return _mm_set_ps(data[idx[3] * Scale / 4], data[idx[2] * Scale / 4], data[idx[1] * Scale / 4], data[idx[0] * Scale / 4]);
+		return _mm_set_ps(
+				data[static_cast<std::size_t>(idx[3] * Scale / 4)],
+				data[static_cast<std::size_t>(idx[2] * Scale / 4)],
+				data[static_cast<std::size_t>(idx[1] * Scale / 4)],
+				data[static_cast<std::size_t>(idx[0] * Scale / 4)]
+		);
 	}
 	template<std::same_as<__m128> V, integral_of_size<8> I, int Scale = 4, std::size_t N>
 	[[nodiscard]] DPM_FORCEINLINE V lut_load(std::span<const float, N> data, __m128i v_idx, std::source_location loc = std::source_location::current()) noexcept
 	{
 		const auto idx = reinterpret_cast<const alias_t<I> *>(&assert_lut_idx<I, N>(v_idx, loc));
-		return _mm_set_ps(0.0f, 0.0f, data[idx[1] * Scale / 4], data[idx[0] * Scale / 4]);
+		return _mm_set_ps(
+				0.0f, 0.0f,
+				data[static_cast<std::size_t>(idx[1] * Scale / 4)],
+				data[static_cast<std::size_t>(idx[0] * Scale / 4)]
+		);
 	}
 	template<std::same_as<__m128d> V, integral_of_size<4> I, int Scale = 8, std::size_t N>
 	[[nodiscard]] DPM_FORCEINLINE V lut_load(std::span<const double, N> data, __m128i v_idx, std::source_location loc = std::source_location::current()) noexcept
 	{
 		const auto idx = reinterpret_cast<const alias_t<I> *>(&assert_lut_idx<I, N>(v_idx, loc));
-		return _mm_set_pd(data[idx[1] * Scale / 8], data[idx[0] * Scale / 8]);
+		return _mm_set_pd(
+				data[static_cast<std::size_t>(idx[1] * Scale / 8)],
+				data[static_cast<std::size_t>(idx[0] * Scale / 8)]
+		);
 	}
 	template<std::same_as<__m128d> V, integral_of_size<8> I, int Scale = 8, std::size_t N>
 	[[nodiscard]] DPM_FORCEINLINE V lut_load(std::span<const double, N> data, __m128i v_idx, std::source_location loc = std::source_location::current()) noexcept
 	{
 		const auto idx = reinterpret_cast<const alias_t<I> *>(&assert_lut_idx<I, N>(v_idx, loc));
-		return _mm_set_pd(data[idx[1] * Scale / 8], data[idx[0] * Scale / 8]);
+		return _mm_set_pd(
+				data[static_cast<std::size_t>(idx[1] * Scale / 8)],
+				data[static_cast<std::size_t>(idx[0] * Scale / 8)]
+		);
 	}
 
 #ifdef DPM_HAS_AVX
@@ -97,27 +112,48 @@ namespace dpm::detail
 	{
 		const auto idx = reinterpret_cast<const alias_t<I> *>(&assert_lut_idx<I, N>(v_idx, loc));
 		return _mm256_set_ps(
-				data[idx[7] * Scale / 4], data[idx[6] * Scale / 4], data[idx[5] * Scale / 4], data[idx[4] * Scale / 4],
-				data[idx[3] * Scale / 4], data[idx[2] * Scale / 4], data[idx[1] * Scale / 4], data[idx[0] * Scale / 4]
+				data[static_cast<std::size_t>(idx[7] * Scale / 4)],
+				data[static_cast<std::size_t>(idx[6] * Scale / 4)],
+				data[static_cast<std::size_t>(idx[5] * Scale / 4)],
+				data[static_cast<std::size_t>(idx[4] * Scale / 4)],
+				data[static_cast<std::size_t>(idx[3] * Scale / 4)],
+				data[static_cast<std::size_t>(idx[2] * Scale / 4)],
+				data[static_cast<std::size_t>(idx[1] * Scale / 4)],
+				data[static_cast<std::size_t>(idx[0] * Scale / 4)]
 		);
 	}
 	template<std::same_as<__m128> V, integral_of_size<8> I, int Scale = 4, std::size_t N>
 	[[nodiscard]] DPM_FORCEINLINE V lut_load(std::span<const float, N> data, __m256i v_idx, std::source_location loc = std::source_location::current()) noexcept
 	{
 		const auto idx = reinterpret_cast<const alias_t<I> *>(&assert_lut_idx<I, N>(v_idx, loc));
-		return _mm_set_ps(data[idx[3] * Scale / 4], data[idx[2] * Scale / 4], data[idx[1] * Scale / 4], data[idx[0] * Scale / 4]);
+		return _mm_set_ps(
+				data[static_cast<std::size_t>(idx[3] * Scale / 4)],
+				data[static_cast<std::size_t>(idx[2] * Scale / 4)],
+				data[static_cast<std::size_t>(idx[1] * Scale / 4)],
+				data[static_cast<std::size_t>(idx[0] * Scale / 4)]
+		);
 	}
 	template<std::same_as<__m256d> V, integral_of_size<4> I, int Scale = 8, std::size_t N>
 	[[nodiscard]] DPM_FORCEINLINE V lut_load(std::span<const double, N> data, __m128i v_idx, std::source_location loc = std::source_location::current()) noexcept
 	{
 		const auto idx = reinterpret_cast<const alias_t<I> *>(&assert_lut_idx<I, N>(v_idx, loc));
-		return _mm256_set_pd(data[idx[3] * Scale / 8], data[idx[2] * Scale / 8], data[idx[1] * Scale / 8], data[idx[0] * Scale / 8]);
+		return _mm256_set_pd(
+				data[static_cast<std::size_t>(idx[3] * Scale / 8)],
+				data[static_cast<std::size_t>(idx[2] * Scale / 8)],
+				data[static_cast<std::size_t>(idx[1] * Scale / 8)],
+				data[static_cast<std::size_t>(idx[0] * Scale / 8)]
+		);
 	}
 	template<std::same_as<__m256d> V, integral_of_size<8> I, int Scale = 8, std::size_t N>
 	[[nodiscard]] DPM_FORCEINLINE V lut_load(std::span<const double, N> data, __m256i v_idx, std::source_location loc = std::source_location::current()) noexcept
 	{
 		const auto idx = reinterpret_cast<const alias_t<I> *>(&assert_lut_idx<I, N>(v_idx, loc));
-		return _mm_set_ps(data[idx[3] * Scale / 8], data[idx[2] * Scale / 8], data[idx[1] * Scale / 8], data[idx[0] * Scale / 8]);
+		return _mm_set_ps(
+				data[static_cast<std::size_t>(idx[3] * Scale / 8)],
+				data[static_cast<std::size_t>(idx[2] * Scale / 8)],
+				data[static_cast<std::size_t>(idx[1] * Scale / 8)],
+				data[static_cast<std::size_t>(idx[0] * Scale / 8)]
+		);
 	}
 #endif
 #endif
