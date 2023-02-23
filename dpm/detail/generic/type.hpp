@@ -1269,6 +1269,75 @@ namespace dpm
 			result[i] = a[i] != b[i];
 		return result;
 	}
+
+	namespace detail
+	{
+		template<std::size_t N, std::unsigned_integral T>
+		DPM_FORCEINLINE T impl_lsr(T x) noexcept
+		{
+			if constexpr (T{-1} >> N == T{-1})
+				return (x >> N) & (T{1} << (std::numeric_limits<T>::digits - 1));
+			else
+				return x >> N;
+		}
+		template<std::size_t N, std::signed_integral T>
+		DPM_FORCEINLINE T impl_lsr(T x) noexcept
+		{
+			if constexpr (T{-1} >> N == T{-1})
+				return impl_lsr<N>(static_cast<std::make_unsigned_t<T>>(x));
+			else
+				return x >> N;
+		}
+		template<std::size_t N, typename T>
+		DPM_FORCEINLINE T impl_asr(T x) noexcept
+		{
+			if constexpr (T{-1} >> N != T{-1})
+				return x < 0 ? ~(~x >> N) : x >> N;
+			else
+				return x >> N;
+		}
+	}
+
+	DPM_DECLARE_EXT_NAMESPACE
+	{
+		/** Logically shifts elements of vector \a x left by a constant number of bits `N`. */
+		template<std::size_t N, std::integral T, typename Abi>
+		[[nodiscard]] inline simd<T, Abi> lsl(const simd<T, Abi> &x) noexcept requires (std::numeric_limits<T>::digits < N)
+		{
+			simd<T, Abi> result = {};
+			for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i)
+				result[i] = x[i] << N;
+			return result;
+		}
+		/** Logically shifts elements of vector \a x right by a constant number of bits `N`. */
+		template<std::size_t N, std::integral T, typename Abi>
+		[[nodiscard]] inline simd<T, Abi> lsr(const simd<T, Abi> &x) noexcept requires (std::numeric_limits<T>::digits < N)
+		{
+			simd<T, Abi> result = {};
+			for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i)
+				result[i] = detail::impl_lsr<N>(x[i]);
+			return result;
+		}
+
+		/** Arithmetically shifts elements of vector \a x left by a constant number of bits `N`. */
+		template<std::size_t N, std::signed_integral T, typename Abi>
+		[[nodiscard]] inline simd<T, Abi> asl(const simd<T, Abi> &x) noexcept requires (std::numeric_limits<T>::digits < N)
+		{
+			simd<T, Abi> result = {};
+			for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i)
+				result[i] = x[i] << N;
+			return result;
+		}
+		/** Arithmetically shifts elements of vector \a x right by a constant number of bits `N`. */
+		template<std::size_t N, std::signed_integral T, typename Abi>
+		[[nodiscard]] inline simd<T, Abi> asr(const simd<T, Abi> &x) noexcept requires (std::numeric_limits<T>::digits < N)
+		{
+			simd<T, Abi> result = {};
+			for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i)
+				result[i] = detail::impl_asr<N>(x[i]);
+			return result;
+		}
+	}
 #pragma endregion
 
 #pragma region "simd where expressions"

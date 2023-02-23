@@ -113,12 +113,17 @@ DPM provides the following utilities and extensions to the standard API:
     * `simd<T, Abi> shuffle<Is...>(const simd<T, Abi> &)`
     * `simd_mask<T, Abi> shuffle<Is...>(const simd_mask<T, Abi> &)`
     * `simd_mask<T, Abi> shuffle<Is...>(const V &)`
+* Constant bit shifts
+    * `simd<T, Abi> lsl<N>(const simd<T, Abi> &)`
+    * `simd<T, Abi> lsr<N>(const simd<T, Abi> &)`
+    * `simd<T, Abi> asl<N>(const simd<T, Abi> &)`
+    * `simd<T, Abi> asr<N>(const simd<T, Abi> &)`
 * Reductions
-    * `simd<T, Abi> hadd(const simd<T, Abi> &)`
-    * `simd<T, Abi> hmul(const simd<T, Abi> &)`
-    * `simd<T, Abi> hand(const simd<T, Abi> &)`
-    * `simd<T, Abi> hxor(const simd<T, Abi> &)`
-    * `simd<T, Abi> hor(const simd<T, Abi> &)`
+    * `T hadd(const simd<T, Abi> &)`
+    * `T hmul(const simd<T, Abi> &)`
+    * `T hand(const simd<T, Abi> &)`
+    * `T hxor(const simd<T, Abi> &)`
+    * `T hor(const simd<T, Abi> &)`
 * Basic math functions
     * `simd<T, Abi> remquo(const simd<T, Abi> &, const simd<T, Abi> &, simd<T, Abi> &)`
     * `simd<T, Abi> nan<T, Abi>(const char *)`
