@@ -233,10 +233,10 @@ namespace dpm
 
 	/** Selects \a v using value of \a m. */
 	template<typename T>
-	DPM_FORCEINLINE where_expression<bool, T> where(bool m, T &v) noexcept requires (!(is_simd_v<T> || is_simd_mask_v<T>)) { return {m, v}; }
+	[[nodiscard]] inline where_expression<bool, T> where(bool m, T &v) noexcept requires (!(is_simd_v<T> || is_simd_mask_v<T>)) { return {m, v}; }
 	/** Selects \a v using value of \a m. */
 	template<typename T>
-	DPM_FORCEINLINE const_where_expression<bool, T> where(bool m, const T &v) noexcept requires (!(is_simd_v<T> || is_simd_mask_v<T>)) { return {m, v}; }
+	[[nodiscard]] inline const_where_expression<bool, T> where(bool m, const T &v) noexcept requires (!(is_simd_v<T> || is_simd_mask_v<T>)) { return {m, v}; }
 
 	/** Calculates a reduction of selected elements from \a x using \a binary_op and identity element \a identity. */
 	template<typename M, typename V, typename Op>

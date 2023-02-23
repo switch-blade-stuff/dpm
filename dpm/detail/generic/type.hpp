@@ -498,13 +498,13 @@ namespace dpm
 #pragma region "simd_mask where expressions"
 	/** Creates a where expression used to select elements of mask \a v using mask \a m. */
 	template<typename T, typename Abi>
-	inline where_expression<simd_mask<T, Abi>, simd_mask<T, Abi>> where(const simd_mask<T, Abi> &m, simd_mask<T, Abi> &v) noexcept
+	[[nodiscard]] inline where_expression<simd_mask<T, Abi>, simd_mask<T, Abi>> where(const simd_mask<T, Abi> &m, simd_mask<T, Abi> &v) noexcept
 	{
 		return {m, v};
 	}
 	/** Creates a where expression used to select elements of mask \a v using mask \a m. */
 	template<typename T, typename Abi>
-	inline const_where_expression<simd_mask<T, Abi>, simd_mask<T, Abi>> where(const simd_mask<T, Abi> &m, const simd_mask<T, Abi> &v) noexcept
+	[[nodiscard]] inline const_where_expression<simd_mask<T, Abi>, simd_mask<T, Abi>> where(const simd_mask<T, Abi> &m, const simd_mask<T, Abi> &v) noexcept
 	{
 		return {m, v};
 	}
@@ -1343,13 +1343,13 @@ namespace dpm
 #pragma region "simd where expressions"
 	/** Creates a where expression used to select elements of vector \a v using mask \a m. */
 	template<typename T, typename Abi>
-	inline where_expression<simd_mask<T, Abi>, simd<T, Abi>> where(const typename simd<T, Abi>::mask_type &m, simd<T, Abi> &v) noexcept
+	[[nodiscard]] inline where_expression<simd_mask<T, Abi>, simd<T, Abi>> where(const typename simd<T, Abi>::mask_type &m, simd<T, Abi> &v) noexcept
 	{
 		return {m, v};
 	}
 	/** Creates a where expression used to select elements of vector \a v using mask \a m. */
 	template<typename T, typename Abi>
-	inline const_where_expression<simd_mask<T, Abi>, simd<T, Abi>> where(const typename simd<T, Abi>::mask_type &m, const simd<T, Abi> &v) noexcept
+	[[nodiscard]] inline const_where_expression<simd_mask<T, Abi>, simd<T, Abi>> where(const typename simd<T, Abi>::mask_type &m, const simd<T, Abi> &v) noexcept
 	{
 		return {m, v};
 	}
