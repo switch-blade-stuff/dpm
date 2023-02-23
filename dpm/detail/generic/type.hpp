@@ -1302,7 +1302,7 @@ namespace dpm
 	{
 		/** Logically shifts elements of vector \a x left by a constant number of bits `N`. */
 		template<std::size_t N, std::integral T, typename Abi>
-		[[nodiscard]] inline simd<T, Abi> lsl(const simd<T, Abi> &x) noexcept requires (std::numeric_limits<T>::digits < N)
+		[[nodiscard]] inline simd<T, Abi> lsl(const simd<T, Abi> &x) noexcept requires (N < std::numeric_limits<T>::digits)
 		{
 			simd<T, Abi> result = {};
 			for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i)
@@ -1311,7 +1311,7 @@ namespace dpm
 		}
 		/** Logically shifts elements of vector \a x right by a constant number of bits `N`. */
 		template<std::size_t N, std::integral T, typename Abi>
-		[[nodiscard]] inline simd<T, Abi> lsr(const simd<T, Abi> &x) noexcept requires (std::numeric_limits<T>::digits < N)
+		[[nodiscard]] inline simd<T, Abi> lsr(const simd<T, Abi> &x) noexcept requires (N < std::numeric_limits<T>::digits)
 		{
 			simd<T, Abi> result = {};
 			for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i)
@@ -1321,7 +1321,7 @@ namespace dpm
 
 		/** Arithmetically shifts elements of vector \a x left by a constant number of bits `N`. */
 		template<std::size_t N, std::signed_integral T, typename Abi>
-		[[nodiscard]] inline simd<T, Abi> asl(const simd<T, Abi> &x) noexcept requires (std::numeric_limits<T>::digits < N)
+		[[nodiscard]] inline simd<T, Abi> asl(const simd<T, Abi> &x) noexcept requires (N < std::numeric_limits<T>::digits)
 		{
 			simd<T, Abi> result = {};
 			for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i)
@@ -1330,7 +1330,7 @@ namespace dpm
 		}
 		/** Arithmetically shifts elements of vector \a x right by a constant number of bits `N`. */
 		template<std::size_t N, std::signed_integral T, typename Abi>
-		[[nodiscard]] inline simd<T, Abi> asr(const simd<T, Abi> &x) noexcept requires (std::numeric_limits<T>::digits < N)
+		[[nodiscard]] inline simd<T, Abi> asr(const simd<T, Abi> &x) noexcept requires (N < std::numeric_limits<T>::digits)
 		{
 			simd<T, Abi> result = {};
 			for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i)
