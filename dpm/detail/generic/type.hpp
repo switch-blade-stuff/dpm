@@ -1398,7 +1398,7 @@ namespace dpm
 
 	/** Calculates a reduction of all elements from \a x using \a binary_op. */
 	template<typename T, typename Abi, typename Op = std::plus<>>
-	inline T reduce(const simd<T, Abi> &x, Op binary_op = {}) { return detail::reduce_impl<simd_size_v<T, Abi>>(x, binary_op); }
+	[[nodiscard]] inline T reduce(const simd<T, Abi> &x, Op binary_op = {}) { return detail::reduce_impl<simd_size_v<T, Abi>>(x, binary_op); }
 
 	/** Finds the minimum of all elements (horizontal minimum) in \a x. */
 	template<typename T, typename Abi>
@@ -1418,7 +1418,7 @@ namespace dpm
 
 		/** Finds the horizontal bitwise AND of all elements in \a x. Equivalent to `reduce(x, std::bit_and<>{})`. */
 		template<std::integral T, typename Abi>
-		[[nodiscard]] DPM_FORCEINLINE T hmul(const simd<T, Abi> &x) noexcept { return reduce(x, std::bit_and<>{}); }
+		[[nodiscard]] DPM_FORCEINLINE T hand(const simd<T, Abi> &x) noexcept { return reduce(x, std::bit_and<>{}); }
 		/** Finds the horizontal bitwise XOR of all elements in \a x. Equivalent to `reduce(x, std::bit_xor<>{})`. */
 		template<std::integral T, typename Abi>
 		[[nodiscard]] DPM_FORCEINLINE T hxor(const simd<T, Abi> &x) noexcept { return reduce(x, std::bit_xor<>{}); }
