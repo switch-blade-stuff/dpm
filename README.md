@@ -113,7 +113,7 @@ DPM provides the following utilities and extensions to the standard API:
     * `simd<T, Abi> shuffle<Is...>(const simd<T, Abi> &)`
     * `simd_mask<T, Abi> shuffle<Is...>(const simd_mask<T, Abi> &)`
     * `simd_mask<T, Abi> shuffle<Is...>(const V &)`
-* Constant bit shifts
+* Constant-N bit shifts
     * `simd<T, Abi> lsl<N>(const simd<T, Abi> &)`
     * `simd<T, Abi> lsr<N>(const simd<T, Abi> &)`
     * `simd<T, Abi> asl<N>(const simd<T, Abi> &)`
