@@ -92,7 +92,7 @@ namespace dpm
 
 		[[nodiscard]] DPM_FORCEINLINE T operator+() const && noexcept { return ext::blend(m_data, +m_data, m_mask); }
 		[[nodiscard]] DPM_FORCEINLINE T operator-() const && noexcept { return ext::blend(m_data, -m_data, m_mask); }
-		[[nodiscard]] DPM_FORCEINLINE T operator~() const && noexcept requires std::integral<T> { return ext::blend(m_data, ~m_data, m_mask); }
+		[[nodiscard]] DPM_FORCEINLINE T operator~() const && noexcept requires (requires(T x) { ~x; }) { return ext::blend(m_data, ~m_data, m_mask); }
 
 		/** Copies selected elements to \a mem. */
 		template<typename U, typename Flags>
@@ -106,7 +106,10 @@ namespace dpm
 		T &m_data;
 	};
 
-	/** @brief Type used to select elements of `T` using mask `M`. */
+	/** @brief Type used to select element(s) of `T` using mask `M`.
+	 * @tparam T SIMD vector, vector mask or scalar type, who's element(s) to select.
+	 * @tparam M SIMD vector mask or `bool` used to select element(s) of `T`.
+	 * @note If `M` is same as `bool`, `T` must be a scalar. */
 	template<typename M, typename T>
 	class where_expression : public const_where_expression<M, T>
 	{
