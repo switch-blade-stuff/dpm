@@ -1192,6 +1192,15 @@ namespace dpm
 #endif
 
 	template<std::integral T, std::size_t N, std::size_t A>
+	[[nodiscard]] DPM_FORCEINLINE detail::x86_mask<T, N, A> operator!(const detail::x86_simd<T, N, A> &x) noexcept requires detail::x86_overload_any<T, N, A>
+	{
+		detail::x86_mask<T, N, A> result = {};
+		const auto zero = detail::setzero<ext::native_data_type_t<detail::x86_simd<T, N, A>>>();
+		detail::vectorize([z = zero](auto &result, auto x) { result = detail::cmp_eq<T>(x, z); }, result, x);
+		return result;
+	}
+
+	template<std::integral T, std::size_t N, std::size_t A>
 	[[nodiscard]] DPM_FORCEINLINE detail::x86_simd<T, N, A> operator&(const detail::x86_simd<T, N, A> &a, const detail::x86_simd<T, N, A> &b) noexcept requires detail::x86_overload_any<T, N, A>
 	{
 		detail::x86_simd<T, N, A> result = {};
