@@ -1570,34 +1570,34 @@ namespace dpm
 	{
 		/** Logically shifts elements of vector \a x left by a constant number of bits `N`. */
 		template<std::size_t N, std::integral T, std::size_t M, std::size_t A>
-		[[nodiscard]] DPM_FORCEINLINE detail::x86_simd<T, N, A> lsl(const detail::x86_simd<T, M, A> &x) noexcept requires (detail::x86_overload_any<T, M, A> && sizeof(T) > 1 && N < std::numeric_limits<T>::digits)
+		[[nodiscard]] DPM_FORCEINLINE detail::x86_simd<T, M, A> lsl(const detail::x86_simd<T, M, A> &x) noexcept requires (detail::x86_overload_any<T, M, A> && sizeof(T) > 1 && N < std::numeric_limits<T>::digits)
 		{
-			detail::x86_simd<T, N, A> result = {};
+			detail::x86_simd<T, M, A> result = {};
 			detail::vectorize([](auto &res, auto x) { res = detail::bit_shiftl<T, N>(x); }, result, x);
 			return result;
 		}
 		/** Logically shifts elements of vector \a x right by a constant number of bits `N`. */
 		template<std::size_t N, std::integral T, std::size_t M, std::size_t A>
-		[[nodiscard]] DPM_FORCEINLINE detail::x86_simd<T, N, A> lsr(const detail::x86_simd<T, M, A> &x) noexcept requires (detail::x86_overload_any<T, M, A> && sizeof(T) > 1 && N < std::numeric_limits<T>::digits)
+		[[nodiscard]] DPM_FORCEINLINE detail::x86_simd<T, M, A> lsr(const detail::x86_simd<T, M, A> &x) noexcept requires (detail::x86_overload_any<T, M, A> && sizeof(T) > 1 && N < std::numeric_limits<T>::digits)
 		{
-			detail::x86_simd<T, N, A> result = {};
+			detail::x86_simd<T, M, A> result = {};
 			detail::vectorize([](auto &res, auto x) { res = detail::bit_shiftr<T, N>(x); }, result, x);
 			return result;
 		}
 
 		/** Arithmetically shifts elements of vector \a x left by a constant number of bits `N`. */
 		template<std::size_t N, std::signed_integral T, std::size_t M, std::size_t A>
-		[[nodiscard]] DPM_FORCEINLINE detail::x86_simd<T, N, A> asl(const detail::x86_simd<T, M, A> &x) noexcept requires (detail::x86_overload_any<T, M, A> && sizeof(T) > 1 && N < std::numeric_limits<T>::digits)
+		[[nodiscard]] DPM_FORCEINLINE detail::x86_simd<T, M, A> asl(const detail::x86_simd<T, M, A> &x) noexcept requires (detail::x86_overload_any<T, M, A> && sizeof(T) > 1 && N < std::numeric_limits<T>::digits)
 		{
-			detail::x86_simd<T, N, A> result = {};
+			detail::x86_simd<T, M, A> result = {};
 			detail::vectorize([](auto &res, auto x) { res = detail::bit_shiftl<T, N>(x); }, result, x);
 			return result;
 		}
 		/** Arithmetically shifts elements of vector \a x right by a constant number of bits `N`. */
 		template<std::size_t N, std::signed_integral T, std::size_t M, std::size_t A>
-		[[nodiscard]] DPM_FORCEINLINE detail::x86_simd<T, N, A> asr(const detail::x86_simd<T, M, A> &x) noexcept requires (detail::x86_overload_any<T, M, A> && sizeof(T) > 1 && N < std::numeric_limits<T>::digits)
+		[[nodiscard]] DPM_FORCEINLINE detail::x86_simd<T, M, A> asr(const detail::x86_simd<T, M, A> &x) noexcept requires (detail::x86_overload_any<T, M, A> && sizeof(T) > 1 && N < std::numeric_limits<T>::digits)
 		{
-			detail::x86_simd<T, N, A> result = {};
+			detail::x86_simd<T, M, A> result = {};
 			detail::vectorize([](auto &res, auto x) { res = detail::bit_ashiftr<T, N>(x); }, result, x);
 			return result;
 		}
