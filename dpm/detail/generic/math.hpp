@@ -1021,7 +1021,7 @@ namespace dpm
 	template<typename T, typename Abi, typename Promoted = rebind_simd_t<detail::promote_t<T>, simd<T, Abi>>>
 	[[nodiscard]] DPM_FORCEINLINE Promoted scalbln(const simd<T, Abi> &x, const simd<long, Abi> &exp) noexcept { return Promoted{scalbln(Promoted{x}, exp)}; }
 	/** @copydoc ilogb
-	 * @note Arguments and return type are promoted to `double`, or `long double` if one of the arguments is `long double`. */
+	 * @note Arguments are promoted to `double`, or `long double` if one of the arguments is `long double`. */
 	template<typename T, typename Abi, typename Promoted = rebind_simd_t<detail::promote_t<T>, simd<T, Abi>>>
 	[[nodiscard]] DPM_FORCEINLINE rebind_simd_t<int, simd<T, Abi>> ilogb(const simd<T, Abi> &x) noexcept { return Promoted{ilogb(Promoted{x})}; }
 	/** @copydoc logb
@@ -1121,7 +1121,7 @@ namespace dpm
 			result[i] = std::fpclassify(x[i]);
 		return result;
 	}
-	/** Determines is elements of \a x are finite. */
+	/** Determines if elements of \a x are finite. */
 	template<std::floating_point T, typename Abi>
 	[[nodiscard]] inline typename simd<T, Abi>::mask_type isfinite(const simd<T, Abi> &x) noexcept
 	{
@@ -1130,7 +1130,7 @@ namespace dpm
 			result[i] = std::isfinite(x[i]);
 		return result;
 	}
-	/** Determines is elements of \a x are infinite. */
+	/** Determines if elements of \a x are infinite. */
 	template<std::floating_point T, typename Abi>
 	[[nodiscard]] inline typename simd<T, Abi>::mask_type isinf(const simd<T, Abi> &x) noexcept
 	{
@@ -1139,7 +1139,7 @@ namespace dpm
 			result[i] = std::isinf(x[i]);
 		return result;
 	}
-	/** Determines is elements of \a x are unordered NaN. */
+	/** Determines if elements of \a x are unordered NaN. */
 	template<std::floating_point T, typename Abi>
 	[[nodiscard]] inline typename simd<T, Abi>::mask_type isnan(const simd<T, Abi> &x) noexcept
 	{
@@ -1148,7 +1148,7 @@ namespace dpm
 			result[i] = std::isnan(x[i]);
 		return result;
 	}
-	/** Determines is elements of \a x are normal. */
+	/** Determines if elements of \a x are normal. */
 	template<std::floating_point T, typename Abi>
 	[[nodiscard]] inline typename simd<T, Abi>::mask_type isnormal(const simd<T, Abi> &x) noexcept
 	{
@@ -1168,49 +1168,49 @@ namespace dpm
 	}
 
 	/** @copydoc fpclassify
-	 * @note Arguments and return type are promoted to `double`, or `long double` if one of the arguments is `long double`. */
+	 * @note Arguments are promoted to `double`, or `long double` if one of the arguments is `long double`. */
 	template<typename T, typename Abi, typename Promoted = rebind_simd_t<detail::promote_t<T>, simd<T, Abi>>>
 	[[nodiscard]] DPM_FORCEINLINE rebind_simd_t<int, Promoted> fpclassify(const simd<T, Abi> &x) noexcept
 	{
 		return rebind_simd_t<int, Promoted>{fpclassify(Promoted{x})};
 	}
 	/** @copydoc isfinite
-	 * @note Arguments and return type are promoted to `double`, or `long double` if one of the arguments is `long double`. */
+	 * @note Arguments are promoted to `double`, or `long double` if one of the arguments is `long double`. */
 	template<typename T, typename Abi, typename Promoted = rebind_simd_t<detail::promote_t<T>, simd<T, Abi>>>
 	[[nodiscard]] DPM_FORCEINLINE typename Promoted::mask_type isfinite(const simd<T, Abi> &x) noexcept
 	{
 		return typename Promoted::mask_type{isfinite(Promoted{x})};
 	}
 	/** @copydoc isinf
-	 * @note Arguments and return type are promoted to `double`, or `long double` if one of the arguments is `long double`. */
+	 * @note Arguments are promoted to `double`, or `long double` if one of the arguments is `long double`. */
 	template<typename T, typename Abi, typename Promoted = rebind_simd_t<detail::promote_t<T>, simd<T, Abi>>>
 	[[nodiscard]] DPM_FORCEINLINE typename Promoted::mask_type isinf(const simd<T, Abi> &x) noexcept
 	{
 		return typename Promoted::mask_type{isinf(Promoted{x})};
 	}
 	/** @copydoc isnan
-	 * @note Arguments and return type are promoted to `double`, or `long double` if one of the arguments is `long double`. */
+	 * @note Arguments are promoted to `double`, or `long double` if one of the arguments is `long double`. */
 	template<typename T, typename Abi, typename Promoted = rebind_simd_t<detail::promote_t<T>, simd<T, Abi>>>
 	[[nodiscard]] DPM_FORCEINLINE typename Promoted::mask_type isnan(const simd<T, Abi> &x) noexcept
 	{
 		return typename Promoted::mask_type{isnan(Promoted{x})};
 	}
 	/** @copydoc isnormal
-	 * @note Arguments and return type are promoted to `double`, or `long double` if one of the arguments is `long double`. */
+	 * @note Arguments are promoted to `double`, or `long double` if one of the arguments is `long double`. */
 	template<typename T, typename Abi, typename Promoted = rebind_simd_t<detail::promote_t<T>, simd<T, Abi>>>
 	[[nodiscard]] DPM_FORCEINLINE typename Promoted::mask_type isnormal(const simd<T, Abi> &x) noexcept
 	{
 		return typename Promoted::mask_type{isnormal(Promoted{x})};
 	}
 	/** @copydoc signbit
-	 * @note Arguments and return type are promoted to `double`, or `long double` if one of the arguments is `long double`. */
+	 * @note Arguments are promoted to `double`, or `long double` if one of the arguments is `long double`. */
 	template<typename T, typename Abi, typename Promoted = rebind_simd_t<detail::promote_t<T>, simd<T, Abi>>>
 	[[nodiscard]] DPM_FORCEINLINE typename Promoted::mask_type signbit(const simd<T, Abi> &x) noexcept
 	{
 		return typename Promoted::mask_type{signbit(Promoted{x})};
 	}
 
-	/** Determines is elements of \a a are greater than elements of \a b without setting floating-point exceptions. */
+	/** Determines if elements of \a a are greater than elements of \a b without setting floating-point exceptions. */
 	template<std::floating_point T, typename Abi>
 	[[nodiscard]] inline typename simd<T, Abi>::mask_type isgreater(const simd<T, Abi> &a, const simd<T, Abi> &b) noexcept
 	{
@@ -1219,7 +1219,7 @@ namespace dpm
 			result[i] = std::isgreater(a[i], b[i]);
 		return result;
 	}
-	/** Determines is elements of \a a are greater than or equal to elements of \a b without setting floating-point exceptions. */
+	/** Determines if elements of \a a are greater than or equal to elements of \a b without setting floating-point exceptions. */
 	template<std::floating_point T, typename Abi>
 	[[nodiscard]] inline typename simd<T, Abi>::mask_type isgreaterequal(const simd<T, Abi> &a, const simd<T, Abi> &b) noexcept
 	{
@@ -1228,7 +1228,7 @@ namespace dpm
 			result[i] = std::isgreaterequal(a[i], b[i]);
 		return result;
 	}
-	/** Determines is elements of \a a are less than elements of \a b without setting floating-point exceptions. */
+	/** Determines if elements of \a a are less than elements of \a b without setting floating-point exceptions. */
 	template<std::floating_point T, typename Abi>
 	[[nodiscard]] inline typename simd<T, Abi>::mask_type isless(const simd<T, Abi> &a, const simd<T, Abi> &b) noexcept
 	{
@@ -1237,7 +1237,7 @@ namespace dpm
 			result[i] = std::isless(a[i], b[i]);
 		return result;
 	}
-	/** Determines is elements of \a a are less than or equal to elements of \a b without setting floating-point exceptions. */
+	/** Determines if elements of \a a are less than or equal to elements of \a b without setting floating-point exceptions. */
 	template<std::floating_point T, typename Abi>
 	[[nodiscard]] inline typename simd<T, Abi>::mask_type islessequal(const simd<T, Abi> &a, const simd<T, Abi> &b) noexcept
 	{
@@ -1246,7 +1246,7 @@ namespace dpm
 			result[i] = std::islessequal(a[i], b[i]);
 		return result;
 	}
-	/** Determines is elements of \a a are less than or greater than elements of \a b without setting floating-point exceptions. */
+	/** Determines if elements of \a a are less than or greater than elements of \a b without setting floating-point exceptions. */
 	template<std::floating_point T, typename Abi>
 	[[nodiscard]] inline typename simd<T, Abi>::mask_type islessgreater(const simd<T, Abi> &a, const simd<T, Abi> &b) noexcept
 	{
@@ -1266,27 +1266,27 @@ namespace dpm
 	}
 
 	/** @copydoc isgreater
-	 * @note Arguments and return type are promoted to `double`, or `long double` if one of the arguments is `long double`. */
+	 * @note Arguments are promoted to `double`, or `long double` if one of the arguments is `long double`. */
 	template<typename T0, typename T1, typename Abi, typename Promoted = rebind_simd_t<detail::promote_t<T0, T1>, simd<T0, Abi>>>
 	[[nodiscard]] DPM_FORCEINLINE typename Promoted::mask_type isgreater(const simd<T0, Abi> &a, const simd<T1, Abi> &b) noexcept { return typename Promoted::mask_type{isgreater(Promoted{a}, Promoted{b})}; }
 	/** @copydoc isgreaterequal
-	 * @note Arguments and return type are promoted to `double`, or `long double` if one of the arguments is `long double`. */
+	 * @note Arguments are promoted to `double`, or `long double` if one of the arguments is `long double`. */
 	template<typename T0, typename T1, typename Abi, typename Promoted = rebind_simd_t<detail::promote_t<T0, T1>, simd<T0, Abi>>>
 	[[nodiscard]] DPM_FORCEINLINE typename Promoted::mask_type isgreaterequal(const simd<T0, Abi> &a, const simd<T1, Abi> &b) noexcept { return typename Promoted::mask_type{isgreaterequal(Promoted{a}, Promoted{b})}; }
 	/** @copydoc isless
-	 * @note Arguments and return type are promoted to `double`, or `long double` if one of the arguments is `long double`. */
+	 * @note Arguments are promoted to `double`, or `long double` if one of the arguments is `long double`. */
 	template<typename T0, typename T1, typename Abi, typename Promoted = rebind_simd_t<detail::promote_t<T0, T1>, simd<T0, Abi>>>
 	[[nodiscard]] DPM_FORCEINLINE typename Promoted::mask_type isless(const simd<T0, Abi> &a, const simd<T1, Abi> &b) noexcept { return typename Promoted::mask_type{isless(Promoted{a}, Promoted{b})}; }
 	/** @copydoc islessequal
-	 * @note Arguments and return type are promoted to `double`, or `long double` if one of the arguments is `long double`. */
+	 * @note Arguments are promoted to `double`, or `long double` if one of the arguments is `long double`. */
 	template<typename T0, typename T1, typename Abi, typename Promoted = rebind_simd_t<detail::promote_t<T0, T1>, simd<T0, Abi>>>
 	[[nodiscard]] DPM_FORCEINLINE typename Promoted::mask_type islessequal(const simd<T0, Abi> &a, const simd<T1, Abi> &b) noexcept { return typename Promoted::mask_type{islessequal(Promoted{a}, Promoted{b})}; }
 	/** @copydoc islessgreater
-	 * @note Arguments and return type are promoted to `double`, or `long double` if one of the arguments is `long double`. */
+	 * @note Arguments are promoted to `double`, or `long double` if one of the arguments is `long double`. */
 	template<typename T0, typename T1, typename Abi, typename Promoted = rebind_simd_t<detail::promote_t<T0, T1>, simd<T0, Abi>>>
 	[[nodiscard]] DPM_FORCEINLINE typename Promoted::mask_type islessgreater(const simd<T0, Abi> &a, const simd<T1, Abi> &b) noexcept { return typename Promoted::mask_type{islessgreater(Promoted{a}, Promoted{b})}; }
 	/** @copydoc isunordered
-	 * @note Arguments and return type are promoted to `double`, or `long double` if one of the arguments is `long double`. */
+	 * @note Arguments are promoted to `double`, or `long double` if one of the arguments is `long double`. */
 	template<typename T0, typename T1, typename Abi, typename Promoted = rebind_simd_t<detail::promote_t<T0, T1>, simd<T0, Abi>>>
 	[[nodiscard]] DPM_FORCEINLINE typename Promoted::mask_type isunordered(const simd<T0, Abi> &a, const simd<T1, Abi> &b) noexcept { return typename Promoted::mask_type{isunordered(Promoted{a}, Promoted{b})}; }
 #pragma endregion

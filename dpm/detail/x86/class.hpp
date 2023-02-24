@@ -101,7 +101,7 @@ namespace dpm
 #endif
 	}
 
-	/** Determines is elements of \a x are finite. */
+	/** Determines if elements of \a x are finite. */
 	template<std::floating_point T, std::size_t N, std::size_t A>
 	[[nodiscard]] DPM_FORCEINLINE detail::x86_mask<T, N, A> isfinite(const detail::x86_simd<T, N, A> &x) noexcept requires detail::x86_overload_any<T, N, A>
 	{
@@ -109,7 +109,7 @@ namespace dpm
 		detail::vectorize([](auto &res, auto x) { res = detail::isfinite(x); }, result, x);
 		return result;
 	}
-	/** Determines is elements of \a x are infinite. */
+	/** Determines if elements of \a x are infinite. */
 	template<std::floating_point T, std::size_t N, std::size_t A>
 	[[nodiscard]] DPM_FORCEINLINE detail::x86_mask<T, N, A> isinf(const detail::x86_simd<T, N, A> &x) noexcept requires detail::x86_overload_any<T, N, A>
 	{
@@ -117,7 +117,7 @@ namespace dpm
 		detail::vectorize([](auto &res, auto x) { res = detail::isinf(x); }, result, x);
 		return result;
 	}
-	/** Determines is elements of \a x are NaN. */
+	/** Determines if elements of \a x are NaN. */
 	template<std::floating_point T, std::size_t N, std::size_t A>
 	[[nodiscard]] DPM_FORCEINLINE detail::x86_mask<T, N, A> isnan(const detail::x86_simd<T, N, A> &x) noexcept requires detail::x86_overload_any<T, N, A>
 	{
@@ -125,7 +125,7 @@ namespace dpm
 		detail::vectorize([](auto &res, auto x) { res = detail::isunord(x, x); }, result, x);
 		return result;
 	}
-	/** Determines is elements of \a x are normal. */
+	/** Determines if elements of \a x are normal. */
 	template<std::floating_point T, std::size_t N, std::size_t A>
 	[[nodiscard]] DPM_FORCEINLINE detail::x86_mask<T, N, A> isnormal(const detail::x86_simd<T, N, A> &x) noexcept requires detail::x86_overload_any<T, N, A>
 	{
@@ -142,7 +142,7 @@ namespace dpm
 		return result;
 	}
 
-	/** Determines is elements of \a a are greater than elements of \a b without setting floating-point exceptions. */
+	/** Determines if elements of \a a are greater than elements of \a b without setting floating-point exceptions. */
 	template<std::floating_point T, std::size_t N, std::size_t A>
 	[[nodiscard]] DPM_FORCEINLINE detail::x86_mask<T, N, A> isgreater(const detail::x86_simd<T, N, A> &a, const detail::x86_simd<T, N, A> &b) noexcept requires detail::x86_overload_any<T, N, A>
 	{
@@ -150,7 +150,7 @@ namespace dpm
 		detail::vectorize([](auto &res, auto a, auto b) { res = detail::cmp_lt<T>(b, a); }, result, a, b);
 		return result;
 	}
-	/** Determines is elements of \a a are greater than or equal to elements of \a b without setting floating-point exceptions. */
+	/** Determines if elements of \a a are greater than or equal to elements of \a b without setting floating-point exceptions. */
 	template<std::floating_point T, std::size_t N, std::size_t A>
 	[[nodiscard]] DPM_FORCEINLINE detail::x86_mask<T, N, A> isgreaterequal(const detail::x86_simd<T, N, A> &a, const detail::x86_simd<T, N, A> &b) noexcept requires detail::x86_overload_any<T, N, A>
 	{
@@ -158,7 +158,7 @@ namespace dpm
 		detail::vectorize([](auto &res, auto a, auto b) { res = detail::cmp_le<T>(b, a); }, result, a, b);
 		return result;
 	}
-	/** Determines is elements of \a a are less than elements of \a b without setting floating-point exceptions. */
+	/** Determines if elements of \a a are less than elements of \a b without setting floating-point exceptions. */
 	template<std::floating_point T, std::size_t N, std::size_t A>
 	[[nodiscard]] DPM_FORCEINLINE detail::x86_mask<T, N, A> isless(const detail::x86_simd<T, N, A> &a, const detail::x86_simd<T, N, A> &b) noexcept requires detail::x86_overload_any<T, N, A>
 	{
@@ -166,7 +166,7 @@ namespace dpm
 		detail::vectorize([](auto &res, auto a, auto b) { res = detail::cmp_gt<T>(b, a); }, result, a, b);
 		return result;
 	}
-	/** Determines is elements of \a a are less than or equal to elements of \a b without setting floating-point exceptions. */
+	/** Determines if elements of \a a are less than or equal to elements of \a b without setting floating-point exceptions. */
 	template<std::floating_point T, std::size_t N, std::size_t A>
 	[[nodiscard]] DPM_FORCEINLINE detail::x86_mask<T, N, A> islessequal(const detail::x86_simd<T, N, A> &a, const detail::x86_simd<T, N, A> &b) noexcept requires detail::x86_overload_any<T, N, A>
 	{
@@ -174,7 +174,7 @@ namespace dpm
 		detail::vectorize([](auto &res, auto a, auto b) { res = detail::cmp_ge<T>(b, a); }, result, a, b);
 		return result;
 	}
-	/** Determines is elements of \a a are less than or greater than elements of \a b without setting floating-point exceptions. */
+	/** Determines if elements of \a a are less than or greater than elements of \a b without setting floating-point exceptions. */
 	template<std::floating_point T, std::size_t N, std::size_t A>
 	[[nodiscard]] DPM_FORCEINLINE detail::x86_mask<T, N, A> islessgreater(const detail::x86_simd<T, N, A> &a, const detail::x86_simd<T, N, A> &b) noexcept requires detail::x86_overload_any<T, N, A>
 	{
