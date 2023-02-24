@@ -350,19 +350,19 @@ namespace dpm
 		return result;
 	}
 	template<typename T, std::size_t N, std::size_t A>
-	[[nodiscard]] DPM_FORCEINLINE detail::x86_mask<T, N, A> &operator&=(detail::x86_mask<T, N, A> &a, const detail::x86_mask<T, N, A> &b) noexcept requires detail::x86_overload_any<T, N, A>
+	DPM_FORCEINLINE detail::x86_mask<T, N, A> &operator&=(detail::x86_mask<T, N, A> &a, const detail::x86_mask<T, N, A> &b) noexcept requires detail::x86_overload_any<T, N, A>
 	{
 		detail::vectorize([](auto &a, auto b) { a = detail::bit_and(a, b); }, a, b);
 		return a;
 	}
 	template<typename T, std::size_t N, std::size_t A>
-	[[nodiscard]] DPM_FORCEINLINE detail::x86_mask<T, N, A> &operator^=(detail::x86_mask<T, N, A> &a, const detail::x86_mask<T, N, A> &b) noexcept requires detail::x86_overload_any<T, N, A>
+	DPM_FORCEINLINE detail::x86_mask<T, N, A> &operator^=(detail::x86_mask<T, N, A> &a, const detail::x86_mask<T, N, A> &b) noexcept requires detail::x86_overload_any<T, N, A>
 	{
 		detail::vectorize([](auto &a, auto b) { a = detail::bit_xor(a, b); }, a, b);
 		return a;
 	}
 	template<typename T, std::size_t N, std::size_t A>
-	[[nodiscard]] DPM_FORCEINLINE detail::x86_mask<T, N, A> &operator|=(detail::x86_mask<T, N, A> &a, const detail::x86_mask<T, N, A> &b) noexcept requires detail::x86_overload_any<T, N, A>
+	DPM_FORCEINLINE detail::x86_mask<T, N, A> &operator|=(detail::x86_mask<T, N, A> &a, const detail::x86_mask<T, N, A> &b) noexcept requires detail::x86_overload_any<T, N, A>
 	{
 		detail::vectorize([](auto &a, auto b) { a = detail::bit_or(a, b); }, a, b);
 		return a;
