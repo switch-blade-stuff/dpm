@@ -602,7 +602,7 @@ namespace dpm
 	DPM_DECLARE_EXT_NAMESPACE
 	{
 		/** Calculates sine and cosine of elements in vector \a x, and assigns results to elements of \a out_sin and \a out_cos respectively. */
-		template<typename T, typename Abi>
+		template<std::floating_point T, typename Abi>
 		DPM_FORCEINLINE void sincos(const simd<T, Abi> &x, simd<T, Abi> &out_sin, simd<T, Abi> &out_cos) noexcept
 		{
 #ifdef _GNU_SOURCE
