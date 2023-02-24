@@ -309,8 +309,13 @@ namespace dpm
 			const auto b_data = to_native_data(b);
 			const auto m_data = to_native_data(m);
 
+			const auto zero = detail::setzero<native_data_type_t<detail::x86_mask<T, N, A>>>();
 			for (std::size_t i = 0; i < native_data_size_v<detail::x86_mask<T, N, A>>; ++i)
-				result_data[i] = detail::blendv<T>(a_data[i], b_data[i], m_data[i]);
+			{
+				/* Since mask can be modified via to_native_data, need to make sure the entire mask is filled. */
+				const auto inv_mask = detail::cmp_eq<T>(m_data[i], zero);
+				result_data[i] = detail::blendv<T>(b_data[i], a_data[i], inv_mask);
+			}
 			return result;
 		}
 
@@ -954,8 +959,13 @@ namespace dpm
 			const auto b_data = to_native_data(b);
 			const auto m_data = to_native_data(m);
 
+			const auto zero = detail::setzero<native_data_type_t<detail::x86_mask<T, N, A>>>();
 			for (std::size_t i = 0; i < native_data_size_v<detail::x86_simd<T, N, A>>; ++i)
-				result_data[i] = detail::blendv<T>(a_data[i], b_data[i], m_data[i]);
+			{
+				/* Since mask can be modified via to_native_data, need to make sure the entire mask is filled. */
+				const auto inv_mask = detail::cmp_eq<T>(m_data[i], zero);
+				result_data[i] = detail::blendv<T>(b_data[i], a_data[i], inv_mask);
+			}
 			return result;
 		}
 
