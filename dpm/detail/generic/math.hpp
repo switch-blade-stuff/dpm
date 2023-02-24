@@ -811,7 +811,7 @@ namespace dpm
 			result[i] = std::round(x[i]);
 		return result;
 	}
-	/** Casts elements of vector \a x to `long` rounding away from zero, and returns the resulting integer vector. */
+	/** Casts elements of vector \a x to `long` rounding away from zero. */
 	template<std::floating_point T, typename Abi>
 	[[nodiscard]] inline rebind_simd_t<long, simd<T, Abi>> lround(const simd<T, Abi> &x) noexcept
 	{
@@ -820,7 +820,7 @@ namespace dpm
 			result[i] = std::lround(x[i]);
 		return result;
 	}
-	/** Casts elements of vector \a x to `long long` rounding away from zero, and returns the resulting integer vector. */
+	/** Casts elements of vector \a x to `long long` rounding away from zero. */
 	template<std::floating_point T, typename Abi>
 	[[nodiscard]] inline rebind_simd_t<long long, simd<T, Abi>> llround(const simd<T, Abi> &x) noexcept
 	{
@@ -839,7 +839,7 @@ namespace dpm
 			result[i] = std::rint(x[i]);
 		return result;
 	}
-	/** Casts elements of vector \a x to `long` using current rounding mode with exceptions, and returns the resulting integer vector. */
+	/** Casts elements of vector \a x to `long` using current rounding mode with exceptions. */
 	template<std::floating_point T, typename Abi>
 	[[nodiscard]] inline rebind_simd_t<long, simd<T, Abi>> lrint(const simd<T, Abi> &x) noexcept
 	{
@@ -848,7 +848,7 @@ namespace dpm
 			result[i] = std::lrint(x[i]);
 		return result;
 	}
-	/** Casts elements of vector \a x to `long long` using current rounding mode with exceptions, and returns the resulting integer vector. */
+	/** Casts elements of vector \a x to `long long` using current rounding mode with exceptions. */
 	template<std::floating_point T, typename Abi>
 	[[nodiscard]] inline rebind_simd_t<long long, simd<T, Abi>> llrint(const simd<T, Abi> &x) noexcept
 	{
@@ -860,7 +860,7 @@ namespace dpm
 
 	DPM_DECLARE_EXT_NAMESPACE
 	{
-		/** Casts elements of vector \a x to integer of type \a I rounding away from zero, and returns the resulting integer vector. */
+		/** Casts elements of vector \a x to integer of type \a I rounding away from zero. */
 		template<std::signed_integral I, std::floating_point T, typename Abi>
 		[[nodiscard]] inline rebind_simd_t<I, simd<T, Abi>> iround(const simd<T, Abi> &x) noexcept
 		{
@@ -877,7 +877,7 @@ namespace dpm
 			return result;
 		}
 
-		/** Casts elements of vector \a x to integer of type \a I using current rounding mode with exceptions, and returns the resulting integer vector. */
+		/** Casts elements of vector \a x to integer of type \a I using current rounding mode with exceptions. */
 		template<std::signed_integral I, std::floating_point T, typename Abi>
 		[[nodiscard]] inline rebind_simd_t<I, simd<T, Abi>> irint(const simd<T, Abi> &x) noexcept
 		{

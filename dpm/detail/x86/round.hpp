@@ -485,7 +485,7 @@ namespace dpm
 		detail::vectorize([](auto &res, auto x) { detail::round<T>(x, &res); }, result, x);
 		return result;
 	}
-	/** Casts elements of vector \a x to `long` rounding away from zero, and returns the resulting integer vector. */
+	/** Casts elements of vector \a x to `long` rounding away from zero. */
 	template<std::floating_point T, std::size_t N, std::size_t A>
 	[[nodiscard]] DPM_FORCEINLINE detail::x86_simd<long, N, A> lround(const detail::x86_simd<T, N, A> &x) noexcept requires detail::x86_overload_any<T, N, A> && detail::x86_overload_any<long, N, A>
 	{
@@ -500,7 +500,7 @@ namespace dpm
 			detail::lround(x_data[i / from_extent], result_data.data() + i / to_extent);
 		return result;
 	}
-	/** Casts elements of vector \a x to `long long` rounding away from zero, and returns the resulting integer vector. */
+	/** Casts elements of vector \a x to `long long` rounding away from zero. */
 	template<std::floating_point T, std::size_t N, std::size_t A>
 	[[nodiscard]] DPM_FORCEINLINE detail::x86_simd<long long, N, A> llround(const detail::x86_simd<T, N, A> &x) noexcept requires detail::x86_overload_any<T, N, A> && detail::x86_overload_any<long long, N, A>
 	{
@@ -524,7 +524,7 @@ namespace dpm
 		detail::vectorize([](auto &res, auto x) { detail::rint<T>(x, &res); }, result, x);
 		return result;
 	}
-	/** Casts elements of vector \a x to `long` using current rounding mode with exceptions, and returns the resulting integer vector. */
+	/** Casts elements of vector \a x to `long` using current rounding mode with exceptions. */
 	template<std::floating_point T, std::size_t N, std::size_t A>
 	[[nodiscard]] DPM_FORCEINLINE detail::x86_simd<long, N, A> lrint(const detail::x86_simd<T, N, A> &x) noexcept requires detail::x86_overload_any<T, N, A> && detail::x86_overload_any<long, N, A>
 	{
@@ -539,7 +539,7 @@ namespace dpm
 			detail::lrint(x_data[i / from_extent], result_data.data() + i / to_extent);
 		return result;
 	}
-	/** Casts elements of vector \a x to `long long` using current rounding mode with exceptions, and returns the resulting integer vector. */
+	/** Casts elements of vector \a x to `long long` using current rounding mode with exceptions. */
 	template<std::floating_point T, std::size_t N, std::size_t A>
 	[[nodiscard]] DPM_FORCEINLINE detail::x86_simd<long long, N, A> llrint(const detail::x86_simd<T, N, A> &x) noexcept requires detail::x86_overload_any<T, N, A> && detail::x86_overload_any<long long, N, A>
 	{
@@ -557,7 +557,7 @@ namespace dpm
 
 	DPM_DECLARE_EXT_NAMESPACE
 	{
-		/** Casts elements of vector \a x to integer of type \a I rounding away from zero, and returns the resulting integer vector. */
+		/** Casts elements of vector \a x to integer of type \a I rounding away from zero. */
 		template<std::signed_integral I, std::floating_point T, std::size_t N, std::size_t A>
 		[[nodiscard]] DPM_FORCEINLINE detail::x86_simd<I, N, A> iround(const detail::x86_simd<T, N, A> &x) noexcept requires detail::x86_overload_any<T, N, A> && detail::x86_overload_any<I, N, A>
 		{
@@ -566,7 +566,7 @@ namespace dpm
 			return result;
 		}
 
-		/** Casts elements of vector \a x to integer of type \a I using current rounding mode with exceptions, and returns the resulting integer vector. */
+		/** Casts elements of vector \a x to integer of type \a I using current rounding mode with exceptions. */
 		template<std::signed_integral I, std::floating_point T, std::size_t N, std::size_t A>
 		[[nodiscard]] DPM_FORCEINLINE detail::x86_simd<I, N, A> irint(const detail::x86_simd<T, N, A> &x) noexcept requires detail::x86_overload_any<T, N, A> && detail::x86_overload_any<I, N, A>
 		{
