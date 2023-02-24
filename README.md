@@ -103,10 +103,10 @@ DPM provides the following utilities and extensions to the standard API:
     * `std::span to_native_data(simd_mask<T, Abi> &)`
     * `std::span to_native_data(const simd_mask<T, Abi> &)`
 * Blend functions
+    * `simd<T, Abi> blend(const simd<T, Abi> &, const const_where_expression<M, simd<T, Abi>> &)`
     * `simd<T, Abi> blend(const simd<T, Abi> &, const simd<T, Abi> &, const simd_mask<T, Abi> &)`
-    * `simd<T, Abi> blend(const simd<T, Abi> &, const const_where_expression &)`
+    * `simd_mask<T, Abi> blend(const simd_mask<T, Abi> &, const const_where_expression<M, simd_mask<T, Abi>> &)`
     * `simd_mask<T, Abi> blend(const simd_mask<T, Abi> &, const simd_mask<T, Abi> &, const simd_mask<T, Abi> &)`
-    * `simd_mask<T, Abi> blend(const simd_mask<T, Abi> &, const const_where_expression &)`
     * `V blend(const V &, const V &, /* bool-wrapper */)`
     * `V blend(const V &, const const_where_expression &)`
 * Shuffle functions
@@ -119,6 +119,11 @@ DPM provides the following utilities and extensions to the standard API:
     * `simd<T, Abi> asl<N>(const simd<T, Abi> &)`
     * `simd<T, Abi> asr<N>(const simd<T, Abi> &)`
 * Reductions
+    * `T hadd(const const_where_expression<M, simd<T, Abi>> &)`
+    * `T hmul(const const_where_expression<M, simd<T, Abi>> &)`
+    * `T hand(const const_where_expression<M, simd<T, Abi>> &)`
+    * `T hxor(const const_where_expression<M, simd<T, Abi>> &)`
+    * `T hor(const const_where_expression<M, simd<T, Abi>> &)`
     * `T hadd(const simd<T, Abi> &)`
     * `T hmul(const simd<T, Abi> &)`
     * `T hand(const simd<T, Abi> &)`

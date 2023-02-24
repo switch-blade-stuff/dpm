@@ -297,6 +297,23 @@ namespace dpm
 
 	DPM_DECLARE_EXT_NAMESPACE
 	{
+		/** Finds the horizontal sum of all selected elements in \a x. Equivalent to `reduce(x, std::plus<>{})`. */
+		template<typename M, typename V>
+		[[nodiscard]] DPM_FORCEINLINE typename V::value_type hadd(const const_where_expression<M, V> &x) noexcept { return reduce(x, std::plus<>{}); }
+		/** Finds the horizontal product of all selected elements in \a x. Equivalent to `reduce(x, std::multiplies<>{})`. */
+		template<typename M, typename V>
+		[[nodiscard]] DPM_FORCEINLINE typename V::value_type hmul(const const_where_expression<M, V> &x) noexcept { return reduce(x, std::multiplies<>{}); }
+
+		/** Finds the horizontal bitwise AND of all selected elements in \a x. Equivalent to `reduce(x, std::bit_and<>{})`. */
+		template<typename M, typename V>
+		[[nodiscard]] DPM_FORCEINLINE typename V::value_type hand(const const_where_expression<M, V> &x) noexcept { return reduce(x, std::bit_and<>{}); }
+		/** Finds the horizontal bitwise XOR of all selected elements in \a x. Equivalent to `reduce(x, std::bit_xor<>{})`. */
+		template<typename M, typename V>
+		[[nodiscard]] DPM_FORCEINLINE typename V::value_type hxor(const const_where_expression<M, V> &x) noexcept { return reduce(x, std::bit_xor<>{}); }
+		/** Finds the horizontal bitwise OR of all selected elements in \a x. Equivalent to `reduce(x, std::bit_or<>{})`. */
+		template<typename M, typename V>
+		[[nodiscard]] DPM_FORCEINLINE typename V::value_type hor(const const_where_expression<M, V> &x) noexcept { return reduce(x, std::bit_or<>{}); }
+
 		/** Replaces elements of vector \a a with selected elements of where expression \a b. */
 		template<typename T, typename Abi, typename M>
 		[[nodiscard]] DPM_FORCEINLINE simd<T, Abi> blend(const simd<T, Abi> &a, const const_where_expression<M, simd<T, Abi>> &b)
