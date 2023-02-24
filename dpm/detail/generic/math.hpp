@@ -429,7 +429,7 @@ namespace dpm
 			result[i] = std::exp2(x[i]);
 		return result;
 	}
-	/** Raises *e* (Euler's number) to the power specified by elements of \a x, subtracts `1`. */
+	/** Raises *e* (Euler's number) to the power specified by elements of \a x, and subtracts `1`. */
 	template<std::floating_point T, typename Abi>
 	[[nodiscard]] inline simd<T, Abi> expm1(const simd<T, Abi> &x) noexcept
 	{

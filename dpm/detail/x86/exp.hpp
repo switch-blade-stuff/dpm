@@ -218,7 +218,7 @@ namespace dpm
 		detail::vectorize([](auto &res, auto x) { res = detail::exp(x); }, result, x);
 		return result;
 	}
-	/** Raises *e* (Euler's number) to the power specified by elements of \a x, subtracts `1`. */
+	/** Raises *e* (Euler's number) to the power specified by elements of \a x, and subtracts `1`. */
 	template<std::floating_point T, std::size_t N, std::size_t A>
 	[[nodiscard]] DPM_FORCEINLINE detail::x86_simd<T, N, A> expm1(const detail::x86_simd<T, N, A> &x) noexcept requires detail::x86_overload_any<T, N, A>
 	{
