@@ -138,7 +138,7 @@ namespace dpm
 	[[nodiscard]] DPM_FORCEINLINE detail::x86_mask<T, N, A> signbit(const detail::x86_simd<T, N, A> &x) noexcept requires detail::x86_overload_any<T, N, A>
 	{
 		detail::x86_mask<T, N, A> result = {};
-		detail::vectorize([](auto &res, auto x) { res = detail::cmp_ne<T>(detail::masksign<T>(x), detail::setzero<decltype(x)>()); }, result, x);
+		detail::vectorize([](auto &res, auto x) { res = detail::masksign<T>(x); }, result, x);
 		return result;
 	}
 

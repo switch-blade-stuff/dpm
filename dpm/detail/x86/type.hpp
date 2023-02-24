@@ -415,10 +415,11 @@ namespace dpm
 		const auto mask_data = ext::to_native_data(mask);
 
 		auto result = detail::setones<ext::native_data_type_t<mask_t>>();
+		const auto zero = detail::setzero<ext::native_data_type_t<mask_t>>();
 		for (std::size_t i = 0; i < ext::native_data_size_v<mask_t>; ++i)
 		{
 			const auto vm = detail::maskone<T>(mask_data[i], mask_t::size() - i * sizeof(result) / sizeof(T));
-			result = detail::bit_and(result, vm);
+			result = detail::bit_andnot(detail::cmp_eq<T>(vm, zero), result);
 		}
 		return detail::movemask<T>(result) == detail::fill_bits<(sizeof(result) / sizeof(T)) * detail::movemask_bits_v<T>>();
 	}
@@ -435,6 +436,10 @@ namespace dpm
 			const auto vm = detail::maskzero<T>(mask_data[i], mask_t::size() - i * sizeof(result) / sizeof(T));
 			result = detail::bit_or(result, vm);
 		}
+#ifndef DPM_HAS_SSE4_1
+		const auto zero = detail::setzero<ext::native_data_type_t<mask_t>>();
+		result = detail::bit_andnot(detail::cmp_eq<T>(result, zero), result);
+#endif
 		return detail::test_mask(result);
 	}
 	/** Returns `true` if at none of the elements of the \a mask is `true`. Otherwise returns `false`. */
@@ -450,6 +455,10 @@ namespace dpm
 			const auto vm = detail::maskzero<T>(mask_data[i], mask_t::size() - i * sizeof(result) / sizeof(T));
 			result = detail::bit_or(result, vm);
 		}
+#ifndef DPM_HAS_SSE4_1
+		const auto zero = detail::setzero<ext::native_data_type_t<mask_t>>();
+		result = detail::bit_andnot(detail::cmp_eq<T>(result, zero), result);
+#endif
 		return !detail::test_mask(result);
 	}
 	/** Returns `true` if at least one of the elements of the \a mask is `true` and at least one is `false`. Otherwise returns `false`. */
@@ -459,6 +468,7 @@ namespace dpm
 		using mask_t = detail::x86_mask<T, N, A>;
 		const auto mask_data = ext::to_native_data(mask);
 
+		const auto zero = detail::setzero<ext::native_data_type_t<mask_t>>();
 		auto any_mask = detail::setzero<ext::native_data_type_t<mask_t>>(), all_mask = detail::setones<ext::native_data_type_t<mask_t>>();
 		for (std::size_t i = 0; i < ext::native_data_size_v<mask_t>; ++i)
 		{
@@ -467,9 +477,12 @@ namespace dpm
 			const auto vmz = detail::maskzero<T>(vm, n);
 			const auto vmo = detail::maskone<T>(vm, n);
 
-			all_mask = detail::bit_and(all_mask, vmo);
+			all_mask = detail::bit_andnot(detail::cmp_eq<T>(vmo, zero), all_mask);
 			any_mask = detail::bit_or(any_mask, vmz);
 		}
+#ifndef DPM_HAS_SSE4_1
+		result = detail::bit_andnot(detail::cmp_eq<T>(result, zero), result);
+#endif
 		return detail::test_mask(any_mask) && detail::movemask<T>(all_mask) != detail::fill_bits<(sizeof(all_mask) / sizeof(T)) * detail::movemask_bits_v<T>>();
 	}
 
@@ -481,10 +494,11 @@ namespace dpm
 		const auto mask_data = ext::to_native_data(mask);
 
 		std::size_t result = 0;
+		const auto zero = detail::setzero<ext::native_data_type_t<mask_t>>();
 		for (std::size_t i = 0; i < ext::native_data_size_v<mask_t>; ++i)
 		{
 			const auto vm = detail::maskzero<T>(mask_data[i], mask_t::size() - i * sizeof(mask_data[i]) / sizeof(T));
-			result += std::popcount(detail::movemask<T>(vm));
+			result += std::popcount(detail::movemask<T>(detail::cmp_ne<T>(vm, zero)));
 		}
 		return result / detail::movemask_bits_v<T>;
 	}
@@ -494,9 +508,10 @@ namespace dpm
 	{
 		using mask_t = detail::x86_mask<T, N, A>;
 		const auto mask_data = ext::to_native_data(mask);
+		const auto zero = detail::setzero<ext::native_data_type_t<mask_t>>();
 		for (std::size_t i = 0; i < ext::native_data_size_v<mask_t>; ++i)
 		{
-			const auto bits = detail::movemask<T>(mask_data[i]);
+			const auto bits = detail::movemask<T>(detail::cmp_ne<T>(mask_data[i], zero));
 			if (bits) return std::countr_zero(bits) / detail::movemask_bits_v<T> + i * sizeof(mask_data[i]) / sizeof(T);
 		}
 		DPM_UNREACHABLE();
@@ -507,10 +522,11 @@ namespace dpm
 	{
 		using mask_t = detail::x86_mask<T, N, A>;
 		const auto mask_data = ext::to_native_data(mask);
+		const auto zero = detail::setzero<ext::native_data_type_t<mask_t>>();
 		for (std::size_t i = ext::native_data_size_v<mask_t>, j; (j = i--) != 0;)
 		{
 			constexpr auto native_extent = sizeof(mask_data[i]) / sizeof(T);
-			const auto bits = detail::movemask_l<T>(mask_data[i], mask_t::size() - i * native_extent);
+			const auto bits = detail::movemask_l<T>(detail::cmp_ne<T>(mask_data[i], zero), mask_t::size() - i * native_extent);
 			if (bits) return (j * native_extent - 1) - std::countl_zero(bits) / detail::movemask_bits_v<T>;
 		}
 		DPM_UNREACHABLE();
