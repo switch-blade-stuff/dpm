@@ -52,7 +52,7 @@ namespace dpm
 	}
 
 #ifdef DPM_USE_SVML
-	/** Raises elements of vector \a x to power specified by elements of vector \a p, and returns the resulting vector. */
+	/** Raises elements of vector \a x to power specified by elements of vector \a p. */
 	template<std::floating_point T, std::size_t N, std::size_t A>
 	[[nodiscard]] DPM_FORCEINLINE detail::x86_simd<T, N, A> pow(const detail::x86_simd<T, N, A> &x, const detail::x86_simd<T, N, A> &p) noexcept requires detail::x86_overload_any<T, N, A>
 	{
@@ -60,7 +60,7 @@ namespace dpm
 		detail::vectorize([](auto &res, auto x, auto p) { res = detail::pow(x, p); }, result, x, p);
 		return result;
 	}
-	/** Raises elements of vector \a x to power \a p, and returns the resulting vector. */
+	/** Raises elements of vector \a x to power \a p. */
 	template<std::floating_point T, std::size_t N, std::size_t A>
 	[[nodiscard]] DPM_FORCEINLINE detail::x86_simd<T, N, A> pow(const detail::x86_simd<T, N, A> &x, T p) noexcept requires detail::x86_overload_any<T, N, A>
 	{
@@ -70,7 +70,7 @@ namespace dpm
 		return result;
 	}
 
-	/** Calculates cubic root of elements in vector \a x, and returns the resulting vector. */
+	/** Calculates cubic root of elements in vector \a x. */
 	template<std::floating_point T, std::size_t N, std::size_t A>
 	[[nodiscard]] DPM_FORCEINLINE detail::x86_simd<T, N, A> cbrt(const detail::x86_simd<T, N, A> &x) noexcept requires detail::x86_overload_any<T, N, A>
 	{
@@ -80,7 +80,7 @@ namespace dpm
 	}
 #endif
 
-	/** Calculates square root of elements in vector \a x, and returns the resulting vector. */
+	/** Calculates square root of elements in vector \a x. */
 	template<std::floating_point T, std::size_t N, std::size_t A>
 	[[nodiscard]] DPM_FORCEINLINE detail::x86_simd<T, N, A> sqrt(const detail::x86_simd<T, N, A> &x) noexcept requires detail::x86_overload_any<T, N, A>
 	{
@@ -90,7 +90,7 @@ namespace dpm
 	}
 
 #ifdef DPM_HAS_SSE2
-	/** Calculates square root of the sum of elements in vectors \a a and \a b without causing over or underflow, and returns the resulting vector. */
+	/** Calculates square root of the sum of elements in vectors \a a and \a b without causing over or underflow. */
 	template<std::floating_point T, std::size_t N, std::size_t A>
 	[[nodiscard]] DPM_FORCEINLINE detail::x86_simd<T, N, A> hypot(const detail::x86_simd<T, N, A> &a, const detail::x86_simd<T, N, A> &b) noexcept requires detail::x86_overload_any<T, N, A>
 	{
@@ -102,7 +102,7 @@ namespace dpm
 
 	DPM_DECLARE_EXT_NAMESPACE
 	{
-		/** Calculates reciprocal of elements in vector \a x, and returns the resulting vector. */
+		/** Calculates reciprocal of elements in vector \a x. */
 		template<std::floating_point T, std::size_t N, std::size_t A>
 		[[nodiscard]] DPM_FORCEINLINE detail::x86_simd<T, N, A> rcp(const detail::x86_simd<T, N, A> &x) noexcept requires detail::x86_overload_any<T, N, A>
 		{
@@ -110,7 +110,7 @@ namespace dpm
 			detail::vectorize([](auto &res, auto x) { res = detail::rcp(x); }, result, x);
 			return result;
 		}
-		/** Calculates reciprocal square root of elements in vector \a x, and returns the resulting vector. */
+		/** Calculates reciprocal square root of elements in vector \a x. */
 		template<std::size_t N, std::size_t A>
 		[[nodiscard]] DPM_FORCEINLINE detail::x86_simd<float, N, A> rsqrt(const detail::x86_simd<float, N, A> &x) noexcept requires detail::x86_overload_any<float, N, A>
 		{

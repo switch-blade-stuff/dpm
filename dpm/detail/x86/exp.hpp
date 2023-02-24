@@ -202,7 +202,7 @@ namespace dpm
 	}
 
 #ifdef DPM_USE_SVML
-	/** Raises *e* (Euler's number) to the power specified by elements of \a x, and returns the resulting vector. */
+	/** Raises *e* (Euler's number) to the power specified by elements of \a x. */
 	template<std::floating_point T, std::size_t N, std::size_t A>
 	[[nodiscard]] DPM_FORCEINLINE detail::x86_simd<T, N, A> exp(const detail::x86_simd<T, N, A> &x) noexcept requires detail::x86_overload_any<T, N, A>
 	{
@@ -210,7 +210,7 @@ namespace dpm
 		detail::vectorize([](auto &res, auto x) { res = detail::exp(x); }, result, x);
 		return result;
 	}
-	/** Raises `2` to the power specified by elements of \a x, and returns the resulting vector. */
+	/** Raises `2` to the power specified by elements of \a x. */
 	template<std::floating_point T, std::size_t N, std::size_t A>
 	[[nodiscard]] DPM_FORCEINLINE detail::x86_simd<T, N, A> exp2(const detail::x86_simd<T, N, A> &x) noexcept requires detail::x86_overload_any<T, N, A>
 	{
@@ -218,7 +218,7 @@ namespace dpm
 		detail::vectorize([](auto &res, auto x) { res = detail::exp(x); }, result, x);
 		return result;
 	}
-	/** Raises *e* (Euler's number) to the power specified by elements of \a x, subtracts `1`, and returns the resulting vector. */
+	/** Raises *e* (Euler's number) to the power specified by elements of \a x, subtracts `1`. */
 	template<std::floating_point T, std::size_t N, std::size_t A>
 	[[nodiscard]] DPM_FORCEINLINE detail::x86_simd<T, N, A> expm1(const detail::x86_simd<T, N, A> &x) noexcept requires detail::x86_overload_any<T, N, A>
 	{
@@ -229,7 +229,7 @@ namespace dpm
 #endif
 
 #if defined(DPM_HAS_SSE2) || defined(DPM_USE_SVML)
-	/** Calculates natural (base *e*) logarithm of elements in vector \a x, and returns the resulting vector. */
+	/** Calculates natural (base *e*) logarithm of elements in vector \a x. */
 	template<std::floating_point T, std::size_t N, std::size_t A>
 	[[nodiscard]] DPM_FORCEINLINE detail::x86_simd<T, N, A> log(const detail::x86_simd<T, N, A> &x) noexcept requires detail::x86_overload_any<T, N, A>
 	{
@@ -237,7 +237,7 @@ namespace dpm
 		detail::vectorize([](auto &res, auto x) { res = detail::log(x); }, result, x);
 		return result;
 	}
-	/** Calculates binary (base 2) logarithm of elements in vector \a x, and returns the resulting vector. */
+	/** Calculates binary (base 2) logarithm of elements in vector \a x. */
 	template<std::floating_point T, std::size_t N, std::size_t A>
 	[[nodiscard]] DPM_FORCEINLINE detail::x86_simd<T, N, A> log2(const detail::x86_simd<T, N, A> &x) noexcept requires detail::x86_overload_any<T, N, A>
 	{
@@ -245,7 +245,7 @@ namespace dpm
 		detail::vectorize([](auto &res, auto x) { res = detail::log2(x); }, result, x);
 		return result;
 	}
-	/** Calculates common (base 10) logarithm of elements in vector \a x, and returns the resulting vector. */
+	/** Calculates common (base 10) logarithm of elements in vector \a x. */
 	template<std::floating_point T, std::size_t N, std::size_t A>
 	[[nodiscard]] DPM_FORCEINLINE detail::x86_simd<T, N, A> log10(const detail::x86_simd<T, N, A> &x) noexcept requires detail::x86_overload_any<T, N, A>
 	{
@@ -253,7 +253,7 @@ namespace dpm
 		detail::vectorize([](auto &res, auto x) { res = detail::log10(x); }, result, x);
 		return result;
 	}
-	/** Calculates natural (base *e*) logarithm of elements in vector \a x plus `1`, and returns the resulting vector. */
+	/** Calculates natural (base *e*) logarithm of elements in vector \a x plus `1`. */
 	template<std::floating_point T, std::size_t N, std::size_t A>
 	[[nodiscard]] DPM_FORCEINLINE detail::x86_simd<T, N, A> log1p(const detail::x86_simd<T, N, A> &x) noexcept requires detail::x86_overload_any<T, N, A>
 	{

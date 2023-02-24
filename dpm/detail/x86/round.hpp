@@ -444,7 +444,7 @@ namespace dpm
 		DPM_FORCEINLINE void llrint(auto x, auto *dst) noexcept { rint<long long>(x, dst); }
 	}
 
-	/** Rounds elements of vector \a x to nearest integer not less than the element's value, and returns the resulting vector. */
+	/** Rounds elements of vector \a x to nearest integer not less than the element's value. */
 	template<std::floating_point T, std::size_t N, std::size_t A>
 	[[nodiscard]] DPM_FORCEINLINE detail::x86_simd<T, N, A> ceil(const detail::x86_simd<T, N, A> &x) noexcept requires detail::x86_overload_any<T, N, A>
 	{
@@ -452,7 +452,7 @@ namespace dpm
 		detail::vectorize([](auto &res, auto x) { res = detail::ceil(x); }, result, x);
 		return result;
 	}
-	/** Rounds elements of vector \a x to nearest integer not greater than the element's value, and returns the resulting vector. */
+	/** Rounds elements of vector \a x to nearest integer not greater than the element's value. */
 	template<std::floating_point T, std::size_t N, std::size_t A>
 	[[nodiscard]] DPM_FORCEINLINE detail::x86_simd<T, N, A> floor(const detail::x86_simd<T, N, A> &x) noexcept requires detail::x86_overload_any<T, N, A>
 	{
@@ -460,7 +460,7 @@ namespace dpm
 		detail::vectorize([](auto &res, auto x) { res = detail::floor(x); }, result, x);
 		return result;
 	}
-	/** Rounds elements of vector \a x to integer with truncation, and returns the resulting vector. */
+	/** Rounds elements of vector \a x to integer with truncation. */
 	template<std::floating_point T, std::size_t N, std::size_t A>
 	[[nodiscard]] DPM_FORCEINLINE detail::x86_simd<T, N, A> trunc(const detail::x86_simd<T, N, A> &x) noexcept requires detail::x86_overload_any<T, N, A>
 	{
@@ -468,7 +468,7 @@ namespace dpm
 		detail::vectorize([](auto &res, auto x) { res = detail::trunc(x); }, result, x);
 		return result;
 	}
-	/** Rounds elements of vector \a x to integer using current rounding mode, and returns the resulting vector. */
+	/** Rounds elements of vector \a x to integer using current rounding mode. */
 	template<std::floating_point T, std::size_t N, std::size_t A>
 	[[nodiscard]] DPM_FORCEINLINE detail::x86_simd<T, N, A> nearbyint(const detail::x86_simd<T, N, A> &x) noexcept requires detail::x86_overload_any<T, N, A>
 	{
@@ -477,7 +477,7 @@ namespace dpm
 		return result;
 	}
 
-	/** Rounds elements of vector \a x to nearest integer rounding away from zero, and returns the resulting vector. */
+	/** Rounds elements of vector \a x to nearest integer rounding away from zero. */
 	template<std::floating_point T, std::size_t N, std::size_t A>
 	[[nodiscard]] DPM_FORCEINLINE detail::x86_simd<T, N, A> round(const detail::x86_simd<T, N, A> &x) noexcept requires detail::x86_overload_any<T, N, A>
 	{
@@ -516,7 +516,7 @@ namespace dpm
 		return result;
 	}
 
-	/** Rounds elements of vector \a x to nearest integer using current rounding mode with exceptions, and returns the resulting vector. */
+	/** Rounds elements of vector \a x to nearest integer using current rounding mode with exceptions. */
 	template<std::floating_point T, std::size_t N, std::size_t A>
 	[[nodiscard]] DPM_FORCEINLINE detail::x86_simd<T, N, A> rint(const detail::x86_simd<T, N, A> &x) noexcept requires detail::x86_overload_any<T, N, A>
 	{
@@ -575,7 +575,7 @@ namespace dpm
 			return result;
 		}
 
-		/** Casts elements of vector \a x to integer type \a I with truncation, and returns the resulting vector. */
+		/** Casts elements of vector \a x to integer type \a I with truncation. */
 		template<std::integral I, std::floating_point T, std::size_t N, std::size_t A>
 		[[nodiscard]] DPM_FORCEINLINE detail::x86_simd<I, N, A> itrunc(const detail::x86_simd<T, N, A> &x) noexcept requires detail::x86_overload_any<T, N, A> && detail::x86_overload_any<I, N, A>
 		{

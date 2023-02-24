@@ -202,7 +202,7 @@ namespace dpm
 		return result;
 	}
 
-	/** Multiplies elements of vector \a x by `2` raised to power specified by elements of vector \a exp, and returns the resulting vector. */
+	/** Multiplies elements of vector \a x by `2` raised to power specified by elements of vector \a exp. */
 	template<std::floating_point T, std::size_t N, std::size_t A>
 	[[nodiscard]] DPM_FORCEINLINE detail::x86_simd<T, N, A> ldexp(const detail::x86_simd<T, N, A> &x, const detail::x86_simd<int, N, A> &exp) noexcept requires detail::x86_overload_any<T, N, A> && detail::x86_overload_any<int, N, A>
 	{
@@ -247,7 +247,7 @@ namespace dpm
 		detail::vectorize([](auto &res, auto x, auto &i) { res = detail::modf(x, i); }, result, x, *iptr);
 		return result;
 	}
-	/** Extracts unbiased exponent of elements in vector \a x as integers, and returns the resulting vector. */
+	/** Extracts unbiased exponent of elements in vector \a x as integers. */
 	template<std::floating_point T, std::size_t N, std::size_t A>
 	[[nodiscard]] DPM_FORCEINLINE detail::x86_simd<int, N, A> ilogb(const detail::x86_simd<T, N, A> &x) noexcept requires detail::x86_overload_any<T, N, A> && detail::x86_overload_any<int, N, A>
 	{
@@ -263,7 +263,7 @@ namespace dpm
 
 		return result;
 	}
-	/** Finds next representable value from elements of vector \a from to elements of vector \a to, and returns the resulting vector. */
+	/** Finds next representable value from elements of vector \a from to elements of vector \a to. */
 	template<std::floating_point T, std::size_t N, std::size_t A>
 	[[nodiscard]] DPM_FORCEINLINE detail::x86_simd<T, N, A> nextafter(const detail::x86_simd<T, N, A> &from, const detail::x86_simd<T, N, A> &to) noexcept requires detail::x86_overload_any<T, N, A>
 	{
@@ -272,7 +272,7 @@ namespace dpm
 		return result;
 	}
 
-	/** Multiplies elements of vector \a x by `2` raised to power \a exp, and returns the resulting vector. */
+	/** Multiplies elements of vector \a x by `2` raised to power \a exp. */
 	template<std::floating_point T, std::size_t N, std::size_t A>
 	[[nodiscard]] DPM_FORCEINLINE detail::x86_simd<T, N, A> ldexp(const detail::x86_simd<T, N, A> &x, int exp) noexcept
 	{
@@ -303,7 +303,7 @@ namespace dpm
 #endif
 
 #if defined(DPM_USE_SVML) || defined(DPM_HAS_SSE2)
-	/** Extracts unbiased exponent of elements in vector \a x as floats, and returns the resulting vector. */
+	/** Extracts unbiased exponent of elements in vector \a x as floats. */
 	template<std::floating_point T, std::size_t N, std::size_t A>
 	[[nodiscard]] DPM_FORCEINLINE detail::x86_simd<T, N, A> logb(const detail::x86_simd<T, N, A> &x) noexcept requires detail::x86_overload_any<T, N, A>
 	{
@@ -313,7 +313,7 @@ namespace dpm
 	}
 #endif
 
-	/** Copies sign bit from elements of vector \a sign to elements of vector \a x, and returns the resulting vector. */
+	/** Copies sign bit from elements of vector \a sign to elements of vector \a x. */
 	template<std::floating_point T, std::size_t N, std::size_t A>
 	[[nodiscard]] DPM_FORCEINLINE simd<T, detail::avec<N, A>> copysign(const detail::x86_simd<T, N, A> &x, const detail::x86_simd<T, N, A> &sign) noexcept requires detail::x86_overload_any<T, N, A>
 	{
@@ -321,7 +321,7 @@ namespace dpm
 		detail::vectorize([](auto &res, auto x, auto s) { res = detail::copysign<T>(x, detail::masksign<T>(s)); }, result, x, sign);
 		return result;
 	}
-	/** Copies sign bit from \a sign to elements of vector \a x, and returns the resulting vector. */
+	/** Copies sign bit from \a sign to elements of vector \a x. */
 	template<std::floating_point T, std::size_t N, std::size_t A>
 	[[nodiscard]] DPM_FORCEINLINE simd<T, detail::avec<N, A>> copysign(const detail::x86_simd<T, N, A> &x, T sign) noexcept requires detail::x86_overload_any<T, N, A>
 	{

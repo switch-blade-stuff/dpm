@@ -323,7 +323,7 @@ namespace dpm
 #pragma endregion
 
 #pragma region "power functions"
-	/** Calculates square root of elements in vector \a x, and returns the resulting vector. */
+	/** Calculates square root of elements in vector \a x. */
 	template<std::floating_point T, typename Abi>
 	[[nodiscard]] inline simd<T, Abi> sqrt(const simd<T, Abi> &x) noexcept
 	{
@@ -332,7 +332,7 @@ namespace dpm
 			result[i] = std::sqrt(x[i]);
 		return result;
 	}
-	/** Calculates cube root of elements in vector \a x, and returns the resulting vector. */
+	/** Calculates cube root of elements in vector \a x. */
 	template<std::floating_point T, typename Abi>
 	[[nodiscard]] inline simd<T, Abi> cbrt(const simd<T, Abi> &x) noexcept
 	{
@@ -341,7 +341,7 @@ namespace dpm
 			result[i] = std::cbrt(x[i]);
 		return result;
 	}
-	/** Calculates square root of the sum of elements in vectors \a a and \a b without causing over or underflow, and returns the resulting vector. */
+	/** Calculates square root of the sum of elements in vectors \a a and \a b without causing over or underflow. */
 	template<std::floating_point T, typename Abi>
 	[[nodiscard]] inline simd<T, Abi> hypot(const simd<T, Abi> &a, const simd<T, Abi> &b) noexcept
 	{
@@ -350,7 +350,7 @@ namespace dpm
 			result[i] = std::hypot(a[i], b[i]);
 		return result;
 	}
-	/** Raises elements of vector \a x to power specified by elements of vector \a p, and returns the resulting vector. */
+	/** Raises elements of vector \a x to power specified by elements of vector \a p. */
 	template<std::floating_point T, typename Abi>
 	[[nodiscard]] inline simd<T, Abi> pow(const simd<T, Abi> &x, const simd<T, Abi> &p) noexcept
 	{
@@ -359,7 +359,7 @@ namespace dpm
 			result[i] = std::pow(x[i], p[i]);
 		return result;
 	}
-	/** Raises elements of vector \a x to power \a p, and returns the resulting vector. */
+	/** Raises elements of vector \a x to power \a p. */
 	template<std::floating_point T, typename Abi>
 	[[nodiscard]] inline simd<T, Abi> pow(const simd<T, Abi> &x, T p) noexcept
 	{
@@ -392,7 +392,7 @@ namespace dpm
 
 	DPM_DECLARE_EXT_NAMESPACE
 	{
-		/** Calculates reciprocal of elements in vector \a x, and returns the resulting vector. */
+		/** Calculates reciprocal of elements in vector \a x. */
 		template<std::floating_point T, typename Abi>
 		[[nodiscard]] DPM_FORCEINLINE simd<T, Abi> rcp(const simd<T, Abi> &x) noexcept { return simd<T, Abi>{T{1}} / x; }
 		/** @copydoc rcp
@@ -400,7 +400,7 @@ namespace dpm
 		template<typename T, typename Abi, typename Promoted = rebind_simd_t<detail::promote_t<T>, simd<T, Abi>>>
 		[[nodiscard]] DPM_FORCEINLINE Promoted rcp(const simd<T, Abi> &x) noexcept { return Promoted{rcp(Promoted{x})}; }
 
-		/** Calculates reciprocal square root of elements in vector \a x, and returns the resulting vector. */
+		/** Calculates reciprocal square root of elements in vector \a x. */
 		template<std::floating_point T, typename Abi>
 		[[nodiscard]] DPM_FORCEINLINE simd<T, Abi> rsqrt(const simd<T, Abi> &x) noexcept { return rcp(sqrt(x)); }
 		/** @copydoc rsqrt
@@ -411,7 +411,7 @@ namespace dpm
 #pragma endregion
 
 #pragma region "exponential functions"
-	/** Raises *e* (Euler's number) to the power specified by elements of \a x, and returns the resulting vector. */
+	/** Raises *e* (Euler's number) to the power specified by elements of \a x. */
 	template<std::floating_point T, typename Abi>
 	[[nodiscard]] inline simd<T, Abi> exp(const simd<T, Abi> &x) noexcept
 	{
@@ -420,7 +420,7 @@ namespace dpm
 			result[i] = std::exp(x[i]);
 		return result;
 	}
-	/** Raises `2` to the power specified by elements of \a x, and returns the resulting vector. */
+	/** Raises `2` to the power specified by elements of \a x. */
 	template<std::floating_point T, typename Abi>
 	[[nodiscard]] inline simd<T, Abi> exp2(const simd<T, Abi> &x) noexcept
 	{
@@ -429,7 +429,7 @@ namespace dpm
 			result[i] = std::exp2(x[i]);
 		return result;
 	}
-	/** Raises *e* (Euler's number) to the power specified by elements of \a x, subtracts `1`, and returns the resulting vector. */
+	/** Raises *e* (Euler's number) to the power specified by elements of \a x, subtracts `1`. */
 	template<std::floating_point T, typename Abi>
 	[[nodiscard]] inline simd<T, Abi> expm1(const simd<T, Abi> &x) noexcept
 	{
@@ -438,7 +438,7 @@ namespace dpm
 			result[i] = std::expm1(x[i]);
 		return result;
 	}
-	/** Calculates natural (base *e*) logarithm of elements in vector \a x, and returns the resulting vector. */
+	/** Calculates natural (base *e*) logarithm of elements in vector \a x. */
 	template<std::floating_point T, typename Abi>
 	[[nodiscard]] inline simd<T, Abi> log(const simd<T, Abi> &x) noexcept
 	{
@@ -447,7 +447,7 @@ namespace dpm
 			result[i] = std::log(x[i]);
 		return result;
 	}
-	/** Calculates common (base 10) logarithm of elements in vector \a x, and returns the resulting vector. */
+	/** Calculates common (base 10) logarithm of elements in vector \a x. */
 	template<std::floating_point T, typename Abi>
 	[[nodiscard]] inline simd<T, Abi> log10(const simd<T, Abi> &x) noexcept
 	{
@@ -456,7 +456,7 @@ namespace dpm
 			result[i] = std::log10(x[i]);
 		return result;
 	}
-	/** Calculates binary (base 2) logarithm of elements in vector \a x, and returns the resulting vector. */
+	/** Calculates binary (base 2) logarithm of elements in vector \a x. */
 	template<std::floating_point T, typename Abi>
 	[[nodiscard]] inline simd<T, Abi> log2(const simd<T, Abi> &x) noexcept
 	{
@@ -465,7 +465,7 @@ namespace dpm
 			result[i] = std::log2(x[i]);
 		return result;
 	}
-	/** Calculates natural (base *e*) logarithm of elements in vector \a x plus `1`, and returns the resulting vector. */
+	/** Calculates natural (base *e*) logarithm of elements in vector \a x plus `1`. */
 	template<std::floating_point T, typename Abi>
 	[[nodiscard]] inline simd<T, Abi> log1p(const simd<T, Abi> &x) noexcept
 	{
@@ -506,7 +506,7 @@ namespace dpm
 #pragma endregion
 
 #pragma region "trigonometric functions"
-	/** Calculates sine of elements in vector \a x, and returns the resulting vector. */
+	/** Calculates sine of elements in vector \a x. */
 	template<std::floating_point T, typename Abi>
 	[[nodiscard]] inline simd<T, Abi> sin(const simd<T, Abi> &x) noexcept
 	{
@@ -515,7 +515,7 @@ namespace dpm
 			result[i] = std::sin(x[i]);
 		return result;
 	}
-	/** Calculates cosine of elements in vector \a x, and returns the resulting vector. */
+	/** Calculates cosine of elements in vector \a x. */
 	template<std::floating_point T, typename Abi>
 	[[nodiscard]] inline simd<T, Abi> cos(const simd<T, Abi> &x) noexcept
 	{
@@ -524,7 +524,7 @@ namespace dpm
 			result[i] = std::cos(x[i]);
 		return result;
 	}
-	/** Calculates tangent of elements in vector \a x, and returns the resulting vector. */
+	/** Calculates tangent of elements in vector \a x. */
 	template<std::floating_point T, typename Abi>
 	[[nodiscard]] inline simd<T, Abi> tan(const simd<T, Abi> &x) noexcept
 	{
@@ -533,7 +533,7 @@ namespace dpm
 			result[i] = std::tan(x[i]);
 		return result;
 	}
-	/** Calculates arc-sine of elements in vector \a x, and returns the resulting vector. */
+	/** Calculates arc-sine of elements in vector \a x. */
 	template<std::floating_point T, typename Abi>
 	[[nodiscard]] inline simd<T, Abi> asin(const simd<T, Abi> &x) noexcept
 	{
@@ -542,7 +542,7 @@ namespace dpm
 			result[i] = std::asin(x[i]);
 		return result;
 	}
-	/** Calculates arc-cosine of elements in vector \a x, and returns the resulting vector. */
+	/** Calculates arc-cosine of elements in vector \a x. */
 	template<std::floating_point T, typename Abi>
 	[[nodiscard]] inline simd<T, Abi> acos(const simd<T, Abi> &x) noexcept
 	{
@@ -551,7 +551,7 @@ namespace dpm
 			result[i] = std::acos(x[i]);
 		return result;
 	}
-	/** Calculates arc-tangent of elements in vector \a x, and returns the resulting vector. */
+	/** Calculates arc-tangent of elements in vector \a x. */
 	template<std::floating_point T, typename Abi>
 	[[nodiscard]] inline simd<T, Abi> atan(const simd<T, Abi> &x) noexcept
 	{
@@ -560,7 +560,7 @@ namespace dpm
 			result[i] = std::atan(x[i]);
 		return result;
 	}
-	/** Calculates arc-tangent of quotient of elements in vectors \a a and \a b, and returns the resulting vector. */
+	/** Calculates arc-tangent of quotient of elements in vectors \a a and \a b. */
 	template<std::floating_point T, typename Abi>
 	[[nodiscard]] inline simd<T, Abi> atan2(const simd<T, Abi> &a, const simd<T, Abi> &b) noexcept
 	{
@@ -627,7 +627,7 @@ namespace dpm
 #pragma endregion
 
 #pragma region "hyperbolic functions"
-	/** Calculates hyperbolic sine of elements in vector \a x, and returns the resulting vector. */
+	/** Calculates hyperbolic sine of elements in vector \a x. */
 	template<std::floating_point T, typename Abi>
 	[[nodiscard]] inline simd<T, Abi> sinh(const simd<T, Abi> &x) noexcept
 	{
@@ -636,7 +636,7 @@ namespace dpm
 			result[i] = std::sinh(x[i]);
 		return result;
 	}
-	/** Calculates hyperbolic cosine of elements in vector \a x, and returns the resulting vector. */
+	/** Calculates hyperbolic cosine of elements in vector \a x. */
 	template<std::floating_point T, typename Abi>
 	[[nodiscard]] inline simd<T, Abi> cosh(const simd<T, Abi> &x) noexcept
 	{
@@ -645,7 +645,7 @@ namespace dpm
 			result[i] = std::cosh(x[i]);
 		return result;
 	}
-	/** Calculates hyperbolic tangent of elements in vector \a x, and returns the resulting vector. */
+	/** Calculates hyperbolic tangent of elements in vector \a x. */
 	template<std::floating_point T, typename Abi>
 	[[nodiscard]] inline simd<T, Abi> tanh(const simd<T, Abi> &x) noexcept
 	{
@@ -654,7 +654,7 @@ namespace dpm
 			result[i] = std::tanh(x[i]);
 		return result;
 	}
-	/** Calculates hyperbolic arc-sine of elements in vector \a x, and returns the resulting vector. */
+	/** Calculates hyperbolic arc-sine of elements in vector \a x. */
 	template<std::floating_point T, typename Abi>
 	[[nodiscard]] inline simd<T, Abi> asinh(const simd<T, Abi> &x) noexcept
 	{
@@ -663,7 +663,7 @@ namespace dpm
 			result[i] = std::asinh(x[i]);
 		return result;
 	}
-	/** Calculates hyperbolic arc-cosine of elements in vector \a x, and returns the resulting vector. */
+	/** Calculates hyperbolic arc-cosine of elements in vector \a x. */
 	template<std::floating_point T, typename Abi>
 	[[nodiscard]] inline simd<T, Abi> acosh(const simd<T, Abi> &x) noexcept
 	{
@@ -672,7 +672,7 @@ namespace dpm
 			result[i] = std::acosh(x[i]);
 		return result;
 	}
-	/** Calculates hyperbolic arc-tangent of elements in vector \a x, and returns the resulting vector. */
+	/** Calculates hyperbolic arc-tangent of elements in vector \a x. */
 	template<std::floating_point T, typename Abi>
 	[[nodiscard]] inline simd<T, Abi> atanh(const simd<T, Abi> &x) noexcept
 	{
@@ -709,7 +709,7 @@ namespace dpm
 #pragma endregion
 
 #pragma region "error functions"
-	/** Calculates the error function of elements in \a x, and returns the resulting vector. */
+	/** Calculates the error function of elements in \a x. */
 	template<std::floating_point T, typename Abi>
 	[[nodiscard]] inline simd<T, Abi> erf(const simd<T, Abi> &x) noexcept
 	{
@@ -718,7 +718,7 @@ namespace dpm
 			result[i] = std::erf(x[i]);
 		return result;
 	}
-	/** Calculates the complementary error function of elements in \a x, and returns the resulting vector. */
+	/** Calculates the complementary error function of elements in \a x. */
 	template<std::floating_point T, typename Abi>
 	[[nodiscard]] inline simd<T, Abi> erfc(const simd<T, Abi> &x) noexcept
 	{
@@ -727,7 +727,7 @@ namespace dpm
 			result[i] = std::erfc(x[i]);
 		return result;
 	}
-	/** Calculates the gamma function of elements in \a x, and returns the resulting vector. */
+	/** Calculates the gamma function of elements in \a x. */
 	template<std::floating_point T, typename Abi>
 	[[nodiscard]] inline simd<T, Abi> tgamma(const simd<T, Abi> &x) noexcept
 	{
@@ -736,7 +736,7 @@ namespace dpm
 			result[i] = std::tgamma(x[i]);
 		return result;
 	}
-	/** Calculates the natural logarithm of the absolute value of the gamma function of elements in \a x, and returns the resulting vector. */
+	/** Calculates the natural logarithm of the absolute value of the gamma function of elements in \a x. */
 	template<std::floating_point T, typename Abi>
 	[[nodiscard]] inline simd<T, Abi> lgamma(const simd<T, Abi> &x) noexcept
 	{
@@ -765,7 +765,7 @@ namespace dpm
 #pragma endregion
 
 #pragma region "nearest integer functions"
-	/** Rounds elements of vector \a x to nearest integer not less than the element's value, and returns the resulting vector. */
+	/** Rounds elements of vector \a x to nearest integer not less than the element's value. */
 	template<std::floating_point T, typename Abi>
 	[[nodiscard]] inline simd<T, Abi> ceil(const simd<T, Abi> &x) noexcept
 	{
@@ -774,7 +774,7 @@ namespace dpm
 			result[i] = std::ceil(x[i]);
 		return result;
 	}
-	/** Rounds elements of vector \a x to nearest integer not greater than the element's value, and returns the resulting vector. */
+	/** Rounds elements of vector \a x to nearest integer not greater than the element's value. */
 	template<std::floating_point T, typename Abi>
 	[[nodiscard]] inline simd<T, Abi> floor(const simd<T, Abi> &x) noexcept
 	{
@@ -783,7 +783,7 @@ namespace dpm
 			result[i] = std::floor(x[i]);
 		return result;
 	}
-	/** Rounds elements of vector \a x to integer with truncation, and returns the resulting vector. */
+	/** Rounds elements of vector \a x to integer with truncation. */
 	template<std::floating_point T, typename Abi>
 	[[nodiscard]] inline simd<T, Abi> trunc(const simd<T, Abi> &x) noexcept
 	{
@@ -792,7 +792,7 @@ namespace dpm
 			result[i] = std::trunc(x[i]);
 		return result;
 	}
-	/** Rounds elements of vector \a x to integer using current rounding mode, and returns the resulting vector. */
+	/** Rounds elements of vector \a x to integer using current rounding mode. */
 	template<std::floating_point T, typename Abi>
 	[[nodiscard]] inline simd<T, Abi> nearbyint(const simd<T, Abi> &x) noexcept
 	{
@@ -802,7 +802,7 @@ namespace dpm
 		return result;
 	}
 
-	/** Rounds elements of vector \a x to nearest integer rounding away from zero, and returns the resulting vector. */
+	/** Rounds elements of vector \a x to nearest integer rounding away from zero. */
 	template<std::floating_point T, typename Abi>
 	[[nodiscard]] inline simd<T, Abi> round(const simd<T, Abi> &x) noexcept
 	{
@@ -830,7 +830,7 @@ namespace dpm
 		return result;
 	}
 
-	/** Rounds elements of vector \a x to nearest integer using current rounding mode with exceptions, and returns the resulting vector. */
+	/** Rounds elements of vector \a x to nearest integer using current rounding mode with exceptions. */
 	template<std::floating_point T, typename Abi>
 	[[nodiscard]] inline simd<T, Abi> rint(const simd<T, Abi> &x) noexcept
 	{
@@ -894,7 +894,7 @@ namespace dpm
 			return result;
 		}
 
-		/** Casts elements of vector \a x to signed integer type \a I with truncation, and returns the resulting vector. */
+		/** Casts elements of vector \a x to signed integer type \a I with truncation. */
 		template<std::signed_integral I, std::floating_point T, typename Abi>
 		[[nodiscard]] inline rebind_simd_t<I, simd<T, Abi>> itrunc(const simd<T, Abi> &x) noexcept
 		{
@@ -903,10 +903,10 @@ namespace dpm
 				result[i] = static_cast<I>(std::trunc(x[i]));
 			return result;
 		}
-		/** Casts elements of vector \a x to `long` with truncation, and returns the resulting vector. */
+		/** Casts elements of vector \a x to `long` with truncation. */
 		template<std::floating_point T, typename Abi>
 		[[nodiscard]] DPM_FORCEINLINE rebind_simd_t<long, simd<T, Abi>> ltrunc(const simd<T, Abi> &x) noexcept { return itrunc<long>(x); }
-		/** Casts elements of vector \a x to `long long` with truncation, and returns the resulting vector. */
+		/** Casts elements of vector \a x to `long long` with truncation. */
 		template<std::floating_point T, typename Abi>
 		[[nodiscard]] DPM_FORCEINLINE rebind_simd_t<long long, simd<T, Abi>> lltrunc(const simd<T, Abi> &x) noexcept { return itrunc<long long>(x); }
 	}
@@ -931,7 +931,7 @@ namespace dpm
 			result[i] = std::modf(x[i], &((*iptr)[i]));
 		return result;
 	}
-	/** Multiplies elements of vector \a x by `2` raised to power specified by elements of vector \a exp, and returns the resulting vector. */
+	/** Multiplies elements of vector \a x by `2` raised to power specified by elements of vector \a exp. */
 	template<std::floating_point T, typename Abi>
 	[[nodiscard]] inline simd<T, Abi> ldexp(const simd<T, Abi> &x, const simd<int, Abi> &exp) noexcept
 	{
@@ -940,7 +940,7 @@ namespace dpm
 			result[i] = std::ldexp(x[i], exp[i]);
 		return result;
 	}
-	/** Multiplies elements of vector \a x by `FLT_RADIX` raised to power specified by elements of vector \a exp, and returns the resulting vector. */
+	/** Multiplies elements of vector \a x by `FLT_RADIX` raised to power specified by elements of vector \a exp. */
 	template<std::floating_point T, typename Abi>
 	[[nodiscard]] inline simd<T, Abi> scalbn(const simd<T, Abi> &x, const simd<int, Abi> &exp) noexcept
 	{
@@ -958,7 +958,7 @@ namespace dpm
 			result[i] = std::scalbln(x[i], exp[i]);
 		return result;
 	}
-	/** Extracts unbiased exponent of elements in vector \a x as integers, and returns the resulting vector. */
+	/** Extracts unbiased exponent of elements in vector \a x as integers. */
 	template<std::floating_point T, typename Abi>
 	[[nodiscard]] inline rebind_simd_t<int, simd<T, Abi>> ilogb(const simd<T, Abi> &x) noexcept
 	{
@@ -967,7 +967,7 @@ namespace dpm
 			result[i] = std::ilogb(x[i]);
 		return result;
 	}
-	/** Extracts unbiased exponent of elements in vector \a x as floats, and returns the resulting vector. */
+	/** Extracts unbiased exponent of elements in vector \a x as floats. */
 	template<std::floating_point T, typename Abi>
 	[[nodiscard]] inline simd<T, Abi> logb(const simd<T, Abi> &x) noexcept
 	{
@@ -976,7 +976,7 @@ namespace dpm
 			result[i] = std::logb(x[i]);
 		return result;
 	}
-	/** Finds next representable value from elements of vector \a from to elements of vector \a to, and returns the resulting vector. */
+	/** Finds next representable value from elements of vector \a from to elements of vector \a to. */
 	template<std::floating_point T, typename Abi>
 	[[nodiscard]] inline simd<T, Abi> nextafter(const simd<T, Abi> &from, const simd<T, Abi> &to) noexcept
 	{
@@ -985,7 +985,7 @@ namespace dpm
 			result[i] = std::nextafter(from[i], to[i]);
 		return result;
 	}
-	/** Finds next representable value from elements of vector \a from to elements of vector \a to without loss of precision, and returns the resulting vector. */
+	/** Finds next representable value from elements of vector \a from to elements of vector \a to without loss of precision. */
 	template<std::floating_point T, typename Abi>
 	[[nodiscard]] inline simd<T, Abi> nexttoward(const simd<T, Abi> &from, const simd<long double, Abi> &to) noexcept
 	{
@@ -994,7 +994,7 @@ namespace dpm
 			result[i] = std::nexttoward(from[i], to[i]);
 		return result;
 	}
-	/** Copies sign bit from elements of vector \a sign to elements of vector \a x, and returns the resulting vector. */
+	/** Copies sign bit from elements of vector \a sign to elements of vector \a x. */
 	template<std::floating_point T, typename Abi>
 	[[nodiscard]] inline simd<T, Abi> copysign(const simd<T, Abi> &x, const simd<T, Abi> &sign) noexcept
 	{
@@ -1041,7 +1041,7 @@ namespace dpm
 	template<typename T0, typename T1, typename Abi, typename Promoted = rebind_simd_t<detail::promote_t<T0, T1>, simd<T0, Abi>>>
 	[[nodiscard]] DPM_FORCEINLINE Promoted copysign(const simd<T0, Abi> &x, const simd<T1, Abi> &sign) noexcept { return Promoted{copysign(Promoted{x}, Promoted{sign})}; }
 
-	/** Multiplies elements of vector \a x by `2` raised to power \a exp, and returns the resulting vector. */
+	/** Multiplies elements of vector \a x by `2` raised to power \a exp. */
 	template<std::floating_point T, typename Abi>
 	[[nodiscard]] inline simd<T, Abi> ldexp(const simd<T, Abi> &x, int exp) noexcept
 	{
@@ -1050,7 +1050,7 @@ namespace dpm
 			result[i] = std::ldexp(x[i], exp);
 		return result;
 	}
-	/** Multiplies elements of vector \a x by `FLT_RADIX` raised to power \a exp, and returns the resulting vector. */
+	/** Multiplies elements of vector \a x by `FLT_RADIX` raised to power \a exp. */
 	template<std::floating_point T, typename Abi>
 	[[nodiscard]] inline simd<T, Abi> scalbn(const simd<T, Abi> &x, int exp) noexcept
 	{
@@ -1068,7 +1068,7 @@ namespace dpm
 			result[i] = std::scalbln(x[i], exp);
 		return result;
 	}
-	/** Copies sign bit from \a sign to elements of vector \a x, and returns the resulting vector. */
+	/** Copies sign bit from \a sign to elements of vector \a x. */
 	template<std::floating_point T, typename Abi>
 	[[nodiscard]] inline simd<T, Abi> copysign(const simd<T, Abi> &x, T sign) noexcept
 	{

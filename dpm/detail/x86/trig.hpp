@@ -189,7 +189,7 @@ namespace dpm
 	}
 
 #if defined(DPM_USE_SVML) || defined(DPM_HAS_SSE2)
-	/** Calculates sine of elements in vector \a x, and returns the resulting vector. */
+	/** Calculates sine of elements in vector \a x. */
 	template<std::floating_point T, std::size_t N, std::size_t A>
 	[[nodiscard]] DPM_FORCEINLINE detail::x86_simd<T, N, A> sin(const detail::x86_simd<T, N, A> &x) noexcept requires detail::x86_overload_any<T, N, A>
 	{
@@ -197,7 +197,7 @@ namespace dpm
 		detail::vectorize([](auto &res, auto x) { res = detail::sin(x); }, result, x);
 		return result;
 	}
-	/** Calculates cosine of elements in vector \a x, and returns the resulting vector. */
+	/** Calculates cosine of elements in vector \a x. */
 	template<std::floating_point T, std::size_t N, std::size_t A>
 	[[nodiscard]] DPM_FORCEINLINE detail::x86_simd<T, N, A> cos(const detail::x86_simd<T, N, A> &x) noexcept requires detail::x86_overload_any<T, N, A>
 	{
@@ -205,7 +205,7 @@ namespace dpm
 		detail::vectorize([](auto &res, auto x) { res = detail::cos(x); }, result, x);
 		return result;
 	}
-	/** Calculates tangent of elements in vector \a x, and returns the resulting vector. */
+	/** Calculates tangent of elements in vector \a x. */
 	template<std::floating_point T, std::size_t N, std::size_t A>
 	[[nodiscard]] DPM_FORCEINLINE detail::x86_simd<T, N, A> tan(const detail::x86_simd<T, N, A> &x) noexcept requires detail::x86_overload_any<T, N, A>
 	{
@@ -213,7 +213,7 @@ namespace dpm
 		detail::vectorize([](auto &res, auto x) { res = detail::tan(x); }, result, x);
 		return result;
 	}
-	/** Calculates arc-sine of elements in vector \a x, and returns the resulting vector. */
+	/** Calculates arc-sine of elements in vector \a x. */
 	template<std::floating_point T, std::size_t N, std::size_t A>
 	[[nodiscard]] DPM_FORCEINLINE detail::x86_simd<T, N, A> asin(const detail::x86_simd<T, N, A> &x) noexcept requires detail::x86_overload_any<T, N, A>
 	{
@@ -221,7 +221,7 @@ namespace dpm
 		detail::vectorize([](auto &res, auto x) { res = detail::asin(x); }, result, x);
 		return result;
 	}
-	/** Calculates arc-cosine of elements in vector \a x, and returns the resulting vector. */
+	/** Calculates arc-cosine of elements in vector \a x. */
 	template<std::floating_point T, std::size_t N, std::size_t A>
 	[[nodiscard]] DPM_FORCEINLINE detail::x86_simd<T, N, A> acos(const detail::x86_simd<T, N, A> &x) noexcept requires detail::x86_overload_any<T, N, A>
 	{
@@ -229,7 +229,7 @@ namespace dpm
 		detail::vectorize([](auto &res, auto x) { res = detail::acos(x); }, result, x);
 		return result;
 	}
-	/** Calculates arc-tangent of elements in vector \a x, and returns the resulting vector. */
+	/** Calculates arc-tangent of elements in vector \a x. */
 	template<std::floating_point T, std::size_t N, std::size_t A>
 	[[nodiscard]] DPM_FORCEINLINE detail::x86_simd<T, N, A> atan(const detail::x86_simd<T, N, A> &x) noexcept requires detail::x86_overload_any<T, N, A>
 	{
@@ -250,7 +250,7 @@ namespace dpm
 #endif
 
 #ifdef DPM_USE_SVML
-	/** Calculates arc-tangent of quotient of elements in vectors \a a and \a b, and returns the resulting vector. */
+	/** Calculates arc-tangent of quotient of elements in vectors \a a and \a b. */
 	template<std::floating_point T, std::size_t N, std::size_t A>
 	[[nodiscard]] DPM_FORCEINLINE detail::x86_simd<T, N, A> atan2(const detail::x86_simd<T, N, A> &a, const detail::x86_simd<T, N, A> &b) noexcept requires detail::x86_overload_any<T, N, A>
 	{
