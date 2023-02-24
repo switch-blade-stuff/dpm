@@ -1121,7 +1121,7 @@ namespace dpm
 			result[i] = std::fpclassify(x[i]);
 		return result;
 	}
-	/** Determines is elements of \a x are finite. */
+	/** Determines if elements of \a x are finite. */
 	template<std::floating_point T, typename Abi>
 	[[nodiscard]] inline typename simd<T, Abi>::mask_type isfinite(const simd<T, Abi> &x) noexcept
 	{
@@ -1130,7 +1130,7 @@ namespace dpm
 			result[i] = std::isfinite(x[i]);
 		return result;
 	}
-	/** Determines is elements of \a x are infinite. */
+	/** Determines if elements of \a x are infinite. */
 	template<std::floating_point T, typename Abi>
 	[[nodiscard]] inline typename simd<T, Abi>::mask_type isinf(const simd<T, Abi> &x) noexcept
 	{
@@ -1139,7 +1139,7 @@ namespace dpm
 			result[i] = std::isinf(x[i]);
 		return result;
 	}
-	/** Determines is elements of \a x are unordered NaN. */
+	/** Determines if elements of \a x are unordered NaN. */
 	template<std::floating_point T, typename Abi>
 	[[nodiscard]] inline typename simd<T, Abi>::mask_type isnan(const simd<T, Abi> &x) noexcept
 	{
@@ -1148,7 +1148,7 @@ namespace dpm
 			result[i] = std::isnan(x[i]);
 		return result;
 	}
-	/** Determines is elements of \a x are normal. */
+	/** Determines if elements of \a x are normal. */
 	template<std::floating_point T, typename Abi>
 	[[nodiscard]] inline typename simd<T, Abi>::mask_type isnormal(const simd<T, Abi> &x) noexcept
 	{
@@ -1210,7 +1210,7 @@ namespace dpm
 		return typename Promoted::mask_type{signbit(Promoted{x})};
 	}
 
-	/** Determines is elements of \a a are greater than elements of \a b without setting floating-point exceptions. */
+	/** Determines if elements of \a a are greater than elements of \a b without setting floating-point exceptions. */
 	template<std::floating_point T, typename Abi>
 	[[nodiscard]] inline typename simd<T, Abi>::mask_type isgreater(const simd<T, Abi> &a, const simd<T, Abi> &b) noexcept
 	{
@@ -1219,7 +1219,7 @@ namespace dpm
 			result[i] = std::isgreater(a[i], b[i]);
 		return result;
 	}
-	/** Determines is elements of \a a are greater than or equal to elements of \a b without setting floating-point exceptions. */
+	/** Determines if elements of \a a are greater than or equal to elements of \a b without setting floating-point exceptions. */
 	template<std::floating_point T, typename Abi>
 	[[nodiscard]] inline typename simd<T, Abi>::mask_type isgreaterequal(const simd<T, Abi> &a, const simd<T, Abi> &b) noexcept
 	{
@@ -1228,7 +1228,7 @@ namespace dpm
 			result[i] = std::isgreaterequal(a[i], b[i]);
 		return result;
 	}
-	/** Determines is elements of \a a are less than elements of \a b without setting floating-point exceptions. */
+	/** Determines if elements of \a a are less than elements of \a b without setting floating-point exceptions. */
 	template<std::floating_point T, typename Abi>
 	[[nodiscard]] inline typename simd<T, Abi>::mask_type isless(const simd<T, Abi> &a, const simd<T, Abi> &b) noexcept
 	{
@@ -1237,7 +1237,7 @@ namespace dpm
 			result[i] = std::isless(a[i], b[i]);
 		return result;
 	}
-	/** Determines is elements of \a a are less than or equal to elements of \a b without setting floating-point exceptions. */
+	/** Determines if elements of \a a are less than or equal to elements of \a b without setting floating-point exceptions. */
 	template<std::floating_point T, typename Abi>
 	[[nodiscard]] inline typename simd<T, Abi>::mask_type islessequal(const simd<T, Abi> &a, const simd<T, Abi> &b) noexcept
 	{
@@ -1246,7 +1246,7 @@ namespace dpm
 			result[i] = std::islessequal(a[i], b[i]);
 		return result;
 	}
-	/** Determines is elements of \a a are less than or greater than elements of \a b without setting floating-point exceptions. */
+	/** Determines if elements of \a a are less than or greater than elements of \a b without setting floating-point exceptions. */
 	template<std::floating_point T, typename Abi>
 	[[nodiscard]] inline typename simd<T, Abi>::mask_type islessgreater(const simd<T, Abi> &a, const simd<T, Abi> &b) noexcept
 	{
