@@ -348,7 +348,7 @@ namespace dpm
 	};
 
 #pragma region "simd_mask operators"
-	/** Preforms a bitwise AND on the elements of the masks \a a and \a b, and returns the resulting mask. */
+	/** Preforms a bitwise AND on the elements of the masks \a a and \a b. */
 	template<typename T, typename Abi>
 	[[nodiscard]] inline simd_mask<T, Abi> operator&(const simd_mask<T, Abi> &a, const simd_mask<T, Abi> &b) noexcept
 	{
@@ -357,7 +357,7 @@ namespace dpm
 			result[i] = a[i] && b[i];
 		return result;
 	}
-	/** Preforms a bitwise OR on the elements of the masks \a a and \a b, and returns the resulting mask. */
+	/** Preforms a bitwise OR on the elements of the masks \a a and \a b. */
 	template<typename T, typename Abi>
 	[[nodiscard]] inline simd_mask<T, Abi> operator|(const simd_mask<T, Abi> &a, const simd_mask<T, Abi> &b) noexcept
 	{
@@ -366,7 +366,7 @@ namespace dpm
 			result[i] = a[i] || b[i];
 		return result;
 	}
-	/** Preforms a bitwise XOR on the elements of the masks \a a and \a b, and returns the resulting mask. */
+	/** Preforms a bitwise XOR on the elements of the masks \a a and \a b. */
 	template<typename T, typename Abi>
 	[[nodiscard]] inline simd_mask<T, Abi> operator^(const simd_mask<T, Abi> &a, const simd_mask<T, Abi> &b) noexcept
 	{
@@ -386,7 +386,7 @@ namespace dpm
 	template<typename T, typename Abi>
 	inline simd_mask<T, Abi> &operator^=(simd_mask<T, Abi> &a, const simd_mask<T, Abi> &b) noexcept { return a = a ^ b; }
 
-	/** Preforms a logical AND on the elements of the masks \a a and \a b, and returns the resulting mask. */
+	/** Preforms a logical AND on the elements of the masks \a a and \a b. */
 	template<typename T, typename Abi>
 	[[nodiscard]] inline simd_mask<T, Abi> operator&&(const simd_mask<T, Abi> &a, const simd_mask<T, Abi> &b) noexcept
 	{
@@ -395,7 +395,7 @@ namespace dpm
 			result[i] = a[i] && b[i];
 		return result;
 	}
-	/** Preforms a logical OR on the elements of the masks \a a and \a b, and returns the resulting mask. */
+	/** Preforms a logical OR on the elements of the masks \a a and \a b. */
 	template<typename T, typename Abi>
 	[[nodiscard]] inline simd_mask<T, Abi> operator||(const simd_mask<T, Abi> &a, const simd_mask<T, Abi> &b) noexcept
 	{
@@ -405,7 +405,7 @@ namespace dpm
 		return result;
 	}
 
-	/** Inverts elements of mask \a x , and returns the resulting mask. */
+	/** Inverts elements of mask \a x . */
 	template<typename T, typename Abi>
 	[[nodiscard]] inline simd_mask<T, Abi> operator!(const simd_mask<T, Abi> &x) noexcept
 	{
@@ -414,7 +414,7 @@ namespace dpm
 			result[i] = !x[i];
 		return result;
 	}
-	/** Compares elements of masks \a a and \a b for equality, and returns the resulting mask. */
+	/** Compares elements of masks \a a and \a b for equality. */
 	template<typename T, typename Abi>
 	[[nodiscard]] inline simd_mask<T, Abi> operator==(const simd_mask<T, Abi> &a, const simd_mask<T, Abi> &b) noexcept
 	{
@@ -423,7 +423,7 @@ namespace dpm
 			result[i] = a[i] == b[i];
 		return result;
 	}
-	/** Compares elements of masks \a a and \a b for inequality, and returns the resulting mask. */
+	/** Compares elements of masks \a a and \a b for inequality. */
 	template<typename T, typename Abi>
 	[[nodiscard]] inline simd_mask<T, Abi> operator!=(const simd_mask<T, Abi> &a, const simd_mask<T, Abi> &b) noexcept
 	{
@@ -1207,7 +1207,7 @@ namespace dpm
 		return a;
 	}
 
-	/** Converts elements of vector \a x to booleans, and returns the resulting mask. */
+	/** Converts elements of vector \a x to booleans. */
 	template<typename T, typename Abi>
 	[[nodiscard]] inline simd_mask<T, Abi> operator!(const simd<T, Abi> &x) noexcept requires (requires(T v) { !v; })
 	{
@@ -1215,7 +1215,7 @@ namespace dpm
 		for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i) result[i] = !x[i];
 		return result;
 	}
-	/** Compares elements of vectors \a a and \a b for equality, and returns the resulting mask. */
+	/** Compares elements of vectors \a a and \a b for equality. */
 	template<typename T, typename Abi>
 	[[nodiscard]] inline simd_mask<T, Abi> operator==(const simd<T, Abi> &a, const simd<T, Abi> &b) noexcept
 	{
@@ -1224,7 +1224,7 @@ namespace dpm
 			result[i] = a[i] == b[i];
 		return result;
 	}
-	/** Compares elements of vectors \a a and \a b for less-than or equal, and returns the resulting mask. */
+	/** Compares elements of vectors \a a and \a b for less-than or equal. */
 	template<typename T, typename Abi>
 	[[nodiscard]] inline simd_mask<T, Abi> operator<=(const simd<T, Abi> &a, const simd<T, Abi> &b) noexcept
 	{
@@ -1233,7 +1233,7 @@ namespace dpm
 			result[i] = a[i] <= b[i];
 		return result;
 	}
-	/** Compares elements of vectors \a a and \a b for greater-than or equal, and returns the resulting mask. */
+	/** Compares elements of vectors \a a and \a b for greater-than or equal. */
 	template<typename T, typename Abi>
 	[[nodiscard]] inline simd_mask<T, Abi> operator>=(const simd<T, Abi> &a, const simd<T, Abi> &b) noexcept
 	{
@@ -1242,7 +1242,7 @@ namespace dpm
 			result[i] = a[i] >= b[i];
 		return result;
 	}
-	/** Compares elements of vectors \a a and \a b for less-than, and returns the resulting mask. */
+	/** Compares elements of vectors \a a and \a b for less-than. */
 	template<typename T, typename Abi>
 	[[nodiscard]] inline simd_mask<T, Abi> operator<(const simd<T, Abi> &a, const simd<T, Abi> &b) noexcept
 	{
@@ -1251,7 +1251,7 @@ namespace dpm
 			result[i] = a[i] < b[i];
 		return result;
 	}
-	/** Compares elements of vectors \a a and \a b for greater-than, and returns the resulting mask. */
+	/** Compares elements of vectors \a a and \a b for greater-than. */
 	template<typename T, typename Abi>
 	[[nodiscard]] inline simd_mask<T, Abi> operator>(const simd<T, Abi> &a, const simd<T, Abi> &b) noexcept
 	{
@@ -1260,7 +1260,7 @@ namespace dpm
 			result[i] = a[i] > b[i];
 		return result;
 	}
-	/** Compares elements of vectors \a a and \a b for equality, and returns the resulting mask. */
+	/** Compares elements of vectors \a a and \a b for equality. */
 	template<typename T, typename Abi>
 	[[nodiscard]] inline simd_mask<T, Abi> operator!=(const simd<T, Abi> &a, const simd<T, Abi> &b) noexcept
 	{

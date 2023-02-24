@@ -101,7 +101,7 @@ namespace dpm
 #endif
 	}
 
-	/** Determines is elements of \a x are finite and returns the resulting mask. */
+	/** Determines is elements of \a x are finite. */
 	template<std::floating_point T, std::size_t N, std::size_t A>
 	[[nodiscard]] DPM_FORCEINLINE detail::x86_mask<T, N, A> isfinite(const detail::x86_simd<T, N, A> &x) noexcept requires detail::x86_overload_any<T, N, A>
 	{
@@ -109,7 +109,7 @@ namespace dpm
 		detail::vectorize([](auto &res, auto x) { res = detail::isfinite(x); }, result, x);
 		return result;
 	}
-	/** Determines is elements of \a x are infinite and returns the resulting mask. */
+	/** Determines is elements of \a x are infinite. */
 	template<std::floating_point T, std::size_t N, std::size_t A>
 	[[nodiscard]] DPM_FORCEINLINE detail::x86_mask<T, N, A> isinf(const detail::x86_simd<T, N, A> &x) noexcept requires detail::x86_overload_any<T, N, A>
 	{
@@ -117,7 +117,7 @@ namespace dpm
 		detail::vectorize([](auto &res, auto x) { res = detail::isinf(x); }, result, x);
 		return result;
 	}
-	/** Determines is elements of \a x are NaN and returns the resulting mask. */
+	/** Determines is elements of \a x are NaN. */
 	template<std::floating_point T, std::size_t N, std::size_t A>
 	[[nodiscard]] DPM_FORCEINLINE detail::x86_mask<T, N, A> isnan(const detail::x86_simd<T, N, A> &x) noexcept requires detail::x86_overload_any<T, N, A>
 	{
@@ -125,7 +125,7 @@ namespace dpm
 		detail::vectorize([](auto &res, auto x) { res = detail::isunord(x, x); }, result, x);
 		return result;
 	}
-	/** Determines is elements of \a x are normal and returns the resulting mask. */
+	/** Determines is elements of \a x are normal. */
 	template<std::floating_point T, std::size_t N, std::size_t A>
 	[[nodiscard]] DPM_FORCEINLINE detail::x86_mask<T, N, A> isnormal(const detail::x86_simd<T, N, A> &x) noexcept requires detail::x86_overload_any<T, N, A>
 	{
@@ -182,7 +182,7 @@ namespace dpm
 		detail::vectorize([](auto &res, auto a, auto b) { res = detail::bit_or(detail::cmp_le<T>(b, a), detail::cmp_ge<T>(b, a)); }, result, a, b);
 		return result;
 	}
-	/** Determines is either elements of \a a or \a b are unordered and returns the resulting mask. */
+	/** Determines is either elements of \a a or \a b are unordered. */
 	template<std::floating_point T, std::size_t N, std::size_t A>
 	[[nodiscard]] DPM_FORCEINLINE detail::x86_mask<T, N, A> isunordered(const detail::x86_simd<T, N, A> &a, const detail::x86_simd<T, N, A> &b) noexcept requires detail::x86_overload_any<T, N, A>
 	{
