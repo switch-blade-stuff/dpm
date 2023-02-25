@@ -90,8 +90,8 @@ namespace dpm
 		const_where_expression(M mask, T &data) noexcept : m_mask(mask), m_data(data) {}
 		const_where_expression(M mask, const T &data) noexcept : m_mask(mask), m_data(const_cast<T &>(data)) {}
 
-		[[nodiscard]] DPM_FORCEINLINE T operator+() const && noexcept { return ext::blend(m_data, +m_data, m_mask); }
-		[[nodiscard]] DPM_FORCEINLINE T operator-() const && noexcept { return ext::blend(m_data, -m_data, m_mask); }
+		[[nodiscard]] DPM_FORCEINLINE T operator+() const && noexcept requires (requires(T x) { +x; }) { return ext::blend(m_data, +m_data, m_mask); }
+		[[nodiscard]] DPM_FORCEINLINE T operator-() const && noexcept requires (requires(T x) { -x; }) { return ext::blend(m_data, -m_data, m_mask); }
 		[[nodiscard]] DPM_FORCEINLINE T operator~() const && noexcept requires (requires(T x) { ~x; }) { return ext::blend(m_data, ~m_data, m_mask); }
 
 		/** Copies selected elements to \a mem. */
