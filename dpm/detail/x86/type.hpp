@@ -384,12 +384,19 @@ namespace dpm
 	template<typename T, std::size_t N, std::size_t A>
 	[[nodiscard]] DPM_FORCEINLINE detail::x86_mask<T, N, A> operator&&(const detail::x86_mask<T, N, A> &a, const detail::x86_mask<T, N, A> &b) noexcept requires detail::x86_overload_any<T, N, A>
 	{
-		return a & b;
+		detail::x86_mask<T, N, A> result = {};
+		const auto zero = detail::setzero<ext::native_data_type_t<detail::x86_mask<T, N, A>>>();
+		detail::vectorize([z = zero](auto &res, auto a, auto b)
+		                  {
+			                  res = detail::bit_andnot(detail::cmp_eq<T>(a, z), res);
+			                  res = detail::bit_andnot(detail::cmp_eq<T>(b, z), res);
+		                  }, result, a, b);
+		return result;
 	}
 	template<typename T, std::size_t N, std::size_t A>
 	[[nodiscard]] DPM_FORCEINLINE detail::x86_mask<T, N, A> operator||(const detail::x86_mask<T, N, A> &a, const detail::x86_mask<T, N, A> &b) noexcept requires detail::x86_overload_any<T, N, A>
 	{
-		return a | b;
+		return (a | b) != detail::x86_mask<T, N, A>{};
 	}
 
 	template<typename T, std::size_t N, std::size_t A>

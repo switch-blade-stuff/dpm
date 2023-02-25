@@ -134,7 +134,7 @@ namespace dpm::detail
 	template<std::same_as<float> T>
 	[[nodiscard]] DPM_FORCEINLINE __m256 cmp_le(__m256 a, __m256 b) noexcept { return _mm256_cmp_ps(a, b, _CMP_LE_OQ); }
 	template<std::same_as<float> T>
-	[[nodiscard]] DPM_FORCEINLINE __m256 cmp_ne(__m256 a, __m256 b) noexcept { return _mm256_cmp_ps(a, b, _CMP_NEQ_OQ); }
+	[[nodiscard]] DPM_FORCEINLINE __m256 cmp_ne(__m256 a, __m256 b) noexcept { return _mm256_cmp_ps(a, b, _CMP_NEQ_UQ); }
 	template<std::same_as<float> T>
 	[[nodiscard]] DPM_FORCEINLINE __m256 cmp_nlt(__m256 a, __m256 b) noexcept { return _mm256_cmp_ps(a, b, _CMP_NLT_UQ); }
 	template<std::same_as<float> T>
@@ -155,7 +155,7 @@ namespace dpm::detail
 	template<std::same_as<double> T>
 	[[nodiscard]] DPM_FORCEINLINE __m256d cmp_le(__m256d a, __m256d b) noexcept { return _mm256_cmp_pd(a, b, _CMP_LE_OQ); }
 	template<std::same_as<double> T>
-	[[nodiscard]] DPM_FORCEINLINE __m256d cmp_ne(__m256d a, __m256d b) noexcept { return _mm256_cmp_pd(a, b, _CMP_NEQ_OQ); }
+	[[nodiscard]] DPM_FORCEINLINE __m256d cmp_ne(__m256d a, __m256d b) noexcept { return _mm256_cmp_pd(a, b, _CMP_NEQ_UQ); }
 	template<std::same_as<double> T>
 	[[nodiscard]] DPM_FORCEINLINE __m256d cmp_nlt(__m256d a, __m256d b) noexcept { return _mm256_cmp_pd(a, b, _CMP_NLT_UQ); }
 	template<std::same_as<double> T>
