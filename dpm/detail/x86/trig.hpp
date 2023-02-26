@@ -244,7 +244,12 @@ namespace dpm
 		template<std::floating_point T, std::size_t N, std::size_t A>
 		DPM_FORCEINLINE void sincos(const detail::x86_simd<T, N, A> &x, detail::x86_simd<T, N, A> &out_sin, detail::x86_simd<T, N, A> &out_cos) noexcept requires detail::x86_overload_any<T, N, A>
 		{
-			detail::vectorize([](auto x, auto &sin_x, auto &cos_x) { std::bind(sin_x, cos_x) = detail::sincos(x); }, x, out_sin, out_cos);
+			detail::vectorize([](auto x, auto &sin_x, auto &cos_x)
+			                  {
+				                  const auto [s, c] = detail::sincos(x);
+				                  sin_x = s;
+				                  cos_x = c;
+			                  }, x, out_sin, out_cos);
 		}
 	}
 #endif
