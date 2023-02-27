@@ -601,16 +601,36 @@ namespace dpm
 		template<std::floating_point T, typename Abi>
 		DPM_FORCEINLINE void sincos(const simd<T, Abi> &x, simd<T, Abi> &out_sin, simd<T, Abi> &out_cos) noexcept
 		{
-#if defined(_GNU_SOURCE) && 0 /* GNU sincos is not optimized well by compilers. */
+#if (defined(__has_builtin) && __has_builtin(__builtin_sincosf) && __has_builtin(__builtin_sincos) && __has_builtin(__builtin_sincosl)) || \
+	(defined(_GNU_SOURCE) && 0) /* GNU sincos function is not optimized well by compilers. */
+
 			for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i)
 			{
 				T sin, cos;
 				if constexpr (std::same_as<T, float>)
+				{
+#if __has_builtin(__builtin_sincosf)
+					__builtin_sincosf(x, &sin, &cos);
+#else
 					::sincosf(x[i], &sin, &cos);
+#endif
+				}
 				else if constexpr (std::same_as<T, long double>)
+				{
+#if __has_builtin(__builtin_sincosl)
+					__builtin_sincosl(x, &sin, &cos);
+#else
 					::sincosl(x[i], &sin, &cos);
+#endif
+				}
 				else
+				{
+#if __has_builtin(__builtin_sincos)
+					__builtin_sincos(x, &sin, &cos);
+#else
 					::sincos(x[i], &sin, &cos);
+#endif
+				}
 				out_sin[i] = sin;
 				out_cos[i] = cos;
 			}
