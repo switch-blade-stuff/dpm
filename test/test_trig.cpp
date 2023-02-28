@@ -18,7 +18,7 @@ static inline void test_trig() noexcept
 
 			for (std::size_t j = 0; i < N && j < simd_size; ++j, ++i)
 			{
-				const volatile auto s = f(vals[i]);
+				const auto s = f(vals[i]);
 				TEST_ASSERT(almost_equal(v[j], s, rel_eps, eps) || (std::isnan(v[j]) && std::isnan(s)));
 			}
 		}
@@ -38,24 +38,27 @@ static inline void test_trig() noexcept
 			std::numeric_limits<T>::quiet_NaN(),
 	};
 
+	constexpr auto min_err = std::same_as<T, float> ? T{2.0e-6} : T{6.0e-17};
+	constexpr auto max_err = std::same_as<T, float> ? T{1.0e-3} : T{2.2e-16};
+
 	using dpm::sin;
 	using std::sin;
-	invoke_test([](auto x) { return sin(x); }, std::span{test_vals}, T{1.0e-3}, T{2.0e-6});
+	invoke_test([](auto x) { return sin(x); }, std::span{test_vals}, max_err, min_err);
 	using dpm::cos;
 	using std::cos;
-	invoke_test([](auto x) { return cos(x); }, std::span{test_vals}, T{1.0e-3}, T{2.0e-6});
+	invoke_test([](auto x) { return cos(x); }, std::span{test_vals}, max_err, min_err);
 	using dpm::tan;
 	using std::tan;
-	invoke_test([](auto x) { return tan(x); }, std::span{test_vals}, T{1.0e-3}, T{2.0e-6});
+	invoke_test([](auto x) { return tan(x); }, std::span{test_vals}, max_err, min_err);
 	using dpm::asin;
 	using std::asin;
-	invoke_test([](auto x) { return asin(x); }, std::span{test_vals}, T{1.0e-3}, T{1.0e-7});
+	invoke_test([](auto x) { return asin(x); }, std::span{test_vals}, max_err, min_err);
 	using dpm::acos;
 	using std::acos;
-	invoke_test([](auto x) { return acos(x); }, std::span{test_vals}, T{1.0e-3}, T{1.0e-7});
+	invoke_test([](auto x) { return acos(x); }, std::span{test_vals}, max_err, min_err);
 	using dpm::atan;
 	using std::atan;
-	invoke_test([](auto x) { return atan(x); }, std::span{test_vals}, T{1.0e-3}, T{1.0e-7});
+	invoke_test([](auto x) { return atan(x); }, std::span{test_vals}, max_err, min_err);
 
 	/* TODO: If DPM_HANDLE_ERRORS is set and fp exceptions are used, check exceptions. */
 }
