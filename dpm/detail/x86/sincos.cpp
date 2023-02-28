@@ -33,7 +33,6 @@ namespace dpm::detail
 		auto y = eval_sincos<T, Op>(sign_x, abs_x);
 
 		/* Handle exceptional cases. */
-#ifdef DPM_HANDLE_ERRORS
 		if (const auto m = movemask<I>(cvt_has_overflow<I>(abs_x)); m) [[unlikely]]
 		{
 			const auto special = [](T x, T &out_sin, T &out_cos)
@@ -53,7 +52,6 @@ namespace dpm::detail
 			};
 			mask_invoke<T, V, T, T &, T &>(special, m, x, y.sin, y.cos);
 		}
-#endif
 		return y;
 	}
 
