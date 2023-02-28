@@ -7,8 +7,10 @@
 template<typename T, typename Abi>
 static inline void test_trig() noexcept
 {
-	constexpr auto invoke_test = []<std::size_t N>(auto f, std::span<const T, N> vals, T rel_eps, T eps)
+	constexpr auto invoke_test = []<std::size_t N>(auto f, std::span<const T, N> vals)
 	{
+		constexpr auto min_err = std::same_as<T, float> ? T{2.0e-6} : T{6.0e-17};
+		constexpr auto max_err = std::same_as<T, float> ? T{1.0e-3} : T{2.2e-16};
 		constexpr auto simd_size = dpm::simd_size_v<T, Abi>;
 		for (std::size_t i = 0; i < N;)
 		{
@@ -18,8 +20,8 @@ static inline void test_trig() noexcept
 
 			for (std::size_t j = 0; i < N && j < simd_size; ++j, ++i)
 			{
-				const volatile auto s = f(vals[i]);
-				TEST_ASSERT(almost_equal(v[j], s, rel_eps, eps) || (std::isnan(v[j]) && std::isnan(s)));
+				const auto s = f(vals[i]);
+				TEST_ASSERT(almost_equal(v[j], s, max_err, min_err) || (std::isnan(v[j]) && std::isnan(s)));
 			}
 		}
 	};
@@ -38,24 +40,25 @@ static inline void test_trig() noexcept
 			std::numeric_limits<T>::quiet_NaN(),
 	};
 
+
 	using dpm::sin;
 	using std::sin;
-	invoke_test([](auto x) { return sin(x); }, std::span{test_vals}, T{1.0e-3}, T{2.0e-6});
+	invoke_test([](auto x) { return sin(x); }, std::span{test_vals});
 	using dpm::cos;
 	using std::cos;
-	invoke_test([](auto x) { return cos(x); }, std::span{test_vals}, T{1.0e-3}, T{2.0e-6});
+	invoke_test([](auto x) { return cos(x); }, std::span{test_vals});
 	using dpm::tan;
 	using std::tan;
-	invoke_test([](auto x) { return tan(x); }, std::span{test_vals}, T{1.0e-3}, T{2.0e-6});
+	invoke_test([](auto x) { return tan(x); }, std::span{test_vals});
 	using dpm::asin;
 	using std::asin;
-	invoke_test([](auto x) { return asin(x); }, std::span{test_vals}, T{1.0e-3}, T{1.0e-7});
+	invoke_test([](auto x) { return asin(x); }, std::span{test_vals});
 	using dpm::acos;
 	using std::acos;
-	invoke_test([](auto x) { return acos(x); }, std::span{test_vals}, T{1.0e-3}, T{1.0e-7});
+	invoke_test([](auto x) { return acos(x); }, std::span{test_vals});
 	using dpm::atan;
 	using std::atan;
-	invoke_test([](auto x) { return atan(x); }, std::span{test_vals}, T{1.0e-3}, T{1.0e-7});
+	invoke_test([](auto x) { return atan(x); }, std::span{test_vals});
 
 	/* TODO: If DPM_HANDLE_ERRORS is set and fp exceptions are used, check exceptions. */
 }
