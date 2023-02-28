@@ -329,6 +329,16 @@ namespace dpm::detail
 	}
 #endif
 
+	template<typename T, typename V, typename... Args, typename F, typename... Vs>
+	[[nodiscard]] DPM_FORCEINLINE void mask_invoke(F f, std::size_t m, Vs &&...args) noexcept requires (sizeof...(Args) == sizeof...(Vs))
+	{
+		for (std::size_t i = 0; i < sizeof(V) / sizeof(T) && m; ++i, m >>= 1)
+		{
+			if ((m & 1) == 0) continue;
+			f(reinterpret_cast<alias_t<std::remove_reference_t<Args>> *>(&args)[i]...);
+		}
+	}
+
 	template<typename To, typename From, typename VTo, typename VFrom>
 	DPM_FORCEINLINE void cast_copy(VTo &dst, const VFrom &src) noexcept requires (!std::same_as<To, From> && !(std::integral<To> && std::integral<From> && sizeof(To) == sizeof(From)))
 	{

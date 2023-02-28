@@ -10,6 +10,31 @@
 
 namespace dpm::detail
 {
+	template<std::signed_integral T>
+	[[nodiscard]] DPM_FORCEINLINE __m128 cvt_has_overflow(__m128 x_abs) noexcept
+	{
+		constexpr auto max = static_cast<float>(T{1} << std::min(22, std::numeric_limits<T>::digits));
+		return _mm_cmpgt_ps(x_abs, _mm_set1_ps(max));
+	}
+	template<std::unsigned_integral T>
+	[[nodiscard]] DPM_FORCEINLINE __m128 cvt_has_overflow(__m128 x_abs) noexcept
+	{
+		constexpr auto max = static_cast<float>(T{1} << std::min(23, std::numeric_limits<T>::digits));
+		return _mm_cmpgt_ps(x_abs, _mm_set1_ps(max));
+	}
+	template<std::signed_integral T>
+	[[nodiscard]] DPM_FORCEINLINE __m128d cvt_has_overflow(__m128d x_abs) noexcept
+	{
+		constexpr auto max = static_cast<double>(T{1} << std::min(51, std::numeric_limits<T>::digits));
+		return _mm_cmpgt_pd(x_abs, _mm_set1_pd(max));
+	}
+	template<std::unsigned_integral T>
+	[[nodiscard]] DPM_FORCEINLINE __m128d cvt_has_overflow(__m128d x_abs) noexcept
+	{
+		constexpr auto max = static_cast<double>(T{1} << std::min(52, std::numeric_limits<T>::digits));
+		return _mm_cmpgt_pd(x_abs, _mm_set1_pd(max));
+	}
+
 	[[nodiscard]] DPM_FORCEINLINE __m128 cvt_u32_f32(__m128i x) noexcept
 	{
 		const auto a = _mm_cvtepi32_ps(_mm_and_si128(x, _mm_set1_epi32(1)));
@@ -177,6 +202,31 @@ namespace dpm::detail
 	}
 
 #ifdef DPM_HAS_AVX
+	template<std::signed_integral T>
+	[[nodiscard]] DPM_FORCEINLINE __m256 cvt_has_overflow(__m256 x_abs) noexcept
+	{
+		constexpr auto max = static_cast<float>(T{1} << std::min(22, std::numeric_limits<T>::digits));
+		return _mm256_cmp_ps(x_abs, _mm256_set1_ps(max), _CMP_GT_OQ);
+	}
+	template<std::unsigned_integral T>
+	[[nodiscard]] DPM_FORCEINLINE __m256 cvt_has_overflow(__m256 x_abs) noexcept
+	{
+		constexpr auto max = static_cast<float>(T{1} << std::min(23, std::numeric_limits<T>::digits));
+		return _mm256_cmp_ps(x_abs, _mm256_set1_ps(max), _CMP_GT_OQ);
+	}
+	template<std::signed_integral T>
+	[[nodiscard]] DPM_FORCEINLINE __m256d cvt_has_overflow(__m256d x_abs) noexcept
+	{
+		constexpr auto max = static_cast<double>(T{1} << std::min(51, std::numeric_limits<T>::digits));
+		return _mm256_cmp_pd(x_abs, _mm256_set1_pd(max), _CMP_GT_OQ);
+	}
+	template<std::unsigned_integral T>
+	[[nodiscard]] DPM_FORCEINLINE __m256d cvt_has_overflow(__m256d x_abs) noexcept
+	{
+		constexpr auto max = static_cast<double>(T{1} << std::min(52, std::numeric_limits<T>::digits));
+		return _mm256_cmp_pd(x_abs, _mm256_set1_pd(max), _CMP_GT_OQ);
+	}
+
 	[[nodiscard]] DPM_FORCEINLINE __m256i cvt_f32_u32(__m256 x) noexcept
 	{
 		const auto offset = _mm256_set1_ps(0x40'0000);

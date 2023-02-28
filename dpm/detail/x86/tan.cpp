@@ -44,7 +44,17 @@ namespace dpm::detail
 		}
 
 		/* Select correct result & handle NaN. */
-		return blendv<T>(p1, p2, p_mask);
+		auto y = blendv<T>(p1, p2, p_mask);
+
+		/* Handle exceptional cases. */
+#ifdef DPM_HANDLE_ERRORS
+		if (const auto m = movemask<I>(cvt_has_overflow<I>(abs_x)); m) [[unlikely]]
+		{
+			constexpr auto special = [](T &y, T x) { y = std::tan(x); };
+			mask_invoke<T, V, T &, T>(special, m, y, x);
+		}
+#endif
+		return y;
 	}
 
 	[[nodiscard]] __m128 DPM_MATHFUNC tan(__m128 x) noexcept { return impl_tan<float>(x); }

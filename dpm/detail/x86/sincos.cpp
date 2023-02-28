@@ -8,6 +8,10 @@
 #endif
 #endif
 
+#if defined(__GNUC__) && !defined(_GNU_SOURCE)
+#define _GNU_SOURCE
+#endif
+
 #include "trig.hpp"
 
 #if defined(DPM_ARCH_X86) && defined(DPM_HAS_SSE2) && !defined(DPM_USE_SVML)
@@ -25,7 +29,32 @@ namespace dpm::detail
 		if (const auto m = isinf_abs(abs_x); test_mask(m))
 			[[unlikely]] abs_x = except_invalid<T>(abs_x, abs_x, m);
 #endif
-		return eval_sincos<T, Op>(sign_x, abs_x);
+
+		auto y = eval_sincos<T, Op>(sign_x, abs_x);
+
+		/* Handle exceptional cases. */
+#ifdef DPM_HANDLE_ERRORS
+		if (const auto m = movemask<I>(cvt_has_overflow<I>(abs_x)); m) [[unlikely]]
+		{
+			const auto special = [](T x, T &out_sin, T &out_cos)
+			{
+#ifdef _GNU_SOURCE
+				if constexpr (Op == sincos_op::OP_SINCOS)
+				{
+					if constexpr (std::same_as<T, float>)
+						::sincosf(x, &out_sin, &out_cos);
+					else
+						::sincos(x, &out_sin, &out_cos);
+					return;
+				}
+#endif
+				if constexpr (Op & sincos_op::OP_SIN) out_sin = std::sin(x);
+				if constexpr (Op & sincos_op::OP_COS) out_cos = std::cos(x);
+			};
+			mask_invoke<T, V, T, T &, T &>(special, m, x, y.sin, y.cos);
+		}
+#endif
+		return y;
 	}
 
 	sincos_ret<__m128> DPM_MATHFUNC sincos(__m128 x) noexcept { return impl_sincos<float, sincos_op::OP_SINCOS>(x); }
