@@ -3,14 +3,22 @@ cmake_minimum_required(VERSION 3.19)
 include_directories(${CMAKE_CURRENT_LIST_DIR}/..)
 enable_testing()
 
+macro(make_test NAME FILE)
+    set(TEST_PROJECT "dpm-tests-${NAME}")
+    add_executable(${TEST_PROJECT} ${FILE})
+    target_link_libraries(${TEST_PROJECT} PRIVATE dpm)
+
+    # Enable max error reporting
+    if (MSVC)
+        target_compile_options(${TEST_PROJECT} PUBLIC /W3 /WX)
+    else ()
+        target_compile_options(${TEST_PROJECT} PUBLIC -Wall -Wextra -Wpedantic -Werror -Wno-unknown-pragmas -Wno-logical-not-parentheses -ftemplate-backtrace-limit=0)
+    endif ()
+
+    add_test(NAME ${NAME} COMMAND "$<TARGET_FILE:${TEST_PROJECT}>")
+endmacro()
+
 project(dpm-tests)
 
-add_executable(${PROJECT_NAME} ${CMAKE_CURRENT_LIST_DIR}/main.cpp)
-target_link_libraries(${PROJECT_NAME} PRIVATE dpm)
-
-# Enable max error reporting
-if (MSVC)
-    target_compile_options(${PROJECT_NAME} PUBLIC /W3 /WX)
-else ()
-    target_compile_options(${PROJECT_NAME} PUBLIC -Wall -Wextra -Wpedantic -Werror -Wno-unknown-pragmas -Wno-logical-not-parentheses)
-endif ()
+make_test(shuffle ${CMAKE_CURRENT_LIST_DIR}/test_shuffle.cpp)
+make_test(blend ${CMAKE_CURRENT_LIST_DIR}/test_blend.cpp)

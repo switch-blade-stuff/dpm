@@ -80,44 +80,44 @@ namespace dpm::detail
 	template<typename, std::size_t...>
 	struct reverse_sequence;
 	template<std::size_t I, std::size_t... Js>
-	struct reverse_sequence<std::index_sequence<Js...>, I> : std::index_sequence<I, Js...> {};
+	struct reverse_sequence<std::index_sequence<Js...>, I> { using type = std::index_sequence<I, Js...>; };
 	template<std::size_t I, std::size_t... Is, std::size_t... Js>
 	struct reverse_sequence<std::index_sequence<Js...>, I, Is...> : reverse_sequence<std::index_sequence<I, Js...>, Is...> {};
 	template<std::size_t... Is>
-	using reverse_sequence_t = reverse_sequence<std::index_sequence<>, Is...>;
+	using reverse_sequence_t = typename reverse_sequence<std::index_sequence<>, Is...>::type;
 
 	template<typename, typename, std::size_t, std::size_t, std::size_t...>
 	struct extract_sequence;
 	template<std::size_t P, std::size_t N, std::size_t... Is, std::size_t... Js, std::size_t... Ks> requires (sizeof...(Js) == P && sizeof...(Ks) == N)
-	struct extract_sequence<std::index_sequence<Js...>, std::index_sequence<Ks...>, P, N, Is...> : std::index_sequence<Ks...> {};
+	struct extract_sequence<std::index_sequence<Js...>, std::index_sequence<Ks...>, P, N, Is...> { using type = std::index_sequence<Ks...>; };
 	template<std::size_t P, std::size_t N, std::size_t I, std::size_t... Is, std::size_t... Js, std::size_t... Ks> requires (sizeof...(Js) == P && sizeof...(Ks) != N)
 	struct extract_sequence<std::index_sequence<Js...>, std::index_sequence<Ks...>, P, N, I, Is...> : extract_sequence<std::index_sequence<Js...>, std::index_sequence<Ks..., I>, P, N, Is...> {};
 	template<std::size_t P, std::size_t N, std::size_t I, std::size_t... Is, std::size_t... Js, std::size_t... Ks> requires (sizeof...(Js) != P && sizeof...(Ks) != N)
 	struct extract_sequence<std::index_sequence<Js...>, std::index_sequence<Ks...>, P, N, I, Is...> : extract_sequence<std::index_sequence<I, Js...>, std::index_sequence<Ks...>, P, N, Is...> {};
 	template<std::size_t Pos, std::size_t N, std::size_t... Is>
-	using extract_sequence_t = extract_sequence<std::index_sequence<>, std::index_sequence<>, Pos, N, Is...>;
+	using extract_sequence_t = typename extract_sequence<std::index_sequence<>, std::index_sequence<>, Pos, N, Is...>::type;
 
 	template<typename, std::size_t, std::size_t, std::size_t, std::size_t...>
 	struct repeat_sequence;
 	template<std::size_t N, std::size_t Off, std::size_t I, std::size_t... Js>
-	struct repeat_sequence<std::index_sequence<Js...>, N, Off, N, I> : std::index_sequence<Js...> {};
+	struct repeat_sequence<std::index_sequence<Js...>, N, Off, N, I> { using type = std::index_sequence<Js...>; };
 	template<std::size_t N, std::size_t Off, std::size_t I, std::size_t... Is, std::size_t... Js>
 	struct repeat_sequence<std::index_sequence<Js...>, N, Off, N, I, Is...> : repeat_sequence<std::index_sequence<Js...>, N, Off, 0, Is...> {};
 	template<std::size_t N, std::size_t Off, std::size_t J, std::size_t I, std::size_t... Is, std::size_t... Js>
 	struct repeat_sequence<std::index_sequence<Js...>, N, Off, J, I, Is...> : repeat_sequence<std::index_sequence<Js..., I * N + (N - J - 1) * Off>, N, Off, J + 1, I, Is...> {};
 	template<std::size_t N, std::size_t Off, std::size_t... Is>
-	using repeat_sequence_t = repeat_sequence<std::index_sequence<>, N, Off, 0, Is...>;
+	using repeat_sequence_t = typename repeat_sequence<std::index_sequence<>, N, Off, 0, Is...>::type;
 
 	template<typename, std::size_t, std::size_t, std::size_t...>
 	struct pad_sequence;
 	template<std::size_t N, std::size_t Inc, std::size_t I, std::size_t... Js> requires (sizeof...(Js) >= N)
-	struct pad_sequence<std::index_sequence<Js...>, N, Inc, I> : std::index_sequence<Js...> {};
+	struct pad_sequence<std::index_sequence<Js...>, N, Inc, I> { using type = std::index_sequence<Js...>; };
 	template<std::size_t N, std::size_t Inc, std::size_t I, std::size_t... Js>
 	struct pad_sequence<std::index_sequence<Js...>, N, Inc, I> : pad_sequence<std::index_sequence<Js..., I>, N, Inc, I + Inc> {};
 	template<std::size_t N, std::size_t Inc, std::size_t I, std::size_t... Is, std::size_t... Js>
 	struct pad_sequence<std::index_sequence<Js...>, N, Inc, I, Is...> : pad_sequence<std::index_sequence<Js..., I>, N, Inc, Is...> {};
 	template<std::size_t N, std::size_t Inc, std::size_t... Is>
-	using pad_sequence_t = pad_sequence<std::index_sequence<>, N, Inc, Is...>;
+	using pad_sequence_t = typename pad_sequence<std::index_sequence<>, N, Inc, Is...>::type;
 
 	template<std::size_t I, std::size_t... Is>
 	constexpr void copy_elements(std::index_sequence<I, Is...>, auto *dst, const auto *src) noexcept

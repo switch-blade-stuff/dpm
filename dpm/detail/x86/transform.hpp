@@ -98,8 +98,8 @@ namespace dpm::detail
 			return std::bit_cast<V>(_mm_shuffle_ps(va, vb, (shuffle4_mask<I3 % 4, I2 % 4, I1 % 4, I0 % 4>())));
 		else
 		{
-			const auto a = _mm_shuffle_ps(va, va, (shuffle4_mask<I1 % 4, I1 % 4, I0 % 4, I0 % 4>()));
-			const auto b = _mm_shuffle_ps(va, va, (shuffle4_mask<I3 % 4, I3 % 4, I2 % 4, I2 % 4>()));
+			const auto a = _mm_shuffle_ps(std::bit_cast<__m128>(x[P0]), std::bit_cast<__m128>(x[P1]), (shuffle4_mask<I1 % 4, I1 % 4, I0 % 4, I0 % 4>()));
+			const auto b = _mm_shuffle_ps(std::bit_cast<__m128>(x[P2]), std::bit_cast<__m128>(x[P3]), (shuffle4_mask<I3 % 4, I3 % 4, I2 % 4, I2 % 4>()));
 			return std::bit_cast<V>(_mm_shuffle_ps(a, b, _MM_SHUFFLE(2, 0, 2, 0)));
 		}
 	}
@@ -373,6 +373,8 @@ namespace dpm::detail
 #endif
 
 #ifdef DPM_HAS_SSSE3
+	template<integral_of_size<1> T, std::size_t I, std::size_t... Is>
+	[[nodiscard]] DPM_FORCEINLINE __m128i shuffle(std::index_sequence<I, Is...>, const __m128i *x) noexcept requires (!sequence_shuffle<T, __m128i, I, Is...>);
 	template<std::size_t IA, std::size_t... IAs, std::size_t IB, std::size_t... IBs>
 	[[nodiscard]] DPM_FORCEINLINE __m128i shuffle16pairs(std::index_sequence<IA, IAs...>, std::index_sequence<IB, IBs...>, const __m128i *x) noexcept
 	{
@@ -384,13 +386,13 @@ namespace dpm::detail
 			__m128i a, b;
 
 			if constexpr (J0)
-				a = _mm_shufflehi_epi16(x[IA / 16], ma);
+				a = _mm_shufflehi_epi16(x[IA / 8], ma);
 			else
-				a = _mm_shufflelo_epi16(x[IA / 16], ma);
+				a = _mm_shufflelo_epi16(x[IA / 8], ma);
 			if constexpr (J1)
-				b = _mm_shufflehi_epi16(x[IB / 16], mb);
+				b = _mm_shufflehi_epi16(x[IB / 8], mb);
 			else
-				b = _mm_shufflelo_epi16(x[IB / 16], mb);
+				b = _mm_shufflelo_epi16(x[IB / 8], mb);
 			return std::bit_cast<__m128i>(_mm_shuffle_pd(std::bit_cast<__m128d>(b), std::bit_cast<__m128d>(a), (shuffle2_mask<J0, J1>())));
 		}
 		else
@@ -646,8 +648,8 @@ namespace dpm::detail
 			dst[J] = shuffle<T>(reverse_sequence_t<Is...>{}, reinterpret_cast<const VTo *>(src));
 		else if constexpr (sizeof...(Is) > native_extent)
 		{
-			shuffle<T, J + 1>(extract_sequence_t<next_pos, sizeof...(Is) - native_extent, Is...>{}, dst, src);
 			shuffle<T, J>(extract_sequence_t<base_pos, native_extent, Is...>{}, dst, src);
+			shuffle<T, J>(extract_sequence_t<next_pos, sizeof...(Is) - native_extent, Is...>{}, dst + 1, src);
 		}
 		else
 			shuffle<T, J>(pad_sequence_t<native_extent, 1, Is...>{}, dst, src);
