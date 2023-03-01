@@ -107,8 +107,7 @@ namespace dpm
 		{
 			__m256i tmp;
 			x = frexp(x, tmp);
-			auto *out128 = reinterpret_cast<__m128i *>(out);
-			out128[i] = cvt_i64_i32(tmp);
+			out[i] = cvt_i64_i32(tmp);
 			return x;
 		}
 		[[nodiscard]] DPM_FORCEINLINE __m256d frexp(__m256d x, __m256i *out, std::size_t i) noexcept { return frexp(x, reinterpret_cast<__m128i *>(out), i); }
@@ -117,7 +116,7 @@ namespace dpm
 			__m256i tmp0, tmp1;
 			x0 = frexp(x0, tmp0);
 			x1 = frexp(x1, tmp1);
-			out[i] = cvt_i64x2_i32(tmp0, tmp1);
+			out[i / 2] = cvt_i64x2_i32(tmp0, tmp1);
 		}
 
 		[[nodiscard]] __m256 DPM_PUBLIC DPM_MATHFUNC scalbn(__m256 x, __m256i exp) noexcept;
@@ -195,8 +194,8 @@ namespace dpm
 
 		std::size_t i = 0;
 		constexpr auto native_size = ext::native_data_size_v<detail::x86_simd<T, N, A>>;
-		if constexpr (sizeof(T) > sizeof(int)) for (; i + 1 < native_size; i += 2)
-				result_data[i] = detail::frexp2(x_data[i], x_data[i + 1], exp_data.data(), i);
+		if constexpr (sizeof(T) > sizeof(int) && ext::native_data_size_v<detail::x86_simd<int, N, A>> < native_size)
+			for (; i + 1 < native_size; i += 2) detail::frexp2((result_data[i] = x_data[i]), (result_data[i + 1] = x_data[i + 1]), exp_data.data(), i);
 		for (; i < native_size; ++i) result_data[i] = detail::frexp(x_data[i], exp_data.data(), i);
 
 		return result;

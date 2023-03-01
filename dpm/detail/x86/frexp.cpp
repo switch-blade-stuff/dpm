@@ -26,20 +26,18 @@ namespace dpm::detail
 		const auto is_zero = cmp_eq<T>(x, setzero<V>());
 
 		/* off = is_subn ? mant_bits + 2 : 0 */
-		const auto off = bit_and(is_subn, fill<Vi>(mant_bits<I> + 2));
+		const auto off = bit_and(is_subn, fill<Vi>(std::numeric_limits<I>::digits));
 		auto norm_x = mul<T>(x, fill<V>(exp_mult<T>));
-		const auto norm_ix = std::bit_cast<Vi>(norm_x);
 		norm_x = blendv<T>(x, norm_x, std::bit_cast<V>(is_subn));
 		auto norm_exp = bit_and(std::bit_cast<Vi>(norm_x), fill<Vi>(exp_ones));
-		norm_exp = blendv<I>(exp_x, norm_exp, is_subn);
-		ix = blendv<I>(ix, norm_ix, is_subn);
+		ix = std::bit_cast<Vi>(norm_x);
 
 		/* norm_x = (ix & ~exp_bits) | exp_middle */
 		norm_x = std::bit_cast<V>(bit_or(bit_and(ix, fill<Vi>(~exp_ones)), fill<Vi>(exp_middle<I> << mant_bits<I>)));
 		norm_exp = sub<I>(sub<I>(bit_shiftr<I, mant_bits<I>>(norm_exp), fill<Vi>(exp_off<I> - 1)), off);
 
 		const auto not_fin_or_zero = bit_or(std::bit_cast<Vi>(is_zero), not_fin);
-		norm_x = blendv<T>(norm_x, add<T>(norm_x, norm_x), std::bit_cast<V>(not_fin_or_zero));
+		norm_x = blendv<T>(norm_x, x, std::bit_cast<V>(not_fin_or_zero));
 		out_exp = blendv<I>(norm_exp, exp_x, not_fin_or_zero);
 		return norm_x;
 	}

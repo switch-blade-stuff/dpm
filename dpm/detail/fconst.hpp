@@ -27,7 +27,7 @@ namespace dpm::detail
 	template<std::floating_point T>
 	static constexpr T exp_multm = std::same_as<T, float> ? T{2.9802322388e-08} : T{5.55111512312578270212e-17};
 	template<std::floating_point T>
-	static constexpr T exp_mult = std::same_as<T, float> ? T{3.355443200e+07} : T{1.80143985094819840000e+16};
+	static constexpr T exp_mult = std::same_as<T, float> ? T{3.355443200e+07} : T{0x1p64};
 
 	/* In some cases x86 intrinsics generate extraneous casts if literals are used with intrinsics. As such, define commonly used values here. */
 	template<std::floating_point T>
@@ -64,7 +64,7 @@ namespace dpm::detail
 	static constexpr T tiny = range_vals<T>::tiny;
 
 	template<typename T>
-	static constexpr T exp_middle = sizeof(T) == sizeof(double) ? 0x3fe : 0x3f;
+	static constexpr T exp_middle = sizeof(T) == sizeof(double) ? 0x3fe : 0x7e;
 	template<typename T>
 	static constexpr T exp_mask = sizeof(T) == sizeof(double) ? 0x7ff : 0xff;
 	template<typename T>
