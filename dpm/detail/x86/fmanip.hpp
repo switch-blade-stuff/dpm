@@ -45,7 +45,7 @@ namespace dpm
 			__m128i tmp0, tmp1;
 			x0 = frexp(x0, tmp0);
 			x1 = frexp(x1, tmp1);
-			out[i] = cvt_i64x2_i32(tmp0, tmp1);
+			out[i / 2] = cvt_i64x2_i32(tmp0, tmp1);
 		}
 
 		[[nodiscard]] __m128 DPM_PUBLIC DPM_MATHFUNC scalbn(__m128 x, __m128i exp) noexcept;
@@ -86,7 +86,7 @@ namespace dpm
 		{
 			const auto i0 = ilogb(x0);
 			const auto i1 = ilogb(x1);
-			out[i] = cvt_i64x2_i32(i0, i1);
+			out[i / 2] = cvt_i64x2_i32(i0, i1);
 		}
 
 #ifndef DPM_USE_SVML
