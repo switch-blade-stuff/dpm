@@ -4,6 +4,8 @@
 
 #include "common.hpp"
 
+#include <cstdio>
+
 template<typename T, typename Abi>
 static inline void test_frexp() noexcept
 {
@@ -27,6 +29,11 @@ static inline void test_frexp() noexcept
 		{
 			int se;
 			const auto s = std::frexp(test_vals[i], &se);
+
+			printf("=====================================\n");
+			printf("vector<%s>: %f == %f * 2 ^ %i\n", std::same_as<T, double> ? "double" : "float", test_vals[i], y[j], e[j]);
+			printf("scalar<%s>: %f == %f * 2 ^ %i\n", std::same_as<T, double> ? "double" : "float", test_vals[i], s, se);
+
 			TEST_ASSERT((e[j] == se && almost_equal(y[j], s, std::numeric_limits<T>::epsilon())) ||
 			            (std::isinf(y[j]) && std::isinf(s)) ||
 			            (std::isnan(y[j]) && std::isnan(s)));

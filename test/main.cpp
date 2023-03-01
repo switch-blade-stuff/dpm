@@ -7,10 +7,6 @@
 #define DPM_HANDLE_ERRORS
 #endif
 
-#ifndef _MSC_VER /* MSVC does not support STDC pragmas */
-#pragma STDC FENV_ACCESS ON
-#endif
-
 #include <dpm/simd.hpp>
 
 #define TEST_ASSERT(x) DPM_ASSERT_ALWAYS(x)
@@ -111,7 +107,7 @@ static inline void test_exp() noexcept
 				for (std::size_t j = 0; i < N && j < simd_size; ++j, ++i)
 				{
 					const auto a = f(dpm::simd<T, dpm::simd_abi::scalar>{vals[i]});
-					TEST_ASSERT(almost_equal(v[j], a[0], rel_eps, eps) || (std::isnan(v[j]) && std::isnan(a[0])));
+					TEST_ASSERT(almost_equal(v[j], a[0], rel_eps, eps));
 				}
 			}
 		};
@@ -146,7 +142,7 @@ static inline void test_trig() noexcept
 				for (std::size_t j = 0; i < N && j < simd_size; ++j, ++i)
 				{
 					const auto a = f(dpm::simd<T, dpm::simd_abi::scalar>{vals[i]});
-					TEST_ASSERT(almost_equal(v[j], a[0], rel_eps, eps) || (std::isnan(v[j]) && std::isnan(a[0])));
+					TEST_ASSERT(almost_equal(v[j], a[0], rel_eps, eps));
 				}
 			}
 		};
@@ -243,7 +239,7 @@ static inline void test_nextafter() noexcept
 		TEST_ASSERT(test_err(FE_UNDERFLOW, ERANGE));
 		TEST_ASSERT(c[0] = std::nextafter(a[0], b[0]));
 
-		clear_err();
+		std::feclearexcept(FE_ALL_EXCEPT);
 		a = {a2_data[1]};
 		b = {b2_data[1]};
 		c = dpm::nextafter(a, b);

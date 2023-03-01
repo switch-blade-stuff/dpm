@@ -2,20 +2,16 @@
  * Created by switchblade on 2023-02-20.
  */
 
-#ifdef DPM_HANDLE_ERRORS
-#ifndef _MSC_VER /* MSVC does not support STDC pragmas */
-#pragma STDC FENV_ACCESS ON
-#endif
-#endif
-
 #include "fmanip.hpp"
+
+#include <cstdio>
 
 #if defined(DPM_ARCH_X86) && defined(DPM_HAS_SSE2)
 
 namespace dpm::detail
 {
 	template<typename T, typename V, typename I = int_of_size_t<sizeof(T)>, typename Vi = select_vector_t<I, sizeof(V)>>
-	[[nodiscard]] DPM_FORCEINLINE V impl_frexp(V x, Vi &out_exp)
+	[[nodiscard]] DPM_FORCEINLINE std::pair<V, Vi> impl_frexp(V x)
 	{
 		constexpr auto exp_ones = exp_mask<I> << mant_bits<I>;
 		auto ix = std::bit_cast<Vi>(x);
@@ -38,15 +34,31 @@ namespace dpm::detail
 
 		const auto not_fin_or_zero = bit_or(std::bit_cast<Vi>(is_zero), not_fin);
 		norm_x = blendv<T>(norm_x, x, std::bit_cast<V>(not_fin_or_zero));
-		out_exp = blendv<I>(norm_exp, exp_x, not_fin_or_zero);
-		return norm_x;
+		norm_exp = blendv<I>(norm_exp, exp_x, not_fin_or_zero);
+		return {norm_x, norm_exp};
 	}
 
-	__m128 DPM_MATHFUNC frexp(__m128 x, __m128i &out_exp) noexcept { return impl_frexp<float>(x, out_exp); }
-	__m128d DPM_MATHFUNC frexp(__m128d x, __m128i &out_exp) noexcept { return impl_frexp<double>(x, out_exp); }
+	vec2_return_t<__m128, __m128i> DPM_PURE DPM_VECTORCALL frexp_f32x4(__m128 x) noexcept
+	{
+		const auto [y, e] = impl_frexp<float>(x);
+		return vec2_return(y, e);
+	}
+	vec2_return_t<__m128d, __m128i> DPM_PURE DPM_VECTORCALL frexp_f64x2(__m128d x) noexcept
+	{
+		const auto [y, e] = impl_frexp<double>(x);
+		return vec2_return(y, e);
+	}
 #ifdef DPM_HAS_AVX
-	__m256 DPM_MATHFUNC frexp(__m256 x, __m256i &out_exp) noexcept { return impl_frexp<float>(x, out_exp); }
-	__m256d DPM_MATHFUNC frexp(__m256d x, __m256i &out_exp) noexcept { return impl_frexp<double>(x, out_exp); }
+	vec2_return_t<__m256, __m256i> DPM_PURE DPM_VECTORCALL frexp_f32x8(__m256 x) noexcept
+	{
+		const auto [y, e] = impl_frexp<float>(x);
+		return vec2_return(y, e);
+	}
+	vec2_return_t<__m256d, __m256i> DPM_PURE DPM_VECTORCALL frexp_f64x4(__m256d x) noexcept
+	{
+		const auto [y, e] = impl_frexp<double>(x);
+		return vec2_return(y, e);
+	}
 #endif
 }
 

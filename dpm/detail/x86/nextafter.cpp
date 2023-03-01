@@ -2,12 +2,6 @@
  * Created by switchblade on 2023-02-20.
  */
 
-#ifdef DPM_HANDLE_ERRORS
-#ifndef _MSC_VER /* MSVC does not support STDC pragmas */
-#pragma STDC FENV_ACCESS ON
-#endif
-#endif
-
 #include "fmanip.hpp"
 
 #if defined(DPM_ARCH_X86) && defined(DPM_HAS_SSE2)
@@ -30,10 +24,6 @@ namespace dpm::detail
 		const auto x_off = bit_or(fill<Vi>(I{1}), sub_mask);
 		/* ix = ax == 0 ? y_sign | 1 : ix + x_off */
 		ia = blendv<I>(add<I>(ia, x_off), bit_or(b_sign, fill<Vi>(I{1})), zero_mask);
-
-		/* raise overflow if ix is infinite and a is finite & return NaN if any is NaN. */
-		const auto inf_exp = fill<Vi>(exp_mask<I> << mant_bits<I>);
-		const auto exp = bit_and(ia, inf_exp);
 		auto c = std::bit_cast<V>(ia);
 
 		/* Check domain & propagate NaN */
@@ -42,26 +32,6 @@ namespace dpm::detail
 		/* c = isnan(a) || isnan(b) ? a | b : c */
 		const auto nan_mask = isunord(a, b);
 		c = blendv<T>(c, bit_or(a, b), nan_mask);
-#if defined(DPM_HANDLE_ERRORS) && math_errhandling
-		int error = 0;
-		/* Raise overflow if exp == inf */
-		const auto oflow_mask = std::bit_cast<V>(cmp_eq<I>(exp, inf_exp));
-		if (test_mask(bit_andnot(nan_mask, oflow_mask))) [[unlikely]] error |= FE_OVERFLOW;
-		/* Raise underflow if exp == 0 */
-		const auto uflow_mask = std::bit_cast<V>(cmp_eq<I>(exp, setzero<Vi>()));
-		if (test_mask(bit_andnot(eq_mask, uflow_mask))) [[unlikely]] error |= FE_UNDERFLOW;
-
-		/* Cannot use except_oflow & except_uflow, as we would have to discard the results. */
-		if (error != 0) [[unlikely]]
-		{
-#if math_errhandling & MATH_ERREXCEPT
-			std::feraiseexcept(error);
-#endif
-#if math_errhandling & MATH_ERRNO
-			errno = ERANGE;
-#endif
-		}
-#endif
 #endif
 		/* return a == b ? b : c */
 		return blendv<T>(c, b, eq_mask);

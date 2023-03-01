@@ -28,14 +28,14 @@ namespace dpm
 #endif
 
 #ifdef DPM_HAS_SSE2
-		[[nodiscard]] __m128 DPM_PUBLIC DPM_MATHFUNC frexp(__m128 x, __m128i &out_exp) noexcept;
-		[[nodiscard]] __m128d DPM_PUBLIC DPM_MATHFUNC frexp(__m128d x, __m128i &out_exp) noexcept;
+		[[nodiscard]] vec2_return_t<__m128, __m128i> DPM_PUBLIC DPM_MATHFUNC frexp_f32x4(__m128 x) noexcept;
+		[[nodiscard]] vec2_return_t<__m128d, __m128i> DPM_PUBLIC DPM_MATHFUNC frexp_f64x2(__m128d x) noexcept;
 
-		[[nodiscard]] DPM_FORCEINLINE __m128 frexp(__m128 x, __m128i *out, std::size_t i) noexcept { return frexp(x, out[i]); }
+		[[nodiscard]] DPM_FORCEINLINE __m128 frexp(__m128 x, __m128i *out, std::size_t i) noexcept { return vec2_call(frexp_f32x4, x, out[i]); }
 		[[nodiscard]] DPM_FORCEINLINE __m128d frexp(__m128d x, __m128i *out, std::size_t i) noexcept
 		{
 			__m128i tmp;
-			x = frexp(x, tmp);
+			x = vec2_call(frexp_f64x2, x, tmp);
 			auto *out64 = reinterpret_cast<alias_t<double> *>(out);
 			out64[i] = _mm_cvtsd_f64(std::bit_cast<__m128d>(cvt_i64_i32(tmp)));
 			return x;
@@ -43,8 +43,8 @@ namespace dpm
 		DPM_FORCEINLINE void frexp2(__m128d &x0, __m128d &x1, __m128i *out, std::size_t i) noexcept
 		{
 			__m128i tmp0, tmp1;
-			x0 = frexp(x0, tmp0);
-			x1 = frexp(x1, tmp1);
+			x0 = vec2_call(frexp_f64x2, x0, tmp0);
+			x1 = vec2_call(frexp_f64x2, x1, tmp1);
 			out[i / 2] = cvt_i64x2_i32(tmp0, tmp1);
 		}
 
@@ -70,8 +70,11 @@ namespace dpm
 		}
 		[[nodiscard]] DPM_FORCEINLINE __m128d scalbn64(__m128d x, const __m128i *exp, std::size_t i) noexcept { return scalbn(x, exp[i]); }
 
-		[[nodiscard]] __m128 DPM_PUBLIC DPM_MATHFUNC modf(__m128 x, __m128 &i) noexcept;
-		[[nodiscard]] __m128d DPM_PUBLIC DPM_MATHFUNC modf(__m128d x, __m128d &i) noexcept;
+		[[nodiscard]] vec2_return_t<__m128, __m128> DPM_PUBLIC DPM_MATHFUNC modf_f32x4(__m128 x) noexcept;
+		[[nodiscard]] vec2_return_t<__m128d, __m128d> DPM_PUBLIC DPM_MATHFUNC modf_f64x2(__m128d x) noexcept;
+
+		[[nodiscard]] DPM_FORCEINLINE __m128 modf(__m128 x, __m128 &i) noexcept { return vec2_call(modf_f32x4, x, i); }
+		[[nodiscard]] DPM_FORCEINLINE __m128d modf(__m128d x, __m128d &i) noexcept { return vec2_call(modf_f64x2, x, i);}
 
 		[[nodiscard]] __m128i DPM_PUBLIC DPM_MATHFUNC ilogb(__m128 x) noexcept;
 		[[nodiscard]] __m128i DPM_PUBLIC DPM_MATHFUNC ilogb(__m128d x) noexcept;
@@ -99,14 +102,14 @@ namespace dpm
 #endif
 
 #ifdef DPM_HAS_AVX
-		[[nodiscard]] __m256 DPM_PUBLIC DPM_MATHFUNC frexp(__m256 x, __m256i &out_exp) noexcept;
-		[[nodiscard]] __m256d DPM_PUBLIC DPM_MATHFUNC frexp(__m256d x, __m256i &out_exp) noexcept;
+		[[nodiscard]] vec2_return_t<__m256, __m256i> DPM_PUBLIC DPM_MATHFUNC frexp_f32x8(__m256 x) noexcept;
+		[[nodiscard]] vec2_return_t<__m256d, __m256i> DPM_PUBLIC DPM_MATHFUNC frexp_f64x4(__m256d x) noexcept;
 
-		[[nodiscard]] DPM_FORCEINLINE __m256 frexp(__m256 x, __m256i *out, std::size_t i) noexcept { return frexp(x, out[i]); }
+		[[nodiscard]] DPM_FORCEINLINE __m256 frexp(__m256 x, __m256i *out, std::size_t i) noexcept { return vec2_call(frexp_f32x8, x, out[i]); }
 		[[nodiscard]] DPM_FORCEINLINE __m256d frexp(__m256d x, __m128i *out, std::size_t i) noexcept
 		{
 			__m256i tmp;
-			x = frexp(x, tmp);
+			x = vec2_call(frexp_f64x4, x, tmp);
 			out[i] = cvt_i64_i32(tmp);
 			return x;
 		}
@@ -114,8 +117,8 @@ namespace dpm
 		DPM_FORCEINLINE void frexp2(__m256d &x0, __m256d &x1, __m256i *out, std::size_t i) noexcept
 		{
 			__m256i tmp0, tmp1;
-			x0 = frexp(x0, tmp0);
-			x1 = frexp(x1, tmp1);
+			x0 = vec2_call(frexp_f64x4, x0, tmp0);
+			x1 = vec2_call(frexp_f64x4, x1, tmp1);
 			out[i / 2] = cvt_i64x2_i32(tmp0, tmp1);
 		}
 
@@ -156,8 +159,11 @@ namespace dpm
 		}
 		[[nodiscard]] DPM_FORCEINLINE __m256d scalbn64(__m256d x, const __m256i *exp, std::size_t i) noexcept { return scalbn(x, exp[i]); }
 
-		[[nodiscard]] __m256 DPM_PUBLIC DPM_MATHFUNC modf(__m256 x, __m256 &i) noexcept;
-		[[nodiscard]] __m256d DPM_PUBLIC DPM_MATHFUNC modf(__m256d x, __m256d &i) noexcept;
+		[[nodiscard]] vec2_return_t<__m256, __m256> DPM_PUBLIC DPM_MATHFUNC modf_f32x8(__m256 x) noexcept;
+		[[nodiscard]] vec2_return_t<__m256d, __m256d> DPM_PUBLIC DPM_MATHFUNC modf_f64x4(__m256d x) noexcept;
+
+		[[nodiscard]] DPM_FORCEINLINE __m256 modf(__m256 x, __m256 &i) noexcept { return vec2_call(modf_f32x8, x, i); }
+		[[nodiscard]] DPM_FORCEINLINE __m256d modf(__m256d x, __m256d &i) noexcept { return vec2_call(modf_f64x4, x, i);}
 
 		[[nodiscard]] __m256i DPM_PUBLIC DPM_MATHFUNC ilogb(__m256 x) noexcept;
 		[[nodiscard]] __m256i DPM_PUBLIC DPM_MATHFUNC ilogb(__m256d x) noexcept;
@@ -223,19 +229,18 @@ namespace dpm
 	template<std::floating_point T, std::size_t N, std::size_t A>
 	[[nodiscard]] DPM_FORCEINLINE detail::x86_simd<T, N, A> scalbln(const detail::x86_simd<T, N, A> &x, const detail::x86_simd<long, N, A> &exp) noexcept requires detail::x86_overload_any<T, N, A> && detail::x86_overload_any<long, N, A>
 	{
-			detail::x86_simd <T, N, A> result = {};
-			auto result_data = ext::to_native_data(result);
-			const auto exp_data = ext::to_native_data(exp);
-			const auto x_data = ext::to_native_data(x);
-			for (std::size_t i = 0; i < ext::native_data_size_v < detail::x86_simd < T, N, A >>; ++i)
-			{
-				if constexpr (sizeof(long) == sizeof(std::int64_t))
-					result_data[i] = detail::scalbn64(x_data[i], exp_data.data(), i);
-				else
-					result_data[i] = detail::scalbn32(x_data[i], exp_data.data(), i);
-
-			}
-			return result;
+		detail::x86_simd<T, N, A> result = {};
+		auto result_data = ext::to_native_data(result);
+		const auto exp_data = ext::to_native_data(exp);
+		const auto x_data = ext::to_native_data(x);
+		for (std::size_t i = 0; i < ext::native_data_size_v<detail::x86_simd<T, N, A >>; ++i)
+		{
+			if constexpr (sizeof(long) == sizeof(std::int64_t))
+				result_data[i] = detail::scalbn64(x_data[i], exp_data.data(), i);
+			else
+				result_data[i] = detail::scalbn32(x_data[i], exp_data.data(), i);
+		}
+		return result;
 	}
 
 	/** Decomposes elements of vector \a x into integral and fractional parts, returning the fractional and storing the integral in \a iptr. */

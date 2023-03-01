@@ -28,14 +28,11 @@ static inline void test_trig() noexcept
 	{
 		for (std::size_t i = 0; i < test_vals.size() - simd_size;)
 		{
-			dpm::simd<T, Abi> v = {};
-			v.copy_from(test_vals.data() + i, dpm::element_aligned);
-			v = f(v);
-
+			const auto v = f(dpm::simd<T, Abi>{test_vals.data() + i, dpm::element_aligned});
 			for (std::size_t j = 0; i < test_vals.size() - simd_size && j < simd_size; ++j, ++i)
 			{
 				const auto s = f(test_vals[i]);
-				TEST_ASSERT(almost_equal(v[j], s, max_err, min_err) || (std::isnan(v[j]) && std::isnan(s)));
+				TEST_ASSERT(almost_equal(v[j], s, max_err, min_err));
 			}
 		}
 	};
@@ -58,8 +55,6 @@ static inline void test_trig() noexcept
 	using dpm::atan;
 	using std::atan;
 	invoke_test([](auto x) { return atan(x); });
-
-	/* TODO: If DPM_HANDLE_ERRORS is set and fp exceptions are used, check exceptions. */
 }
 template<typename T>
 static void test_trig() noexcept

@@ -95,10 +95,10 @@ namespace dpm
 		constexpr simd_mask(const native_type (&native)[data_size]) noexcept { std::copy_n(native, data_size, m_data); }
 
 		/** Initializes the underlying elements with \a value. */
-		DPM_FORCEINLINE simd_mask(value_type value) noexcept { m_data.fill(value ? detail::setones<native_type>() : detail::setzero<native_type>()); }
+		DPM_FORCEINLINE simd_mask(value_type value) noexcept : m_data{} { m_data.fill(value ? detail::setones<native_type>() : detail::setzero<native_type>()); }
 		/** Copies elements from \a other. */
 		template<typename U, std::size_t OtherAlign>
-		DPM_FORCEINLINE simd_mask(const simd_mask<U, detail::avec<size(), OtherAlign>> &other) noexcept
+		DPM_FORCEINLINE simd_mask(const simd_mask<U, detail::avec<size(), OtherAlign>> &other) noexcept : m_data{}
 		{
 			if constexpr (std::same_as<U, value_type> && alignof(decltype(other)) >= alignment)
 				std::copy_n(reinterpret_cast<const native_type *>(ext::to_native_data(other).data()), data_size, m_data);
@@ -107,7 +107,7 @@ namespace dpm
 		}
 		/** Initializes the underlying elements from \a mem. */
 		template<typename Flags>
-		DPM_FORCEINLINE simd_mask(const value_type *mem, Flags) noexcept requires is_simd_flag_type_v<Flags> { copy_from(mem, Flags{}); }
+		DPM_FORCEINLINE simd_mask(const value_type *mem, Flags) noexcept requires is_simd_flag_type_v<Flags> : m_data{} { copy_from(mem, Flags{}); }
 
 		/** Copies the underlying elements from \a mem. */
 		template<typename Flags>
@@ -633,10 +633,10 @@ namespace dpm
 
 		/** Initializes the underlying elements with \a value. */
 		template<detail::compatible_element<value_type> U>
-		DPM_FORCEINLINE simd(U &&value) noexcept { m_data.fill(detail::fill<native_type>(static_cast<T>(value))); }
+		DPM_FORCEINLINE simd(U &&value) noexcept : m_data{} { m_data.fill(detail::fill<native_type>(static_cast<T>(value))); }
 		/** Initializes the underlying elements with values provided by the generator \a gen. */
 		template<detail::element_generator<value_type, size()> G>
-		DPM_FORCEINLINE simd(G &&gen) noexcept
+		DPM_FORCEINLINE simd(G &&gen) noexcept : m_data{}
 		{
 			const auto invoke_gen = [&]<std::size_t J>(std::integral_constant<std::size_t, J> i) -> T
 			{
@@ -658,7 +658,7 @@ namespace dpm
 
 		/** Copies elements from \a other. */
 		template<typename U, std::size_t OtherAlign>
-		DPM_FORCEINLINE simd(const simd<U, detail::avec<size(), OtherAlign>> &other) noexcept
+		DPM_FORCEINLINE simd(const simd<U, detail::avec<size(), OtherAlign>> &other) noexcept : m_data{}
 		{
 			if constexpr (constexpr auto other_alignment = alignof(decltype(other)); other_alignment >= alignof(native_type))
 				copy_from(reinterpret_cast<const detail::alias_t<U> *>(ext::to_native_data(other).data()), vector_aligned);
@@ -669,7 +669,7 @@ namespace dpm
 		}
 		/** Initializes the underlying elements from \a mem. */
 		template<typename U, typename Flags>
-		DPM_FORCEINLINE simd(const U *mem, Flags) noexcept requires is_simd_flag_type_v<Flags> { copy_from(mem, Flags{}); }
+		DPM_FORCEINLINE simd(const U *mem, Flags) noexcept requires is_simd_flag_type_v<Flags> : m_data{} { copy_from(mem, Flags{}); }
 
 		/** Copies the underlying elements from \a mem. */
 		template<typename U, typename Flags>

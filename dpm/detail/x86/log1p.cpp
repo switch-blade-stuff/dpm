@@ -2,12 +2,6 @@
  * Created by switchblade on 2023-02-20.
  */
 
-#ifdef DPM_HANDLE_ERRORS
-#ifndef _MSC_VER /* MSVC does not support STDC pragmas */
-#pragma STDC FENV_ACCESS ON
-#endif
-#endif
-
 #include "exp.hpp"
 
 #if defined(DPM_ARCH_X86) && defined(DPM_HAS_SSE2) && !defined(DPM_USE_SVML)
@@ -37,19 +31,9 @@ namespace dpm::detail
 		y = blendv<T>(x, y, isfinite_abs(x));
 #endif
 #ifdef DPM_HANDLE_ERRORS
-		/* log1p(subnormal x) == x + FE_UNDERFLOW */
+		/* log1p(subnormal x) == x */
 		const auto exp = bit_shiftr<I, mant_bits<I>>(std::bit_cast<Vi>(x));
-		const auto uflow_mask = cmp_eq<I>(exp, setzero<Vi>());
-		if (test_mask(uflow_mask) != 0) [[unlikely]]
-		{
-			/* Cannot use except_uflow, as we need to return x. */
-#if math_errhandling & MATH_ERREXCEPT
-			std::feraiseexcept(FE_UNDERFLOW);
-#endif
-#if math_errhandling & MATH_ERRNO
-			errno = ERANGE;
-#endif
-		}
+		y = blendv<T>(y, x, std::bit_cast<V>(cmp_eq<I>(exp, setzero<Vi>())));
 		/* log1p(-1) == inf + FE_DIVBYZERO */
 		const auto zero_mask = cmp_eq<T>(x, fill<V>(-one<T>));
 		if (test_mask(zero_mask)) [[unlikely]] y = except_divzero<T>(y, x, zero_mask);

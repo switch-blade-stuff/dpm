@@ -10,17 +10,11 @@
 
 #ifdef DPM_HANDLE_ERRORS
 
-#include <cerrno>
 #include <cfenv>
 
 #endif
 
-/* math_errhandling requires use of errno and/or floating-point exceptions. */
-#if defined(DPM_HANDLE_ERRORS) && math_errhandling
-#define DPM_MATHFUNC DPM_VECTORCALL
-#else
 #define DPM_MATHFUNC DPM_PURE DPM_VECTORCALL
-#endif
 
 namespace dpm
 {

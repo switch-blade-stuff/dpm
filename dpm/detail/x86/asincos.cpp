@@ -2,12 +2,6 @@
  * Created by switchblade on 2023-02-06.
  */
 
-#ifdef DPM_HANDLE_ERRORS
-#ifndef _MSC_VER /* MSVC does not support STDC pragmas */
-#pragma STDC FENV_ACCESS ON
-#endif
-#endif
-
 #include "trig.hpp"
 
 #if defined(DPM_ARCH_X86) && defined(DPM_HAS_SSE2) && !defined(DPM_USE_SVML)
@@ -31,7 +25,7 @@ namespace dpm::detail
 		a1 = sqrt(add<T>(a1, a1));
 		auto b1 = sub<T>(v_pio4, a1);
 		a1 = fmsub(a1, p1, fill<V>(asin_off<T>));
-		p1 = add<T>(sub<T>(b1, a1), v_pio4);
+		p1 = sub<T>(add<T>(b1, v_pio4), a1);
 
 		/* p2: abs(x) <= 0.625 */
 		const auto a2 = mul<T>(abs_x, abs_x);

@@ -185,9 +185,9 @@ namespace dpm::detail
 	}
 
 	template<typename V>
-	[[nodiscard]] DPM_FORCEINLINE V cvt_i32_f64(__m128i x) noexcept requires(sizeof(V) == 16) { return _mm_cvtepi32_pd(x); }
+	[[nodiscard]] DPM_FORCEINLINE V cvt_i32_f64(__m128i x) noexcept requires (sizeof(V) == 16) { return _mm_cvtepi32_pd(x); }
 	template<typename V>
-	[[nodiscard]] DPM_FORCEINLINE __m128i cvt_f64_i32(V x) noexcept requires(sizeof(V) == 16) { return _mm_cvtpd_epi32(x); }
+	[[nodiscard]] DPM_FORCEINLINE __m128i cvt_f64_i32(V x) noexcept requires (sizeof(V) == 16) { return _mm_cvtpd_epi32(x); }
 
 	[[nodiscard]] DPM_FORCEINLINE __m128i cvt_i64_i32(__m128i x) noexcept
 	{
@@ -198,7 +198,7 @@ namespace dpm::detail
 	{
 		const auto f0 = std::bit_cast<__m128>(i0);
 		const auto f1 = std::bit_cast<__m128>(i1);
-		return std::bit_cast<__m128i>(_mm_shuffle_ps(f0, f1, _MM_SHUFFLE(2,0,2,0)));
+		return std::bit_cast<__m128i>(_mm_shuffle_ps(f0, f1, _MM_SHUFFLE(2, 0, 2, 0)));
 	}
 
 #ifdef DPM_HAS_AVX
