@@ -32,8 +32,6 @@ static inline void test_frexp() noexcept
 			            (std::isnan(y[j]) && std::isnan(s)));
 		}
 	}
-
-	/* TODO: If DPM_HANDLE_ERRORS is set and fp exceptions are used, check exceptions. */
 }
 template<typename T>
 static void test_frexp() noexcept

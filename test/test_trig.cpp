@@ -40,7 +40,6 @@ static inline void test_trig() noexcept
 			std::numeric_limits<T>::quiet_NaN(),
 	};
 
-
 	using dpm::sin;
 	using std::sin;
 	invoke_test([](auto x) { return sin(x); }, std::span{test_vals});

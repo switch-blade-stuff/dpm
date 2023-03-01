@@ -169,7 +169,7 @@ namespace dpm
 		{
 			const auto i0 = ilogb(x0);
 			const auto i1 = ilogb(x1);
-			out[i] = cvt_i64x2_i32(i0, i1);
+			out[i / 2] = cvt_i64x2_i32(i0, i1);
 		}
 
 #ifndef DPM_USE_SVML
@@ -250,14 +250,14 @@ namespace dpm
 	template<std::floating_point T, std::size_t N, std::size_t A>
 	[[nodiscard]] DPM_FORCEINLINE detail::x86_simd<int, N, A> ilogb(const detail::x86_simd<T, N, A> &x) noexcept requires detail::x86_overload_any<T, N, A> && detail::x86_overload_any<int, N, A>
 	{
-		detail::x86_simd<T, N, A> result = {};
+		detail::x86_simd<int, N, A> result = {};
 		auto result_data = ext::to_native_data(result);
 		const auto x_data = ext::to_native_data(x);
 
 		std::size_t i = 0;
 		constexpr auto native_size = ext::native_data_size_v<detail::x86_simd<T, N, A>>;
-		if constexpr (sizeof(T) > sizeof(int)) for (; i + 1 < native_size; i += 2)
-				detail::ilogb2(x_data[i], x_data[i + 1], result_data.data(), i);
+		if constexpr (sizeof(T) > sizeof(int) && ext::native_data_size_v<detail::x86_simd<int, N, A>> < native_size)
+			for (; i + 1 < native_size; i += 2) detail::ilogb2(x_data[i], x_data[i + 1], result_data.data(), i);
 		for (; i < native_size; ++i) detail::ilogb(x_data[i], result_data.data(), i);
 
 		return result;
