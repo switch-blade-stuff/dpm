@@ -47,10 +47,12 @@ static void test_mask_shuffle() noexcept
 	test_mask_shuffle<T, dpm::simd_abi::fixed_size<4>>();
 	test_mask_shuffle<T, dpm::simd_abi::fixed_size<8>>();
 	test_mask_shuffle<T, dpm::simd_abi::fixed_size<16>>();
+#if 0 /* Exceeds template recursion limit in test_mask_shuffle expansion */
 	test_mask_shuffle<T, dpm::simd_abi::fixed_size<20>>();
 	test_mask_shuffle<T, dpm::simd_abi::fixed_size<24>>();
 	test_mask_shuffle<T, dpm::simd_abi::fixed_size<28>>();
 	test_mask_shuffle<T, dpm::simd_abi::fixed_size<32>>();
+#endif
 }
 
 template<typename T, typename Abi, std::size_t I, std::size_t... Is, std::size_t... Js>
@@ -83,10 +85,12 @@ static void test_simd_shuffle() noexcept
 	test_simd_shuffle<T, dpm::simd_abi::fixed_size<4>>();
 	test_simd_shuffle<T, dpm::simd_abi::fixed_size<8>>();
 	test_simd_shuffle<T, dpm::simd_abi::fixed_size<16>>();
+#if 0 /* Exceeds template recursion limit in test_simd_shuffle expansion */
 	test_simd_shuffle<T, dpm::simd_abi::fixed_size<20>>();
 	test_simd_shuffle<T, dpm::simd_abi::fixed_size<24>>();
 	test_simd_shuffle<T, dpm::simd_abi::fixed_size<28>>();
 	test_simd_shuffle<T, dpm::simd_abi::fixed_size<32>>();
+#endif
 }
 
 int main()

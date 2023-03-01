@@ -444,8 +444,7 @@ namespace dpm
 			result = detail::bit_or(result, vm);
 		}
 #ifndef DPM_HAS_SSE4_1
-		const auto zero = detail::setzero<ext::native_data_type_t<mask_t>>();
-		result = detail::bit_andnot(detail::cmp_eq<T>(result, zero), result);
+		result = detail::cmp_ne<T>(result, detail::setzero<ext::native_data_type_t<mask_t>>());
 #endif
 		return detail::test_mask(result);
 	}
@@ -463,8 +462,7 @@ namespace dpm
 			result = detail::bit_or(result, vm);
 		}
 #ifndef DPM_HAS_SSE4_1
-		const auto zero = detail::setzero<ext::native_data_type_t<mask_t>>();
-		result = detail::bit_andnot(detail::cmp_eq<T>(result, zero), result);
+		result = detail::cmp_ne<T>(result, detail::setzero<ext::native_data_type_t<mask_t>>());
 #endif
 		return !detail::test_mask(result);
 	}
@@ -488,7 +486,7 @@ namespace dpm
 			any_mask = detail::bit_or(any_mask, vmz);
 		}
 #ifndef DPM_HAS_SSE4_1
-		result = detail::bit_andnot(detail::cmp_eq<T>(result, zero), result);
+		any_mask = detail::cmp_ne<T>(any_mask, detail::setzero<ext::native_data_type_t<mask_t>>());
 #endif
 		return detail::test_mask(any_mask) && detail::movemask<T>(all_mask) != detail::fill_bits<(sizeof(all_mask) / sizeof(T)) * detail::movemask_bits_v<T>>();
 	}

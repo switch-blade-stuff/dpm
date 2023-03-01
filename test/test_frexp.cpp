@@ -7,7 +7,8 @@
 template<typename T, typename Abi>
 static inline void test_frexp() noexcept
 {
-	const auto test_vals = std::array<T, 32>{
+	constexpr auto simd_size = dpm::simd_size_v<T, Abi>;
+	const auto test_vals = std::array<T, 32 + simd_size>{
 			T{0}, T{1}, T{-1}, T{1.1}, T{-1.1}, T{1.25}, T{-1.25}, T{1.5}, T{-1.5}, T{1.8}, T{-1.8},
 			T{2}, T{-2}, T{2.1}, T{-2.1}, T{2.25}, T{-2.25}, T{2.5}, T{-2.5}, T{2.8}, T{-2.8},
 			T{3}, T{-3}, T{3.1}, T{-3.1}, T{3.25}, T{-3.25},
@@ -16,14 +17,13 @@ static inline void test_frexp() noexcept
 			std::numeric_limits<T>::quiet_NaN(),
 	};
 
-	constexpr auto simd_size = dpm::simd_size_v<T, Abi>;
-	for (std::size_t i = 0; i < test_vals.size();)
+	for (std::size_t i = 0; i < test_vals.size() - simd_size;)
 	{
 		auto e = dpm::simd<int, Abi>{};
 		const auto x = dpm::simd<T, Abi>{test_vals.data() + i, dpm::element_aligned};
 		const auto y = dpm::frexp(x, e);
 
-		for (std::size_t j = 0; i < test_vals.size() && j < simd_size; ++j, ++i)
+		for (std::size_t j = 0; i < test_vals.size() - simd_size && j < simd_size; ++j, ++i)
 		{
 			int se;
 			const auto s = std::frexp(test_vals[i], &se);
