@@ -17,7 +17,11 @@ namespace dpm::detail
 	[[nodiscard]] vec2_return_t<T0, T1> DPM_FORCEINLINE vec2_return(T0 x, T1 y) noexcept requires (sizeof(T1) == 16)
 	{
 		/* Avoid discarding y */
+#ifdef DPM_HAS_AVX
+		__asm__ ("vmovaps %0, %%xmm1" : : "x"(y) : "xmm1");
+#else
 		__asm__ ("movaps %0, %%xmm1" : : "x"(y) : "xmm1");
+#endif
 		return x;
 	}
 	template<typename T0, typename T1>
@@ -25,7 +29,11 @@ namespace dpm::detail
 	{
 		x = f(x);
 		/* Read second variable from xmm1 */
+#ifdef DPM_HAS_AVX
+		__asm__ ("vmovaps %%xmm1, %0" : "=xm"(out));
+#else
 		__asm__ ("movaps %%xmm1, %0" : "=xm"(out));
+#endif
 		return x;
 	}
 #ifdef DPM_HAS_AVX
