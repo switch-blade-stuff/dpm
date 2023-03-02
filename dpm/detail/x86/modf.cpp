@@ -50,7 +50,9 @@ namespace dpm::detail
 		y = blendv<T>(y, int_x, int_mask);
 
 #ifdef DPM_PROPAGATE_NAN
-		y = blendv<T>(y, x, isunord(x, x));
+		const auto nan_mask = isunord(x, x);
+		y = blendv<T>(y, x, nan_mask);
+		i = blendv<T>(i, x, nan_mask);
 #endif
 		return {y, i};
 	}

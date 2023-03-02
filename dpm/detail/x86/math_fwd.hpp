@@ -17,7 +17,7 @@ namespace dpm::detail
 	[[nodiscard]] vec2_return_t<T0, T1> DPM_FORCEINLINE vec2_return(T0 x, T1 y) noexcept requires (sizeof(T1) == 16)
 	{
 		/* Avoid discarding y */
-		__asm__ ("movaps %0, %%xmm1" : : "x"(y));
+		__asm__ ("movaps %0, %%xmm1" : : "x"(y) : "xmm1");
 		return x;
 	}
 	template<typename T0, typename T1>
@@ -33,7 +33,7 @@ namespace dpm::detail
 	[[nodiscard]] vec2_return_t<T0, T1> DPM_FORCEINLINE vec2_return(T0 x, T1 y) noexcept requires(sizeof(T1) == 32)
 	{
 		/* Avoid discarding y */
-		__asm__ ("vmovaps %0, %%ymm1" : : "x"(y));
+		__asm__ ("vmovaps %0, %%ymm1" : : "x"(y) : "ymm1");
 		return x;
 	}
 	template<typename T0, typename T1>
