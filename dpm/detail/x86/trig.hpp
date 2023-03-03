@@ -127,7 +127,6 @@ namespace dpm
 		[[nodiscard]] DPM_FORCEINLINE __m128 sin(__m128 x) noexcept { return _mm_sin_ps(x); }
 		[[nodiscard]] DPM_FORCEINLINE __m128 cos(__m128 x) noexcept { return _mm_cos_ps(x); }
 		[[nodiscard]] DPM_FORCEINLINE __m128 tan(__m128 x) noexcept { return _mm_tan_ps(x); }
-		[[nodiscard]] DPM_FORCEINLINE __m128 cot(__m128 x) noexcept { return _mm_rcp_ps(_mm_tan_ps(x)); }
 		[[nodiscard]] DPM_FORCEINLINE __m128 asin(__m128 x) noexcept { return _mm_asin_ps(x); }
 		[[nodiscard]] DPM_FORCEINLINE __m128 acos(__m128 x) noexcept { return _mm_acos_ps(x); }
 		[[nodiscard]] DPM_FORCEINLINE __m128 atan(__m128 x) noexcept { return _mm_atan_ps(x); }
@@ -138,12 +137,6 @@ namespace dpm
 		[[nodiscard]] DPM_FORCEINLINE __m128d sin(__m128d x) noexcept { return _mm_sin_pd(x); }
 		[[nodiscard]] DPM_FORCEINLINE __m128d cos(__m128d x) noexcept { return _mm_cos_pd(x); }
 		[[nodiscard]] DPM_FORCEINLINE __m128d tan(__m128d x) noexcept { return _mm_tan_pd(x); }
-		[[nodiscard]] DPM_FORCEINLINE __m128d cot(__m128d x) noexcept
-		{
-			__m128d s, c;
-			sincos(x, s, c);
-			return _mm_div_pd(c, s);
-		}
 		[[nodiscard]] DPM_FORCEINLINE __m128d asin(__m128d x) noexcept { return _mm_asin_pd(x); }
 		[[nodiscard]] DPM_FORCEINLINE __m128d acos(__m128d x) noexcept { return _mm_acos_pd(x); }
 		[[nodiscard]] DPM_FORCEINLINE __m128d atan(__m128d x) noexcept { return _mm_atan_pd(x); }
@@ -154,7 +147,6 @@ namespace dpm
 		[[nodiscard]] DPM_FORCEINLINE __m256 sin(__m256 x) noexcept { return _mm256_sin_ps(x); }
 		[[nodiscard]] DPM_FORCEINLINE __m256 cos(__m256 x) noexcept { return _mm256_cos_ps(x); }
 		[[nodiscard]] DPM_FORCEINLINE __m256 tan(__m256 x) noexcept { return _mm256_tan_ps(x); }
-		[[nodiscard]] DPM_FORCEINLINE __m256 cot(__m256 x) noexcept { return _mm256_rcp_ps(_mm256_tan_ps(x)); }
 		[[nodiscard]] DPM_FORCEINLINE __m256 asin(__m256 x) noexcept { return _mm256_asin_ps(x); }
 		[[nodiscard]] DPM_FORCEINLINE __m256 acos(__m256 x) noexcept { return _mm256_acos_ps(x); }
 		[[nodiscard]] DPM_FORCEINLINE __m256 atan(__m256 x) noexcept { return _mm256_atan_ps(x); }
@@ -164,12 +156,6 @@ namespace dpm
 		[[nodiscard]] DPM_FORCEINLINE __m256d sin(__m256d x) noexcept { return _mm256_sin_pd(x); }
 		[[nodiscard]] DPM_FORCEINLINE __m256d cos(__m256d x) noexcept { return _mm256_cos_pd(x); }
 		[[nodiscard]] DPM_FORCEINLINE __m256d tan(__m256d x) noexcept { return _mm256_tan_pd(x); }
-		[[nodiscard]] DPM_FORCEINLINE __m256d cot(__m256d x) noexcept
-		{
-			__m128d s, c;
-			sincos(x, s, c);
-			return _mm256_div_pd(c, s);
-		}
 		[[nodiscard]] DPM_FORCEINLINE __m256d asin(__m256d x) noexcept { return _mm256_asin_pd(x); }
 		[[nodiscard]] DPM_FORCEINLINE __m256d acos(__m256d x) noexcept { return _mm256_acos_pd(x); }
 		[[nodiscard]] DPM_FORCEINLINE __m256d atan(__m256d x) noexcept { return _mm256_atan_pd(x); }

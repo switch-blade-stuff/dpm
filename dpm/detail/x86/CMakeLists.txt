@@ -14,8 +14,9 @@ target_sources(${DPM_PROJECT} INTERFACE
         ${CMAKE_CURRENT_LIST_DIR}/type.hpp
         ${CMAKE_CURRENT_LIST_DIR}/math_fwd.hpp
         ${CMAKE_CURRENT_LIST_DIR}/mbase.hpp
+        ${CMAKE_CURRENT_LIST_DIR}/hypbl.hpp
         ${CMAKE_CURRENT_LIST_DIR}/round.hpp
-        ${CMAKE_CURRENT_LIST_DIR}/fmanip.hpp
+        ${CMAKE_CURRENT_LIST_DIR}/errfn.hpp
         ${CMAKE_CURRENT_LIST_DIR}/class.hpp
         ${CMAKE_CURRENT_LIST_DIR}/math.hpp)
 

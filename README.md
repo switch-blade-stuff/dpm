@@ -196,9 +196,8 @@ Examples of `DPM_HANDLE_ERRORS` and `DPM_PROPAGATE_NAN` configuration:
 
 While DPM does utilize AVX512 instructions for 128- and 256-bit operations, there is no support for 512-wide vector data
 types. The main reasons being the increased complexity of implementation due to both the fracturing of AVX512 standard,
-and complexity of most 512-bit wide instructions (ex. there is no 512 blend, and it must be emulated via more complex
-fused operations); as well as relative inefficiency of 512-bit wide registers (for general-purpose use cases) on certain
-CPUs. See the following articles for details:
+and complexity of most 512-bit wide instructions; as well as relative inefficiency of 512-bit wide registers (for
+general-purpose use cases) on certain CPUs. See the following articles for details:
 
 - [https://lemire.me/blog/2018/09/07/avx-512-when-and-how-to-use-these-new-instructions/](https://lemire.me/blog/2018/09/07/avx-512-when-and-how-to-use-these-new-instructions/)
 - [https://news.ycombinator.com/item?id=21031905](https://news.ycombinator.com/item?id=21031905)
@@ -207,7 +206,6 @@ CPUs. See the following articles for details:
 ### SVML
 
 When `DPM_USE_SVML` is enabled, DPM will use mathematical functions provided by SVML for trigonometric, hyperbolic,
-exponential, nearest integer and error functions instead of the built-in implementation. Inlined functions will still
-use the internal
-implementation. Note that if `DPM_USE_SVML` is enabled, NaN propagation and error handling options are ignored for
+exponential, nearest-integer and error functions instead of the built-in implementation. Inlined functions will still
+use the internal implementation. Note that if `DPM_USE_SVML` is enabled, NaN propagation and error handling options are ignored for
 affected functions, any error handling is left to SVML.
