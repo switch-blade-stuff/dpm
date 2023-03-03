@@ -91,41 +91,6 @@ static inline void test_mask() noexcept
 	}
 }
 
-template<typename T, typename Abi>
-static inline void test_exp() noexcept
-{
-	{
-		constexpr auto invoke_test = []<std::size_t N>(auto f, std::span<const T, N> vals, T rel_eps, T eps)
-		{
-			constexpr auto simd_size = dpm::simd_size_v<T, Abi>;
-			for (std::size_t i = 0; i < N;)
-			{
-				dpm::simd<T, Abi> v = {};
-				v.copy_from(vals.data() + i, dpm::element_aligned);
-				v = f(v);
-
-				for (std::size_t j = 0; i < N && j < simd_size; ++j, ++i)
-				{
-					const auto a = f(dpm::simd<T, dpm::simd_abi::scalar>{vals[i]});
-					TEST_ASSERT(almost_equal(v[j], a[0], rel_eps, eps));
-				}
-			}
-		};
-
-		const auto test_vals = std::array{
-				T{12.54}, T{0.1234}, T{-0.34}, T{0.0}, T{1.0}, T{-1.0}, T{0.125},
-				std::numbers::pi_v<T>, std::numeric_limits<T>::quiet_NaN(),
-				std::numeric_limits<T>::infinity()
-		};
-		invoke_test([](auto x) { return dpm::log(x); }, std::span{test_vals}, T{1.0e-3}, T{1.0e-7});
-		invoke_test([](auto x) { return dpm::log2(x); }, std::span{test_vals}, T{1.0e-3}, T{1.0e-7});
-		invoke_test([](auto x) { return dpm::log10(x); }, std::span{test_vals}, T{1.0e-3}, T{1.0e-7});
-		invoke_test([](auto x) { return dpm::log1p(x); }, std::span{test_vals}, T{1.0e-3}, T{1.0e-7});
-	}
-
-	/* TODO: If DPM_HANDLE_ERRORS is set and fp exceptions are used, check exceptions. */
-}
-
 #include <cmath>
 
 int main()
