@@ -278,13 +278,13 @@ namespace dpm
 
 	/** Multiplies elements of vector \a x by `2` raised to power \a exp. */
 	template<std::floating_point T, std::size_t N, std::size_t A>
-	[[nodiscard]] DPM_FORCEINLINE detail::x86_simd<T, N, A> ldexp(const detail::x86_simd<T, N, A> &x, int exp) noexcept
+	[[nodiscard]] DPM_FORCEINLINE detail::x86_simd<T, N, A> ldexp(const detail::x86_simd<T, N, A> &x, int exp) noexcept requires detail::x86_overload_any<T, N, A>
 	{
 		return scalbn(x, exp);
 	}
 	/** @copydoc ldexp */
 	template<std::floating_point T, std::size_t N, std::size_t A>
-	[[nodiscard]] DPM_FORCEINLINE detail::x86_simd<T, N, A> scalbn(const detail::x86_simd<T, N, A> &x, int exp) noexcept
+	[[nodiscard]] DPM_FORCEINLINE detail::x86_simd<T, N, A> scalbn(const detail::x86_simd<T, N, A> &x, int exp) noexcept requires detail::x86_overload_any<T, N, A>
 	{
 		using exp_t = detail::int_of_size_t<sizeof(T)>;
 		using exp_vector = detail::select_vector_t<exp_t, sizeof(ext::native_data_type_t<detail::x86_simd<T, N, A>>)>;
@@ -295,7 +295,7 @@ namespace dpm
 	}
 	/** @copydoc ldexp */
 	template<std::floating_point T, std::size_t N, std::size_t A>
-	[[nodiscard]] DPM_FORCEINLINE detail::x86_simd<T, N, A> scalbln(const detail::x86_simd<T, N, A> &x, long exp) noexcept
+	[[nodiscard]] DPM_FORCEINLINE detail::x86_simd<T, N, A> scalbln(const detail::x86_simd<T, N, A> &x, long exp) noexcept requires detail::x86_overload_any<T, N, A>
 	{
 		using exp_t = detail::int_of_size_t<sizeof(T)>;
 		using exp_vector = detail::select_vector_t<exp_t, sizeof(ext::native_data_type_t<detail::x86_simd<T, N, A>>)>;

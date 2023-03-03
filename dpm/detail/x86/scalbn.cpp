@@ -14,40 +14,48 @@ namespace dpm::detail
 	[[nodiscard]] DPM_FORCEINLINE V impl_scalbn(V x, Vi n) noexcept
 	{
 		const auto ix = std::bit_cast<Vi>(x);
-		const auto is_zero = std::bit_cast<Vi>(cmp_eq<T>(x, setzero<V>()));
-		auto x_exp = bit_and(bit_shiftr<I, mant_bits<I>>(ix), fill<Vi>(exp_mask<I>));
+		const auto x_exp = bit_and(bit_shiftr<I, mant_bits<I>>(ix), fill<Vi>(exp_mask<I>));
 
 		/* Subnormal x. */
-		const auto sx = mul<T>(x, fill<V>(exp_mult<T>));
-		const auto si = std::bit_cast<Vi>(sx);
-		auto sk = bit_and(bit_shiftr<I, mant_bits<I>>(si), fill<Vi>(exp_mask<I>));
-		sk = add<I>(sk, fill<Vi>(mant_bits<I> + 2));
+		const auto norm_x = mul<T>(x, fill<V>(exp_mult<T>));
+		const auto norm_i = std::bit_cast<Vi>(norm_x);
+		auto norm_exp = bit_and(bit_shiftr<I, mant_bits<I>>(norm_i), fill<Vi>(exp_mask<I>));
+		norm_exp = sub<I>(norm_exp, fill<Vi>(mant_bits<I> + 2));
 
-		/* x_exp = x_exp == 0 ? y_exp : x_exp */
-		x_exp = bit_or(x_exp, bit_and(cmp_eq<I>(x_exp, setzero<Vi>()), sk));
-		auto y_exp = add<I>(x_exp, n);
+		/* norm_exp = x_exp == 0 ? norm_exp : x_exp */
+		const auto subnorm_mask = cmp_eq<I>(x_exp, setzero<Vi>());
+		norm_exp = bit_or(x_exp, bit_and(subnorm_mask, norm_exp));
 
-		/* Normalize x_exp */
-		const auto is_denorm = cmp_gt<I>(y_exp, setzero<Vi>());
-		y_exp = add<I>(y_exp, bit_andnot(is_denorm, fill<Vi>(mant_bits<I> + 2)));
-
+		/* Handle non-finite x before modifying norm_exp */
 #ifdef DPM_PROPAGATE_NAN
-		const auto not_fin = std::bit_cast<V>(cmp_eq<I>(x_exp, fill<Vi>(exp_mask<I>)));
+		const auto not_fin = cmp_eq<I>(norm_exp, fill<Vi>(exp_mask<I>));
 #endif
+		/* Input is normalized, apply n to exponent. */
+		norm_exp = add<I>(norm_exp, n);
+
+		/* Handle subnormal result for norm_exp <= 0. */
+		const auto norm_result = cmp_gt<I>(norm_exp, setzero<Vi>());
+		norm_exp = add<I>(norm_exp, bit_andnot(norm_result, fill<Vi>(mant_bits<I> + 2)));
+
 #ifdef DPM_HANDLE_ERRORS
-		const auto has_overflow = bit_or(cmp_gt<I>(n, fill<Vi>(max_scalbn<I>)), cmp_gt<I>(y_exp, fill<Vi>(exp_mask<I> + mant_bits<I> + 1)));
-		const auto has_underflow = bit_or(cmp_gt<I>(fill<Vi>(-max_scalbn<I>), n), cmp_gt<I>(fill<Vi>(I{1}), y_exp));
+		const auto has_overflow = bit_andnot(not_fin, bit_or(cmp_gt<I>(n, fill<Vi>(max_scalbn<I>)), cmp_gt<I>(norm_exp, fill<Vi>(exp_mask<I> - 1))));
+		const auto has_underflow = bit_andnot(not_fin, bit_or(cmp_gt<I>(fill<Vi>(-max_scalbn<I>), n), cmp_gt<I>(fill<Vi>(I{1}), norm_exp)));
 #endif
 
 		/* Apply the new exponent & normalize. */
+		norm_exp = bit_shiftl<I, mant_bits<I>>(norm_exp);
 		const auto exp_zeros = fill<Vi>(~(exp_mask<I> << mant_bits<I>));
-		y_exp = bit_andnot(is_zero, bit_shiftl<I, mant_bits<I>>(y_exp));
-		auto y = std::bit_cast<V>(bit_or(bit_and(ix, exp_zeros), y_exp));
-		y = blendv<T>(y, mul<T>(y, fill<V>(exp_multm<T>)), std::bit_cast<V>(is_denorm));
+		auto y = std::bit_cast<V>(bit_or(bit_and(ix, exp_zeros), norm_exp));
 
+		/* Denormalize result if needed. */
+		y = blendv<T>(mul<T>(y, fill<V>(exp_multm<T>)), y, std::bit_cast<V>(norm_result));
+		/* If either x or exponent are 0, return x. */
+		auto fwd_mask = bit_or(cmp_eq<T>(x, setzero<V>()), std::bit_cast<V>(cmp_eq<I>(n, setzero<Vi>())));
 #ifdef DPM_PROPAGATE_NAN
-		y = blendv<T>(y, add<T>(x, x), not_fin);
+		fwd_mask = bit_or(fwd_mask, std::bit_cast<V>(not_fin));
 #endif
+		y = blendv<T>(y, x, fwd_mask);
+
 #ifdef DPM_HANDLE_ERRORS
 		const auto x_sign = masksign<T>(x);
 		if (test_mask(has_overflow)) [[unlikely]] y = except_oflow<T>(y, x_sign, std::bit_cast<V>(has_overflow));

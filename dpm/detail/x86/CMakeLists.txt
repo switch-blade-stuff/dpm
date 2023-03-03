@@ -30,7 +30,7 @@ target_sources(${DPM_PROJECT} PUBLIC
 
 target_sources(${DPM_PROJECT} PRIVATE
         ${CMAKE_CURRENT_LIST_DIR}/cpuid.cpp
-        ${CMAKE_CURRENT_LIST_DIR}/pow.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/hypot.cpp
         ${CMAKE_CURRENT_LIST_DIR}/log.cpp
         ${CMAKE_CURRENT_LIST_DIR}/log2.cpp
         ${CMAKE_CURRENT_LIST_DIR}/log10.cpp

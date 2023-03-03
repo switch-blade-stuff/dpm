@@ -25,9 +25,9 @@ namespace dpm::detail
 	static constexpr T ln2 = T{0x1.62e42fefa39efp-1};
 
 	template<std::floating_point T>
-	static constexpr T exp_multm = std::same_as<T, float> ? T{2.9802322388e-08} : T{5.55111512312578270212e-17};
+	static constexpr T exp_multm = std::same_as<T, float> ? T{0x1p-25} : T{0x1p-54};
 	template<std::floating_point T>
-	static constexpr T exp_mult = std::same_as<T, float> ? T{3.355443200e+07} : T{0x1p64};
+	static constexpr T exp_mult = std::same_as<T, float> ? T{0x1p25} : T{0x1p54};
 
 	/* In some cases x86 intrinsics generate extraneous casts if literals are used with intrinsics. As such, define commonly used values here. */
 	template<std::floating_point T>
