@@ -82,11 +82,27 @@ namespace dpm::detail
 
 namespace dpm::detail
 {
-	DPM_FORCEINLINE void assert_err(std::source_location loc, const char *cnd, const char *msg) noexcept
-	{
-		assert_err(loc.file_name(), loc.line(), loc.function_name(), cnd, msg);
-	}
+	DPM_FORCEINLINE void assert_err(std::source_location loc, const char *cnd, const char *msg) noexcept { assert_err(loc.file_name(), loc.line(), loc.function_name(), cnd, msg); }
 }
+
+#define DPM_ASSERT_LOC_TYPE std::source_location
+#define DPM_ASSERT_LOC_CURRENT std::source_location::current()
+#else
+namespace dpm::detail
+{
+	struct source_location
+	{
+		const char *func = nullptr;
+		const char *file = nullptr;
+		unsigned long line = 0;
+	};
+
+	DPM_FORCEINLINE void assert_err(source_location loc, const char *cnd, const char *msg) noexcept { assert_err(loc.file, loc.line, loc.func, cnd, msg); }
+}
+
+#define DPM_ASSERT_LOC_TYPE dpm::detail::source_location
+#define DPM_ASSERT_LOC_CURRENT dpm::detail::source_location{__FILE__, __LINE__, DPM_FUNCNAME}
+#endif
 
 #define DPM_ASSERT_MSG_LOC_ALWAYS(cnd, msg, src_loc)        \
 	do { if (!(cnd)) [[unlikely]] {                         \
@@ -98,7 +114,6 @@ namespace dpm::detail
 #define DPM_ASSERT_MSG_LOC(cnd, msg, src_loc) DPM_ASSERT_MSG_LOC_ALWAYS(cnd, msg, src_loc)
 #else
 #define DPM_ASSERT_MSG_LOC(cnd, msg, src_loc)
-#endif
 #endif
 
 #define DPM_ASSERT_MSG_ALWAYS(cnd, msg)                                                 \

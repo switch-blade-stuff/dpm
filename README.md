@@ -155,6 +155,8 @@ DPM provides the following utilities and extensions to the standard API:
     * `#define DPM_ASSERT_MSG_ALWAYS(cnd, msg)`
     * `#define DPM_ASSERT_MSG(cnd, msg)`
     * `#define DPM_ASSERT_ALWAYS(cnd)`
+    * `#define DPM_ASSERT_LOC_CURENT`
+    * `#define DPM_ASSERT_LOC_TYPE`
     * `#define DPM_ASSERT(cnd)`
     * `#define DPM_DEBUGTRAP()`
 * Other utilities

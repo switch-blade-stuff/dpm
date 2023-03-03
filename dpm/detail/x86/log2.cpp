@@ -20,7 +20,7 @@ namespace dpm::detail
 		const auto tmp = sub<I>(ix, fill<Vi>(0x3f33'0000));
 		auto i = bit_shiftr<I, 23 - log2tab_bits_f32>(tmp);
 		i = bit_and(i, fill<Vi>((1 << log2tab_bits_f32) - 1));
-		const auto [invc, logc] = log_get_table<V>(i, log2tab_v<T>, std::source_location::current());
+		const auto [invc, logc] = log_get_table<V>(i, log2tab_v<T>, DPM_ASSERT_LOC_CURRENT);
 
 		/* x = 2^k z; where z is in range [0x3f33'0000, 2 * 0x3f33'0000] and exact.  */
 		const auto z = std::bit_cast<V>(sub<I>(ix, bit_and(tmp, fill<Vi>(0xff80'0000))));
@@ -51,7 +51,7 @@ namespace dpm::detail
 		const auto tmp = sub<I>(ix, fill<Vi>(0x3fe6'9009'0000'0000));
 		auto i = bit_shiftr<I, 52 - log2tab_bits_f64>(tmp);
 		i = bit_and(i, fill<Vi>((1 << log2tab_bits_f64) - 1));
-		const auto [invc, logc] = log_get_table<V>(i, log2tab_v<T>, std::source_location::current());
+		const auto [invc, logc] = log_get_table<V>(i, log2tab_v<T>, DPM_ASSERT_LOC_CURRENT);
 
 		/* x = 2^k z; where z is in range [0x3fe6'9009'0000'0000, 2 * 0x3fe6'9009'0000'0000] and exact.  */
 		const auto k = bit_ashiftr<I, 52>(tmp);

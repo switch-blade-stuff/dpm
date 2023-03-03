@@ -20,8 +20,10 @@ endfunction()
 
 project(dpm-tests)
 
+#make_test(operators ${CMAKE_CURRENT_LIST_DIR}/test_operators.cpp)
 make_test(shuffle ${CMAKE_CURRENT_LIST_DIR}/test_shuffle.cpp)
 make_test(blend ${CMAKE_CURRENT_LIST_DIR}/test_blend.cpp)
-#make_test(operators ${CMAKE_CURRENT_LIST_DIR}/test_operators.cpp)
+#make_test(copy ${CMAKE_CURRENT_LIST_DIR}/test_copy.cpp)
 make_test(fp-manipulation ${CMAKE_CURRENT_LIST_DIR}/test_fmanip.cpp)
 make_test(trigonometric ${CMAKE_CURRENT_LIST_DIR}/test_trig.cpp)
+#make_test(power ${CMAKE_CURRENT_LIST_DIR}/test_power.cpp)

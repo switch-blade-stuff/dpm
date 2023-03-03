@@ -10,7 +10,7 @@
 namespace dpm::detail
 {
 	template<typename I, std::size_t N, typename V, std::size_t... Is>
-	[[nodiscard]] inline const V &assert_lut_idx(std::index_sequence<Is...>, const V &v_idx, [[maybe_unused]] std::source_location loc) noexcept
+	[[nodiscard]] inline const V &assert_lut_idx(std::index_sequence<Is...>, const V &v_idx, [[maybe_unused]] DPM_ASSERT_LOC_TYPE loc) noexcept
 	{
 		[[maybe_unused]] const auto idx = reinterpret_cast<const alias_t<I> *>(&v_idx);
 		/* Assert with source location to properly report the offending function name (rather than asssert_lut_index). */
@@ -18,56 +18,56 @@ namespace dpm::detail
 		return v_idx;
 	}
 	template<typename I, std::size_t N, typename V>
-	[[nodiscard]] inline const V &assert_lut_idx(const V &v_idx, std::source_location loc) noexcept
+	[[nodiscard]] inline const V &assert_lut_idx(const V &v_idx, DPM_ASSERT_LOC_TYPE loc) noexcept
 	{
 		return assert_lut_idx<I, N>(std::make_index_sequence<sizeof(V) / sizeof(I)>{}, v_idx, loc);
 	}
 
 #ifdef DPM_HAS_AVX2
 	template<std::same_as<__m128> V, integral_of_size<4> I, int Scale = 4, std::size_t N>
-	[[nodiscard]] DPM_FORCEINLINE V lut_load(std::span<const float, N> data, __m128i v_idx, std::source_location loc = std::source_location::current()) noexcept
+	[[nodiscard]] DPM_FORCEINLINE V lut_load(std::span<const float, N> data, __m128i v_idx, DPM_ASSERT_LOC_TYPE loc) noexcept
 	{
 		return _mm_i32gather_ps(data.data(), (assert_lut_idx<I, N>(v_idx, loc)), Scale);
 	}
 	template<std::same_as<__m256> V, integral_of_size<4> I, int Scale = 4, std::size_t N>
-	[[nodiscard]] DPM_FORCEINLINE V lut_load(std::span<const float, N> data, __m256i v_idx, std::source_location loc = std::source_location::current()) noexcept
+	[[nodiscard]] DPM_FORCEINLINE V lut_load(std::span<const float, N> data, __m256i v_idx, DPM_ASSERT_LOC_TYPE loc) noexcept
 	{
 		return _mm256_i32gather_ps(data.data(), (assert_lut_idx<I, N>(v_idx, loc)), Scale);
 	}
 	template<std::same_as<__m128> V, integral_of_size<8> I, int Scale = 4, std::size_t N>
-	[[nodiscard]] DPM_FORCEINLINE V lut_load(std::span<const float, N> data, __m128i v_idx, std::source_location loc = std::source_location::current()) noexcept
+	[[nodiscard]] DPM_FORCEINLINE V lut_load(std::span<const float, N> data, __m128i v_idx, DPM_ASSERT_LOC_TYPE loc) noexcept
 	{
 		return _mm_i64gather_ps(data.data(), (assert_lut_idx<I, N>(v_idx, loc)), Scale);
 	}
 	template<std::same_as<__m128> V, integral_of_size<8> I, int Scale = 4, std::size_t N>
-	[[nodiscard]] DPM_FORCEINLINE V lut_load(std::span<const float, N> data, __m256i v_idx, std::source_location loc = std::source_location::current()) noexcept
+	[[nodiscard]] DPM_FORCEINLINE V lut_load(std::span<const float, N> data, __m256i v_idx, DPM_ASSERT_LOC_TYPE loc) noexcept
 	{
 		return _mm256_i64gather_ps(data.data(), (assert_lut_idx<I, N>(v_idx, loc)), Scale);
 	}
 
 	template<std::same_as<__m128d> V, integral_of_size<4> I, int Scale = 8, std::size_t N>
-	[[nodiscard]] DPM_FORCEINLINE V lut_load(std::span<const double, N> data, __m128i v_idx, std::source_location loc = std::source_location::current()) noexcept
+	[[nodiscard]] DPM_FORCEINLINE V lut_load(std::span<const double, N> data, __m128i v_idx, DPM_ASSERT_LOC_TYPE loc) noexcept
 	{
 		return _mm_i32gather_pd(data.data(), (assert_lut_idx<I, N>(v_idx, loc)), Scale);
 	}
 	template<std::same_as<__m256d> V, integral_of_size<4> I, int Scale = 8, std::size_t N>
-	[[nodiscard]] DPM_FORCEINLINE V lut_load(std::span<const double, N> data, __m128i v_idx, std::source_location loc = std::source_location::current()) noexcept
+	[[nodiscard]] DPM_FORCEINLINE V lut_load(std::span<const double, N> data, __m128i v_idx, DPM_ASSERT_LOC_TYPE loc) noexcept
 	{
 		return _mm256_i32gather_pd(data.data(), (assert_lut_idx<I, N>(v_idx, loc)), Scale);
 	}
 	template<std::same_as<__m128d> V, integral_of_size<8> I, int Scale = 8, std::size_t N>
-	[[nodiscard]] DPM_FORCEINLINE V lut_load(std::span<const double, N> data, __m128i v_idx, std::source_location loc = std::source_location::current()) noexcept
+	[[nodiscard]] DPM_FORCEINLINE V lut_load(std::span<const double, N> data, __m128i v_idx, DPM_ASSERT_LOC_TYPE loc) noexcept
 	{
 		return _mm_i64gather_pd(data.data(), (assert_lut_idx<I, N>(v_idx, loc)), Scale);
 	}
 	template<std::same_as<__m256d> V, integral_of_size<8> I, int Scale = 8, std::size_t N>
-	[[nodiscard]] DPM_FORCEINLINE V lut_load(std::span<const double, N> data, __m256i v_idx, std::source_location loc = std::source_location::current()) noexcept
+	[[nodiscard]] DPM_FORCEINLINE V lut_load(std::span<const double, N> data, __m256i v_idx, DPM_ASSERT_LOC_TYPE loc) noexcept
 	{
 		return _mm256_i64gather_pd(data.data(), (assert_lut_idx<I, N>(v_idx, loc)), Scale);
 	}
 #else
 	template<std::same_as<__m128> V, integral_of_size<4> I, int Scale = 4, std::size_t N>
-	[[nodiscard]] DPM_FORCEINLINE V lut_load(std::span<const float, N> data, __m128i v_idx, std::source_location loc = std::source_location::current()) noexcept
+	[[nodiscard]] DPM_FORCEINLINE V lut_load(std::span<const float, N> data, __m128i v_idx, DPM_ASSERT_LOC_TYPE loc) noexcept
 	{
 		const auto idx = reinterpret_cast<const alias_t<I> *>(&assert_lut_idx<I, N>(v_idx, loc));
 		return _mm_set_ps(
@@ -78,7 +78,7 @@ namespace dpm::detail
 		);
 	}
 	template<std::same_as<__m128> V, integral_of_size<8> I, int Scale = 4, std::size_t N>
-	[[nodiscard]] DPM_FORCEINLINE V lut_load(std::span<const float, N> data, __m128i v_idx, std::source_location loc = std::source_location::current()) noexcept
+	[[nodiscard]] DPM_FORCEINLINE V lut_load(std::span<const float, N> data, __m128i v_idx, DPM_ASSERT_LOC_TYPE loc) noexcept
 	{
 		const auto idx = reinterpret_cast<const alias_t<I> *>(&assert_lut_idx<I, N>(v_idx, loc));
 		return _mm_set_ps(
@@ -88,7 +88,7 @@ namespace dpm::detail
 		);
 	}
 	template<std::same_as<__m128d> V, integral_of_size<4> I, int Scale = 8, std::size_t N>
-	[[nodiscard]] DPM_FORCEINLINE V lut_load(std::span<const double, N> data, __m128i v_idx, std::source_location loc = std::source_location::current()) noexcept
+	[[nodiscard]] DPM_FORCEINLINE V lut_load(std::span<const double, N> data, __m128i v_idx, DPM_ASSERT_LOC_TYPE loc) noexcept
 	{
 		const auto idx = reinterpret_cast<const alias_t<I> *>(&assert_lut_idx<I, N>(v_idx, loc));
 		return _mm_set_pd(
@@ -97,7 +97,7 @@ namespace dpm::detail
 		);
 	}
 	template<std::same_as<__m128d> V, integral_of_size<8> I, int Scale = 8, std::size_t N>
-	[[nodiscard]] DPM_FORCEINLINE V lut_load(std::span<const double, N> data, __m128i v_idx, std::source_location loc = std::source_location::current()) noexcept
+	[[nodiscard]] DPM_FORCEINLINE V lut_load(std::span<const double, N> data, __m128i v_idx, DPM_ASSERT_LOC_TYPE loc) noexcept
 	{
 		const auto idx = reinterpret_cast<const alias_t<I> *>(&assert_lut_idx<I, N>(v_idx, loc));
 		return _mm_set_pd(
@@ -108,7 +108,7 @@ namespace dpm::detail
 
 #ifdef DPM_HAS_AVX
 	template<std::same_as<__m256> V, integral_of_size<4> I, int Scale = 4, std::size_t N>
-	[[nodiscard]] DPM_FORCEINLINE V lut_load(std::span<const float, N> data, __m256i v_idx, std::source_location loc = std::source_location::current()) noexcept
+	[[nodiscard]] DPM_FORCEINLINE V lut_load(std::span<const float, N> data, __m256i v_idx, DPM_ASSERT_LOC_TYPE loc) noexcept
 	{
 		const auto idx = reinterpret_cast<const alias_t<I> *>(&assert_lut_idx<I, N>(v_idx, loc));
 		return _mm256_set_ps(
@@ -123,7 +123,7 @@ namespace dpm::detail
 		);
 	}
 	template<std::same_as<__m128> V, integral_of_size<8> I, int Scale = 4, std::size_t N>
-	[[nodiscard]] DPM_FORCEINLINE V lut_load(std::span<const float, N> data, __m256i v_idx, std::source_location loc = std::source_location::current()) noexcept
+	[[nodiscard]] DPM_FORCEINLINE V lut_load(std::span<const float, N> data, __m256i v_idx, DPM_ASSERT_LOC_TYPE loc) noexcept
 	{
 		const auto idx = reinterpret_cast<const alias_t<I> *>(&assert_lut_idx<I, N>(v_idx, loc));
 		return _mm_set_ps(
@@ -134,7 +134,7 @@ namespace dpm::detail
 		);
 	}
 	template<std::same_as<__m256d> V, integral_of_size<4> I, int Scale = 8, std::size_t N>
-	[[nodiscard]] DPM_FORCEINLINE V lut_load(std::span<const double, N> data, __m128i v_idx, std::source_location loc = std::source_location::current()) noexcept
+	[[nodiscard]] DPM_FORCEINLINE V lut_load(std::span<const double, N> data, __m128i v_idx, DPM_ASSERT_LOC_TYPE loc) noexcept
 	{
 		const auto idx = reinterpret_cast<const alias_t<I> *>(&assert_lut_idx<I, N>(v_idx, loc));
 		return _mm256_set_pd(
@@ -145,7 +145,7 @@ namespace dpm::detail
 		);
 	}
 	template<std::same_as<__m256d> V, integral_of_size<8> I, int Scale = 8, std::size_t N>
-	[[nodiscard]] DPM_FORCEINLINE V lut_load(std::span<const double, N> data, __m256i v_idx, std::source_location loc = std::source_location::current()) noexcept
+	[[nodiscard]] DPM_FORCEINLINE V lut_load(std::span<const double, N> data, __m256i v_idx, DPM_ASSERT_LOC_TYPE loc) noexcept
 	{
 		const auto idx = reinterpret_cast<const alias_t<I> *>(&assert_lut_idx<I, N>(v_idx, loc));
 		return _mm256_set_pd(
@@ -160,12 +160,12 @@ namespace dpm::detail
 
 #ifdef DPM_HAS_AVX
 	template<std::same_as<__m256> V, integral_of_size<8> Idx, int Scale = 1>
-	[[nodiscard]] DPM_FORCEINLINE V lut_load(const float *data, __m256i idx, std::source_location loc = std::source_location::current()) noexcept
+	[[nodiscard]] DPM_FORCEINLINE V lut_load(const float *data, __m256i idx, DPM_ASSERT_LOC_TYPE loc) noexcept
 	{
 		return _mm256_castps128_ps256(lut_load<__m128, Idx, Scale>(data, idx, loc));
 	}
 	template<std::same_as<__m256> V, integral_of_size<8> Idx, int Scale = 1>
-	[[nodiscard]] DPM_FORCEINLINE V lut_load(const float *data, __m256i idxl, __m256i idxh, std::source_location loc = std::source_location::current()) noexcept
+	[[nodiscard]] DPM_FORCEINLINE V lut_load(const float *data, __m256i idxl, __m256i idxh, DPM_ASSERT_LOC_TYPE loc) noexcept
 	{
 		const auto vl = lut_load<__m128, Idx, Scale>(data, idxl, loc);
 		const auto vh = lut_load<__m128, Idx, Scale>(data, idxh, loc);
