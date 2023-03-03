@@ -7,6 +7,34 @@
 #include <cstdio>
 
 template<typename T, typename Abi>
+static inline void test_nextafter() noexcept
+{
+	constexpr auto simd_size = dpm::simd_size_v<T, Abi>;
+	const auto a_data = std::array<T, 8 + simd_size>{
+			T{-0.0}, T{-0.0}, T{0.0}, T{1.0},
+			std::numeric_limits<T>::max(), std::numeric_limits<T>::min(),
+			std::numeric_limits<T>::quiet_NaN(), T{0.0}
+	};
+	const auto b_data = std::array<T, 8 + simd_size>{
+			T{0.0}, T{1.0}, T{1.0}, T{2.0},
+			std::numeric_limits<T>::infinity(), -std::numeric_limits<T>::infinity(),
+			T{0.0}, std::numeric_limits<T>::quiet_NaN()
+	};
+
+	for (std::size_t i = 0; i < a_data.size();)
+	{
+		const auto a = dpm::simd<T, Abi>{a_data.data() + i, dpm::element_aligned};
+		const auto b = dpm::simd<T, Abi>{b_data.data() + i, dpm::element_aligned};
+		const auto c = dpm::nextafter(a, b);
+
+		for (std::size_t j = 0; i < a_data.size() && j < simd_size; ++j, ++i)
+		{
+			const auto s = std::nextafter(a[j], b[j]);
+			TEST_ASSERT(c[j] == s || (std::isnan(c[j]) && std::isnan(s)));
+		}
+	}
+}
+template<typename T, typename Abi>
 static inline void test_ilogb() noexcept
 {
 	constexpr auto simd_size = dpm::simd_size_v<T, Abi>;
@@ -60,6 +88,33 @@ static inline void test_frexp() noexcept
 	}
 }
 template<typename T, typename Abi>
+static inline void test_ldexp() noexcept
+{
+	constexpr auto simd_size = dpm::simd_size_v<T, Abi>;
+	const auto test_vals = std::array<T, 32 + simd_size>{
+			T{0}, T{-0}, T{0.1}, T{-0.1}, T{0.25}, T{-0.25}, T{0.5}, T{-0.5}, T{0.8}, T{-0.8},
+			T{1}, T{-1}, T{1.1}, T{-1.1}, T{1.25}, T{-1.25}, T{1.5}, T{-1.5}, T{1.8}, T{-1.8},
+			std::numeric_limits<T>::infinity(), -std::numeric_limits<T>::infinity(),
+			std::numeric_limits<T>::max(), std::numeric_limits<T>::min(),
+			std::numeric_limits<T>::quiet_NaN(),
+	};
+	const auto exp_vals = std::array{0, 1, -1, 2, -2, 0xff, -0xff, 0x7ff, -0x7ff, std::numeric_limits<int>::max(), std::numeric_limits<int>::min(),};
+
+	for (std::size_t i = 0; i < test_vals.size() - simd_size; i += simd_size)
+	{
+		const auto x = dpm::simd<T, Abi>{test_vals.data() + i, dpm::element_aligned};
+		for (const auto e: exp_vals)
+		{
+			const auto y = dpm::ldexp(x, e);
+			for (std::size_t j = 0; i + j < test_vals.size() - simd_size && j < simd_size; ++j)
+			{
+				const auto s = std::ldexp(test_vals[i + j], e);
+				TEST_ASSERT(almost_equal(y[j], s, std::numeric_limits<T>::epsilon()));
+			}
+		}
+	}
+}
+template<typename T, typename Abi>
 static inline void test_modf() noexcept
 {
 	constexpr auto simd_size = dpm::simd_size_v<T, Abi>;
@@ -90,36 +145,9 @@ static inline void test_modf() noexcept
 }
 
 template<typename T, typename Abi>
-static inline void test_ldexp() noexcept
-{
-	constexpr auto simd_size = dpm::simd_size_v<T, Abi>;
-	const auto test_vals = std::array<T, 32 + simd_size>{
-			T{0}, T{-0}, T{0.1}, T{-0.1}, T{0.25}, T{-0.25}, T{0.5}, T{-0.5}, T{0.8}, T{-0.8},
-			T{1}, T{-1}, T{1.1}, T{-1.1}, T{1.25}, T{-1.25}, T{1.5}, T{-1.5}, T{1.8}, T{-1.8},
-			std::numeric_limits<T>::infinity(), -std::numeric_limits<T>::infinity(),
-			std::numeric_limits<T>::max(), std::numeric_limits<T>::min(),
-			std::numeric_limits<T>::quiet_NaN(),
-	};
-	const auto exp_vals = std::array{0, 1, -1, 2, -2, 0xff, -0xff, 0x7ff, -0x7ff, std::numeric_limits<int>::max(), std::numeric_limits<int>::min(),};
-
-	for (std::size_t i = 0; i < test_vals.size() - simd_size; i += simd_size)
-	{
-		const auto x = dpm::simd<T, Abi>{test_vals.data() + i, dpm::element_aligned};
-		for (const auto e : exp_vals)
-		{
-			const auto y = dpm::ldexp(x, e);
-			for (std::size_t j = 0; i + j < test_vals.size() - simd_size && j < simd_size; ++j)
-			{
-				const auto s = std::ldexp(test_vals[i + j], e);
-				TEST_ASSERT(almost_equal(y[j], s, std::numeric_limits<T>::epsilon()));
-			}
-		}
-	}
-}
-
-template<typename T, typename Abi>
 static void test_fmanip() noexcept
 {
+	test_nextafter<T, Abi>();
 	test_ilogb<T, Abi>();
 	test_frexp<T, Abi>();
 	test_ldexp<T, Abi>();
