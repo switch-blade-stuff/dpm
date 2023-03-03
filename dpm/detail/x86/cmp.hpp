@@ -205,6 +205,14 @@ namespace dpm::detail
 	[[nodiscard]] DPM_FORCEINLINE __m256i cmp_gt_h32(__m256i a, __m256i b) noexcept { return cmp_gt<T>(a, b); }
 #endif
 
+
+	/* Compare lower 32-bits of 64-bit integers, ignoring the top half. */
+	template<signed_integral_of_size<4> T, typename V>
+	[[nodiscard]] DPM_FORCEINLINE V cmp_gt_l32(V a, V b) noexcept { return cmp_gt<T>(a, b); }
+	/* Compare lower 32-bits of 64-bit integers, ignoring the bottom half. */
+	template<signed_integral_of_size<4> T, typename V>
+	[[nodiscard]] DPM_FORCEINLINE V cmp_gt_h32(V a, V b) noexcept { return cmp_gt<T>(a, b); }
+
 	template<std::integral T, typename V>
 	[[nodiscard]] DPM_FORCEINLINE V cmp_ne(V a, V b) noexcept { return bit_not(cmp_eq<T>(a, b)); }
 

@@ -4,8 +4,6 @@
 
 #include "common.hpp"
 
-#include <cstdio>
-
 template<typename T, typename Abi>
 static inline void test_nextafter() noexcept
 {
@@ -21,13 +19,13 @@ static inline void test_nextafter() noexcept
 			T{0.0}, std::numeric_limits<T>::quiet_NaN()
 	};
 
-	for (std::size_t i = 0; i < a_data.size();)
+	for (std::size_t i = 0; i < a_data.size() - simd_size;)
 	{
 		const auto a = dpm::simd<T, Abi>{a_data.data() + i, dpm::element_aligned};
 		const auto b = dpm::simd<T, Abi>{b_data.data() + i, dpm::element_aligned};
 		const auto c = dpm::nextafter(a, b);
 
-		for (std::size_t j = 0; i < a_data.size() && j < simd_size; ++j, ++i)
+		for (std::size_t j = 0; i < a_data.size() - simd_size && j < simd_size; ++j, ++i)
 		{
 			const auto s = std::nextafter(a[j], b[j]);
 			TEST_ASSERT(c[j] == s || (std::isnan(c[j]) && std::isnan(s)));
@@ -45,12 +43,12 @@ static inline void test_ilogb() noexcept
 			std::numeric_limits<T>::max(), std::numeric_limits<T>::min(),
 	};
 
-	for (std::size_t i = 0; i < test_vals.size();)
+	for (std::size_t i = 0; i < test_vals.size() - simd_size;)
 	{
 		const auto x = dpm::simd<T, Abi>{test_vals.data() + i, dpm::element_aligned};
 		const auto y = dpm::ilogb(x);
 
-		for (std::size_t j = 0; i < test_vals.size() && j < simd_size; ++j, ++i)
+		for (std::size_t j = 0; i < test_vals.size() - simd_size && j < simd_size; ++j, ++i)
 		{
 			const auto s = std::ilogb(test_vals[i]);
 			TEST_ASSERT(y[j] == s);

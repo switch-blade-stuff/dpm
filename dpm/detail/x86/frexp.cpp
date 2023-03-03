@@ -23,7 +23,7 @@ namespace dpm::detail
 
 		/* off = is_subn ? mant_bits + 2 : 0 */
 		const auto off = bit_and(is_subn, fill<Vi>(std::numeric_limits<I>::digits));
-		auto norm_x = mul<T>(x, fill<V>(exp_mult<T>));
+		auto norm_x = mul<T>(bit_and(std::bit_cast<V>(is_subn), x), fill<V>(exp_mult<T>));
 		norm_x = blendv<T>(x, norm_x, std::bit_cast<V>(is_subn));
 		auto norm_exp = bit_and(std::bit_cast<Vi>(norm_x), fill<Vi>(exp_ones));
 		ix = std::bit_cast<Vi>(norm_x);
