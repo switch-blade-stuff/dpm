@@ -9,9 +9,9 @@
 
 namespace dpm::detail
 {
-	void assert_err(const char *file, unsigned long line, const char *func, const char *cnd, const char *msg) noexcept
+	void assert_err(const char *file, std::uint_least32_t line, const char *func, const char *cnd, const char *msg) noexcept
 	{
-		std::fprintf(stderr, "%s:%lu: %s: Assertion `%s` failed", file, line, func, cnd);
+		std::fprintf(stderr, "%s:%u: %s: Assertion `%s` failed", file, line, func, cnd);
 		if (msg != nullptr)
 			std::fprintf(stderr, " - %s\n", msg);
 		else
@@ -21,9 +21,9 @@ namespace dpm::detail
 	[[maybe_unused]] void assert_trap() noexcept
 	{
 #ifdef SIGTRAP
-	std::raise(SIGTRAP);
+		std::raise(SIGTRAP);
 #else
-	std::raise(SIGABRT);
+		std::raise(SIGABRT);
 #endif
 	}
 }

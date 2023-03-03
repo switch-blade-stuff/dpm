@@ -5,6 +5,7 @@
 #pragma once
 
 #include <version>
+#include <cstdint>
 
 #include "detail/api.hpp"
 
@@ -55,7 +56,7 @@
 
 namespace dpm::detail
 {
-	DPM_PUBLIC void assert_err(const char *file, unsigned long line, const char *func, const char *cnd, const char *msg) noexcept;
+	DPM_PUBLIC void assert_err(const char *file, std::uint_least32_t line, const char *func, const char *cnd, const char *msg) noexcept;
 
 #if defined(_MSC_VER) || defined(__INTEL_COMPILER)
 #define DPM_DEBUGTRAP() __debugbreak()
@@ -90,11 +91,22 @@ namespace dpm::detail
 #else
 namespace dpm::detail
 {
-	struct source_location
+	/* Compatibility with C++20 source_location. */
+	class source_location
 	{
-		const char *func = nullptr;
-		const char *file = nullptr;
-		unsigned long line = 0;
+	public:
+		constexpr source_location() noexcept = default;
+		constexpr source_location(const char *func, const char *file, unsigned long line) noexcept : m_func(func), m_file(file), m_line(line) {}
+
+		[[nodiscard]] constexpr const char *function_name() const noexcept { return m_func; }
+		[[nodiscard]] constexpr const char *file_name() const noexcept { return m_file; }
+		[[nodiscard]] constexpr std::uint_least32_t line() const noexcept { return m_line; }
+		[[nodiscard]] constexpr std::uint_least32_t column() const noexcept { return 0; }
+
+	private:
+		const char *m_func = nullptr;
+		const char *m_file = nullptr;
+		std::uint_least32_t m_line = 0;
 	};
 
 	DPM_FORCEINLINE void assert_err(source_location loc, const char *cnd, const char *msg) noexcept { assert_err(loc.file, loc.line, loc.func, cnd, msg); }
@@ -105,10 +117,10 @@ namespace dpm::detail
 #endif
 
 #define DPM_ASSERT_MSG_LOC_ALWAYS(cnd, msg, src_loc)        \
-	do { if (!(cnd)) [[unlikely]] {                         \
-		dpm::detail::assert_err(src_loc, (#cnd), (msg));    \
-		DPM_DEBUGTRAP();                                    \
-	}} while(false)
+    do { if (!(cnd)) [[unlikely]] {                         \
+        dpm::detail::assert_err(src_loc, (#cnd), (msg));    \
+        DPM_DEBUGTRAP();                                    \
+    }} while(false)
 
 #ifndef NDEBUG
 #define DPM_ASSERT_MSG_LOC(cnd, msg, src_loc) DPM_ASSERT_MSG_LOC_ALWAYS(cnd, msg, src_loc)
