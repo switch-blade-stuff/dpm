@@ -52,7 +52,7 @@ namespace dpm::detail
 		return y;
 	}
 
-	[[nodiscard]] vec2_return_t<__m128, __m128> DPM_PUBLIC DPM_MATHFUNC sincos_f32x4(__m128 x) noexcept
+	[[nodiscard]] vec2_return_t<__m128, __m128> DPM_MATHFUNC sincos_f32x4(__m128 x) noexcept
 	{
 		const auto [s, c] = impl_sincos<float, sincos_op::OP_SINCOS>(x);
 		return vec2_return(s, c);
@@ -60,7 +60,7 @@ namespace dpm::detail
 	__m128 DPM_MATHFUNC sin(__m128 x) noexcept { return impl_sincos<float, sincos_op::OP_SIN>(x).sin; }
 	__m128 DPM_MATHFUNC cos(__m128 x) noexcept { return impl_sincos<float, sincos_op::OP_COS>(x).cos; }
 
-	[[nodiscard]] vec2_return_t<__m128d, __m128d> DPM_PUBLIC DPM_MATHFUNC sincos_f64x2(__m128d x) noexcept
+	[[nodiscard]] vec2_return_t<__m128d, __m128d> DPM_MATHFUNC sincos_f64x2(__m128d x) noexcept
 	{
 		const auto [s, c] = impl_sincos<double, sincos_op::OP_SINCOS>(x);
 		return vec2_return(s, c);
@@ -69,7 +69,7 @@ namespace dpm::detail
 	__m128d DPM_MATHFUNC cos(__m128d x) noexcept { return impl_sincos<double, sincos_op::OP_COS>(x).cos; }
 
 #ifdef DPM_HAS_AVX
-	[[nodiscard]] vec2_return_t<__m256, __m256> DPM_PUBLIC DPM_MATHFUNC sincos_f32x8(__m256 x) noexcept
+	[[nodiscard]] vec2_return_t<__m256, __m256> DPM_MATHFUNC sincos_f32x8(__m256 x) noexcept
 	{
 		const auto [s, c] = impl_sincos<float, sincos_op::OP_SINCOS>(x);
 		return vec2_return(s, c);
@@ -77,7 +77,7 @@ namespace dpm::detail
 	__m256 DPM_MATHFUNC sin(__m256 x) noexcept { return impl_sincos<float, sincos_op::OP_SIN>(x).sin; }
 	__m256 DPM_MATHFUNC cos(__m256 x) noexcept { return impl_sincos<float, sincos_op::OP_COS>(x).cos; }
 
-	[[nodiscard]] vec2_return_t<__m256d, __m256d> DPM_PUBLIC DPM_MATHFUNC sincos_f64x4(__m256d x) noexcept
+	[[nodiscard]] vec2_return_t<__m256d, __m256d> DPM_MATHFUNC sincos_f64x4(__m256d x) noexcept
 	{
 		const auto [s, c] = impl_sincos<double, sincos_op::OP_SINCOS>(x);
 		return vec2_return(s, c);

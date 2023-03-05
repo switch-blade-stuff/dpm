@@ -38,23 +38,23 @@ namespace dpm::detail
 		return {norm_x, norm_exp};
 	}
 
-	vec2_return_t<__m128, __m128i> DPM_PURE DPM_VECTORCALL frexp_f32x4(__m128 x) noexcept
+	vec2_return_t<__m128, __m128i> DPM_MATHFUNC frexp_f32x4(__m128 x) noexcept
 	{
 		const auto [y, e] = impl_frexp<float>(x);
 		return vec2_return(y, e);
 	}
-	vec2_return_t<__m128d, __m128i> DPM_PURE DPM_VECTORCALL frexp_f64x2(__m128d x) noexcept
+	vec2_return_t<__m128d, __m128i> DPM_MATHFUNC frexp_f64x2(__m128d x) noexcept
 	{
 		const auto [y, e] = impl_frexp<double>(x);
 		return vec2_return(y, e);
 	}
 #ifdef DPM_HAS_AVX
-	vec2_return_t<__m256, __m256i> DPM_PURE DPM_VECTORCALL frexp_f32x8(__m256 x) noexcept
+	vec2_return_t<__m256, __m256i> DPM_MATHFUNC frexp_f32x8(__m256 x) noexcept
 	{
 		const auto [y, e] = impl_frexp<float>(x);
 		return vec2_return(y, e);
 	}
-	vec2_return_t<__m256d, __m256i> DPM_PURE DPM_VECTORCALL frexp_f64x4(__m256d x) noexcept
+	vec2_return_t<__m256d, __m256i> DPM_MATHFUNC frexp_f64x4(__m256d x) noexcept
 	{
 		const auto [y, e] = impl_frexp<double>(x);
 		return vec2_return(y, e);

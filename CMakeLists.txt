@@ -48,7 +48,10 @@ include(${DPM_SOURCE_DIR}/CMakeLists.txt)
 set_target_properties(${DPM_PROJECT} PROPERTIES C_VISIBILITY_PRESET hidden)
 set_target_properties(${DPM_PROJECT} PROPERTIES CXX_VISIBILITY_PRESET hidden)
 set_target_properties(${DPM_PROJECT} PROPERTIES VISIBILITY_INLINES_HIDDEN ON)
+
+# Set shared library definitions
 set_target_properties(${DPM_PROJECT} PROPERTIES DEFINE_SYMBOL "DPM_EXPORT")
+target_compile_definitions(${DPM_PROJECT} PUBLIC $<IF:$<STREQUAL:$<TARGET_PROPERTY:${DPM_PROJECT},TYPE>,SHARED_LIBRARY>,"DPM_LIB_SHARED","DPM_LIB_STATIC">)
 
 ## On MSVC, use c++latest instead of c++20 for experimental module support
 #if (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC" AND DPM_USE_MODULES)

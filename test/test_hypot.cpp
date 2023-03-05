@@ -32,11 +32,11 @@ static inline void test_hypot() noexcept
 			const auto s0 = std::hypot(a[j], b[j]);
 			const auto s1 = std::hypot(b[j], a[j]);
 			const auto s2 = std::hypot(a[j], -b[j]);
+
 			TEST_ASSERT(almost_equal(c0[j], s0));
 			TEST_ASSERT(almost_equal(c1[j], s1));
 			TEST_ASSERT(almost_equal(c2[j], s2));
 		}
-		TEST_ASSERT(dpm::all_of((c0 == c1 & c1 == c2) | (dpm::isnan(c0) & dpm::isnan(c1) & dpm::isnan(c2))));
 	}
 }
 

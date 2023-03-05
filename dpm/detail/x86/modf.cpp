@@ -57,23 +57,23 @@ namespace dpm::detail
 		return {y, i};
 	}
 
-	vec2_return_t<__m128, __m128> DPM_PURE DPM_VECTORCALL modf_f32x4(__m128 x) noexcept
+	vec2_return_t<__m128, __m128> DPM_MATHFUNC modf_f32x4(__m128 x) noexcept
 	{
 		const auto [y, i] = impl_modf<float>(x);
 		return vec2_return(y, i);
 	}
-	vec2_return_t<__m128d, __m128d> DPM_PURE DPM_VECTORCALL modf_f64x2(__m128d x) noexcept
+	vec2_return_t<__m128d, __m128d> DPM_MATHFUNC modf_f64x2(__m128d x) noexcept
 	{
 		const auto [y, i] = impl_modf<double>(x);
 		return vec2_return(y, i);
 	}
 #ifdef DPM_HAS_AVX
-	vec2_return_t<__m256, __m256i> DPM_PURE DPM_VECTORCALL modf_f32x8(__m256 x) noexcept
+	vec2_return_t<__m256, __m256i> DPM_MATHFUNC modf_f32x8(__m256 x) noexcept
 	{
 		const auto [y, i] = impl_modf<float>(x);
 		return vec2_return(y, i);
 	}
-	vec2_return_t<__m256d, __m256i> DPM_PURE DPM_VECTORCALL modf_f64x4(__m256d x) noexcept
+	vec2_return_t<__m256d, __m256i> DPM_MATHFUNC modf_f64x4(__m256d x) noexcept
 	{
 		const auto [y, i] = impl_modf<double>(x);
 		return vec2_return(y, i);
