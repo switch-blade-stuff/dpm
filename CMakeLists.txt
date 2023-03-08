@@ -27,10 +27,10 @@ if (${DPM_USE_SVML})
     add_compile_definitions(DPM_PROPAGATE_NAN)
 endif ()
 
-option(DPM_USE_IPO "Toggles support for inter-procedural optimization" ON)
 option(DPM_BUILD_OBJECT "Toggles build of object library target" ON)
 option(DPM_BUILD_SHARED "Toggles build of shared library target" ON)
 option(DPM_BUILD_STATIC "Toggles build of static library target" ON)
+option(DPM_USE_IPO "Toggles support for inter-procedural optimization" ON)
 
 # Set output directories
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib CACHE STRING "")
