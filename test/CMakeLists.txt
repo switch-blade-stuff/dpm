@@ -6,16 +6,18 @@ enable_testing()
 function(make_test NAME FILE)
     set(TEST_PROJECT "dpm-tests-${NAME}")
     add_executable(${TEST_PROJECT} ${FILE})
-    target_link_libraries(${TEST_PROJECT} PRIVATE dpm)
+    add_test(NAME ${NAME} COMMAND "$<TARGET_FILE:${TEST_PROJECT}>")
 
-    # Enable max error reporting
-    if (MSVC)
-        target_compile_options(${TEST_PROJECT} PUBLIC /W3 /WX)
-    else ()
-        target_compile_options(${TEST_PROJECT} PUBLIC -Wall -Wextra -Wpedantic -Werror -Wno-unknown-pragmas -Wno-logical-not-parentheses -ftemplate-backtrace-limit=0)
+    if (DPM_BUILD_OBJECT)
+        target_link_libraries(${TEST_PROJECT} PRIVATE dpm_object)
+    elseif (DPM_BUILD_SHARED)
+        target_link_libraries(${TEST_PROJECT} PRIVATE dpm_shared)
+    elseif (DPM_BUILD_STATIC)
+        target_link_libraries(${TEST_PROJECT} PRIVATE dpm_static)
     endif ()
 
-    add_test(NAME ${NAME} COMMAND "$<TARGET_FILE:${TEST_PROJECT}>")
+    # Enable max error reporting
+    target_compile_options(${TEST_PROJECT} PUBLIC ${DPM_COMPILE_OPTIONS})
 endfunction()
 
 project(dpm-tests)

@@ -1,8 +1,8 @@
 
-target_sources(${DPM_PROJECT} INTERFACE
+list(APPEND DPM_PUBLIC_SOURCES
         ${CMAKE_CURRENT_LIST_DIR}/cpuid.hpp
-        ${CMAKE_CURRENT_LIST_DIR}/abi.hpp
         ${CMAKE_CURRENT_LIST_DIR}/type_fwd.hpp
+        ${CMAKE_CURRENT_LIST_DIR}/abi.hpp
         ${CMAKE_CURRENT_LIST_DIR}/utility.hpp
         ${CMAKE_CURRENT_LIST_DIR}/transform.hpp
         ${CMAKE_CURRENT_LIST_DIR}/bitwise.hpp
@@ -18,9 +18,7 @@ target_sources(${DPM_PROJECT} INTERFACE
         ${CMAKE_CURRENT_LIST_DIR}/round.hpp
         ${CMAKE_CURRENT_LIST_DIR}/errfn.hpp
         ${CMAKE_CURRENT_LIST_DIR}/class.hpp
-        ${CMAKE_CURRENT_LIST_DIR}/math.hpp)
-
-target_sources(${DPM_PROJECT} PUBLIC
+        ${CMAKE_CURRENT_LIST_DIR}/math.hpp
         ${CMAKE_CURRENT_LIST_DIR}/lut.hpp
         ${CMAKE_CURRENT_LIST_DIR}/except.hpp
         ${CMAKE_CURRENT_LIST_DIR}/polevl.hpp
@@ -29,7 +27,7 @@ target_sources(${DPM_PROJECT} PUBLIC
         ${CMAKE_CURRENT_LIST_DIR}/trig.hpp
         ${CMAKE_CURRENT_LIST_DIR}/fmanip.hpp)
 
-target_sources(${DPM_PROJECT} PRIVATE
+list(APPEND DPM_PRIVATE_SOURCES
         ${CMAKE_CURRENT_LIST_DIR}/cpuid.cpp
         ${CMAKE_CURRENT_LIST_DIR}/hypot.cpp
         ${CMAKE_CURRENT_LIST_DIR}/log.cpp
