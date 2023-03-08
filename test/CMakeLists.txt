@@ -9,11 +9,11 @@ function(make_test NAME FILE)
     add_test(NAME ${NAME} COMMAND "$<TARGET_FILE:${TEST_PROJECT}>")
 
     if (DPM_BUILD_OBJECT)
-        target_link_libraries(${TEST_PROJECT} PRIVATE dpm_object)
+        target_link_libraries(${TEST_PROJECT} PRIVATE dpm-object)
     elseif (DPM_BUILD_SHARED)
-        target_link_libraries(${TEST_PROJECT} PRIVATE dpm_shared)
+        target_link_libraries(${TEST_PROJECT} PRIVATE dpm-shared)
     elseif (DPM_BUILD_STATIC)
-        target_link_libraries(${TEST_PROJECT} PRIVATE dpm_static)
+        target_link_libraries(${TEST_PROJECT} PRIVATE dpm-static)
     endif ()
 
     # Enable max error reporting

@@ -38,7 +38,6 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin CACHE STRING "")
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin CACHE STRING "")
 
 # Include library source subdirectory
-set(DPM_LIBRARY_PATH $<TARGET_FILE:${PROJECT_NAME}_object>)
 set(DPM_SOURCE_DIR ${CMAKE_CURRENT_LIST_DIR}/dpm)
 include(${DPM_SOURCE_DIR}/CMakeLists.txt)
 
@@ -49,69 +48,72 @@ else ()
     set(DPM_COMPILE_OPTIONS -Wall -Wextra -Wpedantic -Werror -Wno-unknown-pragmas -Wno-ignored-attributes)
 endif ()
 if (DPM_BUILD_OBJECT)
-    add_library(${PROJECT_NAME}_object OBJECT)
-    target_sources(${PROJECT_NAME}_object PUBLIC ${DPM_PUBLIC_SOURCES})
-    target_sources(${PROJECT_NAME}_object PRIVATE ${DPM_PRIVATE_SOURCES})
-    target_sources(${PROJECT_NAME}_object INTERFACE ${DPM_INTERFACE_SOURCES})
+    add_library(${PROJECT_NAME}-object OBJECT)
+    target_sources(${PROJECT_NAME}-object PUBLIC ${DPM_PUBLIC_SOURCES})
+    target_sources(${PROJECT_NAME}-object PRIVATE ${DPM_PRIVATE_SOURCES})
+    target_sources(${PROJECT_NAME}-object INTERFACE ${DPM_INTERFACE_SOURCES})
+    set_target_properties(${PROJECT_NAME}-object PROPERTIES OUTPUT_NAME "${PROJECT_NAME}")
 
     # Set C++ version
-    target_compile_features(${PROJECT_NAME}_object PUBLIC cxx_std_20)
+    target_compile_features(${PROJECT_NAME}-object PUBLIC cxx_std_20)
 
     # Set symbol visibility
-    set_target_properties(${PROJECT_NAME}_object PROPERTIES C_VISIBILITY_PRESET hidden)
-    set_target_properties(${PROJECT_NAME}_object PROPERTIES CXX_VISIBILITY_PRESET hidden)
-    set_target_properties(${PROJECT_NAME}_object PROPERTIES VISIBILITY_INLINES_HIDDEN ON)
+    set_target_properties(${PROJECT_NAME}-object PROPERTIES C_VISIBILITY_PRESET hidden)
+    set_target_properties(${PROJECT_NAME}-object PROPERTIES CXX_VISIBILITY_PRESET hidden)
+    set_target_properties(${PROJECT_NAME}-object PROPERTIES VISIBILITY_INLINES_HIDDEN ON)
 
     # Set shared library definitions
-    set_target_properties(${PROJECT_NAME}_object PROPERTIES DEFINE_SYMBOL "DPM_EXPORT")
-    target_compile_definitions(${PROJECT_NAME}_object PUBLIC DPM_LIB_SHARED)
+    set_target_properties(${PROJECT_NAME}-object PROPERTIES DEFINE_SYMBOL "DPM_EXPORT")
+    target_compile_definitions(${PROJECT_NAME}-object PUBLIC DPM_LIB_SHARED)
 
     # Enable max error reporting
-    target_compile_options(${PROJECT_NAME}_object PRIVATE ${DPM_COMPILE_OPTIONS})
+    target_compile_options(${PROJECT_NAME}-object PRIVATE ${DPM_COMPILE_OPTIONS})
 endif ()
 
 if (DPM_BUILD_SHARED)
-    add_library(${PROJECT_NAME}_shared SHARED)
-    target_sources(${PROJECT_NAME}_shared PUBLIC ${DPM_PUBLIC_SOURCES})
-    target_sources(${PROJECT_NAME}_shared PRIVATE ${DPM_PRIVATE_SOURCES})
-    target_sources(${PROJECT_NAME}_shared INTERFACE ${DPM_INTERFACE_SOURCES})
+    add_library(${PROJECT_NAME}-shared SHARED)
+    target_sources(${PROJECT_NAME}-shared PUBLIC ${DPM_PUBLIC_SOURCES})
+    target_sources(${PROJECT_NAME}-shared PRIVATE ${DPM_PRIVATE_SOURCES})
+    target_sources(${PROJECT_NAME}-shared INTERFACE ${DPM_INTERFACE_SOURCES})
+    set_target_properties(${PROJECT_NAME}-shared PROPERTIES OUTPUT_NAME "${PROJECT_NAME}")
 
     # Set C++ version
-    target_compile_features(${PROJECT_NAME}_shared PUBLIC cxx_std_20)
+    target_compile_features(${PROJECT_NAME}-shared PUBLIC cxx_std_20)
 
     # Set symbol visibility
-    set_target_properties(${PROJECT_NAME}_shared PROPERTIES C_VISIBILITY_PRESET hidden)
-    set_target_properties(${PROJECT_NAME}_shared PROPERTIES CXX_VISIBILITY_PRESET hidden)
-    set_target_properties(${PROJECT_NAME}_shared PROPERTIES VISIBILITY_INLINES_HIDDEN ON)
+    set_target_properties(${PROJECT_NAME}-shared PROPERTIES C_VISIBILITY_PRESET hidden)
+    set_target_properties(${PROJECT_NAME}-shared PROPERTIES CXX_VISIBILITY_PRESET hidden)
+    set_target_properties(${PROJECT_NAME}-shared PROPERTIES VISIBILITY_INLINES_HIDDEN ON)
 
     # Set shared library definitions
-    set_target_properties(${PROJECT_NAME}_shared PROPERTIES DEFINE_SYMBOL "DPM_EXPORT")
-    target_compile_definitions(${PROJECT_NAME}_shared PUBLIC DPM_LIB_SHARED)
+    set_target_properties(${PROJECT_NAME}-shared PROPERTIES DEFINE_SYMBOL "DPM_EXPORT")
+    target_compile_definitions(${PROJECT_NAME}-shared PUBLIC DPM_LIB_SHARED)
 
     # Enable max error reporting
-    target_compile_options(${PROJECT_NAME}_shared PRIVATE ${DPM_COMPILE_OPTIONS})
+    target_compile_options(${PROJECT_NAME}-shared PRIVATE ${DPM_COMPILE_OPTIONS})
 endif ()
 
 if (DPM_BUILD_STATIC)
-    add_library(${PROJECT_NAME}_static STATIC)
-    target_sources(${PROJECT_NAME}_static PUBLIC ${DPM_PUBLIC_SOURCES})
-    target_sources(${PROJECT_NAME}_static PRIVATE ${DPM_PRIVATE_SOURCES})
-    target_sources(${PROJECT_NAME}_static INTERFACE ${DPM_INTERFACE_SOURCES})
+    add_library(${PROJECT_NAME}-static STATIC)
+    target_sources(${PROJECT_NAME}-static PUBLIC ${DPM_PUBLIC_SOURCES})
+    target_sources(${PROJECT_NAME}-static PRIVATE ${DPM_PRIVATE_SOURCES})
+    target_sources(${PROJECT_NAME}-static INTERFACE ${DPM_INTERFACE_SOURCES})
+    set_target_properties(${PROJECT_NAME}-static PROPERTIES OUTPUT_NAME "${PROJECT_NAME}")
 
     # Set C++ version
-    target_compile_features(${PROJECT_NAME}_static PUBLIC cxx_std_20)
+    target_compile_features(${PROJECT_NAME}-static PUBLIC cxx_std_20)
 
     # Set symbol visibility
-    set_target_properties(${PROJECT_NAME}_static PROPERTIES C_VISIBILITY_PRESET hidden)
-    set_target_properties(${PROJECT_NAME}_static PROPERTIES CXX_VISIBILITY_PRESET hidden)
-    set_target_properties(${PROJECT_NAME}_static PROPERTIES VISIBILITY_INLINES_HIDDEN ON)
+    set_target_properties(${PROJECT_NAME}-static PROPERTIES C_VISIBILITY_PRESET hidden)
+    set_target_properties(${PROJECT_NAME}-static PROPERTIES CXX_VISIBILITY_PRESET hidden)
+    set_target_properties(${PROJECT_NAME}-static PROPERTIES VISIBILITY_INLINES_HIDDEN ON)
 
     # Set shared library definitions
-    set_target_properties(${PROJECT_NAME}_static PROPERTIES DEFINE_SYMBOL "DPM_EXPORT")
-    target_compile_definitions(${PROJECT_NAME}_static PUBLIC DPM_LIB_STATIC)
+    set_target_properties(${PROJECT_NAME}-static PROPERTIES DEFINE_SYMBOL "DPM_EXPORT")
+    target_compile_definitions(${PROJECT_NAME}-static PUBLIC DPM_LIB_STATIC)
 
     # Enable max error reporting
-    target_compile_options(${PROJECT_NAME}_static PRIVATE ${DPM_COMPILE_OPTIONS})
+    target_compile_options(${PROJECT_NAME}-static PRIVATE ${DPM_COMPILE_OPTIONS})
 endif ()
 
 # Unit tests
