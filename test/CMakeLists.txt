@@ -1,6 +1,5 @@
 cmake_minimum_required(VERSION 3.19)
-
-include_directories(${CMAKE_CURRENT_LIST_DIR}/..)
+project(dpm-tests)
 enable_testing()
 
 function(make_test NAME FILE)
@@ -20,7 +19,6 @@ function(make_test NAME FILE)
     target_compile_options(${TEST_PROJECT} PUBLIC ${DPM_COMPILE_OPTIONS})
 endfunction()
 
-project(dpm-tests)
 
 #make_test(operators ${CMAKE_CURRENT_LIST_DIR}/test_operators.cpp)
 make_test(shuffle ${CMAKE_CURRENT_LIST_DIR}/test_shuffle.cpp)

@@ -52,6 +52,7 @@ if (DPM_BUILD_OBJECT)
     target_sources(${PROJECT_NAME}-object PUBLIC ${DPM_PUBLIC_SOURCES})
     target_sources(${PROJECT_NAME}-object PRIVATE ${DPM_PRIVATE_SOURCES})
     target_sources(${PROJECT_NAME}-object INTERFACE ${DPM_INTERFACE_SOURCES})
+    target_include_directories(${PROJECT_NAME}-object PUBLIC ${CMAKE_CURRENT_LIST_DIR})
     set_target_properties(${PROJECT_NAME}-object PROPERTIES OUTPUT_NAME "${PROJECT_NAME}")
 
     # Set C++ version
@@ -75,6 +76,7 @@ if (DPM_BUILD_SHARED)
     target_sources(${PROJECT_NAME}-shared PUBLIC ${DPM_PUBLIC_SOURCES})
     target_sources(${PROJECT_NAME}-shared PRIVATE ${DPM_PRIVATE_SOURCES})
     target_sources(${PROJECT_NAME}-shared INTERFACE ${DPM_INTERFACE_SOURCES})
+    target_include_directories(${PROJECT_NAME}-shared PUBLIC ${CMAKE_CURRENT_LIST_DIR})
     set_target_properties(${PROJECT_NAME}-shared PROPERTIES OUTPUT_NAME "${PROJECT_NAME}")
 
     # Set C++ version
@@ -98,6 +100,7 @@ if (DPM_BUILD_STATIC)
     target_sources(${PROJECT_NAME}-static PUBLIC ${DPM_PUBLIC_SOURCES})
     target_sources(${PROJECT_NAME}-static PRIVATE ${DPM_PRIVATE_SOURCES})
     target_sources(${PROJECT_NAME}-static INTERFACE ${DPM_INTERFACE_SOURCES})
+    target_include_directories(${PROJECT_NAME}-static PUBLIC ${CMAKE_CURRENT_LIST_DIR})
     set_target_properties(${PROJECT_NAME}-static PROPERTIES OUTPUT_NAME "${PROJECT_NAME}")
 
     # Set C++ version
