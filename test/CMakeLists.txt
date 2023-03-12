@@ -7,10 +7,10 @@ function(make_test NAME FILE)
     add_executable(${TEST_PROJECT} ${FILE})
     add_test(NAME ${NAME} COMMAND "$<TARGET_FILE:${TEST_PROJECT}>")
 
-    if (DPM_BUILD_SHARED)
-        target_link_libraries(${TEST_PROJECT} PRIVATE dpm-shared)
-    elseif (DPM_BUILD_STATIC)
+    if (DPM_BUILD_STATIC)
         target_link_libraries(${TEST_PROJECT} PRIVATE dpm-static)
+    elseif (DPM_BUILD_SHARED)
+        target_link_libraries(${TEST_PROJECT} PRIVATE dpm-shared)
     endif ()
 
     # Enable max error reporting

@@ -4,7 +4,7 @@
 
 #pragma once
 
-#if defined(DPM_LIB_SHARED) && (defined(_WIN32) || defined(_WIN64) || defined(__CYGWIN__))
+#if defined(_WIN32) || defined(_WIN64) || defined(__CYGWIN__)
 #define DPM_API_HIDDEN
 #if defined(_MSC_VER)
 #define DPM_API_EXPORT __declspec(dllexport)
@@ -23,7 +23,7 @@
 #define DPM_API_IMPORT
 #endif
 
-#ifdef DPM_EXPORT
+#if defined(DPM_EXPORT) || defined(DPM_LIB_STATIC)
 #define DPM_PUBLIC DPM_API_EXPORT
 #else
 #define DPM_PUBLIC DPM_API_IMPORT

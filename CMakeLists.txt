@@ -69,11 +69,11 @@ function(dpm_configure_target NAME TYPE)
 endfunction()
 if (DPM_BUILD_SHARED)
     dpm_configure_target(${PROJECT_NAME}-shared SHARED)
-    target_compile_definitions(${PROJECT_NAME}-shared PUBLIC DPM_LIB_SHARED)
 endif ()
 if (DPM_BUILD_STATIC)
     dpm_configure_target(${PROJECT_NAME}-static STATIC)
     set_target_properties(${PROJECT_NAME}-static PROPERTIES PREFIX "lib")
+    target_compile_definitions(${PROJECT_NAME}-static PUBLIC DPM_LIB_STATIC)
 endif ()
 
 # Unit tests
