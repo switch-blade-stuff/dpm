@@ -335,7 +335,7 @@ namespace dpm
 #else
 			__m256i tmp;
 			round<std::int32_t>(x, &tmp);
-			const auto sign = _mm256_srai_epi32(tmp, 31);
+			const auto sign = std::bit_cast<__m256>(_mm256_srai_epi32(tmp, 31));
 			const auto ih = _mm256_unpackhi_ps(std::bit_cast<__m256>(tmp), sign);
 			const auto il = _mm256_unpacklo_ps(std::bit_cast<__m256>(tmp), sign);
 			dst[0] = std::bit_cast<__m256i>(_mm256_permute2f128_ps(il, ih, 0x20));
@@ -356,9 +356,9 @@ namespace dpm
 		DPM_FORCEINLINE void rint(__m256 x, __m256i *dst) noexcept
 		{
 			const auto tmp = _mm256_cvtps_epi32(x);
-			const auto sign = _mm256_srai_epi32(tmp, 31);
-			const auto ih = std::bit_cast<__m256>(_mm256_unpackhi_ps(tmp, sign));
-			const auto il = std::bit_cast<__m256>(_mm256_unpacklo_ps(tmp, sign));
+			const auto sign = std::bit_cast<__m256>(_mm256_srai_epi32(tmp, 31));
+			const auto ih = _mm256_unpackhi_ps(std::bit_cast<__m256>(tmp), sign);
+			const auto il = _mm256_unpacklo_ps(std::bit_cast<__m256>(tmp), sign);
 			dst[0] = std::bit_cast<__m256i>(_mm256_permute2f128_ps(il, ih, 0x20));
 			dst[1] = std::bit_cast<__m256i>(_mm256_permute2f128_ps(il, ih, 0x31));
 		}

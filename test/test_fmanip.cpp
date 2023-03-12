@@ -79,9 +79,8 @@ static inline void test_frexp() noexcept
 			int se;
 			const auto s = std::frexp(test_vals[i], &se);
 
-			TEST_ASSERT((e[j] == se && almost_equal(y[j], s, std::numeric_limits<T>::epsilon())) ||
-			            (std::isinf(y[j]) && std::isinf(s)) ||
-			            (std::isnan(y[j]) && std::isnan(s)));
+			TEST_ASSERT((std::isinf(y[j]) && std::isinf(s)) || (std::isnan(y[j]) && std::isnan(s)) ||
+						(e[j] == se && almost_equal(y[j], s, std::numeric_limits<T>::epsilon())));
 		}
 	}
 }

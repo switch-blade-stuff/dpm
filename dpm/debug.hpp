@@ -69,9 +69,9 @@ namespace dpm::detail
 #elif defined(__ibmxl__) || defined(__xlC__)
 #define DPM_DEBUGTRAP() __trap(42)
 #elif defined(__DMC__) && defined(_M_IX86)
-#define DPM_DEBUGTRAP() (__asm int 3h)
+#define DPM_DEBUGTRAP() do { __asm int 3h; } while(false)
 #elif defined(__i386__) || defined(__x86_64__)
-#define DPM_DEBUGTRAP() (__asm__ __volatile__("int3"))
+#define DPM_DEBUGTRAP() do { __asm__ __volatile__("int3"); } while(false)
 #else
 	[[noreturn]] DPM_PUBLIC void assert_trap() noexcept;
 #define DPM_DEBUGTRAP() dpm::detail::assert_trap()

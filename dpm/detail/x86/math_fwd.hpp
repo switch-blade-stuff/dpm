@@ -18,9 +18,9 @@ namespace dpm::detail
 	{
 		/* Avoid discarding y */
 #ifdef DPM_HAS_AVX
-		__asm__ ("vmovaps %0, %%xmm1" : : "x"(y) : "xmm1");
+		__asm__ ("vmovaps %[y], %%xmm1" : : [y] "x"(y) : "xmm1");
 #else
-		__asm__ ("movaps %0, %%xmm1" : : "x"(y) : "xmm1");
+		__asm__ ("movaps %[y], %%xmm1" : : [y] "x"(y) : "xmm1");
 #endif
 		return x;
 	}
@@ -30,9 +30,9 @@ namespace dpm::detail
 		x = f(x);
 		/* Read second variable from xmm1 */
 #ifdef DPM_HAS_AVX
-		__asm__ ("vmovaps %%xmm1, %0" : "=xm"(out));
+		__asm__ volatile ("vmovaps %%xmm1, %[out]" : [out] "=xm"(out));
 #else
-		__asm__ ("movaps %%xmm1, %0" : "=xm"(out));
+		__asm__ volatile ("movaps %%xmm1, %[out]" : [out] "=xm"(out));
 #endif
 		return x;
 	}
@@ -41,7 +41,7 @@ namespace dpm::detail
 	[[nodiscard]] vec2_return_t<T0, T1> DPM_FORCEINLINE vec2_return(T0 x, T1 y) noexcept requires(sizeof(T1) == 32)
 	{
 		/* Avoid discarding y */
-		__asm__ ("vmovaps %0, %%ymm1" : : "x"(y) : "ymm1");
+		__asm__ ("vmovaps %[y], %%ymm1" : : [y] "x"(y) : "ymm1");
 		return x;
 	}
 	template<typename T0, typename T1>
@@ -49,7 +49,7 @@ namespace dpm::detail
 	{
 		x = f(x);
 		/* Read second variable from ymm1 */
-		__asm__ ("vmovaps %%ymm1, %0" : "=xm"(out));
+		__asm__ volatile ("vmovaps %%ymm1, %[out]" : [out] "=xm"(out));
 		return x;
 	}
 #endif

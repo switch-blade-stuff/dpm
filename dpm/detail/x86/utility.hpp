@@ -13,14 +13,18 @@ namespace dpm::detail
 	template<typename V>
 	[[nodiscard]] DPM_FORCEINLINE V setzero() noexcept requires (sizeof(V) == 16)
 	{
+#ifdef __clang__
 		const auto tmp = _mm_undefined_ps();
 		return std::bit_cast<V>(_mm_xor_ps(tmp, tmp));
+#else
+		return std::bit_cast<V>(_mm_setzero_ps());
+#endif
 	}
 	template<typename V>
 	[[nodiscard]] DPM_FORCEINLINE V setones() noexcept requires (sizeof(V) == 16)
 	{
-#ifndef DPM_HAS_SSE2
-		const auto tmp = setzero<V>();
+#if !defined(DPM_HAS_SSE2) || !defined(__clang__)
+		const auto tmp = setzero<__m128>();
 		return std::bit_cast<V>(_mm_cmpeq_ps(tmp, tmp));
 #else
 		const auto tmp = _mm_undefined_si128();
@@ -149,14 +153,18 @@ namespace dpm::detail
 	template<typename V>
 	[[nodiscard]] DPM_FORCEINLINE V setzero() noexcept requires (sizeof(V) == 32)
 	{
+#ifdef __clang__
 		const auto tmp = _mm256_undefined_ps();
 		return std::bit_cast<V>(_mm256_xor_ps(tmp, tmp));
+#else
+		return std::bit_cast<V>(_mm256_setzero_ps());
+#endif
 	}
 	template<typename V>
 	[[nodiscard]] DPM_FORCEINLINE V setones() noexcept requires (sizeof(V) == 32)
 	{
-#ifndef DPM_HAS_AVX2
-		const auto tmp = setzero<V>();
+#if !defined(DPM_HAS_AVX2) || !defined(__clang__)
+		const auto tmp = setzero<__m256>();
 		return std::bit_cast<V>(_mm256_cmp_ps(tmp, tmp, _CMP_EQ_OS));
 #else
 		const auto tmp = _mm256_undefined_si256();
@@ -330,7 +338,7 @@ namespace dpm::detail
 #endif
 
 	template<typename T, typename V, typename... Args, typename F, typename... Vs>
-	[[nodiscard]] DPM_FORCEINLINE void mask_invoke(F f, std::size_t m, Vs &&...args) noexcept requires (sizeof...(Args) == sizeof...(Vs))
+	DPM_FORCEINLINE void mask_invoke(F f, std::size_t m, Vs &&...args) noexcept requires (sizeof...(Args) == sizeof...(Vs))
 	{
 		for (std::size_t i = 0; i < sizeof(V) / sizeof(T) && m; ++i, m >>= 1)
 		{

@@ -9,9 +9,7 @@
 namespace dpm::detail
 {
 	template<std::size_t I3, std::size_t I2, std::size_t I1, std::size_t I0>
-	[[nodiscard]] constexpr int shuffle4_mask() noexcept { return _MM_SHUFFLE(I3, I2, I1, I0); }
-	template<std::size_t I1, std::size_t I0>
-	[[nodiscard]] constexpr int shuffle2_mask() noexcept { return _MM_SHUFFLE2(I1, I0); }
+	[[nodiscard]] constexpr int shuffle_mask() noexcept { return _MM_SHUFFLE(I3, I2, I1, I0); }
 
 	template<typename T, typename V>
 	[[nodiscard]] DPM_FORCEINLINE V maskblend(V a, V b, std::size_t n) noexcept requires (sizeof(T) == 4 && sizeof(V) == 16)
@@ -95,11 +93,11 @@ namespace dpm::detail
 		const auto va = std::bit_cast<__m128>(x[P0]);
 		const auto vb = std::bit_cast<__m128>(x[P2]);
 		if constexpr (P0 == P1 && P2 == P3)
-			return std::bit_cast<V>(_mm_shuffle_ps(va, vb, (shuffle4_mask<I3 % 4, I2 % 4, I1 % 4, I0 % 4>())));
+			return std::bit_cast<V>(_mm_shuffle_ps(va, vb, _MM_SHUFFLE(I3 % 4, I2 % 4, I1 % 4, I0 % 4)));
 		else
 		{
-			const auto a = _mm_shuffle_ps(std::bit_cast<__m128>(x[P0]), std::bit_cast<__m128>(x[P1]), (shuffle4_mask<I1 % 4, I1 % 4, I0 % 4, I0 % 4>()));
-			const auto b = _mm_shuffle_ps(std::bit_cast<__m128>(x[P2]), std::bit_cast<__m128>(x[P3]), (shuffle4_mask<I3 % 4, I3 % 4, I2 % 4, I2 % 4>()));
+			const auto a = _mm_shuffle_ps(std::bit_cast<__m128>(x[P0]), std::bit_cast<__m128>(x[P1]), _MM_SHUFFLE(I1 % 4, I1 % 4, I0 % 4, I0 % 4));
+			const auto b = _mm_shuffle_ps(std::bit_cast<__m128>(x[P2]), std::bit_cast<__m128>(x[P3]), _MM_SHUFFLE(I3 % 4, I3 % 4, I2 % 4, I2 % 4));
 			return std::bit_cast<V>(_mm_shuffle_ps(a, b, _MM_SHUFFLE(2, 0, 2, 0)));
 		}
 	}
@@ -341,7 +339,7 @@ namespace dpm::detail
 	{
 		const auto va = std::bit_cast<__m128d>(x[I0 / 2]);
 		const auto vb = std::bit_cast<__m128d>(x[I1 / 2]);
-		return std::bit_cast<V>(_mm_shuffle_pd(va, vb, (shuffle2_mask<I1 % 2, I0 % 2>())));
+		return std::bit_cast<V>(_mm_shuffle_pd(va, vb, _MM_SHUFFLE2(I1 % 2, I0 % 2)));
 	}
 
 	template<std::same_as<double> T, typename Op>
@@ -381,8 +379,8 @@ namespace dpm::detail
 		if constexpr (((IA / 4 == IAs / 4) && ...) && ((IB / 4 == IBs / 4) && ...) && IA / 8 != IB / 8)
 		{
 			constexpr auto J0 = (IA / 4) & 1, J1 = (IB / 4) & 1;
-			constexpr auto ma = shuffle4_mask<IA % 4, (IAs % 4)...>();
-			constexpr auto mb = shuffle4_mask<IB % 4, (IBs % 4)...>();
+			constexpr auto ma = shuffle_mask<IA % 4, (IAs % 4)...>();
+			constexpr auto mb = shuffle_mask<IB % 4, (IBs % 4)...>();
 			__m128i a, b;
 
 			if constexpr (J0)
@@ -393,7 +391,7 @@ namespace dpm::detail
 				b = _mm_shufflehi_epi16(x[IB / 8], mb);
 			else
 				b = _mm_shufflelo_epi16(x[IB / 8], mb);
-			return std::bit_cast<__m128i>(_mm_shuffle_pd(std::bit_cast<__m128d>(b), std::bit_cast<__m128d>(a), (shuffle2_mask<J0, J1>())));
+			return std::bit_cast<__m128i>(_mm_shuffle_pd(std::bit_cast<__m128d>(b), std::bit_cast<__m128d>(a), _MM_SHUFFLE2(J0, J1)));
 		}
 		else
 			return shuffle<std::int8_t>(repeat_sequence_t<2, 1, IA, IAs..., IB, IBs...>{}, x);

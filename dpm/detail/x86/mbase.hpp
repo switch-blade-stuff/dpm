@@ -25,8 +25,7 @@ namespace dpm
 		}
 		[[maybe_unused]] [[nodiscard]] DPM_FORCEINLINE __m128 fnmsub_sse(__m128 a, __m128 b, __m128 c) noexcept
 		{
-			const auto tmp = _mm_undefined_ps();
-			const auto zero = _mm_xor_ps(tmp, tmp);
+			const auto zero = setzero<__m128>();
 			return _mm_sub_ps(zero, fmadd_sse(a, b, c));
 		}
 

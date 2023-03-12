@@ -21,7 +21,11 @@ namespace dpm::detail
 			[[unlikely]] abs_x = except_invalid<T>(abs_x, abs_x, m);
 #endif
 
+#ifndef __clang__
+		auto p1 = setzero<V>(), p2 = setzero<V>();
+#else
 		auto p1 = undefined<V>(), p2 = undefined<V>();
+#endif
 		const auto p_mask = cmp_gt<T>(fill<V>(pio32<T>), abs_x);
 		const auto p_mask_bits = movemask<T>(p_mask);
 		if (p_mask_bits != fill_bits<extent>()) [[likely]] /* |x| >= Pi / 32 */
