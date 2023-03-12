@@ -50,12 +50,6 @@ On architectures without SIMD support, vectorization is emulated via scalar oper
   </tr>
   <tr>
     <td>N/A</td>
-    <td>-DDPM_BUILD_OBJECT</td>
-    <td>ON</td>
-    <td>Toggles build of object library target</td>
-  </tr>
-  <tr>
-    <td>N/A</td>
     <td>-DDPM_BUILD_SHARED</td>
     <td>ON</td>
     <td>Toggles build of shared library target</td>
