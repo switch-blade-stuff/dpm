@@ -288,7 +288,7 @@ namespace dpm
 	template<typename M, typename V>
 	[[nodiscard]] DPM_FORCEINLINE typename V::value_type hmax(const const_where_expression<M, V> &x) noexcept
 	{
-		return hmax(ext::blend({std::numeric_limits<typename V::value_type>::min()}, x));
+		return hmax(ext::blend({std::numeric_limits<typename V::value_type>::lowest()}, x));
 	}
 
 	/** Calculates a reduction of selected element from \a x using \a binary_op and identity element \a identity. Equivalent to `binary_op(identity, +x)`. */

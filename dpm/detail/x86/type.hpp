@@ -1645,7 +1645,7 @@ namespace dpm
 		template<typename T, std::size_t N, typename V>
 		[[nodiscard]] DPM_FORCEINLINE T reduce_min(const V *data) noexcept { return reduce<T, N>(data, fill<V>(std::numeric_limits<T>::max()), [](auto a, auto b) { return min<T>(a, b); }); }
 		template<typename T, std::size_t N, typename V>
-		[[nodiscard]] DPM_FORCEINLINE T reduce_max(const V *data) noexcept { return reduce<T, N>(data, fill<V>(std::numeric_limits<T>::min()), [](auto a, auto b) { return max<T>(a, b); }); }
+		[[nodiscard]] DPM_FORCEINLINE T reduce_max(const V *data) noexcept { return reduce<T, N>(data, fill<V>(std::numeric_limits<T>::lowest()), [](auto a, auto b) { return max<T>(a, b); }); }
 
 #ifdef DPM_HAS_SSE2
 		template<typename T, std::size_t N, typename V>
