@@ -46,10 +46,10 @@ namespace dpm
 		inline T blend(const T &a, const const_where_expression<bool, T> &b);
 	}
 
-	/** @brief Type used to select element(s) of `T` using mask `M`.
+	/** @brief Type used to select element(s) of \a T using mask \a M.
 	 * @tparam T SIMD vector, vector mask or scalar type, who's element(s) to select.
-	 * @tparam M SIMD vector mask or `bool` used to select element(s) of `T`.
-	 * @note If `M` is same as `bool`, `T` must be a scalar. */
+	 * @tparam M SIMD vector mask or `bool` used to select element(s) of \a T.
+	 * @note If \a M is same as `bool`, \a T must be a scalar. */
 	template<typename M, typename T>
 	class const_where_expression
 	{
@@ -106,10 +106,10 @@ namespace dpm
 		T &m_data;
 	};
 
-	/** @brief Type used to select element(s) of `T` using mask `M`.
+	/** @brief Type used to select element(s) of \a T using mask \a M.
 	 * @tparam T SIMD vector, vector mask or scalar type, who's element(s) to select.
-	 * @tparam M SIMD vector mask or `bool` used to select element(s) of `T`.
-	 * @note If `M` is same as `bool`, `T` must be a scalar. */
+	 * @tparam M SIMD vector mask or `bool` used to select element(s) of \a T.
+	 * @note If \a M is same as `bool`, \a T must be a scalar. */
 	template<typename M, typename T>
 	class where_expression : public const_where_expression<M, T>
 	{

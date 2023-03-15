@@ -511,13 +511,13 @@ namespace dpm
 #pragma endregion
 
 #pragma region "simd_mask casts"
-	/** Converts SIMD mask \a x to it's fixed-size equivalent for value type `T`. */
+	/** Converts SIMD mask \a x to it's fixed-size equivalent for value type \a T. */
 	template<typename T, typename Abi>
 	[[nodiscard]] inline fixed_size_simd_mask<T, simd_size_v<T, Abi>> to_fixed_size(const simd_mask<T, Abi> &x) noexcept { return {x}; }
-	/** Converts SIMD mask \a x to it's native ABI equivalent for value type `T`. */
+	/** Converts SIMD mask \a x to it's native ABI equivalent for value type \a T. */
 	template<typename T, typename Abi>
 	[[nodiscard]] inline native_simd_mask<T> to_native(const simd_mask<T, Abi> &x) noexcept { return {x}; }
-	/** Converts SIMD mask \a x to it's compatible ABI equivalent for value type `T`. */
+	/** Converts SIMD mask \a x to it's compatible ABI equivalent for value type \a T. */
 	template<typename T, typename Abi>
 	[[nodiscard]] inline simd_mask<T> to_compatible(const simd_mask<T, Abi> &x) noexcept { return {x}; }
 
@@ -535,7 +535,7 @@ namespace dpm
 		return result;
 	}
 	/** Returns an array of SIMD masks where every `i`th element of the `j`th mask is a copy of the `i + j * (simd_size_v<T, Abi> / N)`th element from \a x.
-	 * @note `N` must be a multiple of `simd_size_v<T, Abi>::size()`. */
+	 * @note \a N must be a multiple of `simd_size_v<T, Abi>::size()`. */
 	template<std::size_t N, typename T, typename Abi>
 	[[nodiscard]] inline auto split_by(const simd_mask<T, Abi> &x) noexcept requires (simd_size_v<T, Abi> % N == 0)
 	{
@@ -1300,7 +1300,7 @@ namespace dpm
 
 	DPM_DECLARE_EXT_NAMESPACE
 	{
-		/** Logically shifts elements of vector \a x left by a constant number of bits `N`. */
+		/** Logically shifts elements of vector \a x left by a constant number of bits \a N. */
 		template<std::size_t N, std::integral T, typename Abi>
 		[[nodiscard]] inline simd<T, Abi> lsl(const simd<T, Abi> &x) noexcept requires (N < std::numeric_limits<T>::digits)
 		{
@@ -1309,7 +1309,7 @@ namespace dpm
 				result[i] = x[i] << N;
 			return result;
 		}
-		/** Logically shifts elements of vector \a x right by a constant number of bits `N`. */
+		/** Logically shifts elements of vector \a x right by a constant number of bits \a N. */
 		template<std::size_t N, std::integral T, typename Abi>
 		[[nodiscard]] inline simd<T, Abi> lsr(const simd<T, Abi> &x) noexcept requires (N < std::numeric_limits<T>::digits)
 		{
@@ -1319,7 +1319,7 @@ namespace dpm
 			return result;
 		}
 
-		/** Arithmetically shifts elements of vector \a x left by a constant number of bits `N`. */
+		/** Arithmetically shifts elements of vector \a x left by a constant number of bits \a N. */
 		template<std::size_t N, std::signed_integral T, typename Abi>
 		[[nodiscard]] inline simd<T, Abi> asl(const simd<T, Abi> &x) noexcept requires (N < std::numeric_limits<T>::digits)
 		{
@@ -1328,7 +1328,7 @@ namespace dpm
 				result[i] = x[i] << N;
 			return result;
 		}
-		/** Arithmetically shifts elements of vector \a x right by a constant number of bits `N`. */
+		/** Arithmetically shifts elements of vector \a x right by a constant number of bits \a N. */
 		template<std::size_t N, std::signed_integral T, typename Abi>
 		[[nodiscard]] inline simd<T, Abi> asr(const simd<T, Abi> &x) noexcept requires (N < std::numeric_limits<T>::digits)
 		{
@@ -1465,7 +1465,7 @@ namespace dpm
 		concept valid_simd_static_cast = std::convertible_to<U, typename detail::deduce_cast<T>::type> && detail::equal_cast_size<T, U, Abi>::value;
 	}
 
-	/** Implicitly converts elements of SIMD vector \a x to `T` or `T::value_type` if `T` is an instance of `simd`. */
+	/** Implicitly converts elements of SIMD vector \a x to \a T or `T::value_type` if \a T is an instance of `simd`. */
 	template<typename T, typename U, typename Abi>
 	[[nodiscard]] inline auto simd_cast(const simd<U, Abi> &x) noexcept requires detail::valid_simd_cast<T, U, Abi>
 	{
@@ -1473,7 +1473,7 @@ namespace dpm
 		detail::copy_cast(x, result);
 		return result;
 	}
-	/** Explicitly converts elements of SIMD vector \a x to `T` or `T::value_type` if `T` is an instance of `simd`. */
+	/** Explicitly converts elements of SIMD vector \a x to \a T or `T::value_type` if \a T is an instance of `simd`. */
 	template<typename T, typename U, typename Abi>
 	[[nodiscard]] inline auto static_simd_cast(const simd<U, Abi> &x) noexcept requires detail::valid_simd_static_cast<T, U, Abi>
 	{
@@ -1482,13 +1482,13 @@ namespace dpm
 		return result;
 	}
 
-	/** Converts SIMD vector \a x to it's fixed-size ABI equivalent for value type `T`. */
+	/** Converts SIMD vector \a x to it's fixed-size ABI equivalent for value type \a T. */
 	template<typename T, typename Abi>
 	[[nodiscard]] inline fixed_size_simd<T, simd_size_v<T, Abi>> to_fixed_size(const simd<T, Abi> &x) noexcept { return {x}; }
-	/** Converts SIMD vector \a x to it's native ABI equivalent for value type `T`. */
+	/** Converts SIMD vector \a x to it's native ABI equivalent for value type \a T. */
 	template<typename T, typename Abi>
 	[[nodiscard]] inline native_simd<T> to_native(const simd<T, Abi> &x) noexcept { return {x}; }
-	/** Converts SIMD vector \a x to it's compatible ABI equivalent for value type `T`. */
+	/** Converts SIMD vector \a x to it's compatible ABI equivalent for value type \a T. */
 	template<typename T, typename Abi>
 	[[nodiscard]] inline simd<T> to_compatible(const simd<T, Abi> &x) noexcept { return {x}; }
 
@@ -1506,7 +1506,7 @@ namespace dpm
 		return result;
 	}
 	/** Returns an array of SIMD vectors where every `i`th element of the `j`th vector is a copy of the `i + j * (simd_size_v<T, Abi> / N)`th element from \a x.
-	 * @note `N` must be a multiple of `simd_size_v<T, Abi>::size()`. */
+	 * @note \a N must be a multiple of `simd_size_v<T, Abi>::size()`. */
 	template<std::size_t N, typename T, typename Abi>
 	[[nodiscard]] inline auto split_by(const simd<T, Abi> &x) noexcept requires (simd_size_v<T, Abi> % N == 0)
 	{

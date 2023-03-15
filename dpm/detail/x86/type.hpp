@@ -1599,7 +1599,7 @@ namespace dpm
 
 	DPM_DECLARE_EXT_NAMESPACE
 	{
-		/** Logically shifts elements of vector \a x left by a constant number of bits `N`. */
+		/** Logically shifts elements of vector \a x left by a constant number of bits \a N. */
 		template<std::size_t N, std::integral T, std::size_t M, std::size_t A>
 		[[nodiscard]] DPM_FORCEINLINE detail::x86_simd<T, M, A> lsl(const detail::x86_simd<T, M, A> &x) noexcept requires (detail::x86_overload_any<T, M, A> && sizeof(T) > 1 && N < std::numeric_limits<T>::digits)
 		{
@@ -1607,7 +1607,7 @@ namespace dpm
 			detail::vectorize([](auto &res, auto x) { res = detail::bit_shiftl<T, N>(x); }, result, x);
 			return result;
 		}
-		/** Logically shifts elements of vector \a x right by a constant number of bits `N`. */
+		/** Logically shifts elements of vector \a x right by a constant number of bits \a N. */
 		template<std::size_t N, std::integral T, std::size_t M, std::size_t A>
 		[[nodiscard]] DPM_FORCEINLINE detail::x86_simd<T, M, A> lsr(const detail::x86_simd<T, M, A> &x) noexcept requires (detail::x86_overload_any<T, M, A> && sizeof(T) > 1 && N < std::numeric_limits<T>::digits)
 		{
@@ -1616,7 +1616,7 @@ namespace dpm
 			return result;
 		}
 
-		/** Arithmetically shifts elements of vector \a x left by a constant number of bits `N`. */
+		/** Arithmetically shifts elements of vector \a x left by a constant number of bits \a N. */
 		template<std::size_t N, std::signed_integral T, std::size_t M, std::size_t A>
 		[[nodiscard]] DPM_FORCEINLINE detail::x86_simd<T, M, A> asl(const detail::x86_simd<T, M, A> &x) noexcept requires (detail::x86_overload_any<T, M, A> && sizeof(T) > 1 && N < std::numeric_limits<T>::digits)
 		{
@@ -1624,7 +1624,7 @@ namespace dpm
 			detail::vectorize([](auto &res, auto x) { res = detail::bit_shiftl<T, N>(x); }, result, x);
 			return result;
 		}
-		/** Arithmetically shifts elements of vector \a x right by a constant number of bits `N`. */
+		/** Arithmetically shifts elements of vector \a x right by a constant number of bits \a N. */
 		template<std::size_t N, std::signed_integral T, std::size_t M, std::size_t A>
 		[[nodiscard]] DPM_FORCEINLINE detail::x86_simd<T, M, A> asr(const detail::x86_simd<T, M, A> &x) noexcept requires (detail::x86_overload_any<T, M, A> && sizeof(T) > 1 && N < std::numeric_limits<T>::digits)
 		{
@@ -1675,7 +1675,7 @@ namespace dpm
 #endif
 	}
 
-	/** Horizontally reduced elements of \a x using operation `Op`. */
+	/** Horizontally reduced elements of \a x using operation \a Op. */
 	template<typename T, std::size_t N, std::size_t A, typename Op = std::plus<>>
 	[[nodiscard]] DPM_FORCEINLINE T reduce(const detail::x86_simd<T, N, A> &x, Op op = {}) noexcept requires (detail::x86_overload_any<T, N, A> && sizeof(T) >= 4)
 	{
@@ -2080,7 +2080,7 @@ namespace dpm
 #pragma endregion
 
 #pragma region "simd casts"
-	/** Implicitly converts elements of SIMD vector \a x to the `To` type, where `To` is either `typename T::value_type` or `T` if `T` is a scalar. */
+	/** Implicitly converts elements of SIMD vector \a x to the \a To type, where \a To is either `typename T::value_type` or \a T if \a T is a scalar. */
 	template<typename T, typename U, std::size_t N, std::size_t A, typename To = typename detail::deduce_cast<T>::type>
 	[[nodiscard]] DPM_FORCEINLINE auto simd_cast(const simd<U, detail::avec<N, A>> &x) noexcept requires detail::valid_simd_cast<T, U, detail::avec<N, A>> && detail::x86_overload_any<To, N, A> && detail::x86_overload_any<U, N, A>
 	{
@@ -2088,7 +2088,7 @@ namespace dpm
 		detail::cast_impl(result, x);
 		return result;
 	}
-	/** Explicitly converts elements of SIMD vector \a x to the `To` type, where `To` is either `typename T::value_type` or `T` if `T` is a scalar. */
+	/** Explicitly converts elements of SIMD vector \a x to the \a To type, where \a To is either `typename T::value_type` or \a T if \a T is a scalar. */
 	template<typename T, typename U, std::size_t N, std::size_t A, typename To = typename detail::deduce_cast<T>::type>
 	[[nodiscard]] DPM_FORCEINLINE auto static_simd_cast(const simd<U, detail::avec<N, A>> &x) noexcept requires detail::valid_simd_cast<T, U, detail::avec<N, A>> && detail::x86_overload_any<To, N, A> && detail::x86_overload_any<U, N, A>
 	{

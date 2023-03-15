@@ -100,7 +100,7 @@ namespace dpm
 
 	DPM_DECLARE_EXT_NAMESPACE
 	{
-		/** @brief Type trait used to obtain the underlying native storage type of an SIMD vector or mask given value type `T` and abi `Abi`.
+		/** @brief Type trait used to obtain the underlying native storage type of an SIMD vector or mask given value type \a T and abi \a Abi.
 		 *
 		 * The underlying native storage data type may be a scalar (in case the platform-independent implementation is used),
 		 * or a native platform-specific vector type. Additionally, the internal storage may be an array, in which case the
@@ -116,7 +116,7 @@ namespace dpm
 		template<typename T>
 		using native_data_type_t = typename native_data_type<T>::type;
 
-		/** @brief Type trait used to obtain the size of the underlying native storage array of an SIMD vector or mask given value type `T` and abi `Abi`.
+		/** @brief Type trait used to obtain the size of the underlying native storage array of an SIMD vector or mask given value type \a T and abi \a Abi.
 		 *
 		 * For non-scalar SIMD vectors and masks, the underlying native storage will most likely be an array of values.
 		 * This traits is used to obtain the size of said array. In case the underlying storage is a scalar or contains
