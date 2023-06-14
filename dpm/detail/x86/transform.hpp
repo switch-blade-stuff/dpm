@@ -12,7 +12,7 @@ namespace dpm::detail
 	[[nodiscard]] constexpr int shuffle_mask() noexcept { return _MM_SHUFFLE(I3, I2, I1, I0); }
 
 	template<typename T, typename V>
-	[[nodiscard]] DPM_FORCEINLINE V maskblend(V a, V b, std::size_t n) noexcept requires (sizeof(T) == 4 && sizeof(V) == 16)
+	[[nodiscard]] DPM_FORCEINLINE V maskblend(V a, V b, std::size_t n) noexcept requires(sizeof(T) == 4 && sizeof(V) == 16)
 	{
 		const auto va = std::bit_cast<__m128>(a);
 		const auto vb = std::bit_cast<__m128>(b);
@@ -37,7 +37,7 @@ namespace dpm::detail
 #endif
 	}
 	template<typename T, typename V>
-	[[nodiscard]] DPM_FORCEINLINE V maskzero(V x, std::size_t n) noexcept requires (sizeof(T) == 4 && sizeof(V) == 16)
+	[[nodiscard]] DPM_FORCEINLINE V maskzero(V x, std::size_t n) noexcept requires(sizeof(T) == 4 && sizeof(V) == 16)
 	{
 		const auto mask = std::bit_cast<float>(0xffff'ffff);
 		const auto vx = std::bit_cast<__m128>(x);
@@ -50,7 +50,7 @@ namespace dpm::detail
 		}
 	}
 	template<typename T, typename V>
-	[[nodiscard]] DPM_FORCEINLINE V maskone(V x, std::size_t n) noexcept requires (sizeof(T) == 4 && sizeof(V) == 16)
+	[[nodiscard]] DPM_FORCEINLINE V maskone(V x, std::size_t n) noexcept requires(sizeof(T) == 4 && sizeof(V) == 16)
 	{
 		const auto mask = std::bit_cast<float>(0xffff'ffff);
 		const auto vx = std::bit_cast<__m128>(x);
@@ -64,7 +64,7 @@ namespace dpm::detail
 	}
 
 	template<typename T, typename V>
-	[[nodiscard]] DPM_FORCEINLINE V blendv(V a, V b, V m) noexcept requires (sizeof(T) == 4 && sizeof(V) == 16)
+	[[nodiscard]] DPM_FORCEINLINE V blendv(V a, V b, V m) noexcept requires(sizeof(T) == 4 && sizeof(V) == 16)
 	{
 #ifdef DPM_HAS_SSE4_1
 		const auto va = std::bit_cast<__m128>(a);
@@ -87,7 +87,7 @@ namespace dpm::detail
 	[[nodiscard]] DPM_FORCEINLINE V shuffle(std::index_sequence<I, Is...>, const V *x) noexcept requires sequence_shuffle<T, V, I, Is...> { return x[I / (sizeof(V) / sizeof(T))]; }
 
 	template<typename T, std::size_t I3, std::size_t I2, std::size_t I1, std::size_t I0, typename V>
-	[[nodiscard]] DPM_FORCEINLINE V shuffle(std::index_sequence<I3, I2, I1, I0>, const V *x) noexcept requires (!sequence_shuffle<T, V, I3, I2, I1, I0> && sizeof(T) == 4 && sizeof(V) == 16)
+	[[nodiscard]] DPM_FORCEINLINE V shuffle(std::index_sequence<I3, I2, I1, I0>, const V *x) noexcept requires(!sequence_shuffle<T, V, I3, I2, I1, I0> && sizeof(T) == 4 && sizeof(V) == 16)
 	{
 		constexpr auto P0 = I0 / 4, P1 = I1 / 4, P2 = I2 / 4, P3 = I3 / 4;
 		const auto va = std::bit_cast<__m128>(x[P0]);
@@ -194,7 +194,7 @@ namespace dpm::detail
 #endif
 	}
 	template<typename T, typename V>
-	[[nodiscard]] DPM_FORCEINLINE V maskblend(V a, V b, std::size_t n) noexcept requires (sizeof(T) == 8 && sizeof(V) == 16)
+	[[nodiscard]] DPM_FORCEINLINE V maskblend(V a, V b, std::size_t n) noexcept requires(sizeof(T) == 8 && sizeof(V) == 16)
 	{
 		const auto va = std::bit_cast<__m128d>(a);
 		const auto vb = std::bit_cast<__m128d>(b);
@@ -251,7 +251,7 @@ namespace dpm::detail
 		}
 	}
 	template<typename T, typename V>
-	[[nodiscard]] DPM_FORCEINLINE V maskzero(V x, std::size_t n) noexcept requires (sizeof(T) == 8 && sizeof(V) == 16)
+	[[nodiscard]] DPM_FORCEINLINE V maskzero(V x, std::size_t n) noexcept requires(sizeof(T) == 8 && sizeof(V) == 16)
 	{
 		if (n == 1)
 		{
@@ -302,7 +302,7 @@ namespace dpm::detail
 		}
 	}
 	template<typename T, typename V>
-	[[nodiscard]] DPM_FORCEINLINE V maskone(V x, std::size_t n) noexcept requires (sizeof(T) == 8 && sizeof(V) == 16)
+	[[nodiscard]] DPM_FORCEINLINE V maskone(V x, std::size_t n) noexcept requires(sizeof(T) == 8 && sizeof(V) == 16)
 	{
 		if (n == 1)
 		{
@@ -313,7 +313,7 @@ namespace dpm::detail
 	}
 
 	template<typename T>
-	[[nodiscard]] DPM_FORCEINLINE __m128i blendv(__m128i a, __m128i b, __m128i m) noexcept requires (sizeof(T) <= 2)
+	[[nodiscard]] DPM_FORCEINLINE __m128i blendv(__m128i a, __m128i b, __m128i m) noexcept requires(sizeof(T) <= 2)
 	{
 #ifdef DPM_HAS_SSE4_1
 		return _mm_blendv_epi8(a, b, m);
@@ -322,7 +322,7 @@ namespace dpm::detail
 #endif
 	}
 	template<typename T, typename V>
-	[[nodiscard]] DPM_FORCEINLINE V blendv(V a, V b, V m) noexcept requires (sizeof(T) == 8 && sizeof(V) == 16)
+	[[nodiscard]] DPM_FORCEINLINE V blendv(V a, V b, V m) noexcept requires(sizeof(T) == 8 && sizeof(V) == 16)
 	{
 		const auto va = std::bit_cast<__m128d>(a);
 		const auto vb = std::bit_cast<__m128d>(b);
@@ -335,7 +335,7 @@ namespace dpm::detail
 	}
 
 	template<typename T, std::size_t I1, std::size_t I0, typename V>
-	[[nodiscard]] DPM_FORCEINLINE V shuffle(std::index_sequence<I1, I0>, const V *x) noexcept requires (!sequence_shuffle<T, V, I1, I0> && sizeof(T) == 8 && sizeof(V) == 16)
+	[[nodiscard]] DPM_FORCEINLINE V shuffle(std::index_sequence<I1, I0>, const V *x) noexcept requires(!sequence_shuffle<T, V, I1, I0> && sizeof(T) == 8 && sizeof(V) == 16)
 	{
 		const auto va = std::bit_cast<__m128d>(x[I0 / 2]);
 		const auto vb = std::bit_cast<__m128d>(x[I1 / 2]);
@@ -372,7 +372,7 @@ namespace dpm::detail
 
 #ifdef DPM_HAS_SSSE3
 	template<integral_of_size<1> T, std::size_t I, std::size_t... Is>
-	[[nodiscard]] DPM_FORCEINLINE __m128i shuffle(std::index_sequence<I, Is...>, const __m128i *x) noexcept requires (!sequence_shuffle<T, __m128i, I, Is...>);
+	[[nodiscard]] DPM_FORCEINLINE __m128i shuffle(std::index_sequence<I, Is...>, const __m128i *x) noexcept requires(!sequence_shuffle<T, __m128i, I, Is...>);
 	template<std::size_t IA, std::size_t... IAs, std::size_t IB, std::size_t... IBs>
 	[[nodiscard]] DPM_FORCEINLINE __m128i shuffle16pairs(std::index_sequence<IA, IAs...>, std::index_sequence<IB, IBs...>, const __m128i *x) noexcept
 	{
@@ -397,23 +397,15 @@ namespace dpm::detail
 			return shuffle<std::int8_t>(repeat_sequence_t<2, 1, IA, IAs..., IB, IBs...>{}, x);
 	}
 	template<integral_of_size<1> T, std::size_t I, std::size_t... Is>
-	[[nodiscard]] DPM_FORCEINLINE __m128i shuffle(std::index_sequence<I, Is...>, const __m128i *x) noexcept requires (!sequence_shuffle<T, __m128i, I, Is...>)
+	[[nodiscard]] DPM_FORCEINLINE __m128i shuffle(std::index_sequence<I, Is...>, const __m128i *x) noexcept requires(!sequence_shuffle<T, __m128i, I, Is...>)
 	{
-		if constexpr (((I / 16 == Is / 16) && ...))
-			return _mm_shuffle_epi8(x[I / 16], _mm_set_epi8(I % 16, (Is % 16)...));
+		if constexpr (!((I / 16 == Is / 16) && ...))
+			return shuffle_elements(reverse_sequence_t<I, Is...>{}, reinterpret_cast<alias_t<std::int8_t> *>(&result), reinterpret_cast<const alias_t<std::int8_t> *>(x));
 		else
-		{
-			__m128i result;
-			copy_elements(
-					reverse_sequence_t<I, Is...>{},
-					reinterpret_cast<alias_t<std::int8_t> *>(&result),
-					reinterpret_cast<const alias_t<std::int8_t> *>(x)
-			);
-			return result;
-		}
+			return _mm_shuffle_epi8(x[I / 16], _mm_set_epi8(I % 16, (Is % 16)...));
 	}
 	template<integral_of_size<2> T, std::size_t I, std::size_t... Is>
-	[[nodiscard]] DPM_FORCEINLINE __m128i shuffle(std::index_sequence<I, Is...>, const __m128i *x) noexcept requires (!sequence_shuffle<T, __m128i, I, Is...>)
+	[[nodiscard]] DPM_FORCEINLINE __m128i shuffle(std::index_sequence<I, Is...>, const __m128i *x) noexcept requires(!sequence_shuffle<T, __m128i, I, Is...>)
 	{
 		return shuffle16pairs(extract_sequence_t<0, 4, I, Is...>{}, extract_sequence_t<4, 4, I, Is...>{}, x);
 	}
@@ -444,7 +436,7 @@ namespace dpm::detail
 
 #ifdef DPM_HAS_AVX
 	template<typename T, typename V>
-	[[nodiscard]] DPM_FORCEINLINE V maskblend(V a, V b, std::size_t n) noexcept requires (sizeof(T) == 4 && sizeof(V) == 32)
+	[[nodiscard]] DPM_FORCEINLINE V maskblend(V a, V b, std::size_t n) noexcept requires(sizeof(T) == 4 && sizeof(V) == 32)
 	{
 		const auto va = std::bit_cast<__m256>(a);
 		const auto vb = std::bit_cast<__m256>(b);
@@ -461,7 +453,7 @@ namespace dpm::detail
 		}
 	}
 	template<typename T, typename V>
-	[[nodiscard]] DPM_FORCEINLINE V maskblend(V a, V b, std::size_t n) noexcept requires (sizeof(T) == 8 && sizeof(V) == 32)
+	[[nodiscard]] DPM_FORCEINLINE V maskblend(V a, V b, std::size_t n) noexcept requires(sizeof(T) == 8 && sizeof(V) == 32)
 	{
 		const auto va = std::bit_cast<__m256d>(a);
 		const auto vb = std::bit_cast<__m256d>(b);
@@ -475,7 +467,7 @@ namespace dpm::detail
 	}
 
 	template<typename T, typename V>
-	[[nodiscard]] DPM_FORCEINLINE V blendv(V a, V b, V m) noexcept requires (sizeof(T) == 4 && sizeof(V) == 32)
+	[[nodiscard]] DPM_FORCEINLINE V blendv(V a, V b, V m) noexcept requires(sizeof(T) == 4 && sizeof(V) == 32)
 	{
 		const auto va = std::bit_cast<__m256>(a);
 		const auto vb = std::bit_cast<__m256>(b);
@@ -483,7 +475,7 @@ namespace dpm::detail
 		return std::bit_cast<V>(_mm256_blendv_ps(va, vb, vm));
 	}
 	template<typename T, typename V>
-	[[nodiscard]] DPM_FORCEINLINE V blendv(V a, V b, V m) noexcept requires (sizeof(T) == 8 && sizeof(V) == 32)
+	[[nodiscard]] DPM_FORCEINLINE V blendv(V a, V b, V m) noexcept requires(sizeof(T) == 8 && sizeof(V) == 32)
 	{
 		const auto va = std::bit_cast<__m256d>(a);
 		const auto vb = std::bit_cast<__m256d>(b);
@@ -618,12 +610,12 @@ namespace dpm::detail
 #endif
 
 	template<typename T, typename V>
-	[[nodiscard]] DPM_FORCEINLINE V maskzero(V x, std::size_t n) noexcept requires (sizeof(V) == 32) { return maskblend<T>(x, setzero<V>(), n); }
+	[[nodiscard]] DPM_FORCEINLINE V maskzero(V x, std::size_t n) noexcept requires(sizeof(V) == 32) { return maskblend<T>(x, setzero<V>(), n); }
 	template<typename T, typename V>
-	[[nodiscard]] DPM_FORCEINLINE V maskone(V x, std::size_t n) noexcept requires (sizeof(V) == 32) { return maskblend<T>(x, setones<V>(), n); }
+	[[nodiscard]] DPM_FORCEINLINE V maskone(V x, std::size_t n) noexcept requires(sizeof(V) == 32) { return maskblend<T>(x, setones<V>(), n); }
 
 	template<typename T, std::size_t I, std::size_t... Is, typename V>
-	[[nodiscard]] DPM_FORCEINLINE V shuffle(std::index_sequence<I, Is...>, const V *x) noexcept requires (!sequence_shuffle<T, __m256i, I, Is...> && sizeof(V) == 32)
+	[[nodiscard]] DPM_FORCEINLINE V shuffle(std::index_sequence<I, Is...>, const V *x) noexcept requires(!sequence_shuffle<T, __m256i, I, Is...> && sizeof(V) == 32)
 	{
 		/* Since there are no *convenient* element-wise shuffles with AVX, use 2 SSE shuffles instead. */
 		constexpr auto extent = 16 / sizeof(T);

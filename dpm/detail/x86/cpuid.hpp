@@ -4,17 +4,15 @@
 
 #pragma once
 
-#include "../define.hpp"
+#include "../../utility.hpp"
 
 #ifdef DPM_ARCH_X86
-
-#include "../utility.hpp"
 
 namespace dpm
 {
 	DPM_DECLARE_EXT_NAMESPACE
 	{
-		class DPM_PUBLIC cpuid
+		class DPM_API_PUBLIC cpuid
 		{
 			constexpr static int msr_bit = 5;
 			constexpr static int cx8_bit = 8;
@@ -77,7 +75,7 @@ namespace dpm
 		private:
 			static const cpuid cpu_info;
 
-			DPM_PRIVATE cpuid() noexcept;
+			DPM_API_HIDDEN cpuid() noexcept;
 
 			std::uint32_t m_flags_l1_ecx = 0;
 			std::uint32_t m_flags_l1_edx = 0;

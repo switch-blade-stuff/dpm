@@ -424,21 +424,21 @@ namespace dpm
 #endif
 
 		template<typename T, typename V>
-		DPM_FORCEINLINE void round(V x, __m256 *dst) noexcept requires (sizeof(V) == 16) { round<T>(x, reinterpret_cast<__m128 *>(dst)); }
+		DPM_FORCEINLINE void round(V x, __m256 *dst) noexcept requires(sizeof(V) == 16) { round<T>(x, reinterpret_cast<__m128 *>(dst)); }
 		template<typename T, typename V>
-		DPM_FORCEINLINE void round(V x, __m256d *dst) noexcept requires (sizeof(V) == 16) { round<T>(x, reinterpret_cast<__m128d *>(dst)); }
+		DPM_FORCEINLINE void round(V x, __m256d *dst) noexcept requires(sizeof(V) == 16) { round<T>(x, reinterpret_cast<__m128d *>(dst)); }
 		template<typename T, typename V>
-		DPM_FORCEINLINE void round(V x, __m256i *dst) noexcept requires (sizeof(V) == 16) { round<T>(x, reinterpret_cast<__m128 *>(dst)); }
+		DPM_FORCEINLINE void round(V x, __m256i *dst) noexcept requires(sizeof(V) == 16) { round<T>(x, reinterpret_cast<__m128 *>(dst)); }
 
 		DPM_FORCEINLINE void lround(auto x, auto *dst) noexcept { rint<long>(x, dst); }
 		DPM_FORCEINLINE void llround(auto x, auto *dst) noexcept { rint<long long>(x, dst); }
 
 		template<typename T, typename V>
-		DPM_FORCEINLINE void rint(V x, __m256 *dst) noexcept requires (sizeof(V) == 16) { rint<T>(x, reinterpret_cast<__m128 *>(dst)); }
+		DPM_FORCEINLINE void rint(V x, __m256 *dst) noexcept requires(sizeof(V) == 16) { rint<T>(x, reinterpret_cast<__m128 *>(dst)); }
 		template<typename T, typename V>
-		DPM_FORCEINLINE void rint(V x, __m256d *dst) noexcept requires (sizeof(V) == 16) { rint<T>(x, reinterpret_cast<__m128d *>(dst)); }
+		DPM_FORCEINLINE void rint(V x, __m256d *dst) noexcept requires(sizeof(V) == 16) { rint<T>(x, reinterpret_cast<__m128d *>(dst)); }
 		template<typename T, typename V>
-		DPM_FORCEINLINE void rint(V x, __m256i *dst) noexcept requires (sizeof(V) == 16) { rint<T>(x, reinterpret_cast<__m128 *>(dst)); }
+		DPM_FORCEINLINE void rint(V x, __m256i *dst) noexcept requires(sizeof(V) == 16) { rint<T>(x, reinterpret_cast<__m128 *>(dst)); }
 
 		DPM_FORCEINLINE void lrint(auto x, auto *dst) noexcept { rint<long>(x, dst); }
 		DPM_FORCEINLINE void llrint(auto x, auto *dst) noexcept { rint<long long>(x, dst); }

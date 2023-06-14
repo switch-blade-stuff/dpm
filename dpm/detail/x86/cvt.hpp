@@ -185,9 +185,9 @@ namespace dpm::detail
 	}
 
 	template<typename V>
-	[[nodiscard]] DPM_FORCEINLINE V cvt_i32_f64(__m128i x) noexcept requires (sizeof(V) == 16) { return _mm_cvtepi32_pd(x); }
+	[[nodiscard]] DPM_FORCEINLINE V cvt_i32_f64(__m128i x) noexcept requires(sizeof(V) == 16) { return _mm_cvtepi32_pd(x); }
 	template<typename V>
-	[[nodiscard]] DPM_FORCEINLINE __m128i cvt_f64_i32(V x) noexcept requires (sizeof(V) == 16) { return _mm_cvtpd_epi32(x); }
+	[[nodiscard]] DPM_FORCEINLINE __m128i cvt_f64_i32(V x) noexcept requires(sizeof(V) == 16) { return _mm_cvtpd_epi32(x); }
 
 	[[nodiscard]] DPM_FORCEINLINE __m128i cvt_i64_i32(__m128i x) noexcept
 	{
@@ -351,9 +351,9 @@ namespace dpm::detail
 	[[nodiscard]] DPM_FORCEINLINE __m256i cvt(__m256d x) noexcept { return cvt_f64_i64(x); }
 
 	template<typename V>
-	[[nodiscard]] DPM_FORCEINLINE V cvt_i32_f64(__m128i x) noexcept requires (sizeof(V) == 32) { return _mm256_cvtepi32_pd(x); }
+	[[nodiscard]] DPM_FORCEINLINE V cvt_i32_f64(__m128i x) noexcept requires(sizeof(V) == 32) { return _mm256_cvtepi32_pd(x); }
 	template<typename V>
-	[[nodiscard]] DPM_FORCEINLINE __m128i cvt_f64_i32(V x) noexcept requires (sizeof(V) == 32) { return _mm256_cvtpd_epi32(x); }
+	[[nodiscard]] DPM_FORCEINLINE __m128i cvt_f64_i32(V x) noexcept requires(sizeof(V) == 32) { return _mm256_cvtpd_epi32(x); }
 
 	template<signed_integral_of_size<4> To, std::same_as<double> From>
 	[[nodiscard]] DPM_FORCEINLINE __m128i cvtt(__m256d x) noexcept { return _mm256_cvttpd_epi32(x); }

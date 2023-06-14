@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "detail/define.hpp"
+#include "utility.hpp"
 
 #include <functional>
 #include <limits>
@@ -70,9 +70,9 @@ namespace dpm
 
 	template<typename T, typename Abi = typename simd_abi::detail::select_compatible<T>::type>
 	struct simd_size;
-	template<typename T, typename Abi> requires (is_abi_tag_v<Abi> && std::is_default_constructible_v<simd<T, Abi>>)
+	template<typename T, typename Abi> requires(is_abi_tag_v<Abi> && std::is_default_constructible_v<simd<T, Abi>>)
 	struct simd_size<T, Abi> : std::integral_constant<std::size_t, simd<T, Abi>::size()> {};
-	template<typename T, typename Abi> requires (is_abi_tag_v<Abi> && !std::is_default_constructible_v<simd<T, Abi>>)
+	template<typename T, typename Abi> requires(is_abi_tag_v<Abi> && !std::is_default_constructible_v<simd<T, Abi>>)
 	struct simd_size<T, Abi> : std::integral_constant<std::size_t, Abi::size> {};
 
 	template<typename T, typename Abi = typename simd_abi::detail::select_compatible<T>::type>

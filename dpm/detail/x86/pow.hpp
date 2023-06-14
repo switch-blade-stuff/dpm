@@ -34,8 +34,8 @@ namespace dpm
 		[[nodiscard]] DPM_FORCEINLINE __m128d rcp(__m128d x) noexcept { return _mm_div_pd(_mm_set1_pd(1.0), x); }
 		[[nodiscard]] DPM_FORCEINLINE __m128d sqrt(__m128d x) noexcept { return _mm_sqrt_pd(x); }
 
-		[[nodiscard]] __m128 DPM_PUBLIC DPM_MATHFUNC hypot(__m128 a, __m128 b) noexcept;
-		[[nodiscard]] __m128d DPM_PUBLIC DPM_MATHFUNC hypot(__m128d a, __m128d b) noexcept;
+		[[nodiscard]] __m128 DPM_API_PUBLIC DPM_MATHFUNC hypot(__m128 a, __m128 b) noexcept;
+		[[nodiscard]] __m128d DPM_API_PUBLIC DPM_MATHFUNC hypot(__m128d a, __m128d b) noexcept;
 #endif
 
 #ifdef DPM_HAS_AVX
@@ -46,8 +46,8 @@ namespace dpm
 		[[nodiscard]] DPM_FORCEINLINE __m256d rcp(__m256d x) noexcept { return _mm256_div_pd(_mm256_set1_pd(1.0), x); }
 		[[nodiscard]] DPM_FORCEINLINE __m256d sqrt(__m256d x) noexcept { return _mm256_sqrt_pd(x); }
 
-		[[nodiscard]] __m256 DPM_PUBLIC DPM_MATHFUNC hypot(__m256 a, __m256 b) noexcept;
-		[[nodiscard]] __m256d DPM_PUBLIC DPM_MATHFUNC hypot(__m256d a, __m256d b) noexcept;
+		[[nodiscard]] __m256 DPM_API_PUBLIC DPM_MATHFUNC hypot(__m256 a, __m256 b) noexcept;
+		[[nodiscard]] __m256d DPM_API_PUBLIC DPM_MATHFUNC hypot(__m256d a, __m256d b) noexcept;
 #endif
 	}
 

@@ -9,7 +9,7 @@
 #pragma GCC diagnostic ignored "-Wignored-attributes"
 #endif
 
-#include "../define.hpp"
+#include "../../utility.hpp"
 
 #if defined(DPM_ARCH_X86) && defined(DPM_HAS_SSE)
 

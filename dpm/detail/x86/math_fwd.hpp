@@ -14,7 +14,7 @@ namespace dpm::detail
 	using vec2_return_t = T0;
 
 	template<typename T0, typename T1>
-	[[nodiscard]] vec2_return_t<T0, T1> DPM_FORCEINLINE vec2_return(T0 x, T1 y) noexcept requires (sizeof(T1) == 16)
+	[[nodiscard]] vec2_return_t<T0, T1> DPM_FORCEINLINE vec2_return(T0 x, T1 y) noexcept requires(sizeof(T1) == 16)
 	{
 		/* Avoid discarding y */
 #ifdef DPM_HAS_AVX
@@ -25,7 +25,7 @@ namespace dpm::detail
 		return x;
 	}
 	template<typename T0, typename T1>
-	[[nodiscard]] T0 DPM_FORCEINLINE vec2_call(auto f, T0 x, T1 &out) noexcept requires (sizeof(T1) == 16)
+	[[nodiscard]] T0 DPM_FORCEINLINE vec2_call(auto f, T0 x, T1 &out) noexcept requires(sizeof(T1) == 16)
 	{
 		x = f(x);
 		/* Read second variable from xmm1 */

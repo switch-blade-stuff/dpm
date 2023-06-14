@@ -1,5 +1,5 @@
 
-list(APPEND DPM_PUBLIC_SOURCES
+list(APPEND DPM_HEADERS
         ${CMAKE_CURRENT_LIST_DIR}/cpuid.hpp
         ${CMAKE_CURRENT_LIST_DIR}/type_fwd.hpp
         ${CMAKE_CURRENT_LIST_DIR}/abi.hpp
@@ -27,7 +27,7 @@ list(APPEND DPM_PUBLIC_SOURCES
         ${CMAKE_CURRENT_LIST_DIR}/trig.hpp
         ${CMAKE_CURRENT_LIST_DIR}/fmanip.hpp)
 
-list(APPEND DPM_PRIVATE_SOURCES
+list(APPEND DPM_SOURCES
         ${CMAKE_CURRENT_LIST_DIR}/cpuid.cpp
         ${CMAKE_CURRENT_LIST_DIR}/hypot.cpp
         ${CMAKE_CURRENT_LIST_DIR}/log.cpp

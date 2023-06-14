@@ -28,8 +28,8 @@ namespace dpm
 #endif
 
 #ifdef DPM_HAS_SSE2
-		[[nodiscard]] vec2_return_t<__m128, __m128i> DPM_PUBLIC DPM_MATHFUNC frexp_f32x4(__m128 x) noexcept;
-		[[nodiscard]] vec2_return_t<__m128d, __m128i> DPM_PUBLIC DPM_MATHFUNC frexp_f64x2(__m128d x) noexcept;
+		[[nodiscard]] vec2_return_t<__m128, __m128i> DPM_API_PUBLIC DPM_MATHFUNC frexp_f32x4(__m128 x) noexcept;
+		[[nodiscard]] vec2_return_t<__m128d, __m128i> DPM_API_PUBLIC DPM_MATHFUNC frexp_f64x2(__m128d x) noexcept;
 
 		[[nodiscard]] DPM_FORCEINLINE __m128 frexp(__m128 x, __m128i *out, std::size_t i) noexcept { return vec2_call(frexp_f32x4, x, out[i]); }
 		[[nodiscard]] DPM_FORCEINLINE __m128d frexp(__m128d x, __m128i *out, std::size_t i) noexcept
@@ -48,8 +48,8 @@ namespace dpm
 			out[i / 2] = cvt_i64x2_i32(tmp0, tmp1);
 		}
 
-		[[nodiscard]] __m128 DPM_PUBLIC DPM_MATHFUNC scalbn(__m128 x, __m128i exp) noexcept;
-		[[nodiscard]] __m128d DPM_PUBLIC DPM_MATHFUNC scalbn(__m128d x, __m128i exp) noexcept;
+		[[nodiscard]] __m128 DPM_API_PUBLIC DPM_MATHFUNC scalbn(__m128 x, __m128i exp) noexcept;
+		[[nodiscard]] __m128d DPM_API_PUBLIC DPM_MATHFUNC scalbn(__m128d x, __m128i exp) noexcept;
 
 		[[nodiscard]] DPM_FORCEINLINE __m128 scalbn32(__m128 x, const __m128i *exp, std::size_t i) noexcept { return scalbn(x, exp[i]); }
 		[[nodiscard]] DPM_FORCEINLINE __m128d scalbn32(__m128d x, const __m128i *exp, std::size_t i) noexcept
@@ -70,14 +70,14 @@ namespace dpm
 		}
 		[[nodiscard]] DPM_FORCEINLINE __m128d scalbn64(__m128d x, const __m128i *exp, std::size_t i) noexcept { return scalbn(x, exp[i]); }
 
-		[[nodiscard]] vec2_return_t<__m128, __m128> DPM_PUBLIC DPM_MATHFUNC modf_f32x4(__m128 x) noexcept;
-		[[nodiscard]] vec2_return_t<__m128d, __m128d> DPM_PUBLIC DPM_MATHFUNC modf_f64x2(__m128d x) noexcept;
+		[[nodiscard]] vec2_return_t<__m128, __m128> DPM_API_PUBLIC DPM_MATHFUNC modf_f32x4(__m128 x) noexcept;
+		[[nodiscard]] vec2_return_t<__m128d, __m128d> DPM_API_PUBLIC DPM_MATHFUNC modf_f64x2(__m128d x) noexcept;
 
 		[[nodiscard]] DPM_FORCEINLINE __m128 modf(__m128 x, __m128 &i) noexcept { return vec2_call(modf_f32x4, x, i); }
 		[[nodiscard]] DPM_FORCEINLINE __m128d modf(__m128d x, __m128d &i) noexcept { return vec2_call(modf_f64x2, x, i);}
 
-		[[nodiscard]] __m128i DPM_PUBLIC DPM_MATHFUNC ilogb(__m128 x) noexcept;
-		[[nodiscard]] __m128i DPM_PUBLIC DPM_MATHFUNC ilogb(__m128d x) noexcept;
+		[[nodiscard]] __m128i DPM_API_PUBLIC DPM_MATHFUNC ilogb(__m128 x) noexcept;
+		[[nodiscard]] __m128i DPM_API_PUBLIC DPM_MATHFUNC ilogb(__m128d x) noexcept;
 
 		DPM_FORCEINLINE void ilogb(__m128 x, __m128i *out, std::size_t i) noexcept { out[i] = ilogb(x); }
 		DPM_FORCEINLINE void ilogb(__m128d x, __m128i *out, std::size_t i) noexcept
@@ -93,17 +93,17 @@ namespace dpm
 		}
 
 #ifndef DPM_USE_SVML
-		[[nodiscard]] __m128 DPM_PUBLIC DPM_MATHFUNC logb(__m128 x) noexcept;
-		[[nodiscard]] __m128d DPM_PUBLIC DPM_MATHFUNC logb(__m128d x) noexcept;
+		[[nodiscard]] __m128 DPM_API_PUBLIC DPM_MATHFUNC logb(__m128 x) noexcept;
+		[[nodiscard]] __m128d DPM_API_PUBLIC DPM_MATHFUNC logb(__m128d x) noexcept;
 #endif
 
-		[[nodiscard]] __m128 DPM_PUBLIC DPM_MATHFUNC nextafter(__m128 from, __m128 to) noexcept;
-		[[nodiscard]] __m128d DPM_PUBLIC DPM_MATHFUNC nextafter(__m128d from, __m128d to) noexcept;
+		[[nodiscard]] __m128 DPM_API_PUBLIC DPM_MATHFUNC nextafter(__m128 from, __m128 to) noexcept;
+		[[nodiscard]] __m128d DPM_API_PUBLIC DPM_MATHFUNC nextafter(__m128d from, __m128d to) noexcept;
 #endif
 
 #ifdef DPM_HAS_AVX
-		[[nodiscard]] vec2_return_t<__m256, __m256i> DPM_PUBLIC DPM_MATHFUNC frexp_f32x8(__m256 x) noexcept;
-		[[nodiscard]] vec2_return_t<__m256d, __m256i> DPM_PUBLIC DPM_MATHFUNC frexp_f64x4(__m256d x) noexcept;
+		[[nodiscard]] vec2_return_t<__m256, __m256i> DPM_API_PUBLIC DPM_MATHFUNC frexp_f32x8(__m256 x) noexcept;
+		[[nodiscard]] vec2_return_t<__m256d, __m256i> DPM_API_PUBLIC DPM_MATHFUNC frexp_f64x4(__m256d x) noexcept;
 
 		[[nodiscard]] DPM_FORCEINLINE __m256 frexp(__m256 x, __m256i *out, std::size_t i) noexcept { return vec2_call(frexp_f32x8, x, out[i]); }
 		[[nodiscard]] DPM_FORCEINLINE __m256d frexp(__m256d x, __m128i *out, std::size_t i) noexcept
@@ -122,8 +122,8 @@ namespace dpm
 			out[i / 2] = cvt_i64x2_i32(tmp0, tmp1);
 		}
 
-		[[nodiscard]] __m256 DPM_PUBLIC DPM_MATHFUNC scalbn(__m256 x, __m256i exp) noexcept;
-		[[nodiscard]] __m256d DPM_PUBLIC DPM_MATHFUNC scalbn(__m256d x, __m256i exp) noexcept;
+		[[nodiscard]] __m256 DPM_API_PUBLIC DPM_MATHFUNC scalbn(__m256 x, __m256i exp) noexcept;
+		[[nodiscard]] __m256d DPM_API_PUBLIC DPM_MATHFUNC scalbn(__m256d x, __m256i exp) noexcept;
 
 		[[nodiscard]] DPM_FORCEINLINE __m256 scalbn32(__m256 x, const __m256i *exp, std::size_t i) noexcept { return scalbn(x, exp[i]); }
 		[[nodiscard]] DPM_FORCEINLINE __m256d scalbn32(__m256d x, const __m128i *exp, std::size_t i) noexcept
@@ -159,14 +159,14 @@ namespace dpm
 		}
 		[[nodiscard]] DPM_FORCEINLINE __m256d scalbn64(__m256d x, const __m256i *exp, std::size_t i) noexcept { return scalbn(x, exp[i]); }
 
-		[[nodiscard]] vec2_return_t<__m256, __m256> DPM_PUBLIC DPM_MATHFUNC modf_f32x8(__m256 x) noexcept;
-		[[nodiscard]] vec2_return_t<__m256d, __m256d> DPM_PUBLIC DPM_MATHFUNC modf_f64x4(__m256d x) noexcept;
+		[[nodiscard]] vec2_return_t<__m256, __m256> DPM_API_PUBLIC DPM_MATHFUNC modf_f32x8(__m256 x) noexcept;
+		[[nodiscard]] vec2_return_t<__m256d, __m256d> DPM_API_PUBLIC DPM_MATHFUNC modf_f64x4(__m256d x) noexcept;
 
 		[[nodiscard]] DPM_FORCEINLINE __m256 modf(__m256 x, __m256 &i) noexcept { return vec2_call(modf_f32x8, x, i); }
 		[[nodiscard]] DPM_FORCEINLINE __m256d modf(__m256d x, __m256d &i) noexcept { return vec2_call(modf_f64x4, x, i);}
 
-		[[nodiscard]] __m256i DPM_PUBLIC DPM_MATHFUNC ilogb(__m256 x) noexcept;
-		[[nodiscard]] __m256i DPM_PUBLIC DPM_MATHFUNC ilogb(__m256d x) noexcept;
+		[[nodiscard]] __m256i DPM_API_PUBLIC DPM_MATHFUNC ilogb(__m256 x) noexcept;
+		[[nodiscard]] __m256i DPM_API_PUBLIC DPM_MATHFUNC ilogb(__m256d x) noexcept;
 
 		DPM_FORCEINLINE void ilogb(__m256 x, __m256i *out, std::size_t i) noexcept { out[i] = ilogb(x); }
 		DPM_FORCEINLINE void ilogb(__m256d x, __m128i *out, std::size_t i) noexcept { out[i] = cvt_i64_i32(ilogb(x)); }
@@ -179,12 +179,12 @@ namespace dpm
 		}
 
 #ifndef DPM_USE_SVML
-		[[nodiscard]] __m256 DPM_PUBLIC DPM_MATHFUNC logb(__m256 x) noexcept;
-		[[nodiscard]] __m256d DPM_PUBLIC DPM_MATHFUNC logb(__m256d x) noexcept;
+		[[nodiscard]] __m256 DPM_API_PUBLIC DPM_MATHFUNC logb(__m256 x) noexcept;
+		[[nodiscard]] __m256d DPM_API_PUBLIC DPM_MATHFUNC logb(__m256d x) noexcept;
 #endif
 
-		[[nodiscard]] __m256 DPM_PUBLIC DPM_MATHFUNC nextafter(__m256 from, __m256 to) noexcept;
-		[[nodiscard]] __m256d DPM_PUBLIC DPM_MATHFUNC nextafter(__m256d from, __m256d to) noexcept;
+		[[nodiscard]] __m256 DPM_API_PUBLIC DPM_MATHFUNC nextafter(__m256 from, __m256 to) noexcept;
+		[[nodiscard]] __m256d DPM_API_PUBLIC DPM_MATHFUNC nextafter(__m256d from, __m256d to) noexcept;
 #endif
 	}
 
@@ -286,7 +286,7 @@ namespace dpm
 	template<std::floating_point T, std::size_t N, std::size_t A>
 	[[nodiscard]] DPM_FORCEINLINE detail::x86_simd<T, N, A> scalbn(const detail::x86_simd<T, N, A> &x, int exp) noexcept requires detail::x86_overload_any<T, N, A>
 	{
-		using exp_t = detail::int_of_size_t<sizeof(T)>;
+		using exp_t = int_of_size_t<sizeof(T)>;
 		using exp_vector = detail::select_vector_t<exp_t, sizeof(ext::native_data_type_t<detail::x86_simd<T, N, A>>)>;
 
 		detail::x86_simd<T, N, A> result = {};
@@ -297,7 +297,7 @@ namespace dpm
 	template<std::floating_point T, std::size_t N, std::size_t A>
 	[[nodiscard]] DPM_FORCEINLINE detail::x86_simd<T, N, A> scalbln(const detail::x86_simd<T, N, A> &x, long exp) noexcept requires detail::x86_overload_any<T, N, A>
 	{
-		using exp_t = detail::int_of_size_t<sizeof(T)>;
+		using exp_t = int_of_size_t<sizeof(T)>;
 		using exp_vector = detail::select_vector_t<exp_t, sizeof(ext::native_data_type_t<detail::x86_simd<T, N, A>>)>;
 
 		detail::x86_simd<T, N, A> result = {};

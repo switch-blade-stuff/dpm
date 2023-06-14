@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "define.hpp"
+#include "../utility.hpp"
 
 #include <numbers>
 #include <limits>
@@ -117,11 +117,11 @@ namespace dpm::detail
 
 	static constexpr std::size_t logtab_bits_f32 = 4;
 	static constexpr std::size_t logtab_size_f32 = 1 << (logtab_bits_f32 + 1);
-	extern const DPM_PRIVATE float logtab_f32[logtab_size_f32];
+	extern const DPM_API_HIDDEN float logtab_f32[logtab_size_f32];
 
 	static constexpr std::size_t logtab_bits_f64 = 7;
 	static constexpr std::size_t logtab_size_f64 = 1 << (logtab_bits_f64 + 1);
-	extern const DPM_PRIVATE double logtab_f64[logtab_size_f64];
+	extern const DPM_API_HIDDEN double logtab_f64[logtab_size_f64];
 
 	template<typename>
 	struct logtab;
@@ -137,11 +137,11 @@ namespace dpm::detail
 
 	static constexpr std::size_t log2tab_bits_f32 = 4;
 	static constexpr std::size_t log2tab_size_f32 = 1 << (log2tab_bits_f32 + 1);
-	extern const DPM_PRIVATE float log2tab_f32[log2tab_size_f32];
+	extern const DPM_API_HIDDEN float log2tab_f32[log2tab_size_f32];
 
 	static constexpr std::size_t log2tab_bits_f64 = 6;
 	static constexpr std::size_t log2tab_size_f64 = 1 << (log2tab_bits_f64 + 1);
-	extern const DPM_PRIVATE double log2tab_f64[log2tab_size_f64];
+	extern const DPM_API_HIDDEN double log2tab_f64[log2tab_size_f64];
 
 	template<typename>
 	struct log2tab;

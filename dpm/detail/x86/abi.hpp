@@ -5,7 +5,7 @@
 #pragma once
 
 #include "../generic/abi.hpp"
-#include "../utility.hpp"
+#include "../../utility.hpp"
 #include "../alias.hpp"
 
 #if defined(DPM_ARCH_X86) && defined(DPM_HAS_SSE)

@@ -5,7 +5,6 @@
 #pragma once
 
 #include "../traits.hpp"
-#include "utility.hpp"
 
 #include <utility>
 #include <bit>
@@ -90,9 +89,9 @@ namespace dpm
 		const_where_expression(M mask, T &data) noexcept : m_mask(mask), m_data(data) {}
 		const_where_expression(M mask, const T &data) noexcept : m_mask(mask), m_data(const_cast<T &>(data)) {}
 
-		[[nodiscard]] DPM_FORCEINLINE T operator+() const && noexcept requires (requires(T x) { +x; }) { return ext::blend(m_data, +m_data, m_mask); }
-		[[nodiscard]] DPM_FORCEINLINE T operator-() const && noexcept requires (requires(T x) { -x; }) { return ext::blend(m_data, -m_data, m_mask); }
-		[[nodiscard]] DPM_FORCEINLINE T operator~() const && noexcept requires (requires(T x) { ~x; }) { return ext::blend(m_data, ~m_data, m_mask); }
+		[[nodiscard]] DPM_FORCEINLINE T operator+() const && noexcept requires(requires(T x) { +x; }) { return ext::blend(m_data, +m_data, m_mask); }
+		[[nodiscard]] DPM_FORCEINLINE T operator-() const && noexcept requires(requires(T x) { -x; }) { return ext::blend(m_data, -m_data, m_mask); }
+		[[nodiscard]] DPM_FORCEINLINE T operator~() const && noexcept requires(requires(T x) { ~x; }) { return ext::blend(m_data, ~m_data, m_mask); }
 
 		/** Copies selected elements to \a mem. */
 		template<typename U, typename Flags>
@@ -127,24 +126,24 @@ namespace dpm
 		template<std::convertible_to<T> U>
 		DPM_FORCEINLINE void operator=(U &&value) && noexcept { m_data = ext::blend(m_data, static_cast<T>(std::forward<U>(value)), m_mask); }
 
-		DPM_FORCEINLINE void operator++() && noexcept requires (requires{ ++std::declval<T>(); })
+		DPM_FORCEINLINE void operator++() && noexcept requires(requires{ ++std::declval<T>(); })
 		{
 			const auto old_data = m_data;
 			const auto new_data = ++old_data;
 			m_data = ext::blend(old_data, new_data, m_mask);
 		}
-		DPM_FORCEINLINE void operator--() && noexcept requires (requires{ --std::declval<T>(); })
+		DPM_FORCEINLINE void operator--() && noexcept requires(requires{ --std::declval<T>(); })
 		{
 			const auto old_data = m_data;
 			const auto new_data = --old_data;
 			m_data = ext::blend(old_data, new_data, m_mask);
 		}
-		DPM_FORCEINLINE void operator++(int) && noexcept requires (requires{ std::declval<T>()++; })
+		DPM_FORCEINLINE void operator++(int) && noexcept requires(requires{ std::declval<T>()++; })
 		{
 			const auto old_data = m_data++;
 			m_data = ext::blend(old_data, m_data, m_mask);
 		}
-		DPM_FORCEINLINE void operator--(int) && noexcept requires (requires{ std::declval<T>()--; })
+		DPM_FORCEINLINE void operator--(int) && noexcept requires(requires{ std::declval<T>()--; })
 		{
 			const auto old_data = m_data--;
 			m_data = ext::blend(old_data, m_data, m_mask);
@@ -233,10 +232,10 @@ namespace dpm
 
 	/** Selects \a v using value of \a m. */
 	template<typename T>
-	[[nodiscard]] inline where_expression<bool, T> where(bool m, T &v) noexcept requires (!(is_simd_v<T> || is_simd_mask_v<T>)) { return {m, v}; }
+	[[nodiscard]] inline where_expression<bool, T> where(bool m, T &v) noexcept requires(!(is_simd_v<T> || is_simd_mask_v<T>)) { return {m, v}; }
 	/** Selects \a v using value of \a m. */
 	template<typename T>
-	[[nodiscard]] inline const_where_expression<bool, T> where(bool m, const T &v) noexcept requires (!(is_simd_v<T> || is_simd_mask_v<T>)) { return {m, v}; }
+	[[nodiscard]] inline const_where_expression<bool, T> where(bool m, const T &v) noexcept requires(!(is_simd_v<T> || is_simd_mask_v<T>)) { return {m, v}; }
 
 	/** Calculates a reduction of selected elements from \a x using \a binary_op and identity element \a identity. */
 	template<typename M, typename V, typename Op>
@@ -260,21 +259,21 @@ namespace dpm
 	template<typename M, typename V, detail::template_instance<std::bit_and> Op>
 	[[nodiscard]] DPM_FORCEINLINE typename V::value_type reduce(const const_where_expression<M, V> &x, Op binary_op) noexcept
 	{
-		using mask_int = detail::uint_of_size_t<sizeof(typename V::value_type)>;
+		using mask_int = uint_of_size_t<sizeof(typename V::value_type)>;
 		return reduce(x, std::bit_cast<typename V::value_type>(~mask_int{0}), binary_op);
 	}
 	/** Calculates a bitwise XOR of selected elements from \a x. Equivalent to `reduce(x, typename V::value_type{zeros-mask}, binary_op)` */
 	template<typename M, typename V, detail::template_instance<std::bit_xor> Op>
 	[[nodiscard]] DPM_FORCEINLINE typename V::value_type reduce(const const_where_expression<M, V> &x, Op binary_op) noexcept
 	{
-		using mask_int = detail::uint_of_size_t<sizeof(typename V::value_type)>;
+		using mask_int = uint_of_size_t<sizeof(typename V::value_type)>;
 		return reduce(x, std::bit_cast<typename V::value_type>(mask_int{0}), binary_op);
 	}
 	/** Calculates a bitwise OR of selected elements from \a x. Equivalent to `reduce(x, typename V::value_type{zeros-mask}, binary_op)` */
 	template<typename M, typename V, detail::template_instance<std::bit_or> Op>
 	[[nodiscard]] DPM_FORCEINLINE typename V::value_type reduce(const const_where_expression<M, V> &x, Op binary_op) noexcept
 	{
-		using mask_int = detail::uint_of_size_t<sizeof(typename V::value_type)>;
+		using mask_int = uint_of_size_t<sizeof(typename V::value_type)>;
 		return reduce(x, std::bit_cast<typename V::value_type>(mask_int{0}), binary_op);
 	}
 

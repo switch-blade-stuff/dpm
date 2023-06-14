@@ -177,26 +177,26 @@ namespace dpm
 			return fmadd(fmadd(y, r2, p), r2, add<T>(y0, r));
 		}
 
-		[[nodiscard]] __m128 DPM_PUBLIC DPM_MATHFUNC log(__m128 x) noexcept;
-		[[nodiscard]] __m128 DPM_PUBLIC DPM_MATHFUNC log2(__m128 x) noexcept;
-		[[nodiscard]] __m128 DPM_PUBLIC DPM_MATHFUNC log10(__m128 x) noexcept;
-		[[nodiscard]] __m128 DPM_PUBLIC DPM_MATHFUNC log1p(__m128 x) noexcept;
+		[[nodiscard]] __m128 DPM_API_PUBLIC DPM_MATHFUNC log(__m128 x) noexcept;
+		[[nodiscard]] __m128 DPM_API_PUBLIC DPM_MATHFUNC log2(__m128 x) noexcept;
+		[[nodiscard]] __m128 DPM_API_PUBLIC DPM_MATHFUNC log10(__m128 x) noexcept;
+		[[nodiscard]] __m128 DPM_API_PUBLIC DPM_MATHFUNC log1p(__m128 x) noexcept;
 
-		[[nodiscard]] __m128d DPM_PUBLIC DPM_MATHFUNC log(__m128d x) noexcept;
-		[[nodiscard]] __m128d DPM_PUBLIC DPM_MATHFUNC log2(__m128d x) noexcept;
-		[[nodiscard]] __m128d DPM_PUBLIC DPM_MATHFUNC log10(__m128d x) noexcept;
-		[[nodiscard]] __m128d DPM_PUBLIC DPM_MATHFUNC log1p(__m128d x) noexcept;
+		[[nodiscard]] __m128d DPM_API_PUBLIC DPM_MATHFUNC log(__m128d x) noexcept;
+		[[nodiscard]] __m128d DPM_API_PUBLIC DPM_MATHFUNC log2(__m128d x) noexcept;
+		[[nodiscard]] __m128d DPM_API_PUBLIC DPM_MATHFUNC log10(__m128d x) noexcept;
+		[[nodiscard]] __m128d DPM_API_PUBLIC DPM_MATHFUNC log1p(__m128d x) noexcept;
 
 #ifdef DPM_HAS_AVX
-		[[nodiscard]] __m256 DPM_PUBLIC DPM_MATHFUNC log(__m256 x) noexcept;
-		[[nodiscard]] __m256 DPM_PUBLIC DPM_MATHFUNC log2(__m256 x) noexcept;
-		[[nodiscard]] __m256 DPM_PUBLIC DPM_MATHFUNC log10(__m256 x) noexcept;
-		[[nodiscard]] __m256 DPM_PUBLIC DPM_MATHFUNC log1p(__m256 x) noexcept;
+		[[nodiscard]] __m256 DPM_API_PUBLIC DPM_MATHFUNC log(__m256 x) noexcept;
+		[[nodiscard]] __m256 DPM_API_PUBLIC DPM_MATHFUNC log2(__m256 x) noexcept;
+		[[nodiscard]] __m256 DPM_API_PUBLIC DPM_MATHFUNC log10(__m256 x) noexcept;
+		[[nodiscard]] __m256 DPM_API_PUBLIC DPM_MATHFUNC log1p(__m256 x) noexcept;
 
-		[[nodiscard]] __m256d DPM_PUBLIC DPM_MATHFUNC log(__m256d x) noexcept;
-		[[nodiscard]] __m256d DPM_PUBLIC DPM_MATHFUNC log2(__m256d x) noexcept;
-		[[nodiscard]] __m256d DPM_PUBLIC DPM_MATHFUNC log10(__m256d x) noexcept;
-		[[nodiscard]] __m256d DPM_PUBLIC DPM_MATHFUNC log1p(__m256d x) noexcept;
+		[[nodiscard]] __m256d DPM_API_PUBLIC DPM_MATHFUNC log(__m256d x) noexcept;
+		[[nodiscard]] __m256d DPM_API_PUBLIC DPM_MATHFUNC log2(__m256d x) noexcept;
+		[[nodiscard]] __m256d DPM_API_PUBLIC DPM_MATHFUNC log10(__m256d x) noexcept;
+		[[nodiscard]] __m256d DPM_API_PUBLIC DPM_MATHFUNC log1p(__m256d x) noexcept;
 #endif
 #endif
 	}

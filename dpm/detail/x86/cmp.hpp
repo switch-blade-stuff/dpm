@@ -30,7 +30,7 @@ namespace dpm::detail
 	[[nodiscard]] DPM_FORCEINLINE __m128 cmp_nge(__m128 a, __m128 b) noexcept { return _mm_cmpnge_ps(a, b); }
 
 	template<typename V>
-	[[nodiscard]] DPM_FORCEINLINE bool test_mask(V x) noexcept requires (sizeof(V) == 16)
+	[[nodiscard]] DPM_FORCEINLINE bool test_mask(V x) noexcept requires(sizeof(V) == 16)
 	{
 #if defined(DPM_HAS_SSE4_1)
 		const auto ix = std::bit_cast<__m128i>(x);
@@ -217,7 +217,7 @@ namespace dpm::detail
 	[[nodiscard]] DPM_FORCEINLINE V cmp_ne(V a, V b) noexcept { return bit_not(cmp_eq<T>(a, b)); }
 
 	template<typename T, typename V>
-	[[nodiscard]] DPM_FORCEINLINE V mask_eq(V a, V b) noexcept requires (sizeof(T) == 4)
+	[[nodiscard]] DPM_FORCEINLINE V mask_eq(V a, V b) noexcept requires(sizeof(T) == 4)
 	{
 #ifndef DPM_HAS_SSE2
 		return cmp_eq<float>(a, bit_xor(b, fill<V>(std::bit_cast<float>(0x3fff'ffff))));
@@ -231,7 +231,7 @@ namespace dpm::detail
 
 #ifdef DPM_HAS_SSE2
 	template<typename T, typename V>
-	[[nodiscard]] DPM_FORCEINLINE V mask_eq(V a, V b) noexcept requires (sizeof(T) == 8)
+	[[nodiscard]] DPM_FORCEINLINE V mask_eq(V a, V b) noexcept requires(sizeof(T) == 8)
 	{
 		using ivec_t = select_vector_t<std::int64_t, sizeof(V)>;
 		const auto ai = std::bit_cast<ivec_t>(a);

@@ -2,7 +2,7 @@
  * Created by switch_blade on 2023-02-10.
  */
 
-#include "../debug.hpp"
+#include "../utility.hpp"
 
 #include <csignal>
 #include <cstdio>

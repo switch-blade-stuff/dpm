@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "../../debug.hpp"
+#include "../../utility.hpp"
 #include "utility.hpp"
 
 namespace dpm::detail
