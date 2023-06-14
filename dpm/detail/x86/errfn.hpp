@@ -30,20 +30,36 @@ namespace dpm
 	}
 
 	/** Calculates the error function of elements in \a x. */
-	template<std::floating_point T, std::size_t N, std::size_t A>
-	[[nodiscard]] DPM_FORCEINLINE detail::x86_simd<T, N, A> erf(const detail::x86_simd<T, N, A> &x) noexcept requires detail::x86_overload_any<T, N, A>
+	template<std::floating_point T, std::size_t N, std::size_t A> requires detail::x86_overload_any<T, N, A>
+	[[nodiscard]] constexpr DPM_FORCEINLINE detail::x86_simd<T, N, A> erf(const detail::x86_simd<T, N, A> &x) noexcept
 	{
-		detail::x86_simd<T, N, A> result = {};
-		detail::vectorize([](auto &res, auto x) { res = detail::erf(x); }, result, x);
-		return result;
+		if (std::is_constant_evaluated())
+		{
+			const auto packed = static_cast<simd<T, simd_abi::ext::packed_buffer<N>>>(x);
+			return static_cast<detail::x86_simd<T, N, A>>(erf(packed));
+		}
+		else
+		{
+			detail::x86_simd<T, N, A> result = {};
+			detail::vectorize([](auto &res, auto x) { res = detail::erf(x); }, result, x);
+			return result;
+		}
 	}
 	/** Calculates the complementary error function of elements in \a x. */
-	template<std::floating_point T, std::size_t N, std::size_t A>
-	[[nodiscard]] DPM_FORCEINLINE detail::x86_simd<T, N, A> erfc(const detail::x86_simd<T, N, A> &x) noexcept requires detail::x86_overload_any<T, N, A>
+	template<std::floating_point T, std::size_t N, std::size_t A> requires detail::x86_overload_any<T, N, A>
+	[[nodiscard]] constexpr DPM_FORCEINLINE detail::x86_simd<T, N, A> erfc(const detail::x86_simd<T, N, A> &x) noexcept
 	{
-		detail::x86_simd<T, N, A> result = {};
-		detail::vectorize([](auto &res, auto x) { res = detail::erfc(x); }, result, x);
-		return result;
+		if (std::is_constant_evaluated())
+		{
+			const auto packed = static_cast<simd<T, simd_abi::ext::packed_buffer<N>>>(x);
+			return static_cast<detail::x86_simd<T, N, A>>(erfc(packed));
+		}
+		else
+		{
+			detail::x86_simd<T, N, A> result = {};
+			detail::vectorize([](auto &res, auto x) { res = detail::erfc(x); }, result, x);
+			return result;
+		}
 	}
 }
 

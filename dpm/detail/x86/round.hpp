@@ -445,143 +445,245 @@ namespace dpm
 	}
 
 	/** Rounds elements of vector \a x to nearest integer not less than the element's value. */
-	template<std::floating_point T, std::size_t N, std::size_t A>
-	[[nodiscard]] DPM_FORCEINLINE detail::x86_simd<T, N, A> ceil(const detail::x86_simd<T, N, A> &x) noexcept requires detail::x86_overload_any<T, N, A>
+	template<std::floating_point T, std::size_t N, std::size_t A> requires detail::x86_overload_any<T, N, A>
+	[[nodiscard]] constexpr DPM_FORCEINLINE detail::x86_simd<T, N, A> ceil(const detail::x86_simd<T, N, A> &x) noexcept
 	{
-		detail::x86_simd<T, N, A> result = {};
-		detail::vectorize([](auto &res, auto x) { res = detail::ceil(x); }, result, x);
-		return result;
+		if (std::is_constant_evaluated())
+		{
+			const auto packed = static_cast<simd<T, simd_abi::ext::packed_buffer<N>>>(x);
+			return static_cast<detail::x86_simd<T, N, A>>(ceil(packed));
+		}
+		else
+		{
+			detail::x86_simd <T, N, A> result = {};
+			detail::vectorize([](auto &res, auto x) { res = detail::ceil(x); }, result, x);
+			return result;
+		}
 	}
 	/** Rounds elements of vector \a x to nearest integer not greater than the element's value. */
-	template<std::floating_point T, std::size_t N, std::size_t A>
-	[[nodiscard]] DPM_FORCEINLINE detail::x86_simd<T, N, A> floor(const detail::x86_simd<T, N, A> &x) noexcept requires detail::x86_overload_any<T, N, A>
+	template<std::floating_point T, std::size_t N, std::size_t A> requires detail::x86_overload_any<T, N, A>
+	[[nodiscard]] constexpr DPM_FORCEINLINE detail::x86_simd<T, N, A> floor(const detail::x86_simd<T, N, A> &x) noexcept
 	{
-		detail::x86_simd<T, N, A> result = {};
-		detail::vectorize([](auto &res, auto x) { res = detail::floor(x); }, result, x);
-		return result;
+		if (std::is_constant_evaluated())
+		{
+			const auto packed = static_cast<simd<T, simd_abi::ext::packed_buffer<N>>>(x);
+			return static_cast<detail::x86_simd<T, N, A>>(floor(packed));
+		}
+		else
+		{
+			detail::x86_simd <T, N, A> result = {};
+			detail::vectorize([](auto &res, auto x) { res = detail::floor(x); }, result, x);
+			return result;
+		}
 	}
 	/** Rounds elements of vector \a x to integer with truncation. */
-	template<std::floating_point T, std::size_t N, std::size_t A>
-	[[nodiscard]] DPM_FORCEINLINE detail::x86_simd<T, N, A> trunc(const detail::x86_simd<T, N, A> &x) noexcept requires detail::x86_overload_any<T, N, A>
+	template<std::floating_point T, std::size_t N, std::size_t A> requires detail::x86_overload_any<T, N, A>
+	[[nodiscard]] constexpr DPM_FORCEINLINE detail::x86_simd<T, N, A> trunc(const detail::x86_simd<T, N, A> &x) noexcept
 	{
-		detail::x86_simd<T, N, A> result = {};
-		detail::vectorize([](auto &res, auto x) { res = detail::trunc(x); }, result, x);
-		return result;
+		if (std::is_constant_evaluated())
+		{
+			const auto packed = static_cast<simd<T, simd_abi::ext::packed_buffer<N>>>(x);
+			return static_cast<detail::x86_simd<T, N, A>>(trunc(packed));
+		}
+		else
+		{
+			detail::x86_simd <T, N, A> result = {};
+			detail::vectorize([](auto &res, auto x) { res = detail::trunc(x); }, result, x);
+			return result;
+		}
 	}
 	/** Rounds elements of vector \a x to integer using current rounding mode. */
-	template<std::floating_point T, std::size_t N, std::size_t A>
-	[[nodiscard]] DPM_FORCEINLINE detail::x86_simd<T, N, A> nearbyint(const detail::x86_simd<T, N, A> &x) noexcept requires detail::x86_overload_any<T, N, A>
+	template<std::floating_point T, std::size_t N, std::size_t A> requires detail::x86_overload_any<T, N, A>
+	[[nodiscard]] constexpr DPM_FORCEINLINE detail::x86_simd<T, N, A> nearbyint(const detail::x86_simd<T, N, A> &x) noexcept
 	{
-		detail::x86_simd<T, N, A> result = {};
-		detail::vectorize([](auto &res, auto x) { res = detail::nearbyint(x); }, result, x);
-		return result;
+		if (std::is_constant_evaluated())
+		{
+			const auto packed = static_cast<simd<T, simd_abi::ext::packed_buffer<N>>>(x);
+			return static_cast<detail::x86_simd<T, N, A>>(nearbyint(packed));
+		}
+		else
+		{
+			detail::x86_simd <T, N, A> result = {};
+			detail::vectorize([](auto &res, auto x) { res = detail::nearbyint(x); }, result, x);
+			return result;
+		}
 	}
 
 	/** Rounds elements of vector \a x to nearest integer rounding away from zero. */
-	template<std::floating_point T, std::size_t N, std::size_t A>
-	[[nodiscard]] DPM_FORCEINLINE detail::x86_simd<T, N, A> round(const detail::x86_simd<T, N, A> &x) noexcept requires detail::x86_overload_any<T, N, A>
+	template<std::floating_point T, std::size_t N, std::size_t A> requires detail::x86_overload_any<T, N, A>
+	[[nodiscard]] constexpr DPM_FORCEINLINE detail::x86_simd<T, N, A> round(const detail::x86_simd<T, N, A> &x) noexcept
 	{
-		detail::x86_simd<T, N, A> result = {};
-		detail::vectorize([](auto &res, auto x) { detail::round<T>(x, &res); }, result, x);
-		return result;
+		if (std::is_constant_evaluated())
+		{
+			const auto packed = static_cast<simd<T, simd_abi::ext::packed_buffer<N>>>(x);
+			return static_cast<detail::x86_simd<T, N, A>>(round(packed));
+		}
+		else
+		{
+			detail::x86_simd <T, N, A> result = {};
+			detail::vectorize([](auto &res, auto x) { detail::round<T>(x, &res); }, result, x);
+			return result;
+		}
 	}
 	/** Casts elements of vector \a x to `long` rounding away from zero. */
-	template<std::floating_point T, std::size_t N, std::size_t A>
-	[[nodiscard]] DPM_FORCEINLINE detail::x86_simd<long, N, A> lround(const detail::x86_simd<T, N, A> &x) noexcept requires detail::x86_overload_any<T, N, A> && detail::x86_overload_any<long, N, A>
+	template<std::floating_point T, std::size_t N, std::size_t A> requires detail::x86_overload_any<T, N, A> && detail::x86_overload_any<long, N, A>
+	[[nodiscard]] constexpr DPM_FORCEINLINE detail::x86_simd<long, N, A> lround(const detail::x86_simd<T, N, A> &x) noexcept
 	{
-		constexpr auto to_extent = sizeof(ext::native_data_type_t<detail::x86_simd<long, N, A>>) / sizeof(long);
-		constexpr auto from_extent = sizeof(ext::native_data_type_t<detail::x86_simd<T, N, A>>) / sizeof(T);
+		if (std::is_constant_evaluated())
+		{
+			const auto packed = static_cast<simd<T, simd_abi::ext::packed_buffer<N>>>(x);
+			return static_cast<detail::x86_simd<long, N, A>>(lround(packed));
+		}
+		else
+		{
+			constexpr auto to_extent = sizeof(ext::native_data_type_t<detail::x86_simd < long, N, A>>) / sizeof(long);
+			constexpr auto from_extent = sizeof(ext::native_data_type_t<detail::x86_simd < T, N, A>>) / sizeof(T);
 
-		detail::x86_simd<long, N, A> result = {};
-		auto result_data = ext::to_native_data(result);
-		const auto x_data = ext::to_native_data(x);
+			detail::x86_simd<long, N, A> result = {};
+			auto result_data = ext::to_native_data(result);
+			const auto x_data = ext::to_native_data(x);
 
-		for (std::size_t i = 0, j = 0; i < detail::x86_simd<T, N, A>::size(); i += from_extent, j += to_extent)
-			detail::lround(x_data[i / from_extent], result_data.data() + i / to_extent);
-		return result;
+			for (std::size_t i = 0, j = 0; i < detail::x86_simd<T, N, A>::size(); i += from_extent, j += to_extent)
+				detail::lround(x_data[i / from_extent], result_data.data() + i / to_extent);
+			return result;
+		}
 	}
 	/** Casts elements of vector \a x to `long long` rounding away from zero. */
-	template<std::floating_point T, std::size_t N, std::size_t A>
-	[[nodiscard]] DPM_FORCEINLINE detail::x86_simd<long long, N, A> llround(const detail::x86_simd<T, N, A> &x) noexcept requires detail::x86_overload_any<T, N, A> && detail::x86_overload_any<long long, N, A>
+	template<std::floating_point T, std::size_t N, std::size_t A> requires detail::x86_overload_any<T, N, A> && detail::x86_overload_any<long long, N, A>
+	[[nodiscard]] constexpr DPM_FORCEINLINE detail::x86_simd<long long, N, A> llround(const detail::x86_simd<T, N, A> &x) noexcept
 	{
-		constexpr auto to_extent = sizeof(ext::native_data_type_t<detail::x86_simd<long long, N, A>>) / sizeof(long long);
-		constexpr auto from_extent = sizeof(ext::native_data_type_t<detail::x86_simd<T, N, A>>) / sizeof(T);
+		if (std::is_constant_evaluated())
+		{
+			const auto packed = static_cast<simd<T, simd_abi::ext::packed_buffer<N>>>(x);
+			return static_cast<detail::x86_simd<long long, N, A>>(llround(packed));
+		}
+		else
+		{
+			constexpr auto to_extent = sizeof(ext::native_data_type_t<detail::x86_simd < long long, N, A>>) / sizeof(long long);
+			constexpr auto from_extent = sizeof(ext::native_data_type_t<detail::x86_simd < T, N, A>>) / sizeof(T);
 
-		detail::x86_simd<long long, N, A> result = {};
-		auto result_data = ext::to_native_data(result);
-		const auto x_data = ext::to_native_data(x);
+			detail::x86_simd<long long, N, A> result = {};
+			auto result_data = ext::to_native_data(result);
+			const auto x_data = ext::to_native_data(x);
 
-		for (std::size_t i = 0, j = 0; i < detail::x86_simd<T, N, A>::size(); i += from_extent, j += to_extent)
-			detail::llround(x_data[i / from_extent], result_data.data() + i / to_extent);
-		return result;
+			for (std::size_t i = 0, j = 0; i < detail::x86_simd<T, N, A>::size(); i += from_extent, j += to_extent)
+				detail::llround(x_data[i / from_extent], result_data.data() + i / to_extent);
+			return result;
+		}
 	}
 
 	/** Rounds elements of vector \a x to nearest integer using current rounding mode with exceptions. */
-	template<std::floating_point T, std::size_t N, std::size_t A>
-	[[nodiscard]] DPM_FORCEINLINE detail::x86_simd<T, N, A> rint(const detail::x86_simd<T, N, A> &x) noexcept requires detail::x86_overload_any<T, N, A>
+	template<std::floating_point T, std::size_t N, std::size_t A> requires detail::x86_overload_any<T, N, A>
+	[[nodiscard]] constexpr DPM_FORCEINLINE detail::x86_simd<T, N, A> rint(const detail::x86_simd<T, N, A> &x) noexcept
 	{
-		detail::x86_simd<T, N, A> result = {};
-		detail::vectorize([](auto &res, auto x) { detail::rint<T>(x, &res); }, result, x);
-		return result;
+		if (std::is_constant_evaluated())
+		{
+			const auto packed = static_cast<simd<T, simd_abi::ext::packed_buffer<N>>>(x);
+			return static_cast<detail::x86_simd<T, N, A>>(rint(packed));
+		}
+		else
+		{
+			detail::x86_simd <T, N, A> result = {};
+			detail::vectorize([](auto &res, auto x) { detail::rint<T>(x, &res); }, result, x);
+			return result;
+		}
 	}
 	/** Casts elements of vector \a x to `long` using current rounding mode with exceptions. */
-	template<std::floating_point T, std::size_t N, std::size_t A>
-	[[nodiscard]] DPM_FORCEINLINE detail::x86_simd<long, N, A> lrint(const detail::x86_simd<T, N, A> &x) noexcept requires detail::x86_overload_any<T, N, A> && detail::x86_overload_any<long, N, A>
+	template<std::floating_point T, std::size_t N, std::size_t A> requires detail::x86_overload_any<T, N, A> && detail::x86_overload_any<long, N, A>
+	[[nodiscard]] constexpr DPM_FORCEINLINE detail::x86_simd<long, N, A> lrint(const detail::x86_simd<T, N, A> &x) noexcept
 	{
-		constexpr auto to_extent = sizeof(ext::native_data_type_t<detail::x86_simd<long, N, A>>) / sizeof(long);
-		constexpr auto from_extent = sizeof(ext::native_data_type_t<detail::x86_simd<T, N, A>>) / sizeof(T);
+		if (std::is_constant_evaluated())
+		{
+			const auto packed = static_cast<simd<T, simd_abi::ext::packed_buffer<N>>>(x);
+			return static_cast<detail::x86_simd<long, N, A>>(lrint(packed));
+		}
+		else
+		{
+			constexpr auto to_extent = sizeof(ext::native_data_type_t<detail::x86_simd < long, N, A>>) / sizeof(long);
+			constexpr auto from_extent = sizeof(ext::native_data_type_t<detail::x86_simd < T, N, A>>) / sizeof(T);
 
-		detail::x86_simd<long, N, A> result = {};
-		auto result_data = ext::to_native_data(result);
-		const auto x_data = ext::to_native_data(x);
+			detail::x86_simd<long, N, A> result = {};
+			auto result_data = ext::to_native_data(result);
+			const auto x_data = ext::to_native_data(x);
 
-		for (std::size_t i = 0, j = 0; i < detail::x86_simd<T, N, A>::size(); i += from_extent, j += to_extent)
-			detail::lrint(x_data[i / from_extent], result_data.data() + i / to_extent);
-		return result;
+			for (std::size_t i = 0, j = 0; i < detail::x86_simd<T, N, A>::size(); i += from_extent, j += to_extent)
+				detail::lrint(x_data[i / from_extent], result_data.data() + i / to_extent);
+			return result;
+		}
 	}
 	/** Casts elements of vector \a x to `long long` using current rounding mode with exceptions. */
-	template<std::floating_point T, std::size_t N, std::size_t A>
-	[[nodiscard]] DPM_FORCEINLINE detail::x86_simd<long long, N, A> llrint(const detail::x86_simd<T, N, A> &x) noexcept requires detail::x86_overload_any<T, N, A> && detail::x86_overload_any<long long, N, A>
+	template<std::floating_point T, std::size_t N, std::size_t A> requires detail::x86_overload_any<T, N, A> && detail::x86_overload_any<long long, N, A>
+	[[nodiscard]] constexpr DPM_FORCEINLINE detail::x86_simd<long long, N, A> llrint(const detail::x86_simd<T, N, A> &x) noexcept
 	{
-		constexpr auto to_extent = sizeof(ext::native_data_type_t<detail::x86_simd<long long, N, A>>) / sizeof(long long);
-		constexpr auto from_extent = sizeof(ext::native_data_type_t<detail::x86_simd<T, N, A>>) / sizeof(T);
+		if (std::is_constant_evaluated())
+		{
+			const auto packed = static_cast<simd<T, simd_abi::ext::packed_buffer<N>>>(x);
+			return static_cast<detail::x86_simd<long long, N, A>>(llrint(packed));
+		}
+		else
+		{
+			constexpr auto to_extent = sizeof(ext::native_data_type_t<detail::x86_simd < long long, N, A>>) / sizeof(long long);
+			constexpr auto from_extent = sizeof(ext::native_data_type_t<detail::x86_simd < T, N, A>>) / sizeof(T);
 
-		detail::x86_simd<long long, N, A> result = {};
-		auto result_data = ext::to_native_data(result);
-		const auto x_data = ext::to_native_data(x);
+			detail::x86_simd<long long, N, A> result = {};
+			auto result_data = ext::to_native_data(result);
+			const auto x_data = ext::to_native_data(x);
 
-		for (std::size_t i = 0, j = 0; i < detail::x86_simd<T, N, A>::size(); i += from_extent, j += to_extent)
-			detail::llrint(x_data[i / from_extent], result_data.data() + i / to_extent);
-		return result;
+			for (std::size_t i = 0, j = 0; i < detail::x86_simd<T, N, A>::size(); i += from_extent, j += to_extent)
+				detail::llrint(x_data[i / from_extent], result_data.data() + i / to_extent);
+			return result;
+		}
 	}
 
 	DPM_DECLARE_EXT_NAMESPACE
 	{
-		/** Casts elements of vector \a x to integer of type \a I rounding away from zero. */
-		template<std::signed_integral I, std::floating_point T, std::size_t N, std::size_t A>
-		[[nodiscard]] DPM_FORCEINLINE detail::x86_simd<I, N, A> iround(const detail::x86_simd<T, N, A> &x) noexcept requires detail::x86_overload_any<T, N, A> && detail::x86_overload_any<I, N, A>
-		{
-			detail::x86_simd<I, N, A> result = {};
-			detail::vectorize([](auto &res, auto x) { detail::round<I>(x, &res); }, result, x);
-			return result;
-		}
-
-		/** Casts elements of vector \a x to integer of type \a I using current rounding mode with exceptions. */
-		template<std::signed_integral I, std::floating_point T, std::size_t N, std::size_t A>
-		[[nodiscard]] DPM_FORCEINLINE detail::x86_simd<I, N, A> irint(const detail::x86_simd<T, N, A> &x) noexcept requires detail::x86_overload_any<T, N, A> && detail::x86_overload_any<I, N, A>
-		{
-			detail::x86_simd<I, N, A> result = {};
-			detail::vectorize([](auto &res, auto x) { detail::rint<I>(x, &res); }, result, x);
-			return result;
-		}
-
 		/** Casts elements of vector \a x to integer type \a I with truncation. */
-		template<std::integral I, std::floating_point T, std::size_t N, std::size_t A>
-		[[nodiscard]] DPM_FORCEINLINE detail::x86_simd<I, N, A> itrunc(const detail::x86_simd<T, N, A> &x) noexcept requires detail::x86_overload_any<T, N, A> && detail::x86_overload_any<I, N, A>
+		template<std::integral I, std::floating_point T, std::size_t N, std::size_t A> requires detail::x86_overload_any<T, N, A> && detail::x86_overload_any<I, N, A>
+		[[nodiscard]] constexpr DPM_FORCEINLINE detail::x86_simd<I, N, A> itrunc(const detail::x86_simd<T, N, A> &x) noexcept
 		{
-			detail::x86_simd<I, N, A> result = {};
-			detail::vectorize([](auto &res, auto x) { res = detail::itrunc<I>(x); }, result, x);
-			return result;
+			if (std::is_constant_evaluated())
+			{
+				const auto packed = static_cast<simd<T, simd_abi::ext::packed_buffer<N>>>(x);
+				return static_cast<detail::x86_simd<I, N, A>>(itrunc<I>(packed));
+			}
+			else
+			{
+				detail::x86_simd <I, N, A> result = {};
+				detail::vectorize([](auto &res, auto x) { res = detail::itrunc<I>(x); }, result, x);
+				return result;
+			}
+		}
+		/** Casts elements of vector \a x to integer of type \a I rounding away from zero. */
+		template<std::signed_integral I, std::floating_point T, std::size_t N, std::size_t A> requires detail::x86_overload_any<T, N, A> && detail::x86_overload_any<I, N, A>
+		[[nodiscard]] constexpr DPM_FORCEINLINE detail::x86_simd<I, N, A> iround(const detail::x86_simd<T, N, A> &x) noexcept
+		{
+			if (std::is_constant_evaluated())
+			{
+				const auto packed = static_cast<simd<T, simd_abi::ext::packed_buffer<N>>>(x);
+				return static_cast<detail::x86_simd<I, N, A>>(iround<I>(packed));
+			}
+			else
+			{
+				detail::x86_simd <I, N, A> result = {};
+				detail::vectorize([](auto &res, auto x) { detail::round<I>(x, &res); }, result, x);
+				return result;
+			}
+		}
+		/** Casts elements of vector \a x to integer of type \a I using current rounding mode with exceptions. */
+		template<std::signed_integral I, std::floating_point T, std::size_t N, std::size_t A> requires detail::x86_overload_any<T, N, A> && detail::x86_overload_any<I, N, A>
+		[[nodiscard]] constexpr DPM_FORCEINLINE detail::x86_simd<I, N, A> irint(const detail::x86_simd<T, N, A> &x) noexcept
+		{
+			if (std::is_constant_evaluated())
+			{
+				const auto packed = static_cast<simd<T, simd_abi::ext::packed_buffer<N>>>(x);
+				return static_cast<detail::x86_simd<I, N, A>>(irint<I>(packed));
+			}
+			else
+			{
+				detail::x86_simd <I, N, A> result = {};
+				detail::vectorize([](auto &res, auto x) { detail::rint<I>(x, &res); }, result, x);
+				return result;
+			}
 		}
 	}
 }

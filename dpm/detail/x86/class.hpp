@@ -101,93 +101,187 @@ namespace dpm
 #endif
 	}
 
-	/** Determines if elements of \a x are finite. */
-	template<std::floating_point T, std::size_t N, std::size_t A>
-	[[nodiscard]] DPM_FORCEINLINE detail::x86_mask<T, N, A> isfinite(const detail::x86_simd<T, N, A> &x) noexcept requires detail::x86_overload_any<T, N, A>
+	/** Determines if elements of \a x are NaN. */
+	template<std::floating_point T, std::size_t N, std::size_t A> requires detail::x86_overload_any<T, N, A>
+	[[nodiscard]] constexpr DPM_FORCEINLINE detail::x86_mask<T, N, A> isnan(const detail::x86_simd<T, N, A> &x) noexcept
 	{
-		detail::x86_mask<T, N, A> result = {};
-		detail::vectorize([](auto &res, auto x) { res = detail::isfinite(x); }, result, x);
-		return result;
+		if (std::is_constant_evaluated())
+		{
+			const auto packed = static_cast<simd<T, simd_abi::ext::packed_buffer<N>>>(x);
+			return static_cast<detail::x86_mask<T, N, A>>(isnan(packed));
+		}
+		else
+		{
+			detail::x86_mask <T, N, A> result = {};
+			detail::vectorize([](auto &res, auto x) { res = detail::isunord(x, x); }, result, x);
+			return result;
+		}
 	}
 	/** Determines if elements of \a x are infinite. */
-	template<std::floating_point T, std::size_t N, std::size_t A>
-	[[nodiscard]] DPM_FORCEINLINE detail::x86_mask<T, N, A> isinf(const detail::x86_simd<T, N, A> &x) noexcept requires detail::x86_overload_any<T, N, A>
+	template<std::floating_point T, std::size_t N, std::size_t A> requires detail::x86_overload_any<T, N, A>
+	[[nodiscard]] constexpr DPM_FORCEINLINE detail::x86_mask<T, N, A> isinf(const detail::x86_simd<T, N, A> &x) noexcept
 	{
-		detail::x86_mask<T, N, A> result = {};
-		detail::vectorize([](auto &res, auto x) { res = detail::isinf(x); }, result, x);
-		return result;
+		if (std::is_constant_evaluated())
+		{
+			const auto packed = static_cast<simd<T, simd_abi::ext::packed_buffer<N>>>(x);
+			return static_cast<detail::x86_mask<T, N, A>>(isinf(packed));
+		}
+		else
+		{
+			detail::x86_mask <T, N, A> result = {};
+			detail::vectorize([](auto &res, auto x) { res = detail::isinf(x); }, result, x);
+			return result;
+		}
 	}
-	/** Determines if elements of \a x are NaN. */
-	template<std::floating_point T, std::size_t N, std::size_t A>
-	[[nodiscard]] DPM_FORCEINLINE detail::x86_mask<T, N, A> isnan(const detail::x86_simd<T, N, A> &x) noexcept requires detail::x86_overload_any<T, N, A>
+	/** Determines if elements of \a x are finite. */
+	template<std::floating_point T, std::size_t N, std::size_t A> requires detail::x86_overload_any<T, N, A>
+	[[nodiscard]] constexpr DPM_FORCEINLINE detail::x86_mask<T, N, A> isfinite(const detail::x86_simd<T, N, A> &x) noexcept
 	{
-		detail::x86_mask<T, N, A> result = {};
-		detail::vectorize([](auto &res, auto x) { res = detail::isunord(x, x); }, result, x);
-		return result;
+		if (std::is_constant_evaluated())
+		{
+			const auto packed = static_cast<simd<T, simd_abi::ext::packed_buffer<N>>>(x);
+			return static_cast<detail::x86_mask<T, N, A>>(isfinite(packed));
+		}
+		else
+		{
+			detail::x86_mask <T, N, A> result = {};
+			detail::vectorize([](auto &res, auto x) { res = detail::isfinite(x); }, result, x);
+			return result;
+		}
 	}
 	/** Determines if elements of \a x are normal. */
-	template<std::floating_point T, std::size_t N, std::size_t A>
-	[[nodiscard]] DPM_FORCEINLINE detail::x86_mask<T, N, A> isnormal(const detail::x86_simd<T, N, A> &x) noexcept requires detail::x86_overload_any<T, N, A>
+	template<std::floating_point T, std::size_t N, std::size_t A> requires detail::x86_overload_any<T, N, A>
+	[[nodiscard]] constexpr DPM_FORCEINLINE detail::x86_mask<T, N, A> isnormal(const detail::x86_simd<T, N, A> &x) noexcept
 	{
-		detail::x86_mask<T, N, A> result = {};
-		detail::vectorize([](auto &res, auto x) { res = detail::isnormal(x); }, result, x);
-		return result;
+		if (std::is_constant_evaluated())
+		{
+			const auto packed = static_cast<simd<T, simd_abi::ext::packed_buffer<N>>>(x);
+			return static_cast<detail::x86_mask<T, N, A>>(isnormal(packed));
+		}
+		else
+		{
+			detail::x86_mask <T, N, A> result = {};
+			detail::vectorize([](auto &res, auto x) { res = detail::isnormal(x); }, result, x);
+			return result;
+		}
 	}
 	/** Extracts a vector mask filled with sign bits of elements from vector \a x. */
-	template<std::floating_point T, std::size_t N, std::size_t A>
-	[[nodiscard]] DPM_FORCEINLINE detail::x86_mask<T, N, A> signbit(const detail::x86_simd<T, N, A> &x) noexcept requires detail::x86_overload_any<T, N, A>
+	template<std::floating_point T, std::size_t N, std::size_t A> requires detail::x86_overload_any<T, N, A>
+	[[nodiscard]] constexpr DPM_FORCEINLINE detail::x86_mask<T, N, A> signbit(const detail::x86_simd<T, N, A> &x) noexcept
 	{
-		detail::x86_mask<T, N, A> result = {};
-		detail::vectorize([](auto &res, auto x) { res = detail::masksign<T>(x); }, result, x);
-		return result;
+		if (std::is_constant_evaluated())
+		{
+			const auto packed = static_cast<simd<T, simd_abi::ext::packed_buffer<N>>>(x);
+			return static_cast<detail::x86_mask<T, N, A>>(signbit(packed));
+		}
+		else
+		{
+			detail::x86_mask <T, N, A> result = {};
+			detail::vectorize([](auto &res, auto x) { res = detail::masksign<T>(x); }, result, x);
+			return result;
+		}
 	}
 
 	/** Determines if elements of \a a are greater than elements of \a b without setting floating-point exceptions. */
-	template<std::floating_point T, std::size_t N, std::size_t A>
-	[[nodiscard]] DPM_FORCEINLINE detail::x86_mask<T, N, A> isgreater(const detail::x86_simd<T, N, A> &a, const detail::x86_simd<T, N, A> &b) noexcept requires detail::x86_overload_any<T, N, A>
+	template<std::floating_point T, std::size_t N, std::size_t A> requires detail::x86_overload_any<T, N, A>
+	[[nodiscard]] constexpr DPM_FORCEINLINE detail::x86_mask<T, N, A> isgreater(const detail::x86_simd<T, N, A> &a, const detail::x86_simd<T, N, A> &b) noexcept
 	{
-		detail::x86_mask<T, N, A> result = {};
-		detail::vectorize([](auto &res, auto a, auto b) { res = detail::cmp_lt<T>(b, a); }, result, a, b);
-		return result;
+		if (std::is_constant_evaluated())
+		{
+			const auto packed_a = static_cast<simd<T, simd_abi::ext::packed_buffer<N>>>(a);
+			const auto packed_b = static_cast<simd<T, simd_abi::ext::packed_buffer<N>>>(b);
+			return static_cast<detail::x86_mask<T, N, A>>(isgreater(packed_a, packed_b));
+		}
+		else
+		{
+			detail::x86_mask <T, N, A> result = {};
+			detail::vectorize([](auto &res, auto a, auto b) { res = detail::cmp_lt<T>(b, a); }, result, a, b);
+			return result;
+		}
 	}
 	/** Determines if elements of \a a are greater than or equal to elements of \a b without setting floating-point exceptions. */
-	template<std::floating_point T, std::size_t N, std::size_t A>
-	[[nodiscard]] DPM_FORCEINLINE detail::x86_mask<T, N, A> isgreaterequal(const detail::x86_simd<T, N, A> &a, const detail::x86_simd<T, N, A> &b) noexcept requires detail::x86_overload_any<T, N, A>
+	template<std::floating_point T, std::size_t N, std::size_t A> requires detail::x86_overload_any<T, N, A>
+	[[nodiscard]] constexpr DPM_FORCEINLINE detail::x86_mask<T, N, A> isgreaterequal(const detail::x86_simd<T, N, A> &a, const detail::x86_simd<T, N, A> &b) noexcept
 	{
-		detail::x86_mask<T, N, A> result = {};
-		detail::vectorize([](auto &res, auto a, auto b) { res = detail::cmp_le<T>(b, a); }, result, a, b);
-		return result;
+		if (std::is_constant_evaluated())
+		{
+			const auto packed_a = static_cast<simd<T, simd_abi::ext::packed_buffer<N>>>(a);
+			const auto packed_b = static_cast<simd<T, simd_abi::ext::packed_buffer<N>>>(b);
+			return static_cast<detail::x86_mask<T, N, A>>(isgreaterequal(packed_a, packed_b));
+		}
+		else
+		{
+			detail::x86_mask <T, N, A> result = {};
+			detail::vectorize([](auto &res, auto a, auto b) { res = detail::cmp_le<T>(b, a); }, result, a, b);
+			return result;
+		}
 	}
 	/** Determines if elements of \a a are less than elements of \a b without setting floating-point exceptions. */
-	template<std::floating_point T, std::size_t N, std::size_t A>
-	[[nodiscard]] DPM_FORCEINLINE detail::x86_mask<T, N, A> isless(const detail::x86_simd<T, N, A> &a, const detail::x86_simd<T, N, A> &b) noexcept requires detail::x86_overload_any<T, N, A>
+	template<std::floating_point T, std::size_t N, std::size_t A> requires detail::x86_overload_any<T, N, A>
+	[[nodiscard]] constexpr DPM_FORCEINLINE detail::x86_mask<T, N, A> isless(const detail::x86_simd<T, N, A> &a, const detail::x86_simd<T, N, A> &b) noexcept
 	{
-		detail::x86_mask<T, N, A> result = {};
-		detail::vectorize([](auto &res, auto a, auto b) { res = detail::cmp_gt<T>(b, a); }, result, a, b);
-		return result;
+		if (std::is_constant_evaluated())
+		{
+			const auto packed_a = static_cast<simd<T, simd_abi::ext::packed_buffer<N>>>(a);
+			const auto packed_b = static_cast<simd<T, simd_abi::ext::packed_buffer<N>>>(b);
+			return static_cast<detail::x86_mask<T, N, A>>(isless(packed_a, packed_b));
+		}
+		else
+		{
+			detail::x86_mask <T, N, A> result = {};
+			detail::vectorize([](auto &res, auto a, auto b) { res = detail::cmp_gt<T>(b, a); }, result, a, b);
+			return result;
+		}
 	}
 	/** Determines if elements of \a a are less than or equal to elements of \a b without setting floating-point exceptions. */
-	template<std::floating_point T, std::size_t N, std::size_t A>
-	[[nodiscard]] DPM_FORCEINLINE detail::x86_mask<T, N, A> islessequal(const detail::x86_simd<T, N, A> &a, const detail::x86_simd<T, N, A> &b) noexcept requires detail::x86_overload_any<T, N, A>
+	template<std::floating_point T, std::size_t N, std::size_t A> requires detail::x86_overload_any<T, N, A>
+	[[nodiscard]] constexpr DPM_FORCEINLINE detail::x86_mask<T, N, A> islessequal(const detail::x86_simd<T, N, A> &a, const detail::x86_simd<T, N, A> &b) noexcept
 	{
-		detail::x86_mask<T, N, A> result = {};
-		detail::vectorize([](auto &res, auto a, auto b) { res = detail::cmp_ge<T>(b, a); }, result, a, b);
-		return result;
+		if (std::is_constant_evaluated())
+		{
+			const auto packed_a = static_cast<simd<T, simd_abi::ext::packed_buffer<N>>>(a);
+			const auto packed_b = static_cast<simd<T, simd_abi::ext::packed_buffer<N>>>(b);
+			return static_cast<detail::x86_mask<T, N, A>>(islessequal(packed_a, packed_b));
+		}
+		else
+		{
+			detail::x86_mask <T, N, A> result = {};
+			detail::vectorize([](auto &res, auto a, auto b) { res = detail::cmp_ge<T>(b, a); }, result, a, b);
+			return result;
+		}
 	}
 	/** Determines if elements of \a a are less than or greater than elements of \a b without setting floating-point exceptions. */
-	template<std::floating_point T, std::size_t N, std::size_t A>
-	[[nodiscard]] DPM_FORCEINLINE detail::x86_mask<T, N, A> islessgreater(const detail::x86_simd<T, N, A> &a, const detail::x86_simd<T, N, A> &b) noexcept requires detail::x86_overload_any<T, N, A>
+	template<std::floating_point T, std::size_t N, std::size_t A> requires detail::x86_overload_any<T, N, A>
+	[[nodiscard]] constexpr DPM_FORCEINLINE detail::x86_mask<T, N, A> islessgreater(const detail::x86_simd<T, N, A> &a, const detail::x86_simd<T, N, A> &b) noexcept
 	{
-		detail::x86_mask<T, N, A> result = {};
-		detail::vectorize([](auto &res, auto a, auto b) { res = detail::bit_or(detail::cmp_le<T>(b, a), detail::cmp_ge<T>(b, a)); }, result, a, b);
-		return result;
+		if (std::is_constant_evaluated())
+		{
+			const auto packed_a = static_cast<simd<T, simd_abi::ext::packed_buffer<N>>>(a);
+			const auto packed_b = static_cast<simd<T, simd_abi::ext::packed_buffer<N>>>(b);
+			return static_cast<detail::x86_mask<T, N, A>>(islessgreater(packed_a, packed_b));
+		}
+		else
+		{
+			detail::x86_mask <T, N, A> result = {};
+			detail::vectorize([](auto &res, auto a, auto b) { res = detail::bit_or(detail::cmp_le<T>(b, a), detail::cmp_ge<T>(b, a)); }, result, a, b);
+			return result;
+		}
 	}
 	/** Determines is either elements of \a a or \a b are unordered. */
-	template<std::floating_point T, std::size_t N, std::size_t A>
-	[[nodiscard]] DPM_FORCEINLINE detail::x86_mask<T, N, A> isunordered(const detail::x86_simd<T, N, A> &a, const detail::x86_simd<T, N, A> &b) noexcept requires detail::x86_overload_any<T, N, A>
+	template<std::floating_point T, std::size_t N, std::size_t A> requires detail::x86_overload_any<T, N, A>
+	[[nodiscard]] constexpr DPM_FORCEINLINE detail::x86_mask<T, N, A> isunordered(const detail::x86_simd<T, N, A> &a, const detail::x86_simd<T, N, A> &b) noexcept
 	{
-		detail::x86_mask<T, N, A> result = {};
-		detail::vectorize([](auto &res, auto a, auto b) { res = detail::isunord(a, b); }, result, a, b);
-		return result;
+		if (std::is_constant_evaluated())
+		{
+			const auto packed_a = static_cast<simd<T, simd_abi::ext::packed_buffer<N>>>(a);
+			const auto packed_b = static_cast<simd<T, simd_abi::ext::packed_buffer<N>>>(b);
+			return static_cast<detail::x86_mask<T, N, A>>(isunordered(packed_a, packed_b));
+		}
+		else
+		{
+			detail::x86_mask <T, N, A> result = {};
+			detail::vectorize([](auto &res, auto a, auto b) { res = detail::isunord(a, b); }, result, a, b);
+			return result;
+		}
 	}
 }

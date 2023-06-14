@@ -203,63 +203,119 @@ namespace dpm
 
 #ifdef DPM_USE_SVML
 	/** Raises *e* (Euler's number) to the power specified by elements of \a x. */
-	template<std::floating_point T, std::size_t N, std::size_t A>
-	[[nodiscard]] DPM_FORCEINLINE detail::x86_simd<T, N, A> exp(const detail::x86_simd<T, N, A> &x) noexcept requires detail::x86_overload_any<T, N, A>
+	template<std::floating_point T, std::size_t N, std::size_t A> requires detail::x86_overload_any<T, N, A>
+	[[nodiscard]] constexpr DPM_FORCEINLINE detail::x86_simd<T, N, A> exp(const detail::x86_simd<T, N, A> &x) noexcept
 	{
-		detail::x86_simd<T, N, A> result = {};
-		detail::vectorize([](auto &res, auto x) { res = detail::exp(x); }, result, x);
-		return result;
+		if (std::is_constant_evaluated())
+		{
+			const auto packed = static_cast<simd<T, simd_abi::ext::packed_buffer<N>>>(x);
+			return static_cast<detail::x86_simd<T, N, A>>(exp(packed));
+		}
+		else
+		{
+			detail::x86_simd<T, N, A> result = {};
+			detail::vectorize([](auto &res, auto x) { res = detail::exp(x); }, result, x);
+			return result;
+		}
 	}
 	/** Raises `2` to the power specified by elements of \a x. */
-	template<std::floating_point T, std::size_t N, std::size_t A>
-	[[nodiscard]] DPM_FORCEINLINE detail::x86_simd<T, N, A> exp2(const detail::x86_simd<T, N, A> &x) noexcept requires detail::x86_overload_any<T, N, A>
+	template<std::floating_point T, std::size_t N, std::size_t A> requires detail::x86_overload_any<T, N, A>
+	[[nodiscard]] constexpr DPM_FORCEINLINE detail::x86_simd<T, N, A> exp2(const detail::x86_simd<T, N, A> &x) noexcept
 	{
-		detail::x86_simd<T, N, A> result = {};
-		detail::vectorize([](auto &res, auto x) { res = detail::exp(x); }, result, x);
-		return result;
+		if (std::is_constant_evaluated())
+		{
+			const auto packed = static_cast<simd<T, simd_abi::ext::packed_buffer<N>>>(x);
+			return static_cast<detail::x86_simd<T, N, A>>(exp2(packed));
+		}
+		else
+		{
+			detail::x86_simd<T, N, A> result = {};
+			detail::vectorize([](auto &res, auto x) { res = detail::exp(x); }, result, x);
+			return result;
+		}
 	}
 	/** Raises *e* (Euler's number) to the power specified by elements of \a x, and subtracts `1`. */
-	template<std::floating_point T, std::size_t N, std::size_t A>
-	[[nodiscard]] DPM_FORCEINLINE detail::x86_simd<T, N, A> expm1(const detail::x86_simd<T, N, A> &x) noexcept requires detail::x86_overload_any<T, N, A>
+	template<std::floating_point T, std::size_t N, std::size_t A> requires detail::x86_overload_any<T, N, A>
+	[[nodiscard]] constexpr DPM_FORCEINLINE detail::x86_simd<T, N, A> expm1(const detail::x86_simd<T, N, A> &x) noexcept
 	{
-		detail::x86_simd<T, N, A> result = {};
-		detail::vectorize([](auto &res, auto x) { res = detail::expm1(x); }, result, x);
-		return result;
+		if (std::is_constant_evaluated())
+		{
+			const auto packed = static_cast<simd<T, simd_abi::ext::packed_buffer<N>>>(x);
+			return static_cast<detail::x86_simd<T, N, A>>(expm1(packed));
+		}
+		else
+		{
+			detail::x86_simd<T, N, A> result = {};
+			detail::vectorize([](auto &res, auto x) { res = detail::expm1(x); }, result, x);
+			return result;
+		}
 	}
 #endif
 
 #if defined(DPM_HAS_SSE2) || defined(DPM_USE_SVML)
 	/** Calculates natural (base *e*) logarithm of elements in vector \a x. */
-	template<std::floating_point T, std::size_t N, std::size_t A>
-	[[nodiscard]] DPM_FORCEINLINE detail::x86_simd<T, N, A> log(const detail::x86_simd<T, N, A> &x) noexcept requires detail::x86_overload_any<T, N, A>
+	template<std::floating_point T, std::size_t N, std::size_t A> requires detail::x86_overload_any<T, N, A>
+	[[nodiscard]] constexpr DPM_FORCEINLINE detail::x86_simd<T, N, A> log(const detail::x86_simd<T, N, A> &x) noexcept
 	{
-		detail::x86_simd<T, N, A> result = {};
-		detail::vectorize([](auto &res, auto x) { res = detail::log(x); }, result, x);
-		return result;
+		if (std::is_constant_evaluated())
+		{
+			const auto packed = static_cast<simd<T, simd_abi::ext::packed_buffer<N>>>(x);
+			return static_cast<detail::x86_simd<T, N, A>>(log(packed));
+		}
+		else
+		{
+			detail::x86_simd<T, N, A> result = {};
+			detail::vectorize([](auto &res, auto x) { res = detail::log(x); }, result, x);
+			return result;
+		}
 	}
 	/** Calculates binary (base 2) logarithm of elements in vector \a x. */
-	template<std::floating_point T, std::size_t N, std::size_t A>
-	[[nodiscard]] DPM_FORCEINLINE detail::x86_simd<T, N, A> log2(const detail::x86_simd<T, N, A> &x) noexcept requires detail::x86_overload_any<T, N, A>
+	template<std::floating_point T, std::size_t N, std::size_t A> requires detail::x86_overload_any<T, N, A>
+	[[nodiscard]] constexpr DPM_FORCEINLINE detail::x86_simd<T, N, A> log2(const detail::x86_simd<T, N, A> &x) noexcept
 	{
-		detail::x86_simd<T, N, A> result = {};
-		detail::vectorize([](auto &res, auto x) { res = detail::log2(x); }, result, x);
-		return result;
+		if (std::is_constant_evaluated())
+		{
+			const auto packed = static_cast<simd<T, simd_abi::ext::packed_buffer<N>>>(x);
+			return static_cast<detail::x86_simd<T, N, A>>(log2(packed));
+		}
+		else
+		{
+			detail::x86_simd<T, N, A> result = {};
+			detail::vectorize([](auto &res, auto x) { res = detail::log2(x); }, result, x);
+			return result;
+		}
 	}
 	/** Calculates common (base 10) logarithm of elements in vector \a x. */
-	template<std::floating_point T, std::size_t N, std::size_t A>
-	[[nodiscard]] DPM_FORCEINLINE detail::x86_simd<T, N, A> log10(const detail::x86_simd<T, N, A> &x) noexcept requires detail::x86_overload_any<T, N, A>
+	template<std::floating_point T, std::size_t N, std::size_t A> requires detail::x86_overload_any<T, N, A>
+	[[nodiscard]] constexpr DPM_FORCEINLINE detail::x86_simd<T, N, A> log10(const detail::x86_simd<T, N, A> &x) noexcept
 	{
-		detail::x86_simd<T, N, A> result = {};
-		detail::vectorize([](auto &res, auto x) { res = detail::log10(x); }, result, x);
-		return result;
+		if (std::is_constant_evaluated())
+		{
+			const auto packed = static_cast<simd<T, simd_abi::ext::packed_buffer<N>>>(x);
+			return static_cast<detail::x86_simd<T, N, A>>(log10(packed));
+		}
+		else
+		{
+			detail::x86_simd<T, N, A> result = {};
+			detail::vectorize([](auto &res, auto x) { res = detail::log10(x); }, result, x);
+			return result;
+		}
 	}
 	/** Calculates natural (base *e*) logarithm of elements in vector \a x plus `1`. */
-	template<std::floating_point T, std::size_t N, std::size_t A>
-	[[nodiscard]] DPM_FORCEINLINE detail::x86_simd<T, N, A> log1p(const detail::x86_simd<T, N, A> &x) noexcept requires detail::x86_overload_any<T, N, A>
+	template<std::floating_point T, std::size_t N, std::size_t A> requires detail::x86_overload_any<T, N, A>
+	[[nodiscard]] constexpr DPM_FORCEINLINE detail::x86_simd<T, N, A> log1p(const detail::x86_simd<T, N, A> &x) noexcept
 	{
-		detail::x86_simd<T, N, A> result = {};
-		detail::vectorize([](auto &res, auto x) { res = detail::log1p(x); }, result, x);
-		return result;
+		if (std::is_constant_evaluated())
+		{
+			const auto packed = static_cast<simd<T, simd_abi::ext::packed_buffer<N>>>(x);
+			return static_cast<detail::x86_simd<T, N, A>>(log1p(packed));
+		}
+		else
+		{
+			detail::x86_simd<T, N, A> result = {};
+			detail::vectorize([](auto &res, auto x) { res = detail::log1p(x); }, result, x);
+			return result;
+		}
 	}
 #endif
 }

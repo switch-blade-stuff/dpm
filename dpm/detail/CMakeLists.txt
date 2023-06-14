@@ -3,7 +3,6 @@ include(${CMAKE_CURRENT_LIST_DIR}/generic/CMakeLists.txt)
 include(${CMAKE_CURRENT_LIST_DIR}/x86/CMakeLists.txt)
 
 list(APPEND DPM_HEADERS
-        ${CMAKE_CURRENT_LIST_DIR}/api.hpp
         ${CMAKE_CURRENT_LIST_DIR}/arch.hpp
         ${CMAKE_CURRENT_LIST_DIR}/alias.hpp
         ${CMAKE_CURRENT_LIST_DIR}/config.hpp

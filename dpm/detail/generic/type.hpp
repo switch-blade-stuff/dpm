@@ -210,10 +210,10 @@ namespace dpm
 		template<typename T, typename Abi>
 		[[nodiscard]] constexpr simd_mask<T, Abi> blend(const simd_mask<T, Abi> &a, const simd_mask<T, Abi> &b, const simd_mask<T, Abi> &m)
 		{
-			simd_mask<T, Abi> result = {};
+			std::array<bool, simd_size_v<T, Abi>> result = {};
 			for (std::size_t i = 0; i < m.size(); ++i)
 				result[i] = m[i] ? b[i] : a[i];
-			return result;
+			return {result.data(), element_aligned};
 		}
 
 		/** Shuffles elements of mask \a x into a new mask according to the specified indices. ABI of the resulting mask is deduced via `simd_abi::deduce_value<T, sizeof...(Is), Abi>`. */
@@ -330,28 +330,28 @@ namespace dpm
 	template<typename T, typename Abi>
 	[[nodiscard]] constexpr simd_mask<T, Abi> operator&(const simd_mask<T, Abi> &a, const simd_mask<T, Abi> &b) noexcept
 	{
-		simd_mask<T, Abi> result = {};
+		std::array<bool, simd_size_v<T, Abi>> result = {};
 		for (std::size_t i = 0; i < simd_mask<T, Abi>::size(); ++i)
 			result[i] = a[i] && b[i];
-		return result;
+		return {result.data(), element_aligned};
 	}
 	/** Preforms a bitwise OR on the elements of the masks \a a and \a b. */
 	template<typename T, typename Abi>
 	[[nodiscard]] constexpr simd_mask<T, Abi> operator|(const simd_mask<T, Abi> &a, const simd_mask<T, Abi> &b) noexcept
 	{
-		simd_mask<T, Abi> result = {};
+		std::array<bool, simd_size_v<T, Abi>> result = {};
 		for (std::size_t i = 0; i < simd_mask<T, Abi>::size(); ++i)
 			result[i] = a[i] || b[i];
-		return result;
+		return {result.data(), element_aligned};
 	}
 	/** Preforms a bitwise XOR on the elements of the masks \a a and \a b. */
 	template<typename T, typename Abi>
 	[[nodiscard]] constexpr simd_mask<T, Abi> operator^(const simd_mask<T, Abi> &a, const simd_mask<T, Abi> &b) noexcept
 	{
-		simd_mask<T, Abi> result = {};
+		std::array<bool, simd_size_v<T, Abi>> result = {};
 		for (std::size_t i = 0; i < simd_mask<T, Abi>::size(); ++i)
 			result[i] = a[i] ^ b[i];
-		return result;
+		return {result.data(), element_aligned};
 	}
 
 	/** Preforms a bitwise AND on the elements of the masks \a a and \a b, and assigns the result to mask \a a. */
@@ -368,47 +368,47 @@ namespace dpm
 	template<typename T, typename Abi>
 	[[nodiscard]] constexpr simd_mask<T, Abi> operator&&(const simd_mask<T, Abi> &a, const simd_mask<T, Abi> &b) noexcept
 	{
-		simd_mask<T, Abi> result = {};
+		std::array<bool, simd_size_v<T, Abi>> result = {};
 		for (std::size_t i = 0; i < simd_mask<T, Abi>::size(); ++i)
 			result[i] = a[i] && b[i];
-		return result;
+		return {result.data(), element_aligned};
 	}
 	/** Preforms a logical OR on the elements of the masks \a a and \a b. */
 	template<typename T, typename Abi>
 	[[nodiscard]] constexpr simd_mask<T, Abi> operator||(const simd_mask<T, Abi> &a, const simd_mask<T, Abi> &b) noexcept
 	{
-		simd_mask<T, Abi> result = {};
+		std::array<bool, simd_size_v<T, Abi>> result = {};
 		for (std::size_t i = 0; i < simd_mask<T, Abi>::size(); ++i)
 			result[i] = a[i] || b[i];
-		return result;
+		return {result.data(), element_aligned};
 	}
 
 	/** Inverts elements of mask \a x . */
 	template<typename T, typename Abi>
 	[[nodiscard]] constexpr simd_mask<T, Abi> operator!(const simd_mask<T, Abi> &x) noexcept
 	{
-		simd_mask<T, Abi> result = {};
+		std::array<bool, simd_size_v<T, Abi>> result = {};
 		for (std::size_t i = 0; i < simd_mask<T, Abi>::size(); ++i)
 			result[i] = !x[i];
-		return result;
+		return {result.data(), element_aligned};
 	}
 	/** Compares elements of masks \a a and \a b for equality. */
 	template<typename T, typename Abi>
 	[[nodiscard]] constexpr simd_mask<T, Abi> operator==(const simd_mask<T, Abi> &a, const simd_mask<T, Abi> &b) noexcept
 	{
-		simd_mask<T, Abi> result = {};
+		std::array<bool, simd_size_v<T, Abi>> result = {};
 		for (std::size_t i = 0; i < simd_mask<T, Abi>::size(); ++i)
 			result[i] = a[i] == b[i];
-		return result;
+		return {result.data(), element_aligned};
 	}
 	/** Compares elements of masks \a a and \a b for inequality. */
 	template<typename T, typename Abi>
 	[[nodiscard]] constexpr simd_mask<T, Abi> operator!=(const simd_mask<T, Abi> &a, const simd_mask<T, Abi> &b) noexcept
 	{
-		simd_mask<T, Abi> result = {};
+		std::array<bool, simd_size_v<T, Abi>> result = {};
 		for (std::size_t i = 0; i < simd_mask<T, Abi>::size(); ++i)
 			result[i] = a[i] != b[i];
-		return result;
+		return {result.data(), element_aligned};
 	}
 #pragma endregion
 
@@ -461,14 +461,16 @@ namespace dpm
 	template<typename T, typename Abi>
 	[[nodiscard]] constexpr std::size_t find_first_set(const simd_mask<T, Abi> &mask) noexcept
 	{
-		for (std::size_t i = 0; i < simd_mask<T, Abi>::size(); ++i) if (mask[i]) return i;
+		for (std::size_t i = 0; i < simd_mask<T, Abi>::size(); ++i)
+			if (mask[i]) return i;
 		return simd_mask<T, Abi>::size();
 	}
 	/** Returns the index of the last `true` element of \a mask. */
 	template<typename T, typename Abi>
 	[[nodiscard]] constexpr std::size_t find_last_set(const simd_mask<T, Abi> &mask) noexcept
 	{
-		for (std::size_t i = simd_mask<T, Abi>::size(); i-- > 0;) if (mask[i]) return i;
+		for (std::size_t i = simd_mask<T, Abi>::size(); i-- > 0;)
+			if (mask[i]) return i;
 		return simd_mask<T, Abi>::size();
 	}
 #pragma endregion
@@ -507,8 +509,10 @@ namespace dpm
 		std::array<V, simd_size_v<U, Abi> / V::size()> result = {};
 		for (std::size_t j = 0; j < result.size(); ++j)
 		{
+			alignas(V) std::array<bool, V::size()> buff = {};
 			for (std::size_t i = 0; i < V::size(); ++i)
-				result[j][i] = x[j * V::size() + i];
+				buff[i] = x[j * V::size() + i];
+			result[j].copy_from(buff.data(), vector_aligned);
 		}
 		return result;
 	}
@@ -517,12 +521,14 @@ namespace dpm
 	template<std::size_t N, typename T, typename Abi>
 	[[nodiscard]] constexpr auto split_by(const simd_mask<T, Abi> &x) noexcept requires(simd_size_v<T, Abi> % N == 0)
 	{
-		constexpr auto split_size = simd_size_v<T, Abi> / N;
-		std::array<resize_simd_t<split_size, simd_mask<T, Abi>>, N> result = {};
+		using result_t = resize_simd_t<simd_size_v<T, Abi> / N, simd_mask<T, Abi>>;
+		std::array<result_t, N> result = {};
 		for (std::size_t j = 0; j < N; ++j)
 		{
-			for (std::size_t i = 0; i < split_size; ++i)
-				result[j][i] = x[j * split_size + i];
+			alignas(result_t) std::array<bool, result_t::size()> buff = {};
+			for (std::size_t i = 0; i < result_t::size(); ++i)
+				buff[i] = x[j * result_t::size() + i];
+			result[j].copy_from(buff.data(), vector_aligned);
 		}
 		return result;
 	}
@@ -536,11 +542,12 @@ namespace dpm
 		else
 		{
 			using result_t = simd_mask<T, simd_abi::deduce_t<T, (simd_size_v<T, Abis> + ...), Abis...>>;
-			alignas(std::max({alignof(result_t), alignof(simd_mask<T, Abis>)...})) std::array<bool, result_t::size()> tmp_buff;
+			constexpr auto align = std::max({alignof(result_t), alignof(simd_mask<T, Abis>)...});
+			alignas(align) std::array<bool, result_t::size()> buff;
 			result_t result = {};
 
-			detail::concat_impl(tmp_buff, values...);
-			result.copy_from(tmp_buff.data(), vector_aligned);
+			detail::concat_impl(buff, values...);
+			result.copy_from(buff.data(), vector_aligned);
 			return result;
 		}
 	}
@@ -628,10 +635,10 @@ namespace dpm
 		template<typename T, typename Abi>
 		[[nodiscard]] constexpr simd<T, Abi> blend(const simd<T, Abi> &a, const simd<T, Abi> &b, const simd_mask<T, Abi> &m)
 		{
-			simd<T, Abi> result = {};
+			alignas(simd<T, Abi>) std::array<T, simd_size_v<T, Abi>> result = {};
 			for (std::size_t i = 0; i < m.size(); ++i)
 				result[i] = m[i] ? b[i] : a[i];
-			return result;
+			return {result.data(), vector_aligned};
 		}
 
 		/** Shuffles elements of vector \a x into a new vector according to the specified indices. ABI of the resulting vector is deduced via `simd_abi::deduce_value<T, sizeof...(Is), Abi>`. */
@@ -796,439 +803,354 @@ namespace dpm
 	template<typename T, typename Abi>
 	[[nodiscard]] constexpr simd<T, Abi> operator-(const simd<T, Abi> &x) noexcept
 	{
-		simd<T, Abi> result = {};
-		for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i) result[i] = -x[i];
-		return result;
+		alignas(simd<T, Abi>) std::array<T, simd_size_v<T, Abi>> result = {};
+		for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i)
+			result[i] = -x[i];
+		return {result.data(), vector_aligned};
 	}
 
 	/** Increments elements of vector \a x, and returns the copy of the original vector. */
 	template<typename T, typename Abi>
-	[[nodiscard]] constexpr simd<T, Abi> operator++(const simd<T, Abi> &x, int) noexcept requires(requires(T v){ v++; })
+	[[nodiscard]] constexpr simd<T, Abi> operator++(simd<T, Abi> &x, int) noexcept requires(requires(T v){ v++; })
 	{
-		simd<T, Abi> result = {};
-		for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i) result[i] = x[i]++;
-		return result;
+		auto tmp = x;
+		operator++(x);
+		return tmp;
 	}
 	/** Decrements elements of vector \a x, and returns the copy of the original vector. */
 	template<typename T, typename Abi>
-	[[nodiscard]] constexpr simd<T, Abi> operator--(const simd<T, Abi> &x, int) noexcept requires(requires(T v){ v--; })
+	[[nodiscard]] constexpr simd<T, Abi> operator--(simd<T, Abi> &x, int) noexcept requires(requires(T v){ v--; })
 	{
-		simd<T, Abi> result = {};
-		for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i) result[i] = x[i]--;
-		return result;
+		auto tmp = x;
+		operator--(x);
+		return tmp;
 	}
 	/** Increments elements of vector \a x, and returns reference to it. */
 	template<typename T, typename Abi>
-	[[nodiscard]] constexpr simd<T, Abi> &operator++(simd<T, Abi> &x) noexcept requires(requires(T v){ ++v; })
-	{
-		for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i) ++x[i];
-		return x;
-	}
+	[[nodiscard]] constexpr simd<T, Abi> &operator++(simd<T, Abi> &x) noexcept requires(requires(T v){ ++v; }) { return x = x + 1; }
 	/** Decrements elements of vector \a x. */
 	template<typename T, typename Abi>
-	[[nodiscard]] constexpr simd<T, Abi> &operator--(simd<T, Abi> &x) noexcept requires(requires(T v){ --v; })
-	{
-		for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i) --x[i];
-		return x;
-	}
+	[[nodiscard]] constexpr simd<T, Abi> &operator--(simd<T, Abi> &x) noexcept requires(requires(T v){ --v; }) { return x = x - 1; }
 
 	/** Adds elements of vector \a b to elements of vector \a a. */
 	template<typename T, typename Abi>
 	[[nodiscard]] constexpr simd<T, Abi> operator+(const simd<T, Abi> &a, const simd<T, Abi> &b) noexcept requires(requires(T l, T r){ l + r; })
 	{
-		simd<T, Abi> result = {};
+		alignas(simd<T, Abi>) std::array<T, simd_size_v<T, Abi>> result = {};
 		for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i)
 			result[i] = a[i] + b[i];
-		return result;
+		return {result.data(), vector_aligned};
 	}
 	/** Subtracts elements of vector \a b from elements of vector \a a. */
 	template<typename T, typename Abi>
 	[[nodiscard]] constexpr simd<T, Abi> operator-(const simd<T, Abi> &a, const simd<T, Abi> &b) noexcept requires(requires(T l, T r){ l - r; })
 	{
-		simd<T, Abi> result = {};
+		alignas(simd<T, Abi>) std::array<T, simd_size_v<T, Abi>> result = {};
 		for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i)
 			result[i] = a[i] - b[i];
-		return result;
+		return {result.data(), vector_aligned};
 	}
 	/** Adds elements of vector \a b to elements of vector \a a, and returns reference to \a a. */
 	template<typename T, typename Abi>
-	constexpr simd<T, Abi> &operator+=(simd<T, Abi> &a, const simd<T, Abi> &b) noexcept requires(requires(T l, T r){ l += r; })
-	{
-		for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i) a[i] += b[i];
-		return a;
-	}
+	constexpr simd<T, Abi> &operator+=(simd<T, Abi> &a, const simd<T, Abi> &b) noexcept requires(requires(T l, T r){ l += r; }) { return a = a + b; }
 	/** Subtracts elements of vector \a b from elements of vector \a a, and returns reference to \a a. */
 	template<typename T, typename Abi>
-	constexpr simd<T, Abi> &operator-=(simd<T, Abi> &a, const simd<T, Abi> &b) noexcept requires(requires(T l, T r){ l -= r; })
-	{
-		for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i) a[i] -= b[i];
-		return a;
-	}
+	constexpr simd<T, Abi> &operator-=(simd<T, Abi> &a, const simd<T, Abi> &b) noexcept requires(requires(T l, T r){ l -= r; }) { return a = a - b; }
 
 	/** Adds scalar \a b to elements of vector \a a. */
 	template<typename T, typename Abi>
 	[[nodiscard]] constexpr simd<T, Abi> operator+(const simd<T, Abi> &a, T b) noexcept requires(requires(T l, T r){ l + r; })
 	{
-		simd<T, Abi> result = {};
+		alignas(simd<T, Abi>) std::array<T, simd_size_v<T, Abi>> result = {};
 		for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i)
 			result[i] = a[i] + b;
-		return result;
+		return {result.data(), vector_aligned};
 	}
 	/** Subtracts scalar \a b from elements of vector \a a. */
 	template<typename T, typename Abi>
 	[[nodiscard]] constexpr simd<T, Abi> operator-(const simd<T, Abi> &a, T b) noexcept requires(requires(T l, T r){ l - r; })
 	{
-		simd<T, Abi> result = {};
+		alignas(simd<T, Abi>) std::array<T, simd_size_v<T, Abi>> result = {};
 		for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i)
 			result[i] = a[i] - b;
-		return result;
+		return {result.data(), vector_aligned};
 	}
 	/** Adds scalar \a b to elements of vector \a a, and returns reference to \a a. */
 	template<typename T, typename Abi>
-	constexpr simd<T, Abi> &operator+=(simd<T, Abi> &a, T b) noexcept requires(requires(T l, T r){ l += r; })
-	{
-		for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i) a[i] = a[i] + b;
-		return a;
-	}
+	constexpr simd<T, Abi> &operator+=(simd<T, Abi> &a, T b) noexcept requires(requires(T l, T r){ l += r; }) { return a = a + b; }
 	/** Subtracts scalar \a b from elements of vector \a a, and returns reference to \a a. */
 	template<typename T, typename Abi>
-	constexpr simd<T, Abi> &operator-=(simd<T, Abi> &a, T b) noexcept requires(requires(T l, T r){ l -= r; })
-	{
-		for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i) a[i] = a[i] - b;
-		return a;
-	}
+	constexpr simd<T, Abi> &operator-=(simd<T, Abi> &a, T b) noexcept requires(requires(T l, T r){ l -= r; }) { return a = a - b; }
 
 	/** Multiplies elements of vector \a a by elements of vector \a b. */
 	template<typename T, typename Abi>
 	[[nodiscard]] constexpr simd<T, Abi> operator*(const simd<T, Abi> &a, const simd<T, Abi> &b) noexcept requires(requires(T l, T r){ l * r; })
 	{
-		simd<T, Abi> result = {};
+		alignas(simd<T, Abi>) std::array<T, simd_size_v<T, Abi>> result = {};
 		for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i)
 			result[i] = a[i] * b[i];
-		return result;
+		return {result.data(), vector_aligned};
 	}
 	/** Divides elements of vector \a a by elements of vector \a b. */
 	template<typename T, typename Abi>
 	[[nodiscard]] constexpr simd<T, Abi> operator/(const simd<T, Abi> &a, const simd<T, Abi> &b) noexcept requires(requires(T l, T r){ l / r; })
 	{
-		simd<T, Abi> result = {};
+		alignas(simd<T, Abi>) std::array<T, simd_size_v<T, Abi>> result = {};
 		for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i)
 			result[i] = a[i] / b[i];
-		return result;
+		return {result.data(), vector_aligned};
 	}
 	/** Preforms a modulo operation of elements of vector \a a by elements of vector \a b. */
 	template<typename T, typename Abi>
 	[[nodiscard]] constexpr simd<T, Abi> operator%(const simd<T, Abi> &a, const simd<T, Abi> &b) noexcept requires(requires(T l, T r){ l % r; })
 	{
-		simd<T, Abi> result = {};
+		alignas(simd<T, Abi>) std::array<T, simd_size_v<T, Abi>> result = {};
 		for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i)
 			result[i] = a[i] % b[i];
-		return result;
+		return {result.data(), vector_aligned};
 	}
 	/** Multiplies elements of vector \a a by elements of vector \a b, and returns reference to \a a. */
 	template<typename T, typename Abi>
-	constexpr simd<T, Abi> &operator*=(simd<T, Abi> &a, const simd<T, Abi> &b) noexcept requires(requires(T l, T r){ l *= r; })
-	{
-		for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i) a[i] *= b[i];
-		return a;
-	}
+	constexpr simd<T, Abi> &operator*=(simd<T, Abi> &a, const simd<T, Abi> &b) noexcept requires(requires(T l, T r){ l *= r; }) { return a = a * b; }
 	/** Divides elements of vector \a a by elements of vector \a b, and returns reference to \a a. */
 	template<typename T, typename Abi>
-	constexpr simd<T, Abi> &operator/=(simd<T, Abi> &a, const simd<T, Abi> &b) noexcept requires(requires(T l, T r){ l /= r; })
-	{
-		for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i) a[i] /= b[i];
-		return a;
-	}
+	constexpr simd<T, Abi> &operator/=(simd<T, Abi> &a, const simd<T, Abi> &b) noexcept requires(requires(T l, T r){ l /= r; }) { return a = a / b; }
 	/** Preforms a modulo operation of elements of vector \a a by elements of vector \a b, and returns reference to \a a. */
 	template<typename T, typename Abi>
-	constexpr simd<T, Abi> &operator%=(simd<T, Abi> &a, const simd<T, Abi> &b) noexcept requires(requires(T l, T r){ l %= r; })
-	{
-		for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i) a[i] %= b[i];
-		return a;
-	}
+	constexpr simd<T, Abi> &operator%=(simd<T, Abi> &a, const simd<T, Abi> &b) noexcept requires(requires(T l, T r){ l %= r; }) { return a = a % b; }
 
 	/** Multiplies elements of vector \a a by scalar \a b. */
 	template<typename T, typename Abi>
 	[[nodiscard]] constexpr simd<T, Abi> operator*(const simd<T, Abi> &a, T b) noexcept requires(requires(T l, T r){ l * r; })
 	{
-		simd<T, Abi> result = {};
+		alignas(simd<T, Abi>) std::array<T, simd_size_v<T, Abi>> result = {};
 		for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i)
 			result[i] = a[i] * b;
-		return result;
+		return {result.data(), vector_aligned};
 	}
 	/** Divides elements of vector \a a by scalar \a b. */
 	template<typename T, typename Abi>
 	[[nodiscard]] constexpr simd<T, Abi> operator/(const simd<T, Abi> &a, T b) noexcept requires(requires(T l, T r){ l / r; })
 	{
-		simd<T, Abi> result = {};
+		alignas(simd<T, Abi>) std::array<T, simd_size_v<T, Abi>> result = {};
 		for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i)
 			result[i] = a[i] / b;
-		return result;
+		return {result.data(), vector_aligned};
 	}
 	/** Preforms a modulo operation of elements of vector \a a by scalar \a b. */
 	template<typename T, typename Abi>
 	[[nodiscard]] constexpr simd<T, Abi> operator%(const simd<T, Abi> &a, T b) noexcept requires(requires(T l, T r){ l % r; })
 	{
-		simd<T, Abi> result = {};
+		alignas(simd<T, Abi>) std::array<T, simd_size_v<T, Abi>> result = {};
 		for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i)
 			result[i] = a[i] % b;
-		return result;
+		return {result.data(), vector_aligned};
 	}
 	/** Multiplies elements of vector \a a by scalar \a b, and returns reference to \a a. */
 	template<typename T, typename Abi>
-	constexpr simd<T, Abi> &operator*=(simd<T, Abi> &a, T b) noexcept requires(requires(T l, T r){ l *= r; })
-	{
-		for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i) a[i] *= b;
-		return a;
-	}
+	constexpr simd<T, Abi> &operator*=(simd<T, Abi> &a, T b) noexcept requires(requires(T l, T r){ l *= r; }) { return a = a * b; }
 	/** Divides elements of vector \a a by scalar \a b, and returns reference to \a a. */
 	template<typename T, typename Abi>
-	constexpr simd<T, Abi> &operator/=(simd<T, Abi> &a, T b) noexcept requires(requires(T l, T r){ l /= r; })
-	{
-		for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i) a[i] /= b;
-		return a;
-	}
+	constexpr simd<T, Abi> &operator/=(simd<T, Abi> &a, T b) noexcept requires(requires(T l, T r){ l /= r; }) { return a = a / b; }
 	/** Preforms a modulo operation of elements of vector \a a by scalar \a b, and returns reference to \a a. */
 	template<typename T, typename Abi>
-	constexpr simd<T, Abi> &operator%=(simd<T, Abi> &a, T b) noexcept requires(requires(T l, T r){ l %= r; })
-	{
-		for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i) a[i] %= b;
-		return a;
-	}
+	constexpr simd<T, Abi> &operator%=(simd<T, Abi> &a, T b) noexcept requires(requires(T l, T r){ l %= r; }) { return a = a % b; }
 
 	/** Preforms a bitwise NOT on elements of vector \a x. */
 	template<typename T, typename Abi>
 	[[nodiscard]] constexpr simd<T, Abi> operator~(const simd<T, Abi> &x) noexcept requires(requires(T v){ ~v; })
 	{
-		simd<T, Abi> result = {};
-		for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i) result[i] = ~x[i];
-		return result;
+		alignas(simd<T, Abi>) std::array<T, simd_size_v<T, Abi>> result = {};
+		for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i)
+			result[i] = ~x[i];
+		return {result.data(), vector_aligned};
 	}
 	/** Preforms a bitwise AND between elements of vector \a a and elements of vector \a b. */
 	template<typename T, typename Abi>
 	[[nodiscard]] constexpr simd<T, Abi> operator&(const simd<T, Abi> &a, const simd<T, Abi> &b) noexcept requires(requires(T l, T r){ l & r; })
 	{
-		simd<T, Abi> result = {};
+		alignas(simd<T, Abi>) std::array<T, simd_size_v<T, Abi>> result = {};
 		for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i)
 			result[i] = a[i] & b[i];
-		return result;
+		return {result.data(), vector_aligned};
 	}
 	/** Preforms a bitwise OR between elements of vector \a a and elements of vector \a b. */
 	template<typename T, typename Abi>
 	[[nodiscard]] constexpr simd<T, Abi> operator|(const simd<T, Abi> &a, const simd<T, Abi> &b) noexcept requires(requires(T l, T r){ l | r; })
 	{
-		simd<T, Abi> result = {};
+		alignas(simd<T, Abi>) std::array<T, simd_size_v<T, Abi>> result = {};
 		for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i)
 			result[i] = a[i] | b[i];
-		return result;
+		return {result.data(), vector_aligned};
 	}
 	/** Preforms a bitwise XOR between elements of vector \a a and elements of vector \a b. */
 	template<typename T, typename Abi>
 	[[nodiscard]] constexpr simd<T, Abi> operator^(const simd<T, Abi> &a, const simd<T, Abi> &b) noexcept requires(requires(T l, T r){ l ^ r; })
 	{
-		simd<T, Abi> result = {};
+		alignas(simd<T, Abi>) std::array<T, simd_size_v<T, Abi>> result = {};
 		for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i)
 			result[i] = a[i] ^ b[i];
-		return result;
+		return {result.data(), vector_aligned};
 	}
 	/** Preforms a bitwise AND between elements of vector \a a and elements of vector \a b, and returns reference to \a a. */
 	template<typename T, typename Abi>
-	constexpr simd<T, Abi> &operator&=(simd<T, Abi> &a, const simd<T, Abi> &b) noexcept requires(requires(T l, T r){ l &= r; })
-	{
-		for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i) a[i] &= b[i];
-		return a;
-	}
+	constexpr simd<T, Abi> &operator&=(simd<T, Abi> &a, const simd<T, Abi> &b) noexcept requires(requires(T l, T r){ l &= r; }) { return a = a & b; }
 	/** Preforms a bitwise OR between elements of vector \a a and elements of vector \a b, and returns reference to \a a. */
 	template<typename T, typename Abi>
-	constexpr simd<T, Abi> &operator|=(simd<T, Abi> &a, const simd<T, Abi> &b) noexcept requires(requires(T l, T r){ l |= r; })
-	{
-		for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i) a[i] |= b[i];
-		return a;
-	}
+	constexpr simd<T, Abi> &operator|=(simd<T, Abi> &a, const simd<T, Abi> &b) noexcept requires(requires(T l, T r){ l |= r; }) { return a = a | b; }
 	/** Preforms a bitwise XOR between elements of vector \a a and elements of vector \a b, and returns reference to \a a. */
 	template<typename T, typename Abi>
-	constexpr simd<T, Abi> &operator^=(simd<T, Abi> &a, const simd<T, Abi> &b) noexcept requires(requires(T l, T r){ l ^= r; })
-	{
-		for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i) a[i] ^= b[i];
-		return a;
-	}
+	constexpr simd<T, Abi> &operator^=(simd<T, Abi> &a, const simd<T, Abi> &b) noexcept requires(requires(T l, T r){ l ^= r; }) { return a = a ^ b; }
 
 	/** Preforms a bitwise AND between elements of vector \a a and scalar \a b. */
 	template<typename T, typename Abi>
 	[[nodiscard]] constexpr simd<T, Abi> operator&(const simd<T, Abi> &a, T b) noexcept requires(requires(T l, T r){ l & r; })
 	{
-		simd<T, Abi> result = {};
+		alignas(simd<T, Abi>) std::array<T, simd_size_v<T, Abi>> result = {};
 		for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i)
 			result[i] = a[i] & b;
-		return result;
+		return {result.data(), vector_aligned};
 	}
 	/** Preforms a bitwise OR between elements of vector \a a and scalar \a b. */
 	template<typename T, typename Abi>
 	[[nodiscard]] constexpr simd<T, Abi> operator|(const simd<T, Abi> &a, T b) noexcept requires(requires(T l, T r){ l | r; })
 	{
-		simd<T, Abi> result = {};
+		alignas(simd<T, Abi>) std::array<T, simd_size_v<T, Abi>> result = {};
 		for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i)
 			result[i] = a[i] | b;
-		return result;
+		return {result.data(), vector_aligned};
 	}
 	/** Preforms a bitwise XOR between elements of vector \a a and scalar \a b. */
 	template<typename T, typename Abi>
 	[[nodiscard]] constexpr simd<T, Abi> operator^(const simd<T, Abi> &a, T b) noexcept requires(requires(T l, T r){ l ^ r; })
 	{
-		simd<T, Abi> result = {};
+		alignas(simd<T, Abi>) std::array<T, simd_size_v<T, Abi>> result = {};
 		for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i)
 			result[i] = a[i] ^ b;
-		return result;
+		return {result.data(), vector_aligned};
 	}
 	/** Preforms a bitwise AND between elements of vector \a a and scalar \a b, and returns reference to \a a. */
 	template<typename T, typename Abi>
-	constexpr simd<T, Abi> &operator&=(simd<T, Abi> &a, T b) noexcept requires(requires(T l, T r){ l &= r; })
-	{
-		for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i) a[i] &= b;
-		return a;
-	}
+	constexpr simd<T, Abi> &operator&=(simd<T, Abi> &a, T b) noexcept requires(requires(T l, T r){ l &= r; }) { return a = a & b; }
 	/** Preforms a bitwise OR between elements of vector \a a and scalar \a b, and returns reference to \a a. */
 	template<typename T, typename Abi>
-	constexpr simd<T, Abi> &operator|=(simd<T, Abi> &a, T b) noexcept requires(requires(T l, T r){ l |= r; })
-	{
-		for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i) a[i] |= b;
-		return a;
-	}
+	constexpr simd<T, Abi> &operator|=(simd<T, Abi> &a, T b) noexcept requires(requires(T l, T r){ l |= r; }) { return a = a | b; }
 	/** Preforms a bitwise XOR between elements of vector \a a and scalar \a b, and returns reference to \a a. */
 	template<typename T, typename Abi>
-	constexpr simd<T, Abi> &operator^=(simd<T, Abi> &a, T b) noexcept requires(requires(T l, T r){ l ^= r; })
-	{
-		for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i) a[i] ^= b;
-		return a;
-	}
+	constexpr simd<T, Abi> &operator^=(simd<T, Abi> &a, T b) noexcept requires(requires(T l, T r){ l ^= r; }) { return a = a ^ b; }
 
 	/** Shifts elements of vector \a a left by the amount specified by elements of vector \a b. */
 	template<typename T, typename Abi>
 	[[nodiscard]] constexpr simd<T, Abi> operator<<(const simd<T, Abi> &a, const simd<T, Abi> &b) noexcept requires(requires(T l, T r){ l << r; })
 	{
-		simd<T, Abi> result = {};
+		alignas(simd<T, Abi>) std::array<T, simd_size_v<T, Abi>> result = {};
 		for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i)
 			result[i] = a[i] << b[i];
-		return result;
+		return {result.data(), vector_aligned};
 	}
 	/** Shifts elements of vector \a a right by the amount specified by elements of vector \a b. */
 	template<typename T, typename Abi>
 	[[nodiscard]] constexpr simd<T, Abi> operator>>(const simd<T, Abi> &a, const simd<T, Abi> &b) noexcept requires(requires(T l, T r){ l >> r; })
 	{
-		simd<T, Abi> result = {};
+		alignas(simd<T, Abi>) std::array<T, simd_size_v<T, Abi>> result = {};
 		for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i)
 			result[i] = a[i] >> b[i];
-		return result;
+		return {result.data(), vector_aligned};
 	}
 	/** Shifts elements of vector \a a left by the amount specified by elements of vector \a b, and returns reference to \a a. */
 	template<typename T, typename Abi>
-	constexpr simd<T, Abi> &operator<<=(simd<T, Abi> &a, const simd<T, Abi> &b) noexcept requires(requires(T l, T r){ l <<= r; })
-	{
-		for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i) a[i] <<= b[i];
-		return a;
-	}
+	constexpr simd<T, Abi> &operator<<=(simd<T, Abi> &a, const simd<T, Abi> &b) noexcept requires(requires(T l, T r){ l <<= r; }) { return a = a >> b; }
 	/** Shifts elements of vector \a a right by the amount specified by elements of vector \a b, and returns reference to \a a. */
 	template<typename T, typename Abi>
-	constexpr simd<T, Abi> &operator>>=(simd<T, Abi> &a, const simd<T, Abi> &b) noexcept requires(requires(T l, T r){ l >>= r; })
-	{
-		for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i) a[i] >>= b[i];
-		return a;
-	}
+	constexpr simd<T, Abi> &operator>>=(simd<T, Abi> &a, const simd<T, Abi> &b) noexcept requires(requires(T l, T r){ l >>= r; }) { return a = a << b; }
 
 	/** Shifts elements of vector \a a left by \a n. */
 	template<typename T, typename Abi, std::integral I>
 	[[nodiscard]] constexpr simd<T, Abi> operator<<(const simd<T, Abi> &a, I n) noexcept requires(requires(T l, I r){ l << r; })
 	{
-		simd<T, Abi> result = {};
+		alignas(simd<T, Abi>) std::array<T, simd_size_v<T, Abi>> result = {};
 		for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i)
 			result[i] = a[i] << n;
-		return result;
+		return {result.data(), vector_aligned};
 	}
 	/** Shifts elements of vector \a a right by \a n. */
 	template<typename T, typename Abi, std::integral I>
 	[[nodiscard]] constexpr simd<T, Abi> operator>>(const simd<T, Abi> &a, I n) noexcept requires(requires(T l, I r){ l >> r; })
 	{
-		simd<T, Abi> result = {};
+		alignas(simd<T, Abi>) std::array<T, simd_size_v<T, Abi>> result = {};
 		for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i)
 			result[i] = a[i] >> n;
-		return result;
+		return {result.data(), vector_aligned};
 	}
 	/** Shifts elements of vector \a a right by \a n, and returns reference to \a a. */
 	template<typename T, typename Abi, std::integral I>
-	constexpr simd<T, Abi> &operator>>=(simd<T, Abi> &a, I n) noexcept requires(requires(T l, I r){ l >>= r; })
-	{
-		for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i) a[i] >>= n;
-		return a;
-	}
+	constexpr simd<T, Abi> &operator>>=(simd<T, Abi> &a, I n) noexcept requires(requires(T l, I r){ l >>= r; }) { return a = a >> n; }
 	/** Shifts elements of vector \a a left by \a n, and returns reference to \a a. */
 	template<typename T, typename Abi, std::integral I>
-	constexpr simd<T, Abi> &operator<<=(simd<T, Abi> &a, I n) noexcept requires(requires(T l, I r){ l <<= r; })
-	{
-		for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i) a[i] <<= n;
-		return a;
-	}
+	constexpr simd<T, Abi> &operator<<=(simd<T, Abi> &a, I n) noexcept requires(requires(T l, I r){ l <<= r; }) { return a = a << n; }
 
 	/** Converts elements of vector \a x to booleans. */
 	template<typename T, typename Abi>
 	[[nodiscard]] constexpr simd_mask<T, Abi> operator!(const simd<T, Abi> &x) noexcept requires(requires(T v) { !v; })
 	{
-		simd_mask<T, Abi> result = {};
-		for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i) result[i] = !x[i];
-		return result;
+		std::array<bool, simd_size_v<T, Abi>> result = {};
+		for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i)
+			result[i] = !x[i];
+		return {result.data(), element_aligned};
 	}
 	/** Compares elements of vectors \a a and \a b for equality. */
 	template<typename T, typename Abi>
 	[[nodiscard]] constexpr simd_mask<T, Abi> operator==(const simd<T, Abi> &a, const simd<T, Abi> &b) noexcept
 	{
-		simd_mask<T, Abi> result = {};
+		std::array<bool, simd_size_v<T, Abi>> result = {};
 		for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i)
 			result[i] = a[i] == b[i];
-		return result;
+		return {result.data(), element_aligned};
 	}
 	/** Compares elements of vectors \a a and \a b for less-than or equal. */
 	template<typename T, typename Abi>
 	[[nodiscard]] constexpr simd_mask<T, Abi> operator<=(const simd<T, Abi> &a, const simd<T, Abi> &b) noexcept
 	{
-		simd_mask<T, Abi> result = {};
+		std::array<bool, simd_size_v<T, Abi>> result = {};
 		for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i)
 			result[i] = a[i] <= b[i];
-		return result;
+		return {result.data(), element_aligned};
 	}
 	/** Compares elements of vectors \a a and \a b for greater-than or equal. */
 	template<typename T, typename Abi>
 	[[nodiscard]] constexpr simd_mask<T, Abi> operator>=(const simd<T, Abi> &a, const simd<T, Abi> &b) noexcept
 	{
-		simd_mask<T, Abi> result = {};
+		std::array<bool, simd_size_v<T, Abi>> result = {};
 		for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i)
 			result[i] = a[i] >= b[i];
-		return result;
+		return {result.data(), element_aligned};
 	}
 	/** Compares elements of vectors \a a and \a b for less-than. */
 	template<typename T, typename Abi>
 	[[nodiscard]] constexpr simd_mask<T, Abi> operator<(const simd<T, Abi> &a, const simd<T, Abi> &b) noexcept
 	{
-		simd_mask<T, Abi> result = {};
+		std::array<bool, simd_size_v<T, Abi>> result = {};
 		for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i)
 			result[i] = a[i] < b[i];
-		return result;
+		return {result.data(), element_aligned};
 	}
 	/** Compares elements of vectors \a a and \a b for greater-than. */
 	template<typename T, typename Abi>
 	[[nodiscard]] constexpr simd_mask<T, Abi> operator>(const simd<T, Abi> &a, const simd<T, Abi> &b) noexcept
 	{
-		simd_mask<T, Abi> result = {};
+		std::array<bool, simd_size_v<T, Abi>> result = {};
 		for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i)
 			result[i] = a[i] > b[i];
-		return result;
+		return {result.data(), element_aligned};
 	}
 	/** Compares elements of vectors \a a and \a b for equality. */
 	template<typename T, typename Abi>
 	[[nodiscard]] constexpr simd_mask<T, Abi> operator!=(const simd<T, Abi> &a, const simd<T, Abi> &b) noexcept
 	{
-		simd_mask<T, Abi> result = {};
+		std::array<bool, simd_size_v<T, Abi>> result = {};
 		for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i)
 			result[i] = a[i] != b[i];
-		return result;
+		return {result.data(), element_aligned};
 	}
 
 	namespace detail
@@ -1265,38 +1187,38 @@ namespace dpm
 		template<std::size_t N, std::integral T, typename Abi>
 		[[nodiscard]] constexpr simd<T, Abi> lsl(const simd<T, Abi> &x) noexcept requires(N < std::numeric_limits<T>::digits)
 		{
-			simd<T, Abi> result = {};
+			alignas(simd<T, Abi>) std::array<T, simd_size_v<T, Abi>> result = {};
 			for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i)
 				result[i] = x[i] << N;
-			return result;
+			return {result.data(), vector_aligned};
 		}
 		/** Logically shifts elements of vector \a x right by a constant number of bits \a N. */
 		template<std::size_t N, std::integral T, typename Abi>
 		[[nodiscard]] constexpr simd<T, Abi> lsr(const simd<T, Abi> &x) noexcept requires(N < std::numeric_limits<T>::digits)
 		{
-			simd<T, Abi> result = {};
+			alignas(simd<T, Abi>) std::array<T, simd_size_v<T, Abi>> result = {};
 			for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i)
 				result[i] = detail::impl_lsr<N>(x[i]);
-			return result;
+			return {result.data(), vector_aligned};
 		}
 
 		/** Arithmetically shifts elements of vector \a x left by a constant number of bits \a N. */
 		template<std::size_t N, std::signed_integral T, typename Abi>
 		[[nodiscard]] constexpr simd<T, Abi> asl(const simd<T, Abi> &x) noexcept requires(N < std::numeric_limits<T>::digits)
 		{
-			simd<T, Abi> result = {};
+			alignas(simd<T, Abi>) std::array<T, simd_size_v<T, Abi>> result = {};
 			for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i)
 				result[i] = x[i] << N;
-			return result;
+			return {result.data(), vector_aligned};
 		}
 		/** Arithmetically shifts elements of vector \a x right by a constant number of bits \a N. */
 		template<std::size_t N, std::signed_integral T, typename Abi>
 		[[nodiscard]] constexpr simd<T, Abi> asr(const simd<T, Abi> &x) noexcept requires(N < std::numeric_limits<T>::digits)
 		{
-			simd<T, Abi> result = {};
+			alignas(simd<T, Abi>) std::array<T, simd_size_v<T, Abi>> result = {};
 			for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i)
 				result[i] = detail::impl_asr<N>(x[i]);
-			return result;
+			return {result.data(), vector_aligned};
 		}
 	}
 #pragma endregion
@@ -1304,23 +1226,17 @@ namespace dpm
 #pragma region "simd where expressions"
 	/** Creates a where expression used to select elements of vector \a v using mask \a m. */
 	template<typename T, typename Abi>
-	[[nodiscard]] constexpr where_expression<simd_mask<T, Abi>, simd<T, Abi>> where(const typename simd<T, Abi>::mask_type &m, simd<T, Abi> &v) noexcept
-	{
-		return {m, v};
-	}
+	[[nodiscard]] constexpr where_expression<simd_mask<T, Abi>, simd<T, Abi>> where(const typename simd<T, Abi>::mask_type &m, simd<T, Abi> &v) noexcept { return {m, v}; }
 	/** Creates a where expression used to select elements of vector \a v using mask \a m. */
 	template<typename T, typename Abi>
-	[[nodiscard]] constexpr const_where_expression<simd_mask<T, Abi>, simd<T, Abi>> where(const typename simd<T, Abi>::mask_type &m, const simd<T, Abi> &v) noexcept
-	{
-		return {m, v};
-	}
+	[[nodiscard]] constexpr const_where_expression<simd_mask<T, Abi>, simd<T, Abi>> where(const typename simd<T, Abi>::mask_type &m, const simd<T, Abi> &v) noexcept { return {m, v}; }
 #pragma endregion
 
 #pragma region "simd reductions"
 	namespace detail
 	{
 		template<typename T, typename Op>
-		[[nodiscard]] DPM_FORCEINLINE T reduce_pair(T a, T b, Op binary_op)
+		[[nodiscard]] constexpr DPM_FORCEINLINE T reduce_pair(T a, T b, Op binary_op)
 		{
 			if constexpr (!std::is_invocable_r_v<T, Op, T, T>)
 				return std::invoke(binary_op, simd<T, simd_abi::scalar>{a}, simd<T, simd_abi::scalar>{b})[0];
@@ -1328,7 +1244,7 @@ namespace dpm
 				return std::invoke(binary_op, a, b);
 		}
 		template<typename T, std::size_t N, typename Op>
-		[[nodiscard]] DPM_FORCEINLINE T reduce_array(const std::array<T, N> &data, Op binary_op)
+		[[nodiscard]] constexpr DPM_FORCEINLINE T reduce_array(const std::array<T, N> &data, Op binary_op)
 		{
 			if constexpr (N == 1)
 				return data[0];
@@ -1349,7 +1265,7 @@ namespace dpm
 			}
 		}
 		template<std::size_t N, typename T, typename Abi, typename Op>
-		[[nodiscard]] DPM_FORCEINLINE T reduce_impl(const simd<T, Abi> &x, Op binary_op)
+		[[nodiscard]] constexpr DPM_FORCEINLINE T reduce_impl(const simd<T, Abi> &x, Op binary_op)
 		{
 			alignas(simd<T, Abi>) std::array<T, simd<T, Abi>::size()> buff;
 			x.copy_to(buff.data(), vector_aligned);
@@ -1359,33 +1275,33 @@ namespace dpm
 
 	/** Calculates a reduction of all elements from \a x using \a binary_op. */
 	template<typename T, typename Abi, typename Op = std::plus<>>
-	[[nodiscard]] constexpr T reduce(const simd<T, Abi> &x, Op binary_op = {}) { return detail::reduce_impl<simd_size_v<T, Abi>>(x, binary_op); }
+	[[nodiscard]] constexpr T reduce(const simd<T, Abi> &x, Op binary_op = {}) noexcept(std::is_nothrow_invocable_v<Op, T, T>) { return detail::reduce_impl<simd_size_v<T, Abi>>(x, binary_op); }
 
 	/** Finds the minimum of all elements (horizontal minimum) in \a x. */
 	template<typename T, typename Abi>
-	[[nodiscard]] DPM_FORCEINLINE T hmin(const simd<T, Abi> &x) noexcept { return reduce(x, [](T a, T b) { return std::min(a, b); }); }
+	[[nodiscard]] constexpr DPM_FORCEINLINE T hmin(const simd<T, Abi> &x) noexcept { return reduce(x, [](T a, T b) { return std::min(a, b); }); }
 	/** Finds the maximum of all elements (horizontal maximum) in \a x. */
 	template<typename T, typename Abi>
-	[[nodiscard]] DPM_FORCEINLINE T hmax(const simd<T, Abi> &x) noexcept { return reduce(x, [](T a, T b) { return std::max(a, b); }); }
+	[[nodiscard]] constexpr DPM_FORCEINLINE T hmax(const simd<T, Abi> &x) noexcept { return reduce(x, [](T a, T b) { return std::max(a, b); }); }
 
 	DPM_DECLARE_EXT_NAMESPACE
 	{
 		/** Finds the horizontal sum of all elements in \a x. Equivalent to `reduce(x, std::plus<>{})`. */
 		template<typename T, typename Abi>
-		[[nodiscard]] DPM_FORCEINLINE T hadd(const simd<T, Abi> &x) noexcept { return reduce(x, std::plus<>{}); }
+		[[nodiscard]] constexpr DPM_FORCEINLINE T hadd(const simd<T, Abi> &x) noexcept { return reduce(x, std::plus<>{}); }
 		/** Finds the horizontal product of all elements in \a x. Equivalent to `reduce(x, std::multiplies<>{})`. */
 		template<typename T, typename Abi>
-		[[nodiscard]] DPM_FORCEINLINE T hmul(const simd<T, Abi> &x) noexcept { return reduce(x, std::multiplies<>{}); }
+		[[nodiscard]] constexpr DPM_FORCEINLINE T hmul(const simd<T, Abi> &x) noexcept { return reduce(x, std::multiplies<>{}); }
 
 		/** Finds the horizontal bitwise AND of all elements in \a x. Equivalent to `reduce(x, std::bit_and<>{})`. */
 		template<std::integral T, typename Abi>
-		[[nodiscard]] DPM_FORCEINLINE T hand(const simd<T, Abi> &x) noexcept { return reduce(x, std::bit_and<>{}); }
+		[[nodiscard]] constexpr DPM_FORCEINLINE T hand(const simd<T, Abi> &x) noexcept { return reduce(x, std::bit_and<>{}); }
 		/** Finds the horizontal bitwise XOR of all elements in \a x. Equivalent to `reduce(x, std::bit_xor<>{})`. */
 		template<std::integral T, typename Abi>
-		[[nodiscard]] DPM_FORCEINLINE T hxor(const simd<T, Abi> &x) noexcept { return reduce(x, std::bit_xor<>{}); }
+		[[nodiscard]] constexpr DPM_FORCEINLINE T hxor(const simd<T, Abi> &x) noexcept { return reduce(x, std::bit_xor<>{}); }
 		/** Finds the horizontal bitwise OR of all elements in \a x. Equivalent to `reduce(x, std::bit_or<>{})`. */
 		template<std::integral T, typename Abi>
-		[[nodiscard]] DPM_FORCEINLINE T hor(const simd<T, Abi> &x) noexcept { return reduce(x, std::bit_or<>{}); }
+		[[nodiscard]] constexpr DPM_FORCEINLINE T hor(const simd<T, Abi> &x) noexcept { return reduce(x, std::bit_or<>{}); }
 	}
 #pragma endregion
 
@@ -1458,12 +1374,13 @@ namespace dpm
 	template<typename V, typename Abi, typename U = typename V::value_type>
 	[[nodiscard]] constexpr auto split(const simd<U, Abi> &x) noexcept requires detail::can_split_simd<V, Abi>
 	{
-		alignas(std::max(alignof(V), alignof(simd<U, Abi>))) std::array<U, simd<U, Abi>::size()> tmp_buff;
+		constexpr auto align = std::max(alignof(V), alignof(simd<U, Abi>));
+		alignas(align) std::array<U, simd<U, Abi>::size()> buff = {};
 		std::array<V, simd_size_v<U, Abi> / V::size()> result = {};
 
-		x.copy_to(tmp_buff.data(), vector_aligned);
+		x.copy_to(buff.data(), vector_aligned);
 		for (std::size_t i = 0, j = 0; i < result.size(); ++i, j += V::size())
-			result[i].copy_from(tmp_buff.data() + j, vector_aligned);
+			result[i].copy_from(buff.data() + j, vector_aligned);
 		return result;
 	}
 	/** Returns an array of SIMD vectors where every `i`th element of the `j`th vector is a copy of the `i + j * (simd_size_v<T, Abi> / N)`th element from \a x.
@@ -1474,12 +1391,13 @@ namespace dpm
 		constexpr auto split_size = simd_size_v<T, Abi> / N;
 		using split_type = resize_simd_t<split_size, simd<T, Abi>>;
 
-		alignas(std::max(alignof(split_type), alignof(simd<T, Abi>))) std::array<T, simd<T, Abi>::size()> tmp_buff;
+		constexpr auto align = std::max(alignof(split_type), alignof(simd<T, Abi>));
+		alignas(align) std::array<T, simd<T, Abi>::size()> buff = {};
 		std::array<split_type, N> result = {};
 
-		x.copy_to(tmp_buff.data(), vector_aligned);
+		x.copy_to(buff.data(), vector_aligned);
 		for (std::size_t i = 0, j = 0; i < result.size(); ++i, j += split_size)
-			result[i].copy_from(tmp_buff.data() + j, vector_aligned);
+			result[i].copy_from(buff.data() + j, vector_aligned);
 		return result;
 	}
 
@@ -1492,11 +1410,12 @@ namespace dpm
 		else
 		{
 			using result_t = simd<T, simd_abi::deduce_t<T, (simd_size_v<T, Abis> + ...), Abis...>>;
-			alignas(std::max({alignof(result_t), alignof(simd<T, Abis>)...})) std::array<T, result_t::size()> tmp_buff;
+			constexpr auto align = std::max({alignof(result_t), alignof(simd<T, Abis>)...});
+			alignas(align) std::array<T, result_t::size()> buff = {};
 			result_t result = {};
 
-			detail::concat_impl(tmp_buff, values...);
-			result.copy_from(tmp_buff.data(), vector_aligned);
+			detail::concat_impl(buff, values...);
+			result.copy_from(buff.data(), vector_aligned);
 			return result;
 		}
 	}
@@ -1509,12 +1428,13 @@ namespace dpm
 		else
 		{
 			using result_t = resize_simd_t<simd_size_v<T, Abi> * N, simd<T, Abi>>;
-			alignas(std::max(alignof(result_t), alignof(simd<T, Abi>))) std::array<T, result_t::size()> tmp_buff;
+			constexpr auto align = std::max(alignof(result_t), alignof(simd<T, Abi>));
+			alignas(align) std::array<T, result_t::size()> buff = {};
 			result_t result = {};
 
-			for (std::size_t i = 0, j = 0; i < tmp_buff.size(); i += simd_size_v<T, Abi>, ++j)
-				values[j].copy_to(tmp_buff.data() + i, vector_aligned);
-			result.copy_from(tmp_buff.data(), vector_aligned);
+			for (std::size_t i = 0, j = 0; i < buff.size(); i += simd_size_v<T, Abi>, ++j)
+				values[j].copy_to(buff.data() + i, vector_aligned);
+			result.copy_from(buff.data(), vector_aligned);
 			return result;
 		}
 	}
@@ -1525,84 +1445,84 @@ namespace dpm
 	template<typename T, typename Abi>
 	[[nodiscard]] constexpr simd<T, Abi> min(const simd<T, Abi> &a, const simd<T, Abi> &b) noexcept
 	{
-		simd<T, Abi> result = {};
+		alignas(simd<T, Abi>) std::array<T, simd_size_v<T, Abi>> result = {};
 		for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i)
 			result[i] = std::min(a[i], b[i]);
-		return result;
+		return {result.data(), vector_aligned};
 	}
 	/** Returns an SIMD vector of maximum elements of \a a and \a b. */
 	template<typename T, typename Abi>
 	[[nodiscard]] constexpr simd<T, Abi> max(const simd<T, Abi> &a, const simd<T, Abi> &b) noexcept
 	{
-		simd<T, Abi> result = {};
+		alignas(simd<T, Abi>) std::array<T, simd_size_v<T, Abi>> result = {};
 		for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i)
 			result[i] = std::max(a[i], b[i]);
-		return result;
+		return {result.data(), vector_aligned};
 	}
 
 	/** Returns an SIMD vector of minimum elements of \a a and scalar \a b. */
 	template<typename T, typename Abi>
 	[[nodiscard]] constexpr simd<T, Abi> min(const simd<T, Abi> &a, T b) noexcept
 	{
-		simd<T, Abi> result = {};
+		alignas(simd<T, Abi>) std::array<T, simd_size_v<T, Abi>> result = {};
 		for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i)
 			result[i] = std::min(a[i], b);
-		return result;
+		return {result.data(), vector_aligned};
 	}
 	/** Returns an SIMD vector of maximum elements of \a a and scalar \a b. */
 	template<typename T, typename Abi>
 	[[nodiscard]] constexpr simd<T, Abi> max(const simd<T, Abi> &a, T b) noexcept
 	{
-		simd<T, Abi> result = {};
+		alignas(simd<T, Abi>) std::array<T, simd_size_v<T, Abi>> result = {};
 		for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i)
 			result[i] = std::max(a[i], b);
-		return result;
+		return {result.data(), vector_aligned};
 	}
 
 	/** Returns a pair of SIMD vectors of minimum and maximum elements of \a a and \a b. */
 	template<typename T, typename Abi>
 	[[nodiscard]] constexpr std::pair<simd<T, Abi>, simd<T, Abi>> minmax(const simd<T, Abi> &a, const simd<T, Abi> &b) noexcept
 	{
-		std::pair<simd<T, Abi>, simd<T, Abi>> result = {};
+		alignas(simd<T, Abi>) std::array<T, simd_size_v<T, Abi>> result[2] = {};
 		for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i)
 		{
 			const auto [min, max] = std::minmax(a[i], b[i]);
-			result.first[i] = min;
-			result.second[i] = max;
+			result[0][i] = min;
+			result[1][i] = max;
 		}
-		return result;
+		return {simd<T, Abi>{result[0].data(), vector_aligned}, simd<T, Abi>{result[1].data(), vector_aligned}};
 	}
 	/** Returns a pair of SIMD vectors of minimum and maximum elements of \a a and scalar \a b. */
 	template<typename T, typename Abi>
 	[[nodiscard]] constexpr std::pair<simd<T, Abi>, simd<T, Abi>> minmax(const simd<T, Abi> &a, T b) noexcept
 	{
-		std::pair<simd<T, Abi>, simd<T, Abi>> result = {};
+		alignas(simd<T, Abi>) std::array<T, simd_size_v<T, Abi>> result[2] = {};
 		for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i)
 		{
 			const auto [min, max] = std::minmax(a[i], b);
-			result.first[i] = min;
-			result.second[i] = max;
+			result[0][i] = min;
+			result[1][i] = max;
 		}
-		return result;
+		return {simd<T, Abi>{result[0].data(), vector_aligned}, simd<T, Abi>{result[1].data(), vector_aligned}};
 	}
 
 	/** Clamps elements of \a x between corresponding elements of \a min and \a max. */
 	template<typename T, typename Abi>
 	[[nodiscard]] constexpr simd<T, Abi> clamp(const simd<T, Abi> &x, const simd<T, Abi> &min, const simd<T, Abi> &max) noexcept
 	{
-		simd<T, Abi> result = {};
+		alignas(simd<T, Abi>) std::array<T, simd_size_v<T, Abi>> result = {};
 		for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i)
 			result[i] = std::clamp(x[i], min[i], max[i]);
-		return result;
+		return {result.data(), vector_aligned};
 	}
 	/** Clamps elements of \a x between \a min and \a max. */
 	template<typename T, typename Abi>
 	[[nodiscard]] constexpr simd<T, Abi> clamp(const simd<T, Abi> &x, T min, T max) noexcept
 	{
-		simd<T, Abi> result = {};
+		alignas(simd<T, Abi>) std::array<T, simd_size_v<T, Abi>> result = {};
 		for (std::size_t i = 0; i < simd<T, Abi>::size(); ++i)
 			result[i] = std::clamp(x[i], min, max);
-		return result;
+		return {result.data(), vector_aligned};
 	}
 #pragma endregion
 }

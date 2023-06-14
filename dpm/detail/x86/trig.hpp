@@ -166,73 +166,141 @@ namespace dpm
 
 #if defined(DPM_USE_SVML) || defined(DPM_HAS_SSE2)
 	/** Calculates sine of elements in vector \a x. */
-	template<std::floating_point T, std::size_t N, std::size_t A>
-	[[nodiscard]] DPM_FORCEINLINE detail::x86_simd<T, N, A> sin(const detail::x86_simd<T, N, A> &x) noexcept requires detail::x86_overload_any<T, N, A>
+	template<std::floating_point T, std::size_t N, std::size_t A> requires detail::x86_overload_any<T, N, A>
+	[[nodiscard]] constexpr DPM_FORCEINLINE detail::x86_simd<T, N, A> sin(const detail::x86_simd<T, N, A> &x) noexcept
 	{
-		detail::x86_simd<T, N, A> result = {};
-		detail::vectorize([](auto &res, auto x) { res = detail::sin(x); }, result, x);
-		return result;
+		if (std::is_constant_evaluated())
+		{
+			const auto packed = static_cast<simd<T, simd_abi::ext::packed_buffer<N>>>(x);
+			return static_cast<detail::x86_simd<T, N, A>>(sin(packed));
+		}
+		else
+		{
+			detail::x86_simd <T, N, A> result = {};
+			detail::vectorize([](auto &res, auto x) { res = detail::sin(x); }, result, x);
+			return result;
+		}
 	}
 	/** Calculates cosine of elements in vector \a x. */
-	template<std::floating_point T, std::size_t N, std::size_t A>
-	[[nodiscard]] DPM_FORCEINLINE detail::x86_simd<T, N, A> cos(const detail::x86_simd<T, N, A> &x) noexcept requires detail::x86_overload_any<T, N, A>
+	template<std::floating_point T, std::size_t N, std::size_t A> requires detail::x86_overload_any<T, N, A>
+	[[nodiscard]] constexpr DPM_FORCEINLINE detail::x86_simd<T, N, A> cos(const detail::x86_simd<T, N, A> &x) noexcept
 	{
-		detail::x86_simd<T, N, A> result = {};
-		detail::vectorize([](auto &res, auto x) { res = detail::cos(x); }, result, x);
-		return result;
+		if (std::is_constant_evaluated())
+		{
+			const auto packed = static_cast<simd<T, simd_abi::ext::packed_buffer<N>>>(x);
+			return static_cast<detail::x86_simd<T, N, A>>(cos(packed));
+		}
+		else
+		{
+			detail::x86_simd <T, N, A> result = {};
+			detail::vectorize([](auto &res, auto x) { res = detail::cos(x); }, result, x);
+			return result;
+		}
 	}
 	/** Calculates tangent of elements in vector \a x. */
-	template<std::floating_point T, std::size_t N, std::size_t A>
-	[[nodiscard]] DPM_FORCEINLINE detail::x86_simd<T, N, A> tan(const detail::x86_simd<T, N, A> &x) noexcept requires detail::x86_overload_any<T, N, A>
+	template<std::floating_point T, std::size_t N, std::size_t A> requires detail::x86_overload_any<T, N, A>
+	[[nodiscard]] constexpr DPM_FORCEINLINE detail::x86_simd<T, N, A> tan(const detail::x86_simd<T, N, A> &x) noexcept
 	{
-		detail::x86_simd<T, N, A> result = {};
-		detail::vectorize([](auto &res, auto x) { res = detail::tan(x); }, result, x);
-		return result;
+		if (std::is_constant_evaluated())
+		{
+			const auto packed = static_cast<simd<T, simd_abi::ext::packed_buffer<N>>>(x);
+			return static_cast<detail::x86_simd<T, N, A>>(tan(packed));
+		}
+		else
+		{
+			detail::x86_simd <T, N, A> result = {};
+			detail::vectorize([](auto &res, auto x) { res = detail::tan(x); }, result, x);
+			return result;
+		}
 	}
 	/** Calculates arc-sine of elements in vector \a x. */
-	template<std::floating_point T, std::size_t N, std::size_t A>
-	[[nodiscard]] DPM_FORCEINLINE detail::x86_simd<T, N, A> asin(const detail::x86_simd<T, N, A> &x) noexcept requires detail::x86_overload_any<T, N, A>
+	template<std::floating_point T, std::size_t N, std::size_t A> requires detail::x86_overload_any<T, N, A>
+	[[nodiscard]] constexpr DPM_FORCEINLINE detail::x86_simd<T, N, A> asin(const detail::x86_simd<T, N, A> &x) noexcept
 	{
-		detail::x86_simd<T, N, A> result = {};
-		detail::vectorize([](auto &res, auto x) { res = detail::asin(x); }, result, x);
-		return result;
+		if (std::is_constant_evaluated())
+		{
+			const auto packed = static_cast<simd<T, simd_abi::ext::packed_buffer<N>>>(x);
+			return static_cast<detail::x86_simd<T, N, A>>(asin(packed));
+		}
+		else
+		{
+			detail::x86_simd <T, N, A> result = {};
+			detail::vectorize([](auto &res, auto x) { res = detail::asin(x); }, result, x);
+			return result;
+		}
 	}
 	/** Calculates arc-cosine of elements in vector \a x. */
-	template<std::floating_point T, std::size_t N, std::size_t A>
-	[[nodiscard]] DPM_FORCEINLINE detail::x86_simd<T, N, A> acos(const detail::x86_simd<T, N, A> &x) noexcept requires detail::x86_overload_any<T, N, A>
+	template<std::floating_point T, std::size_t N, std::size_t A> requires detail::x86_overload_any<T, N, A>
+	[[nodiscard]] constexpr DPM_FORCEINLINE detail::x86_simd<T, N, A> acos(const detail::x86_simd<T, N, A> &x) noexcept
 	{
-		detail::x86_simd<T, N, A> result = {};
-		detail::vectorize([](auto &res, auto x) { res = detail::acos(x); }, result, x);
-		return result;
+		if (std::is_constant_evaluated())
+		{
+			const auto packed = static_cast<simd<T, simd_abi::ext::packed_buffer<N>>>(x);
+			return static_cast<detail::x86_simd<T, N, A>>(acos(packed));
+		}
+		else
+		{
+			detail::x86_simd <T, N, A> result = {};
+			detail::vectorize([](auto &res, auto x) { res = detail::acos(x); }, result, x);
+			return result;
+		}
 	}
 	/** Calculates arc-tangent of elements in vector \a x. */
-	template<std::floating_point T, std::size_t N, std::size_t A>
-	[[nodiscard]] DPM_FORCEINLINE detail::x86_simd<T, N, A> atan(const detail::x86_simd<T, N, A> &x) noexcept requires detail::x86_overload_any<T, N, A>
+	template<std::floating_point T, std::size_t N, std::size_t A> requires detail::x86_overload_any<T, N, A>
+	[[nodiscard]] constexpr DPM_FORCEINLINE detail::x86_simd<T, N, A> atan(const detail::x86_simd<T, N, A> &x) noexcept
 	{
-		detail::x86_simd<T, N, A> result = {};
-		detail::vectorize([](auto &res, auto x) { res = detail::atan(x); }, result, x);
-		return result;
+		if (std::is_constant_evaluated())
+		{
+			const auto packed = static_cast<simd<T, simd_abi::ext::packed_buffer<N>>>(x);
+			return static_cast<detail::x86_simd<T, N, A>>(atan(packed));
+		}
+		else
+		{
+			detail::x86_simd <T, N, A> result = {};
+			detail::vectorize([](auto &res, auto x) { res = detail::atan(x); }, result, x);
+			return result;
+		}
 	}
 
 	DPM_DECLARE_EXT_NAMESPACE
 	{
 		/** Calculates sine and cosine of elements in vector \a x, and assigns results to elements of \a out_sin and \a out_cos respectively. */
-		template<std::floating_point T, std::size_t N, std::size_t A>
-		DPM_FORCEINLINE void sincos(const detail::x86_simd<T, N, A> &x, detail::x86_simd<T, N, A> &out_sin, detail::x86_simd<T, N, A> &out_cos) noexcept requires detail::x86_overload_any<T, N, A>
+		template<std::floating_point T, std::size_t N, std::size_t A> requires detail::x86_overload_any<T, N, A>
+		constexpr DPM_FORCEINLINE void sincos(const detail::x86_simd<T, N, A> &x, detail::x86_simd<T, N, A> &out_sin, detail::x86_simd<T, N, A> &out_cos) noexcept
 		{
-			detail::vectorize([](auto x, auto &sin_x, auto &cos_x) { detail::sincos(x, sin_x, cos_x); }, x, out_sin, out_cos);
+			if (!std::is_constant_evaluated())
+				detail::vectorize([](auto x, auto &sin_x, auto &cos_x) { detail::sincos(x, sin_x, cos_x); }, x, out_sin, out_cos);
+			else
+			{
+				const auto packed_x = static_cast<simd<T, simd_abi::ext::packed_buffer<N>>>(x);
+				simd<T, simd_abi::ext::packed_buffer<N>> packed_sin = {};
+				simd<T, simd_abi::ext::packed_buffer<N>> packed_cos = {};
+
+				sincos(packed_x, packed_sin, packed_cos);
+				out_sin = static_cast<detail::x86_simd<T, N, A>>(packed_sin);
+				out_cos = static_cast<detail::x86_simd<T, N, A>>(packed_cos);
+			}
 		}
 	}
 #endif
 
 #ifdef DPM_USE_SVML
 	/** Calculates arc-tangent of quotient of elements in vectors \a a and \a b. */
-	template<std::floating_point T, std::size_t N, std::size_t A>
-	[[nodiscard]] DPM_FORCEINLINE detail::x86_simd<T, N, A> atan2(const detail::x86_simd<T, N, A> &a, const detail::x86_simd<T, N, A> &b) noexcept requires detail::x86_overload_any<T, N, A>
+	template<std::floating_point T, std::size_t N, std::size_t A> requires detail::x86_overload_any<T, N, A>
+	[[nodiscard]] constexpr DPM_FORCEINLINE detail::x86_simd<T, N, A> atan2(const detail::x86_simd<T, N, A> &a, const detail::x86_simd<T, N, A> &b) noexcept
 	{
-		detail::x86_simd<T, N, A> result = {};
-		detail::vectorize([](auto &res, auto a, auto b) { res = detail::atan2(a, b); }, result, a, b);
-		return result;
+		if (std::is_constant_evaluated())
+		{
+			const auto packed_a = static_cast<simd<T, simd_abi::ext::packed_buffer<N>>>(a);
+			const auto packed_b = static_cast<simd<T, simd_abi::ext::packed_buffer<N>>>(b);
+			return static_cast<detail::x86_simd<T, N, A>>(atan2(packed_a, packed_b));
+		}
+		else
+		{
+			detail::x86_simd<T, N, A> result = {};
+			detail::vectorize([](auto &res, auto a, auto b) { res = detail::atan2(a, b); }, result, a, b);
+			return result;
+		}
 	}
 #endif
 }

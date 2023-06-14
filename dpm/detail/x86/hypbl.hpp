@@ -46,52 +46,100 @@ namespace dpm
 	}
 
 	/** Calculates hyperbolic sine of elements in vector \a x. */
-	template<std::floating_point T, std::size_t N, std::size_t A>
-	[[nodiscard]] DPM_FORCEINLINE detail::x86_simd<T, N, A> sinh(const detail::x86_simd<T, N, A> &x) noexcept requires detail::x86_overload_any<T, N, A>
+	template<std::floating_point T, std::size_t N, std::size_t A> requires detail::x86_overload_any<T, N, A>
+	[[nodiscard]] constexpr DPM_FORCEINLINE detail::x86_simd<T, N, A> sinh(const detail::x86_simd<T, N, A> &x) noexcept
 	{
-		detail::x86_simd<T, N, A> result = {};
-		detail::vectorize([](auto &res, auto x) { res = detail::sinh(x); }, result, x);
-		return result;
+		if (std::is_constant_evaluated())
+		{
+			const auto packed = static_cast<simd<T, simd_abi::ext::packed_buffer<N>>>(x);
+			return static_cast<detail::x86_simd<T, N, A>>(sinh(packed));
+		}
+		else
+		{
+			detail::x86_simd<T, N, A> result = {};
+			detail::vectorize([](auto &res, auto x) { res = detail::sinh(x); }, result, x);
+			return result;
+		}
 	}
 	/** Calculates hyperbolic cosine of elements in vector \a x. */
-	template<std::floating_point T, std::size_t N, std::size_t A>
-	[[nodiscard]] DPM_FORCEINLINE detail::x86_simd<T, N, A> cosh(const detail::x86_simd<T, N, A> &x) noexcept requires detail::x86_overload_any<T, N, A>
+	template<std::floating_point T, std::size_t N, std::size_t A> requires detail::x86_overload_any<T, N, A>
+	[[nodiscard]] constexpr DPM_FORCEINLINE detail::x86_simd<T, N, A> cosh(const detail::x86_simd<T, N, A> &x) noexcept
 	{
-		detail::x86_simd<T, N, A> result = {};
-		detail::vectorize([](auto &res, auto x) { res = detail::cosh(x); }, result, x);
-		return result;
+		if (std::is_constant_evaluated())
+		{
+			const auto packed = static_cast<simd<T, simd_abi::ext::packed_buffer<N>>>(x);
+			return static_cast<detail::x86_simd<T, N, A>>(cosh(packed));
+		}
+		else
+		{
+			detail::x86_simd<T, N, A> result = {};
+			detail::vectorize([](auto &res, auto x) { res = detail::cosh(x); }, result, x);
+			return result;
+		}
 	}
 	/** Calculates hyperbolic tangent of elements in vector \a x. */
-	template<std::floating_point T, std::size_t N, std::size_t A>
-	[[nodiscard]] DPM_FORCEINLINE detail::x86_simd<T, N, A> tanh(const detail::x86_simd<T, N, A> &x) noexcept requires detail::x86_overload_any<T, N, A>
+	template<std::floating_point T, std::size_t N, std::size_t A> requires detail::x86_overload_any<T, N, A>
+	[[nodiscard]] constexpr DPM_FORCEINLINE detail::x86_simd<T, N, A> tanh(const detail::x86_simd<T, N, A> &x) noexcept
 	{
-		detail::x86_simd<T, N, A> result = {};
-		detail::vectorize([](auto &res, auto x) { res = detail::tanh(x); }, result, x);
-		return result;
+		if (std::is_constant_evaluated())
+		{
+			const auto packed = static_cast<simd<T, simd_abi::ext::packed_buffer<N>>>(x);
+			return static_cast<detail::x86_simd<T, N, A>>(tanh(packed));
+		}
+		else
+		{
+			detail::x86_simd<T, N, A> result = {};
+			detail::vectorize([](auto &res, auto x) { res = detail::tanh(x); }, result, x);
+			return result;
+		}
 	}
 	/** Calculates hyperbolic arc-sine of elements in vector \a x. */
-	template<std::floating_point T, std::size_t N, std::size_t A>
-	[[nodiscard]] DPM_FORCEINLINE detail::x86_simd<T, N, A> asinh(const detail::x86_simd<T, N, A> &x) noexcept requires detail::x86_overload_any<T, N, A>
+	template<std::floating_point T, std::size_t N, std::size_t A> requires detail::x86_overload_any<T, N, A>
+	[[nodiscard]] constexpr DPM_FORCEINLINE detail::x86_simd<T, N, A> asinh(const detail::x86_simd<T, N, A> &x) noexcept
 	{
-		detail::x86_simd<T, N, A> result = {};
-		detail::vectorize([](auto &res, auto x) { res = detail::asinh(x); }, result, x);
-		return result;
+		if (std::is_constant_evaluated())
+		{
+			const auto packed = static_cast<simd<T, simd_abi::ext::packed_buffer<N>>>(x);
+			return static_cast<detail::x86_simd<T, N, A>>(asinh(packed));
+		}
+		else
+		{
+			detail::x86_simd<T, N, A> result = {};
+			detail::vectorize([](auto &res, auto x) { res = detail::asinh(x); }, result, x);
+			return result;
+		}
 	}
 	/** Calculates hyperbolic arc-cosine of elements in vector \a x. */
-	template<std::floating_point T, std::size_t N, std::size_t A>
-	[[nodiscard]] DPM_FORCEINLINE detail::x86_simd<T, N, A> acosh(const detail::x86_simd<T, N, A> &x) noexcept requires detail::x86_overload_any<T, N, A>
+	template<std::floating_point T, std::size_t N, std::size_t A> requires detail::x86_overload_any<T, N, A>
+	[[nodiscard]] constexpr DPM_FORCEINLINE detail::x86_simd<T, N, A> acosh(const detail::x86_simd<T, N, A> &x) noexcept
 	{
-		detail::x86_simd<T, N, A> result = {};
-		detail::vectorize([](auto &res, auto x) { res = detail::acosh(x); }, result, x);
-		return result;
+		if (std::is_constant_evaluated())
+		{
+			const auto packed = static_cast<simd<T, simd_abi::ext::packed_buffer<N>>>(x);
+			return static_cast<detail::x86_simd<T, N, A>>(acosh(packed));
+		}
+		else
+		{
+			detail::x86_simd<T, N, A> result = {};
+			detail::vectorize([](auto &res, auto x) { res = detail::acosh(x); }, result, x);
+			return result;
+		}
 	}
 	/** Calculates hyperbolic arc-tangent of elements in vector \a x. */
-	template<std::floating_point T, std::size_t N, std::size_t A>
-	[[nodiscard]] DPM_FORCEINLINE detail::x86_simd<T, N, A> atanh(const detail::x86_simd<T, N, A> &x) noexcept requires detail::x86_overload_any<T, N, A>
+	template<std::floating_point T, std::size_t N, std::size_t A> requires detail::x86_overload_any<T, N, A>
+	[[nodiscard]] constexpr DPM_FORCEINLINE detail::x86_simd<T, N, A> atanh(const detail::x86_simd<T, N, A> &x) noexcept
 	{
-		detail::x86_simd<T, N, A> result = {};
-		detail::vectorize([](auto &res, auto x) { res = detail::atanh(x); }, result, x);
-		return result;
+		if (std::is_constant_evaluated())
+		{
+			const auto packed = static_cast<simd<T, simd_abi::ext::packed_buffer<N>>>(x);
+			return static_cast<detail::x86_simd<T, N, A>>(atanh(packed));
+		}
+		else
+		{
+			detail::x86_simd<T, N, A> result = {};
+			detail::vectorize([](auto &res, auto x) { res = detail::atanh(x); }, result, x);
+			return result;
+		}
 	}
 }
 

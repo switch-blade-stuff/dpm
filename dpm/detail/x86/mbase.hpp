@@ -275,132 +275,247 @@ namespace dpm
 	}
 
 	/** Calculates absolute value of elements in vector \a x. */
-	template<typename T, std::size_t N, std::size_t A>
-	[[nodiscard]] DPM_FORCEINLINE detail::x86_simd<T, N, A> abs(const detail::x86_simd<T, N, A> &x) noexcept requires detail::x86_overload_any<T, N, A>
+	template<typename T, std::size_t N, std::size_t A> requires detail::x86_overload_any<T, N, A>
+	[[nodiscard]] constexpr DPM_FORCEINLINE detail::x86_simd<T, N, A> abs(const detail::x86_simd<T, N, A> &x) noexcept
 	{
-		detail::x86_simd<T, N, A> result = {};
-		detail::vectorize([](auto &res, auto x) { res = detail::abs<T>(x); }, result, x);
-		return result;
+		if (std::is_constant_evaluated())
+		{
+			const auto packed = static_cast<simd<T, simd_abi::ext::packed_buffer<N>>>(x);
+			return static_cast<detail::x86_simd<T, N, A>>(abs(packed));
+		}
+		else
+		{
+			detail::x86_simd<T, N, A> result = {};
+			detail::vectorize([](auto &res, auto x) { res = detail::abs<T>(x); }, result, x);
+			return result;
+		}
 	}
 	/** @copydoc abs */
-	template<std::floating_point T, std::size_t N, std::size_t A>
-	[[nodiscard]] DPM_FORCEINLINE detail::x86_simd<T, N, A> fabs(const detail::x86_simd<T, N, A> &x) noexcept requires detail::x86_overload_any<T, N, A> { return abs(x); }
+	template<std::floating_point T, std::size_t N, std::size_t A> requires detail::x86_overload_any<T, N, A>
+	[[nodiscard]] constexpr DPM_FORCEINLINE detail::x86_simd<T, N, A> fabs(const detail::x86_simd<T, N, A> &x) noexcept { return abs(x); }
 
 	/** Calculates the maximum of elements in \a a and \a b, respecting the NaN propagation
 	 * as specified in IEC 60559 (ordered values are always selected over unordered). */
-	template<std::floating_point T, std::size_t N, std::size_t A>
-	[[nodiscard]] DPM_FORCEINLINE detail::x86_simd<T, N, A> fmax(const detail::x86_simd<T, N, A> &a, const detail::x86_simd<T, N, A> &b) noexcept requires detail::x86_overload_any<T, N, A>
+	template<std::floating_point T, std::size_t N, std::size_t A> requires detail::x86_overload_any<T, N, A>
+	[[nodiscard]] constexpr DPM_FORCEINLINE detail::x86_simd<T, N, A> fmax(const detail::x86_simd<T, N, A> &a, const detail::x86_simd<T, N, A> &b) noexcept
 	{
-		detail::x86_simd<T, N, A> result = {};
-		detail::vectorize([](auto &res, auto a, auto b) { res = detail::blendv<T>(detail::max<T>(a, b), b, detail::isunord(a)); }, result, a, b);
-		return result;
+		if (std::is_constant_evaluated())
+		{
+			const auto packed_a = static_cast<simd<T, simd_abi::ext::packed_buffer<N>>>(a);
+			const auto packed_b = static_cast<simd<T, simd_abi::ext::packed_buffer<N>>>(b);
+			return static_cast<detail::x86_simd<T, N, A>>(fmax(packed_a, packed_b));
+		}
+		else
+		{
+			detail::x86_simd<T, N, A> result = {};
+			detail::vectorize([](auto &res, auto a, auto b) { res = detail::blendv<T>(detail::max<T>(a, b), b, detail::isunord(a)); }, result, a, b);
+			return result;
+		}
 	}
 	/** Calculates the minimum of elements in \a a and \a b, respecting the NaN propagation
 	 * as specified in IEC 60559 (ordered values are always selected over unordered). */
-	template<std::floating_point T, std::size_t N, std::size_t A>
-	[[nodiscard]] DPM_FORCEINLINE detail::x86_simd<T, N, A> fmin(const detail::x86_simd<T, N, A> &a, const detail::x86_simd<T, N, A> &b) noexcept requires detail::x86_overload_any<T, N, A>
+	template<std::floating_point T, std::size_t N, std::size_t A> requires detail::x86_overload_any<T, N, A>
+	[[nodiscard]] constexpr DPM_FORCEINLINE detail::x86_simd<T, N, A> fmin(const detail::x86_simd<T, N, A> &a, const detail::x86_simd<T, N, A> &b) noexcept
 	{
-		detail::x86_simd<T, N, A> result = {};
-		detail::vectorize([](auto &res, auto a, auto b) { res = detail::blendv<T>(detail::min<T>(a, b), b, detail::isunord(a)); }, result, a, b);
-		return result;
+		if (std::is_constant_evaluated())
+		{
+			const auto packed_a = static_cast<simd<T, simd_abi::ext::packed_buffer<N>>>(a);
+			const auto packed_b = static_cast<simd<T, simd_abi::ext::packed_buffer<N>>>(b);
+			return static_cast<detail::x86_simd<T, N, A>>(fmin(packed_a, packed_b));
+		}
+		else
+		{
+			detail::x86_simd<T, N, A> result = {};
+			detail::vectorize([](auto &res, auto a, auto b) { res = detail::blendv<T>(detail::min<T>(a, b), b, detail::isunord(a)); }, result, a, b);
+			return result;
+		}
 	}
 	/** Returns the positive difference between elements of vectors \a a and \a b. Equivalent to `max(simd<T, Abi>{0}, a - b)`. */
-	template<std::floating_point T, std::size_t N, std::size_t A>
-	[[nodiscard]] DPM_FORCEINLINE detail::x86_simd<T, N, A> fdim(const detail::x86_simd<T, N, A> &a, const detail::x86_simd<T, N, A> &b) noexcept requires detail::x86_overload_any<T, N, A>
+	template<std::floating_point T, std::size_t N, std::size_t A> requires detail::x86_overload_any<T, N, A>
+	[[nodiscard]] constexpr DPM_FORCEINLINE detail::x86_simd<T, N, A> fdim(const detail::x86_simd<T, N, A> &a, const detail::x86_simd<T, N, A> &b) noexcept
 	{
-		detail::x86_simd<T, N, A> result = {};
-		detail::vectorize([]<typename V>(V &res, V a, V b) { res = detail::max<T>(detail::setzero<V>(), detail::sub<T>(a, b)); }, result, a, b);
-		return result;
+		if (std::is_constant_evaluated())
+		{
+			const auto packed_a = static_cast<simd<T, simd_abi::ext::packed_buffer<N>>>(a);
+			const auto packed_b = static_cast<simd<T, simd_abi::ext::packed_buffer<N>>>(b);
+			return static_cast<detail::x86_simd<T, N, A>>(fdim(packed_a, packed_b));
+		}
+		else
+		{
+			detail::x86_simd<T, N, A> result = {};
+			detail::vectorize([]<typename V>(V &res, V a, V b) { res = detail::max<T>(detail::setzero<V>(), detail::sub<T>(a, b)); }, result, a, b);
+			return result;
+		}
 	}
 
 	/** Calculates the maximum of elements in \a a and scalar \a b, respecting the NaN propagation
 	 * as specified in IEC 60559 (ordered values are always selected over unordered). */
-	template<std::floating_point T, std::size_t N, std::size_t A>
-	[[nodiscard]] DPM_FORCEINLINE detail::x86_simd<T, N, A> fmax(const detail::x86_simd<T, N, A> &a, T b) noexcept requires detail::x86_overload_any<T, N, A>
+	template<std::floating_point T, std::size_t N, std::size_t A> requires detail::x86_overload_any<T, N, A>
+	[[nodiscard]] constexpr DPM_FORCEINLINE detail::x86_simd<T, N, A> fmax(const detail::x86_simd<T, N, A> &a, T b) noexcept
 	{
-		detail::x86_simd<T, N, A> result = {};
-		const auto b_vec = detail::fill<ext::native_data_type_t<detail::x86_simd<T, N, A>>>(b);
-		detail::vectorize([b = b_vec](auto &res, auto a) { res = detail::blendv<T>(detail::max<T>(a, b), b, detail::isunord(a)); }, result, a);
-		return result;
+		if (std::is_constant_evaluated())
+		{
+			const auto packed = static_cast<simd<T, simd_abi::ext::packed_buffer<N>>>(a);
+			return static_cast<detail::x86_simd<T, N, A>>(fmax(packed, b));
+		}
+		else
+		{
+			detail::x86_simd<T, N, A> result = {};
+			const auto b_vec = detail::fill<ext::native_data_type_t<detail::x86_simd<T, N, A>>>(b);
+			detail::vectorize([b = b_vec](auto &res, auto a) { res = detail::blendv<T>(detail::max<T>(a, b), b, detail::isunord(a)); }, result, a);
+			return result;
+		}
 	}
 	/** Calculates the minimum of elements in \a a and scalar \a b, respecting the NaN propagation
 	 * as specified in IEC 60559 (ordered values are always selected over unordered). */
-	template<std::floating_point T, std::size_t N, std::size_t A>
-	[[nodiscard]] DPM_FORCEINLINE detail::x86_simd<T, N, A> fmin(const detail::x86_simd<T, N, A> &a, T b) noexcept requires detail::x86_overload_any<T, N, A>
+	template<std::floating_point T, std::size_t N, std::size_t A> requires detail::x86_overload_any<T, N, A>
+	[[nodiscard]] constexpr DPM_FORCEINLINE detail::x86_simd<T, N, A> fmin(const detail::x86_simd<T, N, A> &a, T b) noexcept
 	{
-		detail::x86_simd<T, N, A> result = {};
-		const auto b_vec = detail::fill<ext::native_data_type_t<detail::x86_simd<T, N, A>>>(b);
-		detail::vectorize([b = b_vec](auto &res, auto a) { res = detail::blendv<T>(detail::min<T>(a, b), b, detail::isunord(a)); }, result, a);
-		return result;
+		if (std::is_constant_evaluated())
+		{
+			const auto packed = static_cast<simd<T, simd_abi::ext::packed_buffer<N>>>(a);
+			return static_cast<detail::x86_simd<T, N, A>>(fmin(packed, b));
+		}
+		else
+		{
+			detail::x86_simd<T, N, A> result = {};
+			const auto b_vec = detail::fill<ext::native_data_type_t<detail::x86_simd<T, N, A>>>(b);
+			detail::vectorize([b = b_vec](auto &res, auto a) { res = detail::blendv<T>(detail::min<T>(a, b), b, detail::isunord(a)); }, result, a);
+			return result;
+		}
 	}
 	/** Returns the positive difference between elements of vectors \a a and scalar \a b. Equivalent to `max(simd<T, Abi>{0}, a - b)`. */
-	template<std::floating_point T, std::size_t N, std::size_t A>
-	[[nodiscard]] DPM_FORCEINLINE detail::x86_simd<T, N, A> fdim(const detail::x86_simd<T, N, A> &a, T b) noexcept requires detail::x86_overload_any<T, N, A>
+	template<std::floating_point T, std::size_t N, std::size_t A> requires detail::x86_overload_any<T, N, A>
+	[[nodiscard]] constexpr DPM_FORCEINLINE detail::x86_simd<T, N, A> fdim(const detail::x86_simd<T, N, A> &a, T b) noexcept
 	{
-		detail::x86_simd<T, N, A> result = {};
-		const auto b_vec = detail::fill<ext::native_data_type_t<detail::x86_simd<T, N, A>>>(b);
-		detail::vectorize([b = b_vec]<typename V>(V &res, V a) { res = detail::max<T>(detail::setzero<V>(), detail::sub<T>(a, b)); }, result, a);
-		return result;
+		if (std::is_constant_evaluated())
+		{
+			const auto packed = static_cast<simd<T, simd_abi::ext::packed_buffer<N>>>(a);
+			return static_cast<detail::x86_simd<T, N, A>>(fdim(packed, b));
+		}
+		else
+		{
+			detail::x86_simd<T, N, A> result = {};
+			const auto b_vec = detail::fill<ext::native_data_type_t<detail::x86_simd<T, N, A>>>(b);
+			detail::vectorize([b = b_vec]<typename V>(V &res, V a) { res = detail::max<T>(detail::setzero<V>(), detail::sub<T>(a, b)); }, result, a);
+			return result;
+		}
 	}
 
 	/** Preforms linear interpolation or extrapolation between elements of vectors \a a and \a b using factor \a f */
-	template<std::floating_point T, std::size_t N, std::size_t A>
-	[[nodiscard]] DPM_FORCEINLINE detail::x86_simd<T, N, A> lerp(const detail::x86_simd<T, N, A> &a, const detail::x86_simd<T, N, A> &b, const detail::x86_simd<T, N, A> &f) noexcept requires detail::x86_overload_any<T, N, A>
+	template<std::floating_point T, std::size_t N, std::size_t A> requires detail::x86_overload_any<T, N, A>
+	[[nodiscard]] constexpr DPM_FORCEINLINE detail::x86_simd<T, N, A> lerp(const detail::x86_simd<T, N, A> &a, const detail::x86_simd<T, N, A> &b, const detail::x86_simd<T, N, A> &f) noexcept
 	{
-		detail::x86_simd<T, N, A> result = {};
-		detail::vectorize([](auto &res, auto a, auto b, auto f) { res = detail::fmadd(detail::sub<T>(b, a), f, a); }, result, a, b, f);
-		return result;
+		if (std::is_constant_evaluated())
+		{
+			const auto packed_a = static_cast<simd<T, simd_abi::ext::packed_buffer<N>>>(a);
+			const auto packed_b = static_cast<simd<T, simd_abi::ext::packed_buffer<N>>>(b);
+			const auto packed_f = static_cast<simd<T, simd_abi::ext::packed_buffer<N>>>(f);
+			return static_cast<detail::x86_simd<T, N, A>>(fmax(packed_a, packed_b, packed_f));
+		}
+		else
+		{
+			detail::x86_simd<T, N, A> result = {};
+			detail::vectorize([](auto &res, auto a, auto b, auto f) { res = detail::fmadd(detail::sub<T>(b, a), f, a); }, result, a, b, f);
+			return result;
+		}
 	}
 	/** Preforms linear interpolation or extrapolation between elements of vectors \a a and \a b using factor \a f */
-	template<std::floating_point T, std::size_t N, std::size_t A>
-	[[nodiscard]] DPM_FORCEINLINE detail::x86_simd<T, N, A> lerp(const detail::x86_simd<T, N, A> &a, const detail::x86_simd<T, N, A> &b, T f) noexcept requires detail::x86_overload_any<T, N, A>
+	template<std::floating_point T, std::size_t N, std::size_t A> requires detail::x86_overload_any<T, N, A>
+	[[nodiscard]] constexpr DPM_FORCEINLINE detail::x86_simd<T, N, A> lerp(const detail::x86_simd<T, N, A> &a, const detail::x86_simd<T, N, A> &b, T f) noexcept
 	{
-		detail::x86_simd<T, N, A> result = {};
-		const auto f_vec = detail::fill<ext::native_data_type_t<detail::x86_simd<T, N, A>>>(f);
-		detail::vectorize([f = f_vec](auto &res, auto a, auto b) { res = detail::fmadd(detail::sub<T>(b, a), f, a); }, result, a, b);
-		return result;
+		if (std::is_constant_evaluated())
+		{
+			const auto packed_a = static_cast<simd<T, simd_abi::ext::packed_buffer<N>>>(a);
+			const auto packed_b = static_cast<simd<T, simd_abi::ext::packed_buffer<N>>>(b);
+			return static_cast<detail::x86_simd<T, N, A>>(fmax(packed_a, packed_b, f));
+		}
+		else
+		{
+			detail::x86_simd<T, N, A> result = {};
+			const auto f_vec = detail::fill<ext::native_data_type_t<detail::x86_simd<T, N, A>>>(f);
+			detail::vectorize([f = f_vec](auto &res, auto a, auto b) { res = detail::fmadd(detail::sub<T>(b, a), f, a); }, result, a, b);
+			return result;
+		}
 	}
 
 	DPM_DECLARE_EXT_NAMESPACE
 	{
 		/** Returns a result of fused multiply-add operation on elements of \a a, \a b, and \a c. Equivalent to `a * b + c`. */
-		template<std::floating_point T, std::size_t N, std::size_t A>
-		[[nodiscard]] DPM_FORCEINLINE detail::x86_simd<T, N, A> fmadd(const detail::x86_simd<T, N, A> &a, const detail::x86_simd<T, N, A> &b, const detail::x86_simd<T, N, A> &c) noexcept requires detail::x86_overload_any<T, N, A>
+		template<std::floating_point T, std::size_t N, std::size_t A> requires detail::x86_overload_any<T, N, A>
+		[[nodiscard]] constexpr DPM_FORCEINLINE detail::x86_simd<T, N, A> fmadd(const detail::x86_simd<T, N, A> &a, const detail::x86_simd<T, N, A> &b, const detail::x86_simd<T, N, A> &c) noexcept
 		{
-			detail::x86_simd<T, N, A> result = {};
-			detail::vectorize([](auto &res, auto a, auto b, auto c) { res = detail::fmadd(a, b, c); }, result, a, b, c);
-			return result;
+			if (std::is_constant_evaluated())
+			{
+				const auto packed_a = static_cast<simd<T, simd_abi::ext::packed_buffer<N>>>(a);
+				const auto packed_b = static_cast<simd<T, simd_abi::ext::packed_buffer<N>>>(b);
+				const auto packed_c = static_cast<simd<T, simd_abi::ext::packed_buffer<N>>>(c);
+				return static_cast<detail::x86_simd<T, N, A>>(fmadd(packed_a, packed_b, packed_c));
+			}
+			else
+			{
+				detail::x86_simd<T, N, A> result = {};
+				detail::vectorize([](auto &res, auto a, auto b, auto c) { res = detail::fmadd(a, b, c); }, result, a, b, c);
+				return result;
+			}
 		}
 		/** Returns a result of fused multiply-sub operation on elements of \a a, \a b, and \a c. Equivalent to `a * b - c`. */
-		template<std::floating_point T, std::size_t N, std::size_t A>
-		[[nodiscard]] DPM_FORCEINLINE detail::x86_simd<T, N, A> fmsub(const detail::x86_simd<T, N, A> &a, const detail::x86_simd<T, N, A> &b, const detail::x86_simd<T, N, A> &c) noexcept requires detail::x86_overload_any<T, N, A>
+		template<std::floating_point T, std::size_t N, std::size_t A> requires detail::x86_overload_any<T, N, A>
+		[[nodiscard]] constexpr DPM_FORCEINLINE detail::x86_simd<T, N, A> fmsub(const detail::x86_simd<T, N, A> &a, const detail::x86_simd<T, N, A> &b, const detail::x86_simd<T, N, A> &c) noexcept
 		{
-			detail::x86_simd<T, N, A> result = {};
-			detail::vectorize([](auto &res, auto a, auto b, auto c) { res = detail::fmsub(a, b, c); }, result, a, b, c);
-			return result;
+			if (std::is_constant_evaluated())
+			{
+				const auto packed_a = static_cast<simd<T, simd_abi::ext::packed_buffer<N>>>(a);
+				const auto packed_b = static_cast<simd<T, simd_abi::ext::packed_buffer<N>>>(b);
+				const auto packed_c = static_cast<simd<T, simd_abi::ext::packed_buffer<N>>>(c);
+				return static_cast<detail::x86_simd<T, N, A>>(fmsub(packed_a, packed_b, packed_c));
+			}
+			else
+			{
+				detail::x86_simd<T, N, A> result = {};
+				detail::vectorize([](auto &res, auto a, auto b, auto c) { res = detail::fmsub(a, b, c); }, result, a, b, c);
+				return result;
+			}
 		}
 		/** Returns a result of fused negate-multiply-add operation on elements of \a a, \a b, and \a c. Equivalent to `-(a * b) + c`. */
-		template<std::floating_point T, std::size_t N, std::size_t A>
-		[[nodiscard]] DPM_FORCEINLINE detail::x86_simd<T, N, A> fnmadd(const detail::x86_simd<T, N, A> &a, const detail::x86_simd<T, N, A> &b, const detail::x86_simd<T, N, A> &c) noexcept requires detail::x86_overload_any<T, N, A>
+		template<std::floating_point T, std::size_t N, std::size_t A> requires detail::x86_overload_any<T, N, A>
+		[[nodiscard]] constexpr DPM_FORCEINLINE detail::x86_simd<T, N, A> fnmadd(const detail::x86_simd<T, N, A> &a, const detail::x86_simd<T, N, A> &b, const detail::x86_simd<T, N, A> &c) noexcept
 		{
-			detail::x86_simd<T, N, A> result = {};
-			detail::vectorize([](auto &res, auto a, auto b, auto c) { res = detail::fnmadd(a, b, c); }, result, a, b, c);
-			return result;
+			if (std::is_constant_evaluated())
+			{
+				const auto packed_a = static_cast<simd<T, simd_abi::ext::packed_buffer<N>>>(a);
+				const auto packed_b = static_cast<simd<T, simd_abi::ext::packed_buffer<N>>>(b);
+				const auto packed_c = static_cast<simd<T, simd_abi::ext::packed_buffer<N>>>(c);
+				return static_cast<detail::x86_simd<T, N, A>>(fnmadd(packed_a, packed_b, packed_c));
+			}
+			else
+			{
+				detail::x86_simd<T, N, A> result = {};
+				detail::vectorize([](auto &res, auto a, auto b, auto c) { res = detail::fnmadd(a, b, c); }, result, a, b, c);
+				return result;
+			}
 		}
 		/** Returns a result of fused negate-multiply-sub operation on elements of \a a, \a b, and \a c. Equivalent to `-(a * b) - c`. */
-		template<std::floating_point T, std::size_t N, std::size_t A>
-		[[nodiscard]] DPM_FORCEINLINE detail::x86_simd<T, N, A> fnmsub(const detail::x86_simd<T, N, A> &a, const detail::x86_simd<T, N, A> &b, const detail::x86_simd<T, N, A> &c) noexcept requires detail::x86_overload_any<T, N, A>
+		template<std::floating_point T, std::size_t N, std::size_t A> requires detail::x86_overload_any<T, N, A>
+		[[nodiscard]] constexpr DPM_FORCEINLINE detail::x86_simd<T, N, A> fnmsub(const detail::x86_simd<T, N, A> &a, const detail::x86_simd<T, N, A> &b, const detail::x86_simd<T, N, A> &c) noexcept
 		{
-			detail::x86_simd<T, N, A> result = {};
-			detail::vectorize([](auto &res, auto a, auto b, auto c) { res = detail::fnmsub(a, b, c); }, result, a, b, c);
-			return result;
+			if (std::is_constant_evaluated())
+			{
+				const auto packed_a = static_cast<simd<T, simd_abi::ext::packed_buffer<N>>>(a);
+				const auto packed_b = static_cast<simd<T, simd_abi::ext::packed_buffer<N>>>(b);
+				const auto packed_c = static_cast<simd<T, simd_abi::ext::packed_buffer<N>>>(c);
+				return static_cast<detail::x86_simd<T, N, A>>(fnmsub(packed_a, packed_b, packed_c));
+			}
+			else
+			{
+				detail::x86_simd<T, N, A> result = {};
+				detail::vectorize([](auto &res, auto a, auto b, auto c) { res = detail::fnmsub(a, b, c); }, result, a, b, c);
+				return result;
+			}
 		}
 	}
 
 	/** Returns a result of fused multiply-add operation on elements of \a a, \a b, and \a c. Equivalent to `a * b + c`. */
-	template<std::floating_point T, std::size_t N, std::size_t A>
-	[[nodiscard]] DPM_FORCEINLINE detail::x86_simd<T, N, A> fma(const detail::x86_simd<T, N, A> &a, const detail::x86_simd<T, N, A> &b, const detail::x86_simd<T, N, A> &c) noexcept requires detail::x86_overload_any<T, N, A>
-	{
-		return ext::fmadd(a, b, c);
-	}
+	template<std::floating_point T, std::size_t N, std::size_t A> requires detail::x86_overload_any<T, N, A>
+	[[nodiscard]] constexpr DPM_FORCEINLINE detail::x86_simd<T, N, A> fma(const detail::x86_simd<T, N, A> &a, const detail::x86_simd<T, N, A> &b, const detail::x86_simd<T, N, A> &c) noexcept { return ext::fmadd(a, b, c); }
 }
