@@ -20,7 +20,7 @@ static inline void test_trig() noexcept
 			std::numbers::pi_v<T> * 5, std::numbers::pi_v<T> / 5,
 			std::numbers::pi_v<T> * 10, std::numbers::pi_v<T> / 10,
 			std::numbers::pi_v<T> * 20, std::numbers::pi_v<T> / 20,
-			T{std::numeric_limits<T>::max()}, T{std::numeric_limits<T>::min()},
+			T{std::numeric_limits<T>::max()}, T{std::numeric_limits<T>::lowest()},
 			std::numeric_limits<T>::infinity(), -std::numeric_limits<T>::infinity(),
 			std::numeric_limits<T>::quiet_NaN(),
 	};

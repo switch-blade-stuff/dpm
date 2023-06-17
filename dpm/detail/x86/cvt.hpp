@@ -239,8 +239,8 @@ namespace dpm::detail
 		const auto b = _mm256_cvtepi32_ps(_mm256_srli_epi32(x, 1));
 		return _mm256_add_ps(_mm256_add_ps(b, b), a); /* (x >> 1) * 2 + x & 1 */
 #else
-		const auto l = cvt_f32_u32(_mm256_extractf128_si256(x, 0));
-		const auto h = cvt_f32_u32(_mm256_extractf128_si256(x, 1));
+		const auto l = cvt_u32_f32(_mm256_extractf128_si256(x, 0));
+		const auto h = cvt_u32_f32(_mm256_extractf128_si256(x, 1));
 		return _mm256_set_m128(h, l);
 #endif
 	}

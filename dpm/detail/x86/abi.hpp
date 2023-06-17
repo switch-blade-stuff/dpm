@@ -46,7 +46,7 @@ namespace dpm
 			using select_m256 = select_abi<T, 32>;
 
 			template<typename T, std::size_t N, std::size_t A, std::size_t MinWidth, std::size_t MaxWidth>
-			concept overload_default = has_vector<T> && (A == 0 && sizeof(T) * N > MinWidth && sizeof(T) * N <= MaxWidth);
+			concept overload_default = has_vector<T> && (A == 0 && N > MinWidth / sizeof(T) && N <= MaxWidth / sizeof(T));
 			template<typename T, std::size_t N, std::size_t A, std::size_t MinAlign, std::size_t MaxAlign>
 			concept overload_simd = has_vector<T> && (N > 1 && A >= MinAlign && A < MaxAlign);
 			template<typename T, typename Abi, std::size_t A>
