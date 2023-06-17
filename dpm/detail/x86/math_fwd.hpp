@@ -5,6 +5,7 @@
 #pragma once
 
 #include "../generic/math.hpp"
+#include "utility.hpp"
 
 namespace dpm::detail
 {

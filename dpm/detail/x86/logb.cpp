@@ -2,6 +2,8 @@
  * Created by switchblade on 2023-02-20.
  */
 
+#include <experimental/simd>
+
 #include "fmanip.hpp"
 
 #if defined(DPM_ARCH_X86) && defined(DPM_HAS_SSE2)
@@ -15,28 +17,28 @@ namespace dpm::detail
 	template<typename T, typename I, typename V, typename Vi = select_vector_t<I, sizeof(V)>>
 	[[nodiscard]] DPM_FORCEINLINE Vi eval_ilogb(V abs_x) noexcept
 	{
-		constexpr auto do_clz = [](Vi x) noexcept
-		{
-			/* Mask top bits to prevent incorrect rounding. */
-			x = bit_andnot(bit_shiftr<I, exp_bits<I>>(x), x);
-			/* log2(x) via floating-point conversion. */
-			x = bit_shiftr<I, mant_bits<I>>(std::bit_cast<Vi>(cvt<T, I>(x)));
-			/* Apply exponent bias to get log2(x) using unsigned saturation. */
-			constexpr I bias = std::same_as<T, double> ? 1086 : 158;
-			return subs<std::uint16_t>(fill<Vi>(bias), x);
-		};
 		const auto ix = std::bit_cast<Vi>(abs_x);
 		auto exp = bit_shiftr<I, mant_bits<I>>(ix);
 
 		/* POSIX requires denormal numbers to be treated as if they were normalized.
 		 * Shift denormal exponent by clz(ix) - (exp_bits + 1) */
 		const auto fix_denorm = cmp_eq<I>(exp, setzero<Vi>());
-		const auto norm_off = sub<I>(do_clz(ix), fill<Vi>(exp_bits<I> + 1));
+
+		/* Mask top bits to prevent incorrect rounding. */
+		auto x_clz = bit_andnot(bit_shiftr<I, exp_bits<I>>(ix), ix);
+		/* log2(x) via floating-point conversion. */
+		x_clz = bit_shiftr<I, mant_bits<I>>(std::bit_cast<Vi>(cvt<T, I>(x_clz)));
+		/* Apply exponent bias to get log2(x) using unsigned saturation. */
+		constexpr I bias = std::same_as<T, double> ? 1086 : 158;
+		x_clz = subs<std::uint16_t>(fill<Vi>(bias), x_clz);
+
+		const auto norm_off = sub<I>(x_clz, fill<Vi>(exp_bits<I> + 1));
 		exp = sub<I>(exp, bit_and(norm_off, fix_denorm));
 
 		/* Apply exponent offset. */
 		return sub<I>(exp, fill<Vi>(exp_off<I>));
 	}
+
 	template<typename T, typename V, typename I = int_of_size_t<sizeof(T)>>
 	[[nodiscard]] DPM_FORCEINLINE auto impl_ilogb(V x) noexcept
 	{

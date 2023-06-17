@@ -82,8 +82,8 @@ namespace dpm
 		DPM_FORCEINLINE void ilogb(__m128 x, __m128i *out, std::size_t i) noexcept { out[i] = ilogb(x); }
 		DPM_FORCEINLINE void ilogb(__m128d x, __m128i *out, std::size_t i) noexcept
 		{
-			auto *out64 = reinterpret_cast<alias_t<double> *>(out);
-			out64[i] = _mm_cvtsd_f64(std::bit_cast<__m128d>(cvt_i64_i32(ilogb(x))));
+			auto *out64 = reinterpret_cast<alias_t<std::int64_t> *>(out);
+			_mm_storeu_si64(out64 + i, cvt_i64_i32(ilogb(x)));
 		}
 		DPM_FORCEINLINE void ilogb2(__m128d x0, __m128d x1, __m128i *out, std::size_t i) noexcept
 		{
