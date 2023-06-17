@@ -10,7 +10,7 @@ static inline void test_hypot() noexcept
 	constexpr auto simd_size = dpm::simd_size_v<T, Abi>;
 	const auto a_data = std::array<T, 10 + simd_size>{
 			T{-0.0}, T{-0.0}, T{0.0}, T{0.0}, T{1.0}, T{2.0},
-			std::numeric_limits<T>::max(), std::numeric_limits<T>::min(),
+			std::numeric_limits<T>::max(), std::numeric_limits<T>::lowest(),
 			std::numeric_limits<T>::infinity(), std::numeric_limits<T>::quiet_NaN()
 	};
 	const auto b_data = std::array<T, 10 + simd_size>{
