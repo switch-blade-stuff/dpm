@@ -155,9 +155,12 @@ namespace dpm::detail
 		return result;
 	}
 #endif
+#elif defined(__GNUC__) && !defined(__clang__) /* CLang does not support constexpr bit_cast or element access with vector types yet. */
+	template<typename T>
+	static constexpr T native_cast(auto &&value) noexcept { return std::bit_cast<T>(value); }
 #else
-	template<typename V>
-	static constexpr V native_cast(auto &&value) noexcept { return std::bit_cast<V>(value); }
+	template<typename T>
+	static inline T native_cast(auto &&value) noexcept { return std::bit_cast<T>(value); }
 #endif
 }
 
