@@ -4,10 +4,6 @@
 
 #include "common.hpp"
 
-#include <cstdio>
-
-static_assert(std::same_as<dpm::ext::native_data_type_t<dpm::simd<double, dpm::simd_abi::ext::aligned_vector<2, 0>>>, __m128d>);
-
 template<typename T, typename Abi>
 static inline void test_nextafter() noexcept
 {

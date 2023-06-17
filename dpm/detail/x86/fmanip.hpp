@@ -7,8 +7,6 @@
 #include "../fconst.hpp"
 #include "mbase.hpp"
 
-#include <cstdio>
-
 namespace dpm
 {
 	namespace detail
@@ -89,7 +87,6 @@ namespace dpm
 		}
 		DPM_FORCEINLINE void ilogb2(__m128d x0, __m128d x1, __m128i *out, std::size_t i) noexcept
 		{
-			fprintf(stderr, "ilogb2(__m128d)");
 			const auto i0 = ilogb(x0);
 			const auto i1 = ilogb(x1);
 			out[i / 2] = cvt_i64x2_i32(i0, i1);
