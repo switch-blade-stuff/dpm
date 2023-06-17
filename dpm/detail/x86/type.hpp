@@ -2372,6 +2372,7 @@ namespace dpm
 			const auto b_vec = detail::fill<ext::native_data_type_t<detail::x86_simd<T, N, A>>>(b);
 			detail::vectorize([b = b_vec](auto &res, auto a) { res = detail::max<T>(a, b); }, result, a);
 			return result;
+		}
 	}
 	/** @copydoc minmax */
 	template<std::integral T, std::size_t N, std::size_t A> requires(detail::x86_overload_any<T, N, A> && sizeof(T) < 8)

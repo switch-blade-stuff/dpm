@@ -399,10 +399,12 @@ namespace dpm::detail
 	template<integral_of_size<1> T, std::size_t I, std::size_t... Is>
 	[[nodiscard]] DPM_FORCEINLINE __m128i shuffle(std::index_sequence<I, Is...>, const __m128i *x) noexcept requires(!sequence_shuffle<T, __m128i, I, Is...>)
 	{
+		__m128i result;
 		if constexpr (!((I / 16 == Is / 16) && ...))
-			return shuffle_elements(reverse_sequence_t<I, Is...>{}, reinterpret_cast<alias_t<std::int8_t> *>(&result), reinterpret_cast<const alias_t<std::int8_t> *>(x));
+			shuffle_elements(reverse_sequence_t<I, Is...>{}, reinterpret_cast<alias_t<std::int8_t> *>(&result), reinterpret_cast<const alias_t<std::int8_t> *>(x));
 		else
-			return _mm_shuffle_epi8(x[I / 16], _mm_set_epi8(I % 16, (Is % 16)...));
+			result = _mm_shuffle_epi8(x[I / 16], _mm_set_epi8(I % 16, (Is % 16)...));
+		return result;
 	}
 	template<integral_of_size<2> T, std::size_t I, std::size_t... Is>
 	[[nodiscard]] DPM_FORCEINLINE __m128i shuffle(std::index_sequence<I, Is...>, const __m128i *x) noexcept requires(!sequence_shuffle<T, __m128i, I, Is...>)

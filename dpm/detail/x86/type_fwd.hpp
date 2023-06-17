@@ -157,7 +157,7 @@ namespace dpm::detail
 #endif
 #else
 	template<typename V>
-	static constexpr V native_cast(auto &&value) noexcept { return std::bit_cast<V>(buff); }
+	static constexpr V native_cast(auto &&value) noexcept { return std::bit_cast<V>(value); }
 #endif
 }
 
