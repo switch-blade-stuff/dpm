@@ -305,8 +305,8 @@ namespace dpm
 			const auto x_data = ext::to_native_data(x);
 
 			std::size_t i = 0;
-			constexpr auto native_size = ext::native_data_size_v < detail::x86_simd < T, N, A>>;
-			if constexpr (sizeof(T) > sizeof(int) && ext::native_data_size_v < detail::x86_simd < int, N, A >> < native_size)
+			constexpr auto native_size = ext::native_data_size_v<detail::x86_simd<T, N, A>>;
+			if constexpr (sizeof(T) > sizeof(int) && ext::native_data_size_v<detail::x86_simd<int, N, A>> < native_size)
 				for (; i + 1 < native_size; i += 2) detail::ilogb2(x_data[i], x_data[i + 1], result_data.data(), i);
 			for (; i < native_size; ++i) detail::ilogb(x_data[i], result_data.data(), i);
 

@@ -114,13 +114,6 @@ DPM provides the following utilities and extensions to the standard API:
     * `std::span to_native_data(const simd<T, Abi> &)`
     * `std::span to_native_data(simd_mask<T, Abi> &)`
     * `std::span to_native_data(const simd_mask<T, Abi> &)`
-* Blend functions
-    * `simd<T, Abi> blend(const simd<T, Abi> &, const const_where_expression<M, simd<T, Abi>> &)`
-    * `simd<T, Abi> blend(const simd<T, Abi> &, const simd<T, Abi> &, const simd_mask<T, Abi> &)`
-    * `simd_mask<T, Abi> blend(const simd_mask<T, Abi> &, const const_where_expression<M, simd_mask<T, Abi>> &)`
-    * `simd_mask<T, Abi> blend(const simd_mask<T, Abi> &, const simd_mask<T, Abi> &, const simd_mask<T, Abi> &)`
-    * `V blend(const V &, const V &, /* bool-wrapper */)`
-    * `V blend(const V &, const const_where_expression &)`
 * Shuffle functions
     * `simd<T, Abi> shuffle<Is...>(const simd<T, Abi> &)`
     * `simd_mask<T, Abi> shuffle<Is...>(const simd_mask<T, Abi> &)`
@@ -131,11 +124,6 @@ DPM provides the following utilities and extensions to the standard API:
     * `simd<T, Abi> asl<N>(const simd<T, Abi> &)`
     * `simd<T, Abi> asr<N>(const simd<T, Abi> &)`
 * Reductions
-    * `T hadd(const const_where_expression<M, simd<T, Abi>> &)`
-    * `T hmul(const const_where_expression<M, simd<T, Abi>> &)`
-    * `T hand(const const_where_expression<M, simd<T, Abi>> &)`
-    * `T hxor(const const_where_expression<M, simd<T, Abi>> &)`
-    * `T hor(const const_where_expression<M, simd<T, Abi>> &)`
     * `T hadd(const simd<T, Abi> &)`
     * `T hmul(const simd<T, Abi> &)`
     * `T hand(const simd<T, Abi> &)`
@@ -161,16 +149,6 @@ DPM provides the following utilities and extensions to the standard API:
     * `#define DPM_NEVER_INLINE`
     * `#define DPM_FORCEINLINE`
     * `#define DPM_ASSUME(cnd)`
-* Assertions & traps
-    * `#define DPM_ASSERT_MSG_LOC_ALWAYS(cnd, msg, src_loc)`
-    * `#define DPM_ASSERT_MSG_LOC(cnd, msg, src_loc)`
-    * `#define DPM_ASSERT_MSG_ALWAYS(cnd, msg)`
-    * `#define DPM_ASSERT_MSG(cnd, msg)`
-    * `#define DPM_ASSERT_ALWAYS(cnd)`
-    * `#define DPM_SOURCE_LOC_CURENT`
-    * `#define DPM_SOURCE_LOC_TYPE`
-    * `#define DPM_ASSERT(cnd)`
-    * `#define DPM_DEBUGTRAP()`
 * Other utilities
     * `class cpuid`
 
@@ -218,6 +196,5 @@ general-purpose use cases) on certain CPUs. See the following articles for detai
 ### SVML
 
 When `DPM_USE_SVML` is enabled, DPM will use mathematical functions provided by SVML for trigonometric, hyperbolic,
-exponential, nearest-integer and error functions instead of the built-in implementation. Inlined functions will still
-use the internal implementation. Note that if `DPM_USE_SVML` is enabled, NaN propagation and error handling options are ignored for
-affected functions, any error handling is left to SVML.
+exponential, nearest-integer and error functions instead of the built-in implementation. Note that if `DPM_USE_SVML`
+is enabled, NaN propagation and error handling options are ignored for affected functions, any error handling is left to SVML.

@@ -4,8 +4,6 @@
 
 #include "fmanip.hpp"
 
-#include <cstdio>
-
 #if defined(DPM_ARCH_X86) && defined(DPM_HAS_SSE2)
 
 namespace dpm::detail

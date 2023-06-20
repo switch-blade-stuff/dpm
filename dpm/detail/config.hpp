@@ -28,7 +28,9 @@
 #define DPM_API_IMPORT
 #endif
 
-#if defined(DPM_EXPORT)
+#if defined(DPM_HEADER_ONLY)
+#define DPM_API_PUBLIC inline
+#elif defined(DPM_EXPORT)
 #define DPM_API_PUBLIC DPM_API_EXPORT
 #else
 #define DPM_API_PUBLIC DPM_API_IMPORT

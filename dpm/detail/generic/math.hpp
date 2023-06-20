@@ -687,12 +687,11 @@ namespace dpm
 					out_cos[i] = cos;
 				}
 			else
-#else
+#endif
 			{
 				out_sin = sin(x);
 				out_cos = cos(x);
 			}
-#endif
 		}
 	}
 #pragma endregion

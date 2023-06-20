@@ -73,7 +73,7 @@ namespace dpm
 	template<typename T, typename Abi> requires(is_abi_tag_v<Abi> && std::is_default_constructible_v<simd<T, Abi>>)
 	struct simd_size<T, Abi> : std::integral_constant<std::size_t, simd<T, Abi>::size()> {};
 	template<typename T, typename Abi> requires(is_abi_tag_v<Abi> && !std::is_default_constructible_v<simd<T, Abi>>)
-	struct simd_size<T, Abi> : std::integral_constant<std::size_t, Abi::size> {};
+	struct simd_size<T, Abi> : std::integral_constant<std::size_t, Abi::size()> {};
 
 	template<typename T, typename Abi = typename simd_abi::detail::select_compatible<T>::type>
 	inline constexpr std::size_t simd_size_v = simd_size<T, Abi>::value;

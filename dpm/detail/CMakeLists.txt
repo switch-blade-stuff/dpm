@@ -6,8 +6,7 @@ list(APPEND DPM_HEADERS
         ${CMAKE_CURRENT_LIST_DIR}/arch.hpp
         ${CMAKE_CURRENT_LIST_DIR}/alias.hpp
         ${CMAKE_CURRENT_LIST_DIR}/config.hpp
-        ${CMAKE_CURRENT_LIST_DIR}/fconst.hpp
-        ${CMAKE_CURRENT_LIST_DIR}/where_expr.hpp)
+        ${CMAKE_CURRENT_LIST_DIR}/fconst.hpp)
 
 list(APPEND DPM_SOURCES
         ${CMAKE_CURRENT_LIST_DIR}/fconst.cpp

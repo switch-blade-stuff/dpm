@@ -4,6 +4,12 @@
 
 #include "common.hpp"
 
+auto foo() noexcept
+{
+	constexpr auto v = dpm::fixed_size_simd<float, 4>{2};
+	return dpm::ilogb(v);
+}
+
 template<typename T, typename Abi>
 static inline void test_nextafter() noexcept
 {

@@ -31,14 +31,14 @@ namespace dpm
 			 * `long double` is never subject to vectorization. */
 #ifdef DPM_HAS_SSE2
 			template<typename T, typename U = std::decay_t<T>>
-			concept has_vector = (std::integral<U> || std::same_as<U, float> || std::same_as<U, double>);
+			concept vectorizable = (std::integral<U> || std::same_as<U, float> || std::same_as<U, double>);
 #else
 			template<typename T, typename U = std::decay_t<T>>
-			concept has_vector = std::same_as<U, float>;
+			concept vectorizable = std::same_as<U, float>;
 #endif
 
 			/* Select an `aligned_vector` ABI tag that fits the specified x86 vector. */
-			template<has_vector T, std::size_t Bytes>
+			template<vectorizable T, std::size_t Bytes>
 			struct select_abi { using type = ext::aligned_vector<Bytes / sizeof(T), Bytes>; };
 			template<typename T>
 			using select_m128 = select_abi<T, 16>;
@@ -46,9 +46,9 @@ namespace dpm
 			using select_m256 = select_abi<T, 32>;
 
 			template<typename T, std::size_t N, std::size_t A, std::size_t MinWidth, std::size_t MaxWidth>
-			concept overload_default = has_vector<T> && (A == 0 && N > MinWidth / sizeof(T) && N <= MaxWidth / sizeof(T));
+			concept overload_default = vectorizable<T> && (A == 0 && N > MinWidth / sizeof(T) && N <= MaxWidth / sizeof(T));
 			template<typename T, std::size_t N, std::size_t A, std::size_t MinAlign, std::size_t MaxAlign>
-			concept overload_simd = has_vector<T> && (N > 1 && A >= MinAlign && A < MaxAlign);
+			concept overload_simd = vectorizable<T> && (N > 1 && A >= MinAlign && A < MaxAlign);
 			template<typename T, typename Abi, std::size_t A>
 			struct is_simd_abi : std::false_type {};
 
@@ -85,14 +85,14 @@ namespace dpm
 #endif
 
 			/* SSE is the least common denominator for most intel CPUs since 1999 (and is a requirement for all 64-bit CPUs). */
-			template<has_vector T>
+			template<vectorizable T>
 			struct select_compatible<T> : select_m128<T> {};
 
 #ifdef DPM_HAS_AVX
-			template<has_vector T>
+			template<vectorizable T>
 			struct select_native<T> : select_m256<T> {};
 #else
-			template<has_vector T>
+			template<vectorizable T>
 			struct select_native<T> : select_m128<T> {};
 #endif
 		}

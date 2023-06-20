@@ -20,7 +20,7 @@ static void test_mask_blend(std::index_sequence<Is...>) noexcept
 	const auto c = dpm::ext::blend(a, b, m);
 
 	for (std::size_t i = 0; i < a.size(); ++i)
-		TEST_ASSERT(c[i] == m_data[i]);
+		TEST_ASSERT(c[i] == _data[i]);
 }
 template<typename T, typename Abi>
 static void test_mask_blend() noexcept{test_mask_blend<T, Abi>(std::make_index_sequence<dpm::simd_size_v<T, Abi>>{});}

@@ -69,14 +69,14 @@ static inline void test_mask() noexcept
 		TEST_ASSERT(!dpm::some_of(b));
 		TEST_ASSERT(!dpm::some_of(c));
 
-		TEST_ASSERT(dpm::popcount(a) == mask_t::size() / 2);
-		TEST_ASSERT(dpm::popcount(b) == 0);
-		TEST_ASSERT(dpm::popcount(c) == mask_t::size());
+		TEST_ASSERT(dpm::reduce_count(a) == mask_t::size() / 2);
+		TEST_ASSERT(dpm::reduce_count(b) == 0);
+		TEST_ASSERT(dpm::reduce_count(c) == mask_t::size());
 
-		TEST_ASSERT(dpm::find_first_set(a) == 1);
-		TEST_ASSERT(dpm::find_first_set(c) == 0);
-		TEST_ASSERT(dpm::find_last_set(a) == mask_t::size() - 1);
-		TEST_ASSERT(dpm::find_last_set(c) == mask_t::size() - 1);
+		TEST_ASSERT(dpm::reduce_min_index(a) == 1);
+		TEST_ASSERT(dpm::reduce_min_index(c) == 0);
+		TEST_ASSERT(dpm::reduce_max_index(a) == mask_t::size() - 1);
+		TEST_ASSERT(dpm::reduce_max_index(c) == mask_t::size() - 1);
 
 		std::array<bool, mask_t::size()> tmp = {};
 
@@ -313,12 +313,12 @@ int main()
 	}
 	{
 		alignas(32) const std::array<std::int32_t, 8> a_data = {9, 10, 11, 12, 13, 14, 15};
-		alignas(32) const std::array<bool, 8> m_data = {true, false, false, true, true};
+		alignas(32) const std::array<bool, 8> _data = {true, false, false, true, true};
 
 		dpm::fixed_size_simd<std::int32_t, 8> a;
 		a.copy_from(a_data.data(), dpm::vector_aligned);
 		dpm::fixed_size_simd_mask<std::int32_t, 8> m;
-		m.copy_from(m_data.data(), dpm::vector_aligned);
+		m.copy_from(_data.data(), dpm::vector_aligned);
 
 		alignas(32) const std::array<std::int32_t, 8> b_data = {0, 10, 11, 3, 4, 14, 15};
 		alignas(32) const std::array<std::int32_t, 8> c_data = {0, 1, 2, 3, 4, 5, 6, 7};
