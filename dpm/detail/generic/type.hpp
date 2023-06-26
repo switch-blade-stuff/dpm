@@ -186,7 +186,7 @@ namespace dpm
 		using simd_type = simd<T, abi_type>;
 		using mask_type = simd_mask<T, abi_type>;
 
-		static constexpr std::integral_constant<std::size_t, abi_type::size()> size;
+		static constexpr auto size = std::integral_constant<std::size_t, abi_type::size>{};
 
 	private:
 		constexpr static auto alignment = std::max(abi_type::alignment == SIZE_MAX ? 0 : abi_type::alignment, alignof(bool[size()]));
@@ -487,7 +487,7 @@ namespace dpm
 		using reference = value_type &;
 		using mask_type = simd_mask<T, abi_type>;
 
-		static constexpr std::integral_constant<std::size_t, abi_type::size()> size;
+		static constexpr auto size = std::integral_constant<std::size_t, abi_type::size>{};
 
 	private:
 		constexpr static auto alignment = std::max(abi_type::alignment == SIZE_MAX ? 0 : abi_type::alignment, alignof(value_type[size()]));

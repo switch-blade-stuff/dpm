@@ -83,7 +83,7 @@ namespace dpm
 		using mask_type = simd_mask<T, abi_type>;
 
 		/** Returns width of the SIMD mask. */
-		static constexpr std::size_t size() noexcept { return abi_type::size(); }
+		static constexpr std::size_t size() noexcept { return abi_type::size; }
 
 	public:
 		constexpr simd_mask() noexcept = default;
@@ -579,8 +579,7 @@ namespace dpm
 		using abi_type = detail::avec<N, Align>;
 		using mask_type = simd_mask<T, abi_type>;
 
-		/** Returns width of the SIMD type. */
-		static constexpr std::size_t size() noexcept { return abi_type::size(); }
+		static constexpr auto size = std::integral_constant<std::size_t, abi_type::size>{};
 
 	public:
 		constexpr simd() noexcept = default;

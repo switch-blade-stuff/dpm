@@ -12,7 +12,11 @@ namespace dpm
 	{
 		/** @brief ABI tag used to create an SIMD type containing a single (scalar) element.
 		 * @example Given an instance of `simd<float, scalar>`, the resulting SIMD type will be a simple wrapper around a scalar `float`. */
-		struct scalar { constexpr static int size = 1; };
+		struct scalar
+		{
+			constexpr static std::size_t alignment = SIZE_MAX;
+			constexpr static std::size_t size = 1;
+		};
 
 		/** @brief ABI tag used to select an implementation-defined SIMD vector type guaranteeing ABI compatibility between
 		 * translation units built for the current target architecture. */
@@ -35,8 +39,8 @@ namespace dpm
 			template<std::size_t N, std::size_t Align = 0>
 			struct aligned_vector
 			{
-				constexpr static int alignment = Align;
-				constexpr static int size = N;
+				constexpr static std::size_t alignment = Align;
+				constexpr static std::size_t size = N;
 			};
 
 			/** @brief Extension ABI tag used to force use of a packed element-aligned buffer for SIMD storage.
